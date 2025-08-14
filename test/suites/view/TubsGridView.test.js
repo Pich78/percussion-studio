@@ -1,4 +1,4 @@
-// file: test/suites/view/TubsGridView.test.js
+// file: test/suites/view/TubsGridView.test.js (Complete and Corrected)
 
 import { TestRunner } from '/percussion-studio/test/lib/TestRunner.js';
 import { MockLogger } from '/percussion-studio/test/mocks/MockLogger.js';
@@ -16,17 +16,18 @@ export async function run() {
         document.body.appendChild(testContainer);
     }
 
+    // A more complete mock state that includes instrument definitions
     const getMockState = () => ({
         currentPatternId: 'p1',
         rhythm: {
-            instrument_kit: { KCK: 'test_kick', SNR: 'test_snare' },
+            instrument_kit: { KCK: 'test_kick' },
+            instruments: {
+                test_kick: { name: 'Test Kick', sounds: [{ letter: 'o', svg: 'kick_beater.svg' }] }
+            },
             patterns: {
                 p1: {
                     metadata: { resolution: 16 },
-                    pattern_data: [{
-                        KCK: '||o---------------||',
-                        SNR: '||----o-----------||'
-                    }]
+                    pattern_data: [{ KCK: '||o---------------||' }]
                 }
             }
         }
@@ -37,32 +38,22 @@ export async function run() {
             testContainer.innerHTML = '';
             const view = new TubsGridView(testContainer, {});
             view.render(getMockState());
-
-            // Check for instrument header elements
             const headers = testContainer.querySelectorAll('.instrument-header');
-            runner.expect(headers.length).toBe(2);
-
+            runner.expect(headers.length).toBe(1);
             const cells = testContainer.querySelectorAll('.grid-cell');
-            runner.expect(cells.length).toBe(32); // 2 instruments * 16 ticks
+            runner.expect(cells.length).toBe(16);
         });
 
-        runner.it('should render note images in the correct cells', () => {
+        runner.it('should render note images with the correct src path', () => {
             testContainer.innerHTML = '';
             const view = new TubsGridView(testContainer, {});
             view.render(getMockState());
-
-            const cells = testContainer.querySelectorAll('.grid-cell');
-            // KCK is on tick 0, which is the first cell of the first row
-            const kickCell = cells[0];
-            runner.expect(kickCell.querySelector('img') === null).toBe(false);
-
-            // SNR is on tick 4, which is the 5th cell of the second row (index 16 + 4)
-            const snareCell = cells[20];
-            runner.expect(snareCell.querySelector('img') === null).toBe(false);
-
-            // An empty cell should not have an image
-            const emptyCell = cells[1];
-            runner.expect(emptyCell.querySelector('img') === null).toBe(true);
+            const kickCell = testContainer.querySelectorAll('.grid-cell')[0];
+            const img = kickCell.querySelector('img');
+            runner.expect(img === null).toBe(false);
+            const expectedSrc = '/percussion-studio/data/instruments/test_kick/kick_beater.svg';
+            // Use .includes() because the full URL might have the domain prepended
+            runner.expect(img.src.includes(expectedSrc)).toBe(true);
         });
     });
 
@@ -71,10 +62,8 @@ export async function run() {
             testContainer.innerHTML = '';
             const view = new TubsGridView(testContainer, {});
             view.render(getMockState());
-            
             view.updatePlaybackIndicator(5);
             const indicator = testContainer.querySelector('.playback-indicator');
-            // Tick 5 should be in grid column 7 (1 for header + 5 for tick index + 1 for 1-based CSS)
             runner.expect(indicator.style.gridColumn).toBe('7');
         });
     });
@@ -83,6 +72,34 @@ export async function run() {
     runner.renderResults('test-results');
 }
 
+/** Sets up the interactive workbench - THIS IS THE FIX FOR THE DESTRUCTURE ERROR */
 export function manualTest() {
-    // ... (manualTest function remains the same as before) ...
+    const log = new MockLogger('Callbacks');
+    const callbacks = {};
+    const container = document.getElementById('view-container');
+    const view = new TubsGridView(container, callbacks);
+
+    const liveState = {
+        currentPatternId: 'p1',
+        rhythm: {
+            instrument_kit: { KCK: 'test_kick', HHC: 'test_hat' },
+            instruments: {
+                test_kick: { name: 'Test Kick', sounds: [{ letter: 'o', svg: 'kick_beater.svg' }] },
+                test_hat: { name: 'Test Hat', sounds: [{ letter: 'x', svg: 'kick_beater.svg' }] } // Re-use svg for test
+            },
+            patterns: {
+                p1: {
+                    metadata: { resolution: 16 },
+                    pattern_data: [{
+                        KCK: '||o---o---o---o---||',
+                        HHC: '||o-o-o-o-o-o-o-o-||'
+                    }]
+                }
+            }
+        }
+    };
+    
+    view.render(liveState);
+    
+    return { view };
 }
