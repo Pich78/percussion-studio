@@ -94,6 +94,74 @@ export async function run() {
             } finally { cleanup(); }
         });
     });
+
+    runner.describe('DAL Export Tests', () => {
+        runner.it('should call JSZip with the correct file structure', async () => {
+            const fileLogger = new MockLogger('zip.file');
+            
+            // 1. Create a mock of the JSZip library
+            const mockJSZip = class {
+                constructor() {
+                    this.folders = {};
+                }
+                folder(name) {
+                    // Return a mock folder object that also has a file method
+                    this.folders[name] = {
+                        file: (filename, content) => {
+                            fileLogger.log('file', { path: `${name}/${filename}`, content });
+                        },
+                        folder: this.folder // Support nested folders
+                    };
+                    return this.folders[name];
+                }
+                file(filename, content) {
+                    fileLogger.log('file', { path: filename, content });
+                }
+                async generateAsync() {
+                    return new Blob(); // Return a dummy blob
+                }
+            };
+
+            // 2. Temporarily replace the real JSZip with our mock
+            const originalJSZip = window.JSZip;
+            window.JSZip = mockJSZip;
+            
+            // 3. Define sample data to export
+            const mockRhythm = { global_bpm: 120 };
+            const mockPatterns = [{ id: 'patt1', data: { metadata: { name: 'Verse' } } }];
+            const mockInstruments = [{ id: 'kick1', data: { name: 'Acoustic Kick' } }];
+
+            try {
+                // 4. Run the function we want to test
+                await DataAccessLayer.exportRhythmAsZip(mockRhythm, mockPatterns, mockInstruments, 'my_song');
+                
+                // 5. Assert that our mock's methods were called correctly
+                runner.expect(fileLogger.callCount).toBe(3);
+                
+                // Check the rhythm file
+                fileLogger.wasCalledWith('file', {
+                    path: 'my_song.rthm.yaml',
+                    content: 'global_bpm: 120\n'
+                });
+
+                // Check the pattern file
+                fileLogger.wasCalledWith('file', {
+                    path: 'patterns/patt1.patt.yaml',
+                    content: 'metadata:\n  name: Verse\n'
+                });
+
+                // Check the instrument file
+                fileLogger.wasCalledWith('file', {
+                    path: 'instruments/kick1/kick1.inst.yaml',
+                    content: 'name: Acoustic Kick\n'
+                });
+
+            } finally {
+                // 6. Restore the real JSZip library
+                window.JSZip = originalJSZip;
+            }
+        });
+    });
     
     // --- Run Tests Sequentially and Render ---
     await runner.runAll();
