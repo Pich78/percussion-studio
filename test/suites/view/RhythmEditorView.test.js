@@ -1,4 +1,4 @@
-// file: test/suites/view/RhythmEditorView.test.js
+// file: test/suites/view/RhythmEditorView.test.js (Complete)
 
 import { TestRunner } from '/percussion-studio/test/lib/TestRunner.js';
 import { MockLogger } from '/percussion-studio/test/mocks/MockLogger.js';
@@ -38,6 +38,25 @@ export async function run() {
         });
     });
 
+    runner.describe('RhythmEditorView Callbacks', () => {
+        runner.it('should fire onFlowChange with the item removed when delete is clicked', () => {
+            testContainer.innerHTML = '';
+            const callbackLog = new MockLogger('Callbacks');
+            const callbacks = { onFlowChange: (newFlow) => callbackLog.log('onFlowChange', { newFlow }) };
+            const view = new RhythmEditorView(testContainer, callbacks);
+            
+            view.render(getMockState());
+            
+            // Find the delete button for the first item (verse) and click it
+            const firstDeleteButton = testContainer.querySelector('.flow-item[data-index="0"] .delete-btn');
+            firstDeleteButton.click();
+
+            // The new flow should only contain the 'chorus' item
+            const expectedNewFlow = [{ pattern: 'chorus', repetitions: 8 }];
+            callbackLog.wasCalledWith('onFlowChange', { newFlow: expectedNewFlow });
+        });
+    });
+
     await runner.runAll();
     runner.renderResults('test-results');
 }
@@ -46,15 +65,7 @@ export function manualTest() {
     const log = new MockLogger('Callbacks');
     MockLogger.setLogTarget('log-output');
     
-    const callbacks = {
-        // This callback expects the *new*, updated flow array
-        onFlowChange: (newFlow) => log.log('onFlowChange', { newFlow })
-    };
-
-    const container = document.getElementById('view-container');
-    const view = new RhythmEditorView(container, callbacks);
-
-    const mockState = {
+    let currentState = {
         rhythm: {
             playback_flow: [
                 { pattern: 'intro', repetitions: 1 },
@@ -64,6 +75,18 @@ export function manualTest() {
             ]
         }
     };
-    
-    view.render(mockState);
+
+    const container = document.getElementById('view-container');
+
+    const callbacks = {
+        onFlowChange: (newFlow) => {
+            log.log('onFlowChange', { newFlow });
+            // In a real app, this would trigger a re-render. We simulate it here.
+            currentState.rhythm.playback_flow = newFlow;
+            view.render(currentState);
+        }
+    };
+
+    const view = new RhythmEditorView(container, callbacks);
+    view.render(currentState);
 }
