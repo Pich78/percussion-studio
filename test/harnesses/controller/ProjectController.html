@@ -1,0 +1,34 @@
+<!-- file: test/harnesses/controller/ProjectController.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Harness: ProjectController</title>
+    <style>
+        body { font-family: sans-serif; display: flex; gap: 20px; padding: 20px; }
+        .main-panel { flex: 2; }
+        .log-panel { flex: 1; border: 1px solid #ccc; padding: 0 10px; background-color: #f9f9f9; }
+        #log-output { white-space: pre-wrap; word-wrap: break-word; font-family: monospace; font-size: 12px; }
+        button { font-size: 16px; padding: 10px 15px; cursor: pointer; }
+        h1, h2 { border-bottom: 1px solid #ccc; padding-bottom: 5px; }
+    </style>
+</head>
+<body>
+    <div class="main-panel">
+        <h1>Test Runner for <code>ProjectController.js</code></h1>
+        <button id="run-tests-btn">Run All Tests</button>
+        <div id="test-results"></div>
+    </div>
+    <div class="log-panel">
+        <h2>Execution Log</h2>
+        <pre id="log-output"></pre>
+    </div>
+    <script type="module">
+        import { run } from '/percussion-studio/test/suites/controller/ProjectController.test.js';
+        document.getElementById('run-tests-btn').addEventListener('click', () => {
+            document.getElementById('test-results').innerHTML = '<h2>Running tests...</h2>';
+            run();
+        });
+    </script>
+</body>
+</html>
