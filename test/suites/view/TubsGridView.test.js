@@ -1,4 +1,4 @@
-// file: test/suites/view/TubsGridView.test.js (Complete and Final)
+// file: test/suites/view/TubsGridView.test.js (Complete, Final Version)
 
 import { TestRunner } from '/percussion-studio/test/lib/TestRunner.js';
 import { MockLogger } from '/percussion-studio/test/mocks/MockLogger.js';
@@ -51,12 +51,15 @@ export async function run() {
             
             view.updatePlaybackIndicator(8); // Move to halfway point (tick 8 of 16)
             const indicator = testContainer.querySelector('.playback-indicator');
-
-            // CRITICAL FIX: Robustly check for the key parts of the calculation
-            // This is not vulnerable to browser reordering "calc(a + b)" into "calc(b + a)"
             const style = indicator.style.left;
-            runner.expect(style.includes('80px')).toBe(true);
-            runner.expect(style.includes('* 0.5')).toBe(true); // 8 / 16 = 0.5
+
+            // CRITICAL FIX: Normalize the style string by removing all whitespace
+            // This makes the test robust against browser formatting differences.
+            const normalizedStyle = style.replace(/\s/g, '');
+            
+            // Now check for the essential parts of the calculation
+            const expected = 'calc(80px+(100%-80px)*0.5)';
+            runner.expect(normalizedStyle).toBe(expected);
         });
     });
 

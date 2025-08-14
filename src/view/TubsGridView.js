@@ -1,4 +1,4 @@
-// file: src/view/TubsGridView.js (Complete and Final)
+// file: src/view/TubsGridView.js (Complete, Final Version)
 
 export class TubsGridView {
     constructor(container, callbacks) {
@@ -62,7 +62,6 @@ export class TubsGridView {
         const resolution = pattern.metadata.resolution || 16;
         const multiplier = tick / resolution;
 
-        // CRITICAL FIX: The position is the 80px header PLUS a fraction of the REMAINING space.
         this.indicator.style.left = `calc(80px + (100% - 80px) * ${multiplier})`;
         this.indicator.style.width = `calc((100% - 80px) / ${resolution})`;
     }
