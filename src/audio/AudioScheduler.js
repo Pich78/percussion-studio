@@ -10,6 +10,7 @@ export class AudioScheduler {
         this.isPlaying = false;
 
         this.currentTick = 0;
+        this.currentBeat = 0; // More efficient beat tracking
         this.tickMap = [];
 
         this.nextNoteTime = 0.0;
@@ -50,9 +51,7 @@ export class AudioScheduler {
                             const noteString = measureData[instrumentSymbol].replace(/\|/g, '');
                             if (noteString[t] && noteString[t] !== '-') {
                                 const soundId = this.rhythm.instrument_kit[instrumentSymbol];
-                                if (soundId) {
-                                    instrumentsToPlay.push(soundId);
-                                }
+                                if (soundId) { instrumentsToPlay.push(soundId); }
                             }
                         }
                         this.tickMap.push({ instrumentsToPlay, secondsPerTick, isBeat: isBeat(t) });
@@ -84,6 +83,7 @@ export class AudioScheduler {
 
     resetPosition() {
         this.currentTick = 0;
+        this.currentBeat = 0;
     }
 
     scheduler() {
@@ -111,9 +111,8 @@ export class AudioScheduler {
         const tickData = this.tickMap[this.currentTick];
 
         if (tickData.isBeat) {
-            const totalBeats = this.tickMap.filter(t => t.isBeat).length;
-            const currentBeatNumber = this.tickMap.slice(0, this.currentTick + 1).filter(t => t.isBeat).length;
-            this.onUpdateCallback(currentBeatNumber);
+            this.currentBeat++;
+            this.onUpdateCallback(this.currentBeat);
         }
 
         this.nextNoteTime += tickData.secondsPerTick;
@@ -122,6 +121,7 @@ export class AudioScheduler {
         if (this.currentTick >= this.tickMap.length) {
             if (this.loop) {
                 this.currentTick = 0;
+                this.currentBeat = 0;
             } else {
                 this.onPlaybackEndedCallback();
                 this.stop();
