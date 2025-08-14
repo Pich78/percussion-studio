@@ -23,12 +23,7 @@ export async function run() {
             instruments: {
                 test_kick: { name: 'Test Kick', sounds: [{ letter: 'o', svg: 'kick_beater.svg' }] }
             },
-            patterns: {
-                p1: {
-                    metadata: { resolution: 16 },
-                    pattern_data: [{ KCK: '||o---------------||' }]
-                }
-            }
+            patterns: { p1: { metadata: { resolution: 16 }, pattern_data: [{ KCK: '||o---------------||' }] } }
         }
     });
 
@@ -46,9 +41,7 @@ export async function run() {
             const view = new TubsGridView(testContainer, {});
             view.render(getMockState());
             const img = testContainer.querySelector('img');
-            runner.expect(img === null).toBe(false);
-            const expectedSrc = '/percussion-studio/data/instruments/test_kick/kick_beater.svg';
-            runner.expect(img.src.includes(expectedSrc)).toBe(true);
+            runner.expect(img.src.includes('/percussion-studio/data/instruments/test_kick/kick_beater.svg')).toBe(true);
         });
     });
 
@@ -69,6 +62,7 @@ export async function run() {
 
 export function manualTest() {
     const log = new MockLogger('Callbacks');
+    MockLogger.setLogTarget('log-output'); // Ensure manual test logs are captured
     const callbacks = {};
     const container = document.getElementById('view-container');
     const view = new TubsGridView(container, callbacks);
@@ -79,23 +73,17 @@ export function manualTest() {
             instrument_kit: { KCK: 'test_kick', HHC: 'test_kick' },
             instruments: {
                 test_kick: { name: 'Test Kick', sounds: [
-                    { letter: 'o', svg: 'kick_beater.svg' },
-                    { letter: 'x', svg: 'kick_beater.svg' }
+                    { letter: 'o', svg: 'kick_beater.svg' }, { letter: 'x', svg: 'kick_beater.svg' }
                 ]}
             },
             patterns: {
-                p1: {
-                    metadata: { resolution: 16 },
-                    pattern_data: [{
-                        KCK: '||o---o---o---o---||',
-                        HHC: '||x-x-x-x-x-x-x-x-||'
-                    }]
-                }
+                p1: { metadata: { resolution: 16 }, pattern_data: [{
+                        KCK: '||o---o---o---o---||', HHC: '||x-x-x-x-x-x-x-x-||'
+                }]}
             }
         }
     };
     
     view.render(liveState);
-    
     return { view };
 }

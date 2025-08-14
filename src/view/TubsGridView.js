@@ -14,7 +14,7 @@ export class TubsGridView {
         }
 
         const pattern = rhythm.patterns[currentPatternId];
-        const measure = pattern.pattern_data[0]; // Assuming first measure for now
+        const measure = pattern.pattern_data[0];
         const resolution = pattern.metadata.resolution || 16;
         const instruments = Object.keys(measure);
 
@@ -36,7 +36,7 @@ export class TubsGridView {
                     const soundDef = instrumentData?.sounds?.find(s => s.letter === noteChar);
                     const svgFile = soundDef?.svg;
                     
-                    if (instrumentId && svgFile) { // Only render if we have all info
+                    if (instrumentId && svgFile) {
                         const imgSrc = `/percussion-studio/data/instruments/${instrumentId}/${svgFile}`;
                         cellContent = `<img src="${imgSrc}" alt="${instrumentSymbol} note">`;
                     }
