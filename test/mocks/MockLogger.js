@@ -1,23 +1,14 @@
-// file: test/mocks/MockLogger.js
+// file: test/mocks/MockLogger.js (Complete and Corrected)
 
-/**
- * A mock object utility for logging and verifying method calls during tests.
- * Designed to be imported as an ES Module.
- */
 export class MockLogger {
     constructor(name = 'Mock') {
         this.name = name;
         this.calls = [];
     }
 
-    /**
-     * A generic method to be spied upon. Logs the call to the console and a target HTML element.
-     * @param {string} methodName The name of the method being called.
-     * @param {object} args The arguments passed to the method.
-     */
     log(methodName, args) {
-        const logMessage = `[${this.name}] Method Called: ${methodName} with args: ${JSON.stringify(args)}`;
-        this.calls.push({ methodName, args: JSON.parse(JSON.stringify(args)) }); // Deep copy args
+        const logMessage = `[${this.name}] Method Called: ${methodName}` + (args ? ` with args: ${JSON.stringify(args)}` : '');
+        this.calls.push({ methodName, args });
 
         console.log(logMessage);
 
@@ -32,32 +23,28 @@ export class MockLogger {
         return this.calls.length;
     }
 
+    /**
+     * Checks if a method was called with the expected arguments.
+     * This version handles the 'undefined' arguments case robustly.
+     */
     wasCalledWith(methodName, expectedArgs) {
-        const call = this.calls.find(c => c.methodName === methodName && JSON.stringify(c.args) === JSON.stringify(expectedArgs));
+        const call = this.calls.find(c => {
+            if (c.methodName !== methodName) return false;
+            // Robustly handle the case where no arguments are expected.
+            if (expectedArgs === undefined) {
+                return c.args === undefined;
+            }
+            return JSON.stringify(c.args) === JSON.stringify(expectedArgs);
+        });
+
         if (!call) {
             const actualCalls = this.calls.map(c => `${c.methodName}(${JSON.stringify(c.args)})`).join(', ') || 'None';
             throw new Error(`Expected method '${methodName}' to be called with ${JSON.stringify(expectedArgs)}, but it was not. Actual calls: [${actualCalls}]`);
         }
     }
 
-    clear() {
-        this.calls = [];
-    }
+    clear() { this.calls = []; }
     
-    /**
-     * Sets the HTML element where all mock instances will write their logs.
-     * @param {string} elementId The ID of the <pre> or <div> element.
-     */
-    static setLogTarget(elementId) {
-        MockLogger.logTarget = document.getElementById(elementId);
-    }
-
-    /**
-     * Clears the content of the log target element.
-     */
-    static clearLogs() {
-        if (MockLogger.logTarget) {
-            MockLogger.logTarget.textContent = '';
-        }
-    }
+    static setLogTarget(elementId) { MockLogger.logTarget = document.getElementById(elementId); }
+    static clearLogs() { if (MockLogger.logTarget) MockLogger.logTarget.textContent = ''; }
 }
