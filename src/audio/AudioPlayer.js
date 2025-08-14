@@ -9,13 +9,9 @@ export class AudioPlayer {
      * @param {AudioContext} [audioContext] Optional AudioContext for testing.
      */
     constructor(audioContext) {
-        // Use the provided AudioContext or create a new one.
         this.audioContext = audioContext || new (window.AudioContext || window.webkitAudioContext)();
-        
-        // This holds the decoded audio data, ready to be played.
         this.soundBuffers = new Map();
 
-        // Create the master volume control node.
         this.masterGain = this.audioContext.createGain();
         this.masterGain.connect(this.audioContext.destination);
     }
@@ -43,7 +39,9 @@ export class AudioPlayer {
      * @param {number} volume A value from 0 (silent) to 1 (full volume).
      */
     setMasterVolume(volume) {
-        // Implementation to come...
+        // This is the line that makes the test pass.
+        // `gain.value` is the property on a GainNode that controls its volume.
+        this.masterGain.gain.value = volume;
     }
 
     /**
