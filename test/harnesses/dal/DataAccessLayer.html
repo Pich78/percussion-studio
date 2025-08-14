@@ -16,30 +16,31 @@
 
 <!-- file: test/harnesses/dal/DataAccessLayer.html -->
 <!-- ... -->
-    <!-- The magic happens here: We load a single "runner" script as a module -->
     <script type="module">
-        // Import all the necessary components for the HARNESS
         import { DataAccessLayer } from '/percussion-studio/src/dal/DataAccessLayer.js';
         import { runDalTests }     from '/percussion-studio/test/suites/dal/DataAccessLayer.test.js';
         import { TestRunner }      from '/percussion-studio/test/lib/TestRunner.js';
-        // MockLogger is no longer needed here, the test suite imports it itself.
+        import { MockLogger }      from '/percussion-studio/test/mocks/MockLogger.js';
 
-        // Make ONLY the class being tested available globally for the test suite to access.
+        // Make the class under test available globally for the test suite.
         window.DataAccessLayer = DataAccessLayer;
 
         document.getElementById('run-tests-btn').addEventListener('click', async () => {
             const resultsContainer = document.getElementById('test-results');
             resultsContainer.innerHTML = '<h2>Running tests...</h2>';
             
-            // We still need to configure the static properties on MockLogger,
-            // so we must import it here too.
-            const { MockLogger } = await import('/percussion-studio/test/mocks/MockLogger.js');
             MockLogger.clearLogs();
             MockLogger.setLogTarget('log-output');
 
             const runner = new TestRunner();
-            // runDalTests is async now because our tests are async
-            await runDalTests(runner);
+            
+            // 1. This function now just queues up all the tests. It returns instantly.
+            runDalTests(runner);
+
+            // 2. This NEW line waits for all the queued tests to actually finish.
+            await runner.awaitForAll();
+
+            // 3. NOW we can safely render the results.
             runner.renderResults('test-results');
         });
     </script>
