@@ -38,7 +38,6 @@ export async function run() {
     });
 
     runner.describe('TubsGridView Playback Indicator', () => {
-        // CRITICAL FIX: The test must be async to wait for rendering.
         runner.it('should position the indicator at the correct computed pixel value', async () => {
             testContainer.innerHTML = '';
             const state = getMockState();
@@ -50,8 +49,8 @@ export async function run() {
 
             view.updatePlaybackIndicator(8);
             
-            // This is the key: wait for the next browser paint cycle.
-            await new Promise(resolve => setTimeout(resolve, 0));
+            // CRITICAL FIX: Wait for the browser's next paint cycle to ensure styles are computed.
+            await new Promise(resolve => requestAnimationFrame(resolve));
 
             const indicator = testContainer.querySelector('.playback-indicator');
             const computedStyle = window.getComputedStyle(indicator);
