@@ -1,24 +1,35 @@
-// file: src/view/AppMenuView.js
+// file: src/view/AppMenuView.js (Complete)
 
-/**
- * Renders the main application menu for high-level actions.
- */
 export class AppMenuView {
-    /**
-     * @param {HTMLElement} container The DOM element to render the menu into.
-     * @param {object} callbacks Functions for user actions, e.g., { onNewProject, onLoadProject, onSaveProject }.
-     */
     constructor(container, callbacks) {
         this.container = container;
         this.callbacks = callbacks || {};
     }
 
-    /**
-     * Renders the menu based on the application state.
-     * @param {object} state The relevant slice of the application state, e.g., { isDirty }.
-     */
     render(state) {
-        // Implementation to come...
-        this.container.innerHTML = ``;
+        const { isDirty } = state;
+        const saveDisabled = !isDirty;
+
+        const html = `
+            <div class="app-menu">
+                <button id="new-btn">New</button>
+                <button id="load-btn">Load</button>
+                <button id="save-btn" ${saveDisabled ? 'disabled' : ''}>Save</button>
+            </div>
+        `;
+        this.container.innerHTML = html;
+        this.attachEventListeners();
+    }
+
+    attachEventListeners() {
+        this.container.querySelector('#new-btn')?.addEventListener('click', () => {
+            this.callbacks.onNewProject?.();
+        });
+        this.container.querySelector('#load-btn')?.addEventListener('click', () => {
+            this.callbacks.onLoadProject?.();
+        });
+        this.container.querySelector('#save-btn')?.addEventListener('click', () => {
+            this.callbacks.onSaveProject?.();
+        });
     }
 }
