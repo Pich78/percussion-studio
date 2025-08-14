@@ -1,4 +1,4 @@
-// file: src/audio/AudioScheduler.js (Complete and Corrected)
+// file: src/audio/AudioScheduler.js (Complete)
 
 export class AudioScheduler {
     constructor(audioPlayer, onUpdateCallback, onPlaybackEndedCallback) {
@@ -10,7 +10,7 @@ export class AudioScheduler {
         this.isPlaying = false;
 
         this.currentTick = 0;
-        this.tickMap = []; // This will be a flat array of every tick in the rhythm
+        this.tickMap = [];
 
         this.nextNoteTime = 0.0;
         this.loop = false;
@@ -22,7 +22,7 @@ export class AudioScheduler {
 
     setRhythm(resolvedRhythmData) {
         this.rhythm = resolvedRhythmData;
-        this.tickMap = []; // Reset the map
+        this.tickMap = [];
 
         if (!this.rhythm?.playback_flow?.length || !this.rhythm.patterns) {
             this.resetPosition();
@@ -32,7 +32,6 @@ export class AudioScheduler {
         const bpm = this.rhythm.global_bpm || 120;
         const secondsPerBeat = 60.0 / bpm;
 
-        // Pre-compile the entire rhythm into a flat array of ticks
         this.rhythm.playback_flow.forEach(flowItem => {
             const pattern = this.rhythm.patterns[flowItem.pattern];
             if (!pattern) throw new Error(`Pattern '${flowItem.pattern}' not found in rhythm data.`);
@@ -41,8 +40,9 @@ export class AudioScheduler {
             for (let r = 0; r < repetitions; r++) {
                 pattern.pattern_data.forEach(measureData => {
                     const resolution = pattern.metadata.resolution || 16;
-                    const ticksPerBeat = resolution / 4.0; // Assuming 4/4 time
+                    const ticksPerBeat = resolution / 4.0;
                     const secondsPerTick = secondsPerBeat / ticksPerBeat;
+                    const isBeat = (tick) => (tick % ticksPerBeat) === 0;
 
                     for (let t = 0; t < resolution; t++) {
                         const instrumentsToPlay = [];
@@ -55,8 +55,7 @@ export class AudioScheduler {
                                 }
                             }
                         }
-                        const isBeat = (t % ticksPerBeat) === 0;
-                        this.tickMap.push({ instrumentsToPlay, secondsPerTick, isBeat });
+                        this.tickMap.push({ instrumentsToPlay, secondsPerTick, isBeat: isBeat(t) });
                     }
                 });
             }
@@ -107,13 +106,14 @@ export class AudioScheduler {
     }
 
     advanceTick() {
+        if (this.currentTick >= this.tickMap.length) return;
+        
         const tickData = this.tickMap[this.currentTick];
-        if (!tickData) return;
 
         if (tickData.isBeat) {
-            const beatsPerMeasure = 4; // Assuming 4/4
-            const currentBeatInSong = Math.floor(this.currentTick / (this.tickMap[this.currentTick].secondsPerTick * 120 / 60 * 4)) % (beatsPerMeasure * this.tickMap.length) + 1;
-            this.onUpdateCallback(currentBeatInSong);
+            const totalBeats = this.tickMap.filter(t => t.isBeat).length;
+            const currentBeatNumber = this.tickMap.slice(0, this.currentTick + 1).filter(t => t.isBeat).length;
+            this.onUpdateCallback(currentBeatNumber);
         }
 
         this.nextNoteTime += tickData.secondsPerTick;
