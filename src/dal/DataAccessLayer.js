@@ -34,13 +34,14 @@ class DataAccessLayer {
     }
 
     /**
-     * Creates a .zip file in memory from rhythm data and triggers a browser download.
+     * Creates a .zip file using a provided JSZip constructor.
      * @param {object} rhythmData The main rhythm object.
-     * @param {Array<object>} patternsData Array of pattern objects, each with an 'id' and 'data'.
-     * @param {Array<object>} instrumentsData Array of instrument objects, each with an 'id' and 'data'.
-     * @param {string} filename The base name for the zip file and the root rhythm file.
+     * @param {Array<object>} patternsData Array of pattern objects.
+     * @param {Array<object>} instrumentsData Array of instrument objects.
+     * @param {string} filename The base name for the zip file.
+     * @param {class} JSZip The constructor for the JSZip library (injected dependency).
      */
-    static async exportRhythmAsZip(rhythmData, patternsData, instrumentsData, filename) {
+    static async exportRhythmAsZip(rhythmData, patternsData, instrumentsData, filename, JSZip) {
         // This relies on the JSZip library being loaded globally or imported.
         const zip = new JSZip();
 

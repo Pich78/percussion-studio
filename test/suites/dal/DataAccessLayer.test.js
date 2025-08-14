@@ -121,20 +121,16 @@ export async function run() {
                     return new Blob(); // Return a dummy blob
                 }
             };
-
-            // 2. Temporarily replace the real JSZip with our mock
-            const originalJSZip = window.JSZip;
-            window.JSZip = mockJSZip;
             
-            // 3. Define sample data to export
+            // 2. Define sample data
             const mockRhythm = { global_bpm: 120 };
             const mockPatterns = [{ id: 'patt1', data: { metadata: { name: 'Verse' } } }];
             const mockInstruments = [{ id: 'kick1', data: { name: 'Acoustic Kick' } }];
 
             try {
-                // 4. Run the function we want to test
-                await DataAccessLayer.exportRhythmAsZip(mockRhythm, mockPatterns, mockInstruments, 'my_song');
-                
+                // 3. Run the function and INJECT our mock class as the last argument
+                await DataAccessLayer.exportRhythmAsZip(mockRhythm, mockPatterns, mockInstruments, 'my_song', mockJSZip);              
+
                 // 5. Assert that our mock's methods were called correctly
                 runner.expect(fileLogger.callCount).toBe(3);
                 
