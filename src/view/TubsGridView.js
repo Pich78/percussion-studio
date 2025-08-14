@@ -21,24 +21,20 @@ export class TubsGridView {
         const gridStyles = `grid-template-columns: 80px repeat(${resolution}, 1fr);`;
         let gridHtml = `<div class="grid" style="${gridStyles}">`;
 
-        // Add the indicator. It will span all rows by default in the CSS.
+        // The indicator is a direct child of the grid. CSS will handle its spanning.
         gridHtml += `<div class="playback-indicator"></div>`;
         
-        // Loop through each instrument, keeping track of the current row index
-        instruments.forEach((instrumentSymbol, rowIndex) => {
-            const currentRow = rowIndex + 1; // CSS grid rows are 1-based
-
-            // Instrument Header, placed in the correct row
-            gridHtml += `<div class="instrument-header" style="grid-row: ${currentRow}; grid-column: 1;">${instrumentSymbol}</div>`;
+        // Loop through each instrument and add its parts directly to the grid
+        instruments.forEach(instrumentSymbol => {
+            // Instrument Header
+            gridHtml += `<div class="instrument-header">${instrumentSymbol}</div>`;
 
             const noteString = measure[instrumentSymbol].replace(/\|/g, '');
             
-            // Grid Cells for this instrument, each placed in the correct row and column
+            // Grid Cells for this instrument
             for (let i = 0; i < resolution; i++) {
-                const currentColumn = i + 2; // +1 for header, +1 for 1-based index
                 const noteChar = noteString[i];
                 let cellContent = '';
-
                 if (noteChar && noteChar !== '-') {
                     const instrumentId = rhythm.instrument_kit?.[instrumentSymbol];
                     const instrumentData = rhythm.instruments?.[instrumentId];
@@ -50,18 +46,19 @@ export class TubsGridView {
                         cellContent = `<img src="${imgSrc}" alt="${instrumentSymbol} note">`;
                     }
                 }
-                gridHtml += `<div class="grid-cell" style="grid-row: ${currentRow}; grid-column: ${currentColumn};">${cellContent}</div>`;
+                gridHtml += `<div class="grid-cell">${cellContent}</div>`;
             }
         });
 
         gridHtml += `</div>`;
         this.container.innerHTML = gridHtml;
         this.indicator = this.container.querySelector('.playback-indicator');
-        this.updatePlaybackIndicator(0);
+        this.updatePlaybackIndicator(0); // Set initial position
     }
 
     updatePlaybackIndicator(tick) {
         if (!this.indicator) return;
+        // The grid columns start at 1. The first column is the header (col 1), so ticks start at column 2.
         this.indicator.style.gridColumn = tick + 2;
     }
 }

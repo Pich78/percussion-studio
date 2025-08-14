@@ -6,43 +6,65 @@
     <title>Test Harness: TubsGridView</title>
     <style>
         body { font-family: sans-serif; display: flex; gap: 20px; padding: 20px; }
-        .test-panel, .live-panel, .log-panel { border: 1px solid #ccc; padding: 10px; }
         .test-panel { flex: 2; }
-        .live-panel { flex: 2; background-color: #f0f0f0; }
-        .log-panel { flex: 1; background-color: #f9f9f9; }
+        .live-panel { flex: 2; border: 1px solid #ccc; padding: 10px; background-color: #f0f0f0; }
+        .log-panel { flex: 1; border: 1px solid #ccc; padding: 0 10px; background-color: #f9f9f9; }
         #log-output { white-space: pre-wrap; word-wrap: break-word; font-family: monospace; font-size: 12px; }
         button { font-size: 14px; padding: 8px 12px; margin: 0 5px 10px 0; }
         h1, h2 { border-bottom: 1px solid #ccc; padding-bottom: 5px; }
 
+        /* --- Grid styling for the workbench --- */
         #view-container .grid {
             display: grid;
-            position: relative; /* This is the positioning context */
+            border: 1px solid #999;
+            position: relative; /* This is the positioning context for the indicator */
         }
-        #view-container .instrument-header,
-        #view-container .grid-cell {
-            border-bottom: 1px solid #999;
-            border-right: 1px solid #999;
-        }
-        #view-container .instrument-header { background-color: #ddd; padding: 5px; }
-        #view-container .grid-cell { min-height: 40px; }
+        #view-container .instrument-header { background-color: #ddd; padding: 5px; border-bottom: 1px solid #999; border-right: 1px solid #999; }
+        #view-container .grid-cell { border-bottom: 1px solid #999; border-right: 1px solid #999; min-height: 40px; }
         #view-container .grid-cell img { width: 100%; height: 100%; object-fit: contain; }
         
-        /* CRITICAL FIX: The indicator is absolutely positioned within the .grid container */
+        /* CRITICAL FIX: The indicator is now a grid item that spans all rows */
         #view-container .playback-indicator {
-            position: absolute;
-            top: 0;
-            bottom: 0; /* This makes it span the full height of the container */
+            grid-row: 1 / -1; /* This makes it span from the first to the last row line */
             width: 3px;
             background-color: rgba(255, 0, 0, 0.5);
-            pointer-events: none;
-            /* We no longer use grid-row for the indicator, letting position handle it */
+            pointer-events: none; /* Allows clicking through it */
         }
     </style>
 </head>
 <body>
-    <div class="test-panel"> /* ... */ </div>
-    <div class="live-panel"> /* ... */ </div>
-    <div class="log-panel"> /* ... */ </div>
-    <script type="module"> /* ... */ </script>
+    <div class="test-panel">
+        <h1>Automated Tests</h1>
+        <button id="run-tests-btn">Run All Tests</button>
+        <div id="test-results"></div>
+    </div>
+    <div class="live-panel">
+        <h1>Live View Workbench</h1>
+        <div id="view-container"></div>
+        <hr>
+        <h3>Simulate State Changes</h3>
+        <div>
+            <label for="playback-tick">Playback Tick:</label>
+            <input type="number" id="playback-tick" value="0" min="0" max="15">
+        </div>
+    </div>
+    <div class="log-panel">
+        <h2>Execution Log</h2>
+        <pre id="log-output"></pre>
+    </div>
+    <script type="module">
+        import { run, manualTest } from '/percussion-studio/test/suites/view/TubsGridView.test.js';
+        
+        document.getElementById('run-tests-btn').addEventListener('click', () => {
+            document.getElementById('test-results').innerHTML = '<h2>Running tests...</h2>';
+            run();
+        });
+
+        const { view } = manualTest();
+        document.getElementById('playback-tick').addEventListener('input', (e) => {
+            const tick = parseInt(e.target.value, 10);
+            view.updatePlaybackIndicator(tick);
+        });
+    </script>
 </body>
 </html>
