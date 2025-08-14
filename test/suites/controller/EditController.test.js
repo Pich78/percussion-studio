@@ -9,40 +9,51 @@ export async function run() {
     MockLogger.clearLogs();
     MockLogger.setLogTarget('log-output');
 
-    runner.describe('EditController - addNote', () => {
-        runner.it('should add a note to the correct position in a pattern string', () => {
+    runner.describe('EditController - Note Editing', () => {
+
+        runner.it('should add a note to the correct position', () => {
             const controller = new EditController();
-            
-            // 1. Define the initial state of our rhythm
+            const initialRhythm = {
+                patterns: {
+                    p1: {
+                        metadata: { resolution: 8 },
+                        pattern_data: [{ KCK: '||--------||' }]
+                    }
+                }
+            };
+            const position = { patternId: 'p1', measureIndex: 0, instrumentSymbol: 'KCK', tick: 2, note: 'o' };
+            const updatedRhythm = controller.addNote(initialRhythm, position);
+            runner.expect(updatedRhythm.patterns.p1.pattern_data[0].KCK).toBe('||--o-----||');
+        });
+
+        runner.it('should remove a note from the correct position', () => {
+            const controller = new EditController();
             const initialRhythm = {
                 patterns: {
                     p1: {
                         metadata: { resolution: 8 },
                         pattern_data: [{
-                            KCK: '||--------||'
+                            KCK: '||--o-----||'
                         }]
                     }
                 }
             };
             
-            // 2. Define the edit we want to make
             const position = {
                 patternId: 'p1',
                 measureIndex: 0,
                 instrumentSymbol: 'KCK',
-                tick: 2, // The 3rd position (0-indexed)
-                note: 'o'
+                tick: 2
             };
 
-            // 3. Call the method
-            const updatedRhythm = controller.addNote(initialRhythm, position);
+            const updatedRhythm = controller.removeNote(initialRhythm, position);
             
-            // 4. Define what the new state should look like
-            const expectedNoteString = '||--o-----||';
+            const expectedNoteString = '||--------||';
             const actualNoteString = updatedRhythm.patterns.p1.pattern_data[0].KCK;
 
             runner.expect(actualNoteString).toBe(expectedNoteString);
         });
+
     });
 
     await runner.runAll();
