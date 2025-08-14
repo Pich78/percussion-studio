@@ -4,13 +4,11 @@ import { TestRunner } from '/percussion-studio/test/lib/TestRunner.js';
 import { MockLogger } from '/percussion-studio/test/mocks/MockLogger.js';
 import { PlaybackControlsView } from '/percussion-studio/src/view/PlaybackControlsView.js';
 
-/** Runs automated tests */
 export async function run() {
     const runner = new TestRunner();
     MockLogger.clearLogs();
     MockLogger.setLogTarget('log-output');
     
-    // Create a sandbox div for tests to render into
     let testContainer = document.getElementById('test-sandbox');
     if (!testContainer) {
         testContainer = document.createElement('div');
@@ -19,19 +17,61 @@ export async function run() {
     }
 
     runner.describe('PlaybackControlsView Rendering', () => {
-        runner.it('should render the main playback buttons', () => {
-            testContainer.innerHTML = ''; // Clear sandbox
+        runner.it('should render correctly in a "stopped" state', () => {
+            testContainer.innerHTML = '';
             const view = new PlaybackControlsView(testContainer, {});
-            
-            view.render({ isPlaying: false, isLoading: false, masterVolume: 1.0 });
+            view.render({ isPlaying: false, isLoading: false, masterVolume: 1.0, loopPlayback: false });
 
-            // Check if the buttons exist in the DOM
-            const playBtn = testContainer.querySelector('#play-btn');
-            const stopBtn = testContainer.querySelector('#stop-btn');
-            
-            runner.expect(playBtn === null).toBe(false);
-            runner.expect(stopBtn === null).toBe(false);
+            const playBtn = testContainer.querySelector('#play-pause-btn');
             runner.expect(playBtn.textContent).toBe('Play');
+            runner.expect(playBtn.disabled).toBe(false);
+        });
+
+        runner.it('should render correctly in a "playing" state', () => {
+            testContainer.innerHTML = '';
+            const view = new PlaybackControlsView(testContainer, {});
+            view.render({ isPlaying: true, isLoading: false, masterVolume: 1.0, loopPlayback: false });
+
+            const playBtn = testContainer.querySelector('#play-pause-btn');
+            runner.expect(playBtn.textContent).toBe('Pause');
+        });
+
+        runner.it('should disable buttons when in a "loading" state', () => {
+            testContainer.innerHTML = '';
+            const view = new PlaybackControlsView(testContainer, {});
+            view.render({ isPlaying: false, isLoading: true, masterVolume: 1.0, loopPlayback: false });
+
+            const playBtn = testContainer.querySelector('#play-pause-btn');
+            const stopBtn = testContainer.querySelector('#stop-btn');
+            runner.expect(playBtn.disabled).toBe(true);
+            runner.expect(stopBtn.disabled).toBe(true);
+        });
+    });
+
+    runner.describe('PlaybackControlsView Callbacks', () => {
+        runner.it('should fire the onPlay callback when the play button is clicked', () => {
+            testContainer.innerHTML = '';
+            const callbackLog = new MockLogger('Callbacks');
+            const view = new PlaybackControlsView(testContainer, { onPlay: () => callbackLog.log('onPlay') });
+            
+            view.render({ isPlaying: false, isLoading: false });
+            testContainer.querySelector('#play-pause-btn').click();
+
+            callbackLog.wasCalledWith('onPlay', undefined);
+        });
+
+        runner.it('should fire the onMasterVolumeChange callback when slider is moved', () => {
+            testContainer.innerHTML = '';
+            const callbackLog = new MockLogger('Callbacks');
+            const view = new PlaybackControlsView(testContainer, { onMasterVolumeChange: (vol) => callbackLog.log('onMasterVolumeChange', {vol}) });
+
+            view.render({ masterVolume: 1.0 });
+            const slider = testContainer.querySelector('#master-volume');
+            slider.value = 0.5;
+            // We must manually create and dispatch the 'input' event in a test environment
+            slider.dispatchEvent(new Event('input', { bubbles: true }));
+
+            callbackLog.wasCalledWith('onMasterVolumeChange', {vol: 0.5});
         });
     });
 
@@ -39,15 +79,15 @@ export async function run() {
     runner.renderResults('test-results');
 }
 
-/** Sets up the interactive workbench */
 export function manualTest() {
     const log = new MockLogger('Callbacks');
+    MockLogger.setLogTarget('log-output'); // Also log manual interactions
     const callbacks = {
-        onPlay: () => log.log('onPlay'),
-        onPause: () => log.log('onPause'),
-        onStop: () => log.log('onStop'),
+        onPlay: () => { log.log('onPlay'); document.getElementById('is-playing-check').checked = true; rerender(); },
+        onPause: () => { log.log('onPause'); document.getElementById('is-playing-check').checked = false; rerender(); },
+        onStop: () => { log.log('onStop'); document.getElementById('is-playing-check').checked = false; rerender(); },
         onMasterVolumeChange: (vol) => log.log('onMasterVolumeChange', { vol }),
-        onToggleLoop: (enabled) => log.log('onToggleLoop', { enabled })
+        onToggleLoop: (enabled) => { log.log('onToggleLoop', { enabled }); rerender(); }
     };
 
     const container = document.getElementById('view-container');
@@ -56,10 +96,12 @@ export function manualTest() {
     const rerender = () => {
         const isPlaying = document.getElementById('is-playing-check').checked;
         const isLoading = document.getElementById('is-loading-check').checked;
-        view.render({ isPlaying, isLoading, masterVolume: 0.8 });
+        // Get current values from the form to maintain state
+        const volume = container.querySelector('#master-volume')?.value || 0.8;
+        const loop = container.querySelector('#loop-checkbox')?.checked || false;
+        
+        view.render({ isPlaying, isLoading, masterVolume: parseFloat(volume), loopPlayback: loop });
     };
     
     return { view, rerender };
-}```
-
-The test will fail because the `render` method is empty. Let's implement it. Ready to proceed?
+}
