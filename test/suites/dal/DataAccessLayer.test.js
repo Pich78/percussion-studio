@@ -1,10 +1,14 @@
-// file: test/suites/dal/DataAccessLayer.test.js (Comprehensive Version)
+// file: test/suites/dal/DataAccessLayer.test.js (Complete and Correct Final Version)
 
 import { TestRunner } from '/percussion-studio/test/lib/TestRunner.js';
 import { MockLogger } from '/percussion-studio/test/mocks/MockLogger.js';
 import { DataAccessLayer } from '/percussion-studio/src/dal/DataAccessLayer.js';
 import { dump as dumpYaml } from "https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.mjs";
 
+/**
+ * This is the main function that the HTML harness will call.
+ * It sets up and runs all tests for the DataAccessLayer.
+ */
 export async function run() {
     const runner = new TestRunner();
 
@@ -14,7 +18,7 @@ export async function run() {
     const originalFetch = window.fetch;
     const cleanup = () => { window.fetch = originalFetch; };
 
-    // --- Define Test Suites ---
+    // --- Define Test Suites (These will queue tests) ---
 
     runner.describe('DAL Unit Tests', () => {
         runner.it('should successfully parse valid mock YAML data', async () => {
@@ -96,66 +100,36 @@ export async function run() {
     });
 
     runner.describe('DAL Export Tests', () => {
-        runner.it('should call JSZip with the correct file structure', async () => {
+        runner.it('should call an injected JSZip mock with the correct file structure', async () => {
             const fileLogger = new MockLogger('zip.file');
             
-            // 1. Create a mock of the JSZip library
+            // 1. Create a local mock of the JSZip library. This is clean and self-contained.
             const mockJSZip = class {
-                constructor() {
-                    this.folders = {};
-                }
+                constructor() { this.folders = {}; }
                 folder(name) {
-                    // Return a mock folder object that also has a file method
                     this.folders[name] = {
-                        file: (filename, content) => {
-                            fileLogger.log('file', { path: `${name}/${filename}`, content });
-                        },
-                        folder: this.folder // Support nested folders
+                        file: (filename, content) => fileLogger.log('file', { path: `${name}/${filename}`, content }),
+                        folder: this.folder
                     };
                     return this.folders[name];
                 }
-                file(filename, content) {
-                    fileLogger.log('file', { path: filename, content });
-                }
-                async generateAsync() {
-                    return new Blob(); // Return a dummy blob
-                }
+                file(filename, content) { fileLogger.log('file', { path: filename, content }); }
+                async generateAsync() { return new Blob(); }
             };
-            
+
             // 2. Define sample data
             const mockRhythm = { global_bpm: 120 };
             const mockPatterns = [{ id: 'patt1', data: { metadata: { name: 'Verse' } } }];
             const mockInstruments = [{ id: 'kick1', data: { name: 'Acoustic Kick' } }];
 
-            try {
-                // 3. Run the function and INJECT our mock class as the last argument
-                await DataAccessLayer.exportRhythmAsZip(mockRhythm, mockPatterns, mockInstruments, 'my_song', mockJSZip);              
-
-                // 5. Assert that our mock's methods were called correctly
-                runner.expect(fileLogger.callCount).toBe(3);
-                
-                // Check the rhythm file
-                fileLogger.wasCalledWith('file', {
-                    path: 'my_song.rthm.yaml',
-                    content: 'global_bpm: 120\n'
-                });
-
-                // Check the pattern file
-                fileLogger.wasCalledWith('file', {
-                    path: 'patterns/patt1.patt.yaml',
-                    content: 'metadata:\n  name: Verse\n'
-                });
-
-                // Check the instrument file
-                fileLogger.wasCalledWith('file', {
-                    path: 'instruments/kick1/kick1.inst.yaml',
-                    content: 'name: Acoustic Kick\n'
-                });
-
-            } finally {
-                // 6. Restore the real JSZip library
-                window.JSZip = originalJSZip;
-            }
+            // 3. Run the function and INJECT our mock class. No 'try...finally' is needed here.
+            await DataAccessLayer.exportRhythmAsZip(mockRhythm, mockPatterns, mockInstruments, 'my_song', mockJSZip);
+            
+            // 4. Assert that our mock was used.
+            runner.expect(fileLogger.callCount).toBe(3);
+            fileLogger.wasCalledWith('file', { path: 'my_song.rthm.yaml', content: 'global_bpm: 120\n' });
+            fileLogger.wasCalledWith('file', { path: 'patterns/patt1.patt.yaml', content: 'metadata:\n  name: Verse\n' });
+            fileLogger.wasCalledWith('file', { path: 'instruments/kick1/kick1.inst.yaml', content: 'name: Acoustic Kick\n' });
         });
     });
     
