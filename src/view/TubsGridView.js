@@ -1,18 +1,14 @@
-// file: src/view/TubsGridView.js (Complete, Final Version)
+// file: src/view/TubsGridView.js (Complete and Final)
 
 export class TubsGridView {
     constructor(container, callbacks) {
         this.container = container;
         this.callbacks = callbacks || {};
-        this.state = {}; // Initialize a state object for the view instance
+        this.state = {};
     }
 
-    /**
-     * Renders the grid and stores the state for later use by other methods.
-     * @param {object} state The state object containing rhythm and pattern info.
-     */
     render(state) {
-        this.state = state; // Store the state
+        this.state = state;
 
         const { currentPatternId, rhythm } = this.state;
         if (!rhythm || !currentPatternId || !rhythm.patterns?.[currentPatternId]) {
@@ -57,10 +53,6 @@ export class TubsGridView {
         this.updatePlaybackIndicator(0);
     }
 
-    /**
-     * Updates the position of the playback indicator based on the stored state.
-     * @param {number} tick The current tick to highlight.
-     */
     updatePlaybackIndicator(tick) {
         if (!this.indicator || !this.state.rhythm) return;
 
@@ -68,11 +60,10 @@ export class TubsGridView {
         if (!pattern) return;
 
         const resolution = pattern.metadata.resolution || 16;
-        const percentage = (tick / resolution) * 100;
+        const multiplier = tick / resolution;
 
-        // Position the indicator relative to the grid cells area, offset by the header.
-        this.indicator.style.left = `calc(80px + ${percentage}%)`;
-        // Make the indicator width equal to one cell's width.
+        // CRITICAL FIX: The position is the 80px header PLUS a fraction of the REMAINING space.
+        this.indicator.style.left = `calc(80px + (100% - 80px) * ${multiplier})`;
         this.indicator.style.width = `calc((100% - 80px) / ${resolution})`;
     }
 }

@@ -1,4 +1,4 @@
-<!-- file: test/harnesses/view/TubsGridView.html (Complete, Final Version) -->
+<!-- file: test/harnesses/view/TubsGridView.html (Complete and Final) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,7 +16,7 @@
 
         #view-container .grid {
             display: grid;
-            position: relative; /* The containing block */
+            position: relative;
         }
         #view-container .instrument-header, 
         #view-container .grid-cell {
@@ -30,7 +30,7 @@
         #view-container .playback-indicator {
             position: absolute;
             top: 0;
-            bottom: 0; /* Stretches to the full height */
+            bottom: 0;
             background-color: rgba(255, 0, 0, 0.4);
             pointer-events: none;
             transition: left 0.05s linear;
@@ -40,7 +40,7 @@
 <body>
     <div class="test-panel">
         <h1>Automated Tests</h1>
-        <button id="run-tests-btn">Run Automated Tests</button>
+        <button id="run-tests-btn">Run All Tests</button>
         <div id="test-results"></div>
     </div>
     <div class="live-panel">
@@ -66,7 +66,6 @@
             run();
         });
 
-        // The view now manages its own state after the initial render.
         const { view } = manualTest(); 
         document.getElementById('playback-tick').addEventListener('input', (e) => {
             const tick = parseInt(e.target.value, 10);
