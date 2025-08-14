@@ -1,4 +1,4 @@
-// file: src/controller/EditController.js
+// file: src/controller/EditController.js (Complete)
 
 export class EditController {
     addNote(rhythm, position) {
@@ -16,17 +16,8 @@ export class EditController {
         return newRhythm;
     }
 
-    /**
-     * Removes a note from a specific position within a pattern's grid by replacing it with '-'.
-     * @param {object} rhythm The current rhythm state.
-     * @param {object} position The position of the note to remove, e.g.,
-     *   { patternId: 'p1', measureIndex: 0, instrumentSymbol: 'KCK', tick: 4 }
-     * @returns {object} A NEW, updated rhythm object.
-     */
     removeNote(rhythm, position) {
         const { patternId, measureIndex, instrumentSymbol, tick } = position;
-
-        // Ensure the track exists to prevent errors. If not, there's nothing to remove.
         if (!rhythm.patterns[patternId]?.pattern_data[measureIndex]?.[instrumentSymbol]) {
             return rhythm;
         }
@@ -34,17 +25,26 @@ export class EditController {
         const newRhythm = structuredClone(rhythm);
         const measureToUpdate = newRhythm.patterns[patternId].pattern_data[measureIndex];
         const originalString = measureToUpdate[instrumentSymbol];
-
-        // Create a new note string by replacing the character at the given tick with a hyphen.
+        
         const noteArray = originalString.split('');
-        noteArray[tick + 2] = '-'; // +2 to account for the leading '||'
+        noteArray[tick + 2] = '-';
         measureToUpdate[instrumentSymbol] = noteArray.join('');
 
         return newRhythm;
     }
 
+    /**
+     * Replaces the entire playback_flow with a new one.
+     * @param {object} rhythm The current rhythm state.
+     * @param {Array<object>} newFlow The new playback flow array.
+     * @returns {object} A NEW, updated rhythm object.
+     */
     updatePlaybackFlow(rhythm, newFlow) {
-        // Implementation to come...
-        return rhythm;
+        // Create a new object by copying all properties from the original rhythm,
+        // but overwrite the playback_flow with the new one.
+        return {
+            ...rhythm,
+            playback_flow: newFlow
+        };
     }
 }
