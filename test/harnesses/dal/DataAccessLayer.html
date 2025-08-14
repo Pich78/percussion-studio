@@ -1,0 +1,42 @@
+<!-- file: test/harnesses/dal/DataAccessLayer.html (CORRECTED for GitHub Pages) -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Harness: DataAccessLayer</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; color: #333; }
+        h1, h2 { border-bottom: 1px solid #ccc; padding-bottom: 5px; }
+        #test-results { border: 1px solid #eee; padding: 10px; margin-top: 20px; background: #fdfdfd; }
+    </style>
+    <!-- js-yaml path is absolute, no change needed -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
+</head>
+<body>
+
+    <h1>Test Runner for <code>DataAccessLayer.js</code></h1>
+    <p>This page loads the DAL module and its test suite to verify its functionality in isolation.</p>
+
+    <div id="test-results"></div>
+
+    <!-- 1. Load Testing Libraries (Corrected Paths) -->
+    <script src="/percussion-studio/test/lib/TestRunner.js"></script>
+    <script src="/percussion-studio/test/mocks/MockLogger.js"></script>
+
+    <!-- 2. Load the Class Under Test (Corrected Path) -->
+    <script src="/percussion-studio/src/dal/DataAccessLayer.js"></script>
+
+    <!-- 3. Load the Test Suite (Corrected Path) -->
+    <script src="/percussion-studio/test/suites/dal/DataAccessLayer.test.js"></script>
+
+    <!-- 4. Run the tests and render results (No path change needed here) -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const runner = new TestRunner();
+            // This is a simpler way to run the tests defined in the suite file
+            window.runTests(runner); 
+            runner.renderResults('test-results');
+        });
+    </script>
+</body>
+</html>
