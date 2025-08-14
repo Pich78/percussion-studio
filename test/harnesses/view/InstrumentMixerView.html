@@ -1,0 +1,54 @@
+<!-- file: test/harnesses/view/InstrumentMixerView.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Harness: InstrumentMixerView</title>
+    <style>
+        body { font-family: sans-serif; display: flex; gap: 20px; padding: 20px; }
+        .test-panel, .live-panel, .log-panel { border: 1px solid #ccc; padding: 10px; }
+        .test-panel { flex: 2; }
+        .live-panel { flex: 2; background-color: #f0f0f0; }
+        .log-panel { flex: 1; background-color: #f9f9f9; }
+        #log-output { white-space: pre-wrap; word-wrap: break-word; font-family: monospace; font-size: 12px; }
+        button { font-size: 14px; padding: 8px 12px; margin: 0 5px 10px 0; }
+        h1, h2 { border-bottom: 1px solid #ccc; padding-bottom: 5px; }
+
+        /* Mixer specific styling */
+        .mixer-track { display: flex; align-items: center; margin-bottom: 10px; }
+        .mixer-track label { margin-right: 10px; font-weight: bold; }
+        .volume-slider { width: 150px; }
+    </style>
+</head>
+<body>
+    <div class="test-panel">
+        <h1>Automated Tests</h1>
+        <button id="run-tests-btn">Run Automated Tests</button>
+        <div id="test-results"></div>
+    </div>
+
+    <div class="live-panel">
+        <h1>Live View Workbench</h1>
+        <div id="view-container">
+            <!-- The InstrumentMixerView will render itself here -->
+        </div>
+    </div>
+    
+    <div class="log-panel">
+        <h2>Execution Log</h2>
+        <pre id="log-output"></pre>
+    </div>
+
+    <script type="module">
+        import { run, manualTest } from '/percussion-studio/test/suites/view/InstrumentMixerView.test.js';
+        
+        document.getElementById('run-tests-btn').addEventListener('click', () => {
+            document.getElementById('test-results').innerHTML = '<h2>Running tests...</h2>';
+            run();
+        });
+
+        // Setup the manual test
+        manualTest();
+    </script>
+</body>
+</html>
