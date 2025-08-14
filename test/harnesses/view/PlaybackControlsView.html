@@ -1,0 +1,54 @@
+<!-- file: test/harnesses/view/PlaybackControlsView.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Harness: PlaybackControlsView</title>
+    <style>
+        body { font-family: sans-serif; display: flex; gap: 20px; padding: 20px; }
+        .test-panel, .live-panel { border: 1px solid #ccc; padding: 10px; }
+        .live-panel { background-color: #f0f0f0; }
+        #log-output { white-space: pre-wrap; word-wrap: break-word; font-family: monospace; font-size: 12px; border: 1px solid #eee; padding: 5px; background: #fff; }
+        button { font-size: 14px; padding: 8px 12px; margin: 0 5px 10px 0; }
+        label { margin-right: 15px; }
+    </style>
+</head>
+<body>
+    <div class="test-panel">
+        <h1>Automated Tests</h1>
+        <button id="run-tests-btn">Run Automated Tests</button>
+        <div id="test-results"></div>
+    </div>
+
+    <div class="live-panel">
+        <h1>Live View Workbench</h1>
+        <div id="view-container">
+            <!-- The PlaybackControlsView will render itself here -->
+        </div>
+        <hr>
+        <h3>Simulate State Changes</h3>
+        <div>
+            <label><input type="checkbox" id="is-playing-check"> isPlaying</label>
+            <label><input type="checkbox" id="is-loading-check"> isLoading</label>
+        </div>
+        <h3>Event Log</h3>
+        <pre id="log-output">Callback events will appear here.</pre>
+    </div>
+
+    <script type="module">
+        import { run, manualTest } from '/percussion-studio/test/suites/view/PlaybackControlsView.test.js';
+        
+        // Automated tests
+        document.getElementById('run-tests-btn').addEventListener('click', () => {
+            document.getElementById('test-results').innerHTML = '<h2>Running tests...</h2>';
+            run();
+        });
+
+        // Manual workbench setup
+        const { view, rerender } = manualTest();
+        document.getElementById('is-playing-check').addEventListener('change', rerender);
+        document.getElementById('is-loading-check').addEventListener('change', rerender);
+        rerender(); // Initial render
+    </script>
+</body>
+</html>
