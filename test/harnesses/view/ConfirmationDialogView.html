@@ -1,0 +1,55 @@
+<!-- file: test/harnesses/view/ConfirmationDialogView.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Harness: ConfirmationDialogView</title>
+    <style>
+        body { font-family: sans-serif; display: flex; gap: 20px; padding: 20px; }
+        .test-panel, .live-panel, .log-panel { border: 1px solid #ccc; padding: 10px; }
+        .test-panel { flex: 2; }
+        .live-panel { flex: 2; }
+        .log-panel { flex: 1; background-color: #f9f9f9; }
+        #log-output { white-space: pre-wrap; word-wrap: break-word; font-family: monospace; font-size: 12px; }
+        button { font-size: 14px; padding: 8px 12px; margin: 0 5px 10px 0; }
+        h1, h2 { border-bottom: 1px solid #ccc; padding-bottom: 5px; }
+
+        /* Modal specific styling */
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; }
+        .modal-dialog { background-color: #fff; padding: 20px; border-radius: 5px; min-width: 300px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .modal-actions { margin-top: 20px; text-align: right; }
+    </style>
+</head>
+<body>
+    <div class="test-panel">
+        <h1>Automated Tests</h1>
+        <button id="run-tests-btn">Run Automated Tests</button>
+        <div id="test-results"></div>
+    </div>
+
+    <div class="live-panel">
+        <h1>Live View Workbench</h1>
+        <button id="show-dialog-btn">Show Confirmation Dialog</button>
+    </div>
+    
+    <div class="log-panel">
+        <h2>Execution Log</h2>
+        <pre id="log-output"></pre>
+    </div>
+
+    <!-- The modal will be appended to the body, so we don't need a specific container here -->
+    <div id="test-sandbox" style="position: absolute; visibility: hidden;"></div>
+
+    <script type="module">
+        import { run, manualTest } from '/percussion-studio/test/suites/view/ConfirmationDialogView.test.js';
+        
+        document.getElementById('run-tests-btn').addEventListener('click', () => {
+            document.getElementById('test-results').innerHTML = '<h2>Running tests...</h2>';
+            run();
+        });
+
+        // Setup the manual test
+        manualTest();
+    </script>
+</body>
+</html>
