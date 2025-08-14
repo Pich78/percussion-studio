@@ -1,4 +1,4 @@
-// file: src/App.js (Complete, Corrected Version)
+// file: src/App.js (Complete, Final Version)
 
 import { DataAccessLayer } from './dal/DataAccessLayer.js';
 import { AudioPlayer } from './audio/AudioPlayer.js';
@@ -21,8 +21,6 @@ class App {
             if (!pattern) return;
             const resolution = pattern.metadata.resolution || 16;
             const ticksPerBeat = resolution / 4.0;
-            const tick = (beatNumber - 1) * ticksPerBeat;
-            // The indicator needs to be updated based on the *overall* progress, not just within a beat
             const beatInMeasure = (beatNumber -1) % 4;
             const currentTick = beatInMeasure * ticksPerBeat;
             this.view.tubsGridView.updatePlaybackIndicator(currentTick);
