@@ -1,7 +1,18 @@
-<!-- file: test/harnesses/dal/DataAccessLayer.html (MODERNIZED) -->
+<!-- file: test/harnesses/dal/DataAccessLayer.html (Simplified) -->
 <!DOCTYPE html>
 <html lang="en">
-<!-- ... (head and style sections are the same) ... -->
+<head>
+    <meta charset="UTF-8">
+    <title>Test Harness: DataAccessLayer</title>
+    <style>
+        body { font-family: sans-serif; display: flex; gap: 20px; padding: 20px; }
+        .main-panel { flex: 2; }
+        .log-panel { flex: 1; border: 1px solid #ccc; padding: 0 10px; background-color: #f9f9f9; }
+        #log-output { white-space: pre-wrap; word-wrap: break-word; font-family: monospace; font-size: 12px; }
+        button { font-size: 16px; padding: 10px 15px; cursor: pointer; }
+        h1, h2 { border-bottom: 1px solid #ccc; padding-bottom: 5px; }
+    </style>
+</head>
 <body>
 
     <div class="main-panel">
@@ -9,41 +20,22 @@
         <button id="run-tests-btn">Run All Tests</button>
         <div id="test-results"></div>
     </div>
+
     <div class="log-panel">
         <h2>Execution Log</h2>
         <pre id="log-output"></pre>
     </div>
 
-<!-- file: test/harnesses/dal/DataAccessLayer.html -->
-<!-- ... -->
     <script type="module">
-        import { DataAccessLayer } from '/percussion-studio/src/dal/DataAccessLayer.js';
-        import { runDalTests }     from '/percussion-studio/test/suites/dal/DataAccessLayer.test.js';
-        import { TestRunner }      from '/percussion-studio/test/lib/TestRunner.js';
-        import { MockLogger }      from '/percussion-studio/test/mocks/MockLogger.js';
+        // The harness only needs to know about the test suite's "run" function.
+        import { run } from '/percussion-studio/test/suites/dal/DataAccessLayer.test.js';
 
-        // Make the class under test available globally for the test suite.
-        window.DataAccessLayer = DataAccessLayer;
-
-        document.getElementById('run-tests-btn').addEventListener('click', async () => {
+        document.getElementById('run-tests-btn').addEventListener('click', () => {
             const resultsContainer = document.getElementById('test-results');
             resultsContainer.innerHTML = '<h2>Running tests...</h2>';
-            
-            MockLogger.clearLogs();
-            MockLogger.setLogTarget('log-output');
-
-            const runner = new TestRunner();
-            
-            // 1. This function now just queues up all the tests. It returns instantly.
-            runDalTests(runner);
-
-            // 2. This NEW line waits for all the queued tests to actually finish.
-            await runner.awaitForAll();
-
-            // 3. NOW we can safely render the results.
-            runner.renderResults('test-results');
+            // Just call the main run function. It handles everything else.
+            run();
         });
     </script>
-<!-- ... -->
 </body>
 </html>
