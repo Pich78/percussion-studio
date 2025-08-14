@@ -1,4 +1,4 @@
-// file: src/view/TubsGridView.js (Complete)
+// file: src/view/TubsGridView.js (Complete and Corrected)
 
 export class TubsGridView {
     constructor(container, callbacks) {
@@ -20,13 +20,18 @@ export class TubsGridView {
 
         const gridStyles = `grid-template-columns: 80px repeat(${resolution}, 1fr);`;
         let gridHtml = `<div class="grid" style="${gridStyles}">`;
-        gridHtml += `<div class="playback-indicator" style="grid-row: 1 / -1; grid-column: 2;"></div>`;
+
+        // The indicator is a direct child of the grid. CSS will handle its spanning.
+        gridHtml += `<div class="playback-indicator"></div>`;
         
+        // Loop through each instrument and add its parts directly to the grid
         instruments.forEach(instrumentSymbol => {
-            gridHtml += `<div class="instrument-row">`;
+            // Instrument Header
             gridHtml += `<div class="instrument-header">${instrumentSymbol}</div>`;
+
             const noteString = measure[instrumentSymbol].replace(/\|/g, '');
             
+            // Grid Cells for this instrument
             for (let i = 0; i < resolution; i++) {
                 const noteChar = noteString[i];
                 let cellContent = '';
@@ -43,16 +48,17 @@ export class TubsGridView {
                 }
                 gridHtml += `<div class="grid-cell">${cellContent}</div>`;
             }
-            gridHtml += `</div>`;
         });
 
         gridHtml += `</div>`;
         this.container.innerHTML = gridHtml;
         this.indicator = this.container.querySelector('.playback-indicator');
+        this.updatePlaybackIndicator(0); // Set initial position
     }
 
     updatePlaybackIndicator(tick) {
         if (!this.indicator) return;
+        // The grid columns start at 1. The first column is the header (col 1), so ticks start at column 2.
         this.indicator.style.gridColumn = tick + 2;
     }
 }
