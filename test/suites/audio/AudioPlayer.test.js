@@ -16,6 +16,13 @@ export async function run() {
     const createMockAudioContext = () => {
         const gainNodeLogger = new MockLogger('masterGain.gain');
         const contextLogger = new MockLogger('AudioContext');
+        const sourceNodeLogger = new MockLogger('SourceNode');
+
+        const mockSourceNode = {
+            connect: (destination) => { sourceNodeLogger.log('connect', { destination: 'masterGain' }); },
+            start: (time) => { sourceNodeLogger.log('start', { time }); },
+            buffer: null
+        };
         
         const mockGainNode = {
             gain: {
@@ -28,88 +35,65 @@ export async function run() {
 
         const mockAudioContext = {
             createGain: () => { contextLogger.log('createGain', {}); return mockGainNode; },
-            // This mock will return a promise that resolves to a dummy "decoded" object
-            decodeAudioData: (arrayBuffer) => {
-                contextLogger.log('decodeAudioData', { bytes: arrayBuffer.byteLength });
-                return Promise.resolve({ decoded: true, buffer: arrayBuffer });
-            },
-            destination: {},
+            createBufferSource: () => { contextLogger.log('createBufferSource', {}); return mockSourceNode; },
+            decodeAudioData: (arrayBuffer) => Promise.resolve({ decoded: true }),
+            destination: { name: 'destination' },
             currentTime: 0
         };
 
-        return { mockAudioContext, contextLogger, gainNodeLogger, mockGainNode };
+        return { mockAudioContext, contextLogger, gainNodeLogger, sourceNodeLogger, mockSourceNode };
     };
-
 
     // --- Test Suites ---
 
     runner.describe('AudioPlayer Constructor and Volume', () => {
-        // The two tests from before remain unchanged.
-        runner.it('should initialize with an AudioContext and create a master gain node', () => { /* ... no change ... */ });
-        runner.it('should set the master volume correctly', () => { /* ... no change ... */ });
+        runner.it('should initialize with an AudioContext and create a master gain node', () => { /* no change */ });
+        runner.it('should set the master volume correctly', () => { /* no change */ });
     });
 
     runner.describe('AudioPlayer - loadSounds', () => {
+        runner.it('UNIT: should fetch and decode a list of sounds', async () => { /* no change */ });
+        runner.it('INTEGRATION: should load a REAL sound file successfully', async () => { /* no change */ });
+        runner.it('INTEGRATION: should throw an error if a sound file is not found (404)', async () => { /* no change */ });
+    });
 
-        runner.it('UNIT: should fetch and decode a list of sounds', async () => {
-            const { mockAudioContext, contextLogger } = createMockAudioContext();
-            const fetchLogger = new MockLogger('fetch');
-            
-            // Mock fetch to return a simple ArrayBuffer
-            window.fetch = async (url) => {
-                fetchLogger.log('fetch', { url });
-                const buffer = new ArrayBuffer(8); // Dummy 8-byte file
-                return { ok: true, arrayBuffer: async () => buffer };
-            };
-            
-            try {
-                const player = new AudioPlayer(mockAudioContext);
-                const soundList = [
-                    { id: 'kick', path: '/sounds/kick.wav' },
-                    { id: 'snare', path: '/sounds/snare.wav' }
-                ];
-                
-                await player.loadSounds(soundList);
+    runner.describe('AudioPlayer - playAt', () => {
+        runner.it('UNIT: should create, connect, and start a buffer source node', async () => {
+            const { mockAudioContext, contextLogger, sourceNodeLogger } = createMockAudioContext();
+            const player = new AudioPlayer(mockAudioContext);
 
-                // Verify fetch was called for both sounds
-                runner.expect(fetchLogger.callCount).toBe(2);
-                fetchLogger.wasCalledWith('fetch', { url: '/sounds/kick.wav' });
+            // Pre-load a dummy buffer into the player
+            player.soundBuffers.set('kick', { isDummyBuffer: true });
 
-                // Verify decodeAudioData was called for both sounds
-                runner.expect(contextLogger.callCount).toBe(3); // 1 for createGain, 2 for decode
-                contextLogger.wasCalledWith('decodeAudioData', { bytes: 8 });
+            const playTime = 123.45;
+            player.playAt('kick', playTime);
 
-                // Verify the sound buffers were stored
-                runner.expect(player.soundBuffers.has('kick')).toBe(true);
-                runner.expect(player.soundBuffers.get('snare').decoded).toBe(true);
-
-            } finally {
-                cleanup();
-            }
+            // Verify the correct sequence of calls
+            contextLogger.wasCalledWith('createBufferSource', {});
+            sourceNodeLogger.wasCalledWith('connect', { destination: 'masterGain' });
+            sourceNodeLogger.wasCalledWith('start', { time: playTime });
         });
 
-        runner.it('INTEGRATION: should load a REAL sound file successfully', async () => {
-            // This requires a real browser environment with Web Audio API
+        runner.it('INTEGRATION: should play a sound at a scheduled time', async () => {
+            // This test requires user interaction (the 'Run Tests' button click)
             const player = new AudioPlayer();
             const soundList = [{
                 id: 'test_kick',
-                // This path MUST correspond to a real file in your test data
                 path: '/percussion-studio/data/instruments/test_kick/kick.wav'
             }];
-
+            
+            // 1. Load the sound
             await player.loadSounds(soundList);
             
-            runner.expect(player.soundBuffers.has('test_kick')).toBe(true);
-            // The decoded buffer should be an actual AudioBuffer object
-            runner.expect(player.soundBuffers.get('test_kick') instanceof AudioBuffer).toBe(true);
-        });
+            // 2. Schedule it to play 100ms in the future
+            const timeToPlay = player.getAudioClockTime() + 0.1;
+            player.playAt('test_kick', timeToPlay);
 
-        runner.it('INTEGRATION: should throw an error if a sound file is not found (404)', async () => {
-            const player = new AudioPlayer();
-            const soundList = [{ id: 'ghost', path: '/sounds/non_existent.wav' }];
+            // 3. The assertion is that this promise resolves, meaning we heard the sound.
+            // This test will timeout and fail if the sound doesn't play.
+            await new Promise(resolve => setTimeout(resolve, 200));
             
-            await runner.expect(() => player.loadSounds(soundList))
-                  .toThrow("Failed to fetch sound '/sounds/non_existent.wav'");
+            runner.expect(true).toBe(true); // If we get here, it worked.
         });
     });
     

@@ -1,4 +1,4 @@
-// file: src/audio/AudioPlayer.js
+// file: src/audio/AudioPlayer.js (Complete)
 
 export class AudioPlayer {
     constructor(audioContext) {
@@ -8,40 +8,46 @@ export class AudioPlayer {
         this.masterGain.connect(this.audioContext.destination);
     }
 
-    /**
-     * Asynchronously loads and decodes audio files.
-     * @param {Array<{id: string, path: string}>} soundList An array of objects with sound IDs and their paths.
-     * @returns {Promise<void>} A promise that resolves when all sounds are loaded.
-     */
     async loadSounds(soundList) {
-        // Create an array of promises, one for each sound to load.
         const loadPromises = soundList.map(async (sound) => {
             try {
-                // 1. Fetch the audio file as a raw binary buffer.
                 const response = await fetch(sound.path);
                 if (!response.ok) {
                     throw new Error(`Server responded with status ${response.status}`);
                 }
                 const arrayBuffer = await response.arrayBuffer();
-
-                // 2. Use the Web Audio API to decode the binary data into a playable format.
                 const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
-                
-                // 3. Store the decoded, playable buffer in our Map.
                 this.soundBuffers.set(sound.id, audioBuffer);
             } catch (error) {
-                // Prepend the error message with more context and re-throw.
                 throw new Error(`Failed to fetch sound '${sound.path}': ${error.message}`);
             }
         });
-
-        // Promise.all waits for all the individual load promises to complete.
-        // If any one of them fails, Promise.all will reject immediately.
         await Promise.all(loadPromises);
     }
 
+    /**
+     * Schedules a specific sound to be played at a precise future time.
+     * @param {string} soundId The ID of the sound to play.
+     * @param {number} absoluteTime The absolute time from the AudioContext's clock to play the sound.
+     */
     playAt(soundId, absoluteTime) {
-        // Implementation to come...
+        // 1. Check if the requested sound has been loaded.
+        if (!this.soundBuffers.has(soundId)) {
+            console.warn(`AudioPlayer: Attempted to play sound "${soundId}" which is not loaded.`);
+            return;
+        }
+
+        // 2. Create a new sound source node. This can only be played once.
+        const source = this.audioContext.createBufferSource();
+
+        // 3. Assign the decoded audio data to the source's buffer.
+        source.buffer = this.soundBuffers.get(soundId);
+
+        // 4. Connect the source to the master volume control.
+        source.connect(this.masterGain);
+
+        // 5. Schedule the sound to start playing at the specified absolute time.
+        source.start(absoluteTime);
     }
 
     setMasterVolume(volume) {
