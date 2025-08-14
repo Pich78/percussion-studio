@@ -1,4 +1,4 @@
-// file: src/view/TubsGridView.js (Complete, Corrected Version)
+// file: src/view/TubsGridView.js (Complete, Final Version)
 
 export class TubsGridView {
     constructor(container, callbacks) {
@@ -48,7 +48,7 @@ export class TubsGridView {
         });
 
         gridHtml += `</div>`;
-        this.container.innerHTML = html;
+        this.container.innerHTML = gridHtml;
         this.indicator = this.container.querySelector('.playback-indicator');
         this.updatePlaybackIndicator(0);
     }

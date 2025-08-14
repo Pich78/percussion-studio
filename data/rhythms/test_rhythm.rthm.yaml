@@ -1,9 +1,9 @@
-# file: data/rhythms/test_rhythm.rthm.yaml
+# file: data/rhythms/test_rhythm.rthm.yaml (Corrected)
 
 global_bpm: 95
 instrument_kit:
   KCK: "test_kick"
   SNR: "test_snare"
 playback_flow:
-  - pattern: "test_pattern_a"
+  - pattern: "test_pattern" # CORRECTED: Was "test_pattern_a"
     repetitions: 2

@@ -15,18 +15,18 @@ class App {
             masterVolume: 1.0, rhythm: null, currentPatternId: null, error: null, confirmation: null,
         };
 
-        // --- Initialize All Modules ---
         this.audioPlayer = new AudioPlayer();
         this.audioScheduler = new AudioScheduler(this.audioPlayer, (beatNumber) => {
-            // This is the onUpdateCallback for the scheduler
             const pattern = this.state.rhythm.patterns[this.state.currentPatternId];
             if (!pattern) return;
             const resolution = pattern.metadata.resolution || 16;
             const ticksPerBeat = resolution / 4.0;
             const tick = (beatNumber - 1) * ticksPerBeat;
-            this.view.tubsGridView.updatePlaybackIndicator(tick);
+            // The indicator needs to be updated based on the *overall* progress, not just within a beat
+            const beatInMeasure = (beatNumber -1) % 4;
+            const currentTick = beatInMeasure * ticksPerBeat;
+            this.view.tubsGridView.updatePlaybackIndicator(currentTick);
         }, () => {
-            // onPlaybackEnded callback
             this.setState({ isPlaying: false });
         });
 
@@ -34,9 +34,7 @@ class App {
         this.projectController = new ProjectController(DataAccessLayer, this.audioPlayer, this.audioScheduler);
         this.editController = new EditController();
 
-        // Wire up ALL callbacks from the view to the controllers/app
         this.view = new View({
-            // Playback
             onPlay: () => {
                 this.playbackController.play();
                 this.setState({ isPlaying: true });
@@ -48,26 +46,19 @@ class App {
             onStop: () => {
                 this.playbackController.stop();
                 this.setState({ isPlaying: false });
-                this.view.tubsGridView.updatePlaybackIndicator(0); // Reset indicator visually
+                this.view.tubsGridView.updatePlaybackIndicator(0);
             },
             onMasterVolumeChange: (vol) => this.playbackController.setMasterVolume(vol),
             onToggleLoop: (enabled) => this.playbackController.toggleLoop(enabled),
-            // Project
             onNewProject: () => console.log('New Project clicked'),
             onLoadProject: () => console.log('Load Project clicked'),
             onSaveProject: () => console.log('Save Project clicked'),
-            // Instrument Mixer
             onInstrumentVolumeChange: (id, vol) => console.log(`Volume change: ${id}, ${vol}`),
             onInstrumentMuteToggle: (id, muted) => console.log(`Mute toggle: ${id}, ${muted}`),
-            // Modals
             onErrorDismiss: () => this.setState({ error: null }),
         });
     }
 
-    /**
-     * A central method to update state and trigger a re-render.
-     * @param {object} newState The properties of the state to update.
-     */
     setState(newState) {
         this.state = { ...this.state, ...newState };
         this.view.render(this.state);
@@ -77,10 +68,8 @@ class App {
         this.view.render(this.state);
 
         try {
-            // Load a rhythm that has multiple instruments to test the mixer
             const resolvedRhythm = await this.projectController.loadRhythm('test_rhythm');
             
-            // Placeholder for real mixer state management
             resolvedRhythm.mixer = {
                 test_kick: { volume: 1.0, muted: false },
                 test_snare: { volume: 0.8, muted: false }
@@ -88,7 +77,6 @@ class App {
             
             this.setState({
                 rhythm: resolvedRhythm,
-                // Make sure we select a pattern that actually exists in test_rhythm
                 currentPatternId: resolvedRhythm.playback_flow[0].pattern,
                 isLoading: false
             });
