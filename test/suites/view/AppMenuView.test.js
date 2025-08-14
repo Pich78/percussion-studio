@@ -1,4 +1,4 @@
-// file: test/suites/view/AppMenuView.test.js (Complete)
+// file: test/suites/view/AppMenuView.test.js (Complete, with Enhanced Logging)
 
 import { TestRunner } from '/percussion-studio/test/lib/TestRunner.js';
 import { MockLogger } from '/percussion-studio/test/mocks/MockLogger.js';
@@ -52,7 +52,7 @@ export async function run() {
             testContainer.innerHTML = '';
             const callbackLog = new MockLogger('Callbacks');
             const view = new AppMenuView(testContainer, { onSaveProject: () => callbackLog.log('onSaveProject') });
-            view.render({ isDirty: true }); // Must be dirty to enable the button
+            view.render({ isDirty: true });
             testContainer.querySelector('#save-btn').click();
             callbackLog.wasCalledWith('onSaveProject', undefined);
         });
@@ -62,19 +62,31 @@ export async function run() {
     runner.renderResults('test-results');
 }
 
+/**
+ * Sets up the interactive workbench with enhanced logging.
+ */
 export function manualTest() {
     const log = new MockLogger('Callbacks');
     MockLogger.setLogTarget('log-output');
+    
+    // This object will hold the current state for the callbacks to access.
+    let currentState = { isDirty: false };
+
     const callbacks = {
-        onNewProject: () => log.log('onNewProject'),
-        onLoadProject: () => log.log('onLoadProject'),
-        onSaveProject: () => log.log('onSaveProject')
+        // Each callback now logs the state at the time it was fired.
+        onNewProject: () => log.log('onNewProject', { state: currentState }),
+        onLoadProject: () => log.log('onLoadProject', { state: currentState }),
+        onSaveProject: () => log.log('onSaveProject', { state: currentState })
     };
+
     const container = document.getElementById('view-container');
     const view = new AppMenuView(container, callbacks);
+    
     const rerender = () => {
-        const isDirty = document.getElementById('is-dirty-check').checked;
-        view.render({ isDirty });
+        // Update the shared state object before re-rendering.
+        currentState.isDirty = document.getElementById('is-dirty-check').checked;
+        view.render(currentState);
     };
+
     return { view, rerender };
 }
