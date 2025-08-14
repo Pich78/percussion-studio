@@ -1,4 +1,4 @@
-// file: test/suites/view/TubsGridView.test.js (Complete and Corrected)
+// file: test/suites/view/TubsGridView.test.js (Complete)
 
 import { TestRunner } from '/percussion-studio/test/lib/TestRunner.js';
 import { MockLogger } from '/percussion-studio/test/mocks/MockLogger.js';
@@ -67,7 +67,6 @@ export async function run() {
     runner.renderResults('test-results');
 }
 
-/** Sets up the interactive workbench */
 export function manualTest() {
     const log = new MockLogger('Callbacks');
     const callbacks = {};
@@ -77,16 +76,11 @@ export function manualTest() {
     const liveState = {
         currentPatternId: 'p1',
         rhythm: {
-            instrument_kit: {
-                KCK: 'test_kick',
-                // THIS IS THE FIX: The 'HHC' track also maps to the 'test_kick' instrument folder,
-                // which we know contains a valid SVG file.
-                HHC: 'test_kick' 
-            },
+            instrument_kit: { KCK: 'test_kick', HHC: 'test_kick' },
             instruments: {
                 test_kick: { name: 'Test Kick', sounds: [
                     { letter: 'o', svg: 'kick_beater.svg' },
-                    { letter: 'x', svg: 'kick_beater.svg' } // Ensure both 'o' and 'x' are valid letters
+                    { letter: 'x', svg: 'kick_beater.svg' }
                 ]}
             },
             patterns: {
@@ -94,7 +88,7 @@ export function manualTest() {
                     metadata: { resolution: 16 },
                     pattern_data: [{
                         KCK: '||o---o---o---o---||',
-                        HHC: '||x-x-x-x-x-x-x-x-||' // Using 'x' now
+                        HHC: '||x-x-x-x-x-x-x-x-||'
                     }]
                 }
             }

@@ -8,13 +8,13 @@ export class TubsGridView {
 
     render(state) {
         const { currentPatternId, rhythm } = state;
-        if (!rhythm || !currentPatternId || !rhythm.patterns[currentPatternId]) {
+        if (!rhythm || !currentPatternId || !rhythm.patterns?.[currentPatternId]) {
             this.container.innerHTML = '<div>No pattern selected or available.</div>';
             return;
         }
 
         const pattern = rhythm.patterns[currentPatternId];
-        const measure = pattern.pattern_data[0];
+        const measure = pattern.pattern_data[0]; // Assuming first measure for now
         const resolution = pattern.metadata.resolution || 16;
         const instruments = Object.keys(measure);
 
@@ -31,15 +31,14 @@ export class TubsGridView {
                 const noteChar = noteString[i];
                 let cellContent = '';
                 if (noteChar && noteChar !== '-') {
-                    const instrumentId = rhythm.instrument_kit[instrumentSymbol];
+                    const instrumentId = rhythm.instrument_kit?.[instrumentSymbol];
                     const instrumentData = rhythm.instruments?.[instrumentId];
-                    // Find the sound definition that matches the character in the grid
                     const soundDef = instrumentData?.sounds?.find(s => s.letter === noteChar);
-                    const svgFile = soundDef?.svg || 'default.svg';
+                    const svgFile = soundDef?.svg;
                     
-                    if (instrumentId) { // Safety check
+                    if (instrumentId && svgFile) { // Only render if we have all info
                         const imgSrc = `/percussion-studio/data/instruments/${instrumentId}/${svgFile}`;
-                        cellContent = `<img src="${imgSrc}" alt="note">`;
+                        cellContent = `<img src="${imgSrc}" alt="${instrumentSymbol} note">`;
                     }
                 }
                 gridHtml += `<div class="grid-cell">${cellContent}</div>`;
