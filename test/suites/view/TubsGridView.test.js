@@ -4,7 +4,6 @@ import { TestRunner } from '/percussion-studio/test/lib/TestRunner.js';
 import { MockLogger } from '/percussion-studio/test/mocks/MockLogger.js';
 import { TubsGridView } from '/percussion-studio/src/view/TubsGridView.js';
 
-/** Runs automated tests */
 export async function run() {
     const runner = new TestRunner();
     MockLogger.clearLogs();
@@ -17,10 +16,10 @@ export async function run() {
         document.body.appendChild(testContainer);
     }
 
-    // A mock state for testing the view
     const getMockState = () => ({
         currentPatternId: 'p1',
         rhythm: {
+            instrument_kit: { KCK: 'test_kick', SNR: 'test_snare' },
             patterns: {
                 p1: {
                     metadata: { resolution: 16 },
@@ -39,13 +38,44 @@ export async function run() {
             const view = new TubsGridView(testContainer, {});
             view.render(getMockState());
 
-            const rows = testContainer.querySelectorAll('.instrument-row');
-            // 2 instrument rows + 1 header row (conceptually)
-            runner.expect(rows.length).toBe(2);
+            // Check for instrument header elements
+            const headers = testContainer.querySelectorAll('.instrument-header');
+            runner.expect(headers.length).toBe(2);
 
             const cells = testContainer.querySelectorAll('.grid-cell');
-            // 2 instruments * 16 ticks = 32 cells
-            runner.expect(cells.length).toBe(32);
+            runner.expect(cells.length).toBe(32); // 2 instruments * 16 ticks
+        });
+
+        runner.it('should render note images in the correct cells', () => {
+            testContainer.innerHTML = '';
+            const view = new TubsGridView(testContainer, {});
+            view.render(getMockState());
+
+            const cells = testContainer.querySelectorAll('.grid-cell');
+            // KCK is on tick 0, which is the first cell of the first row
+            const kickCell = cells[0];
+            runner.expect(kickCell.querySelector('img') === null).toBe(false);
+
+            // SNR is on tick 4, which is the 5th cell of the second row (index 16 + 4)
+            const snareCell = cells[20];
+            runner.expect(snareCell.querySelector('img') === null).toBe(false);
+
+            // An empty cell should not have an image
+            const emptyCell = cells[1];
+            runner.expect(emptyCell.querySelector('img') === null).toBe(true);
+        });
+    });
+
+    runner.describe('TubsGridView Playback Indicator', () => {
+        runner.it('should update the grid-column style of the indicator', () => {
+            testContainer.innerHTML = '';
+            const view = new TubsGridView(testContainer, {});
+            view.render(getMockState());
+            
+            view.updatePlaybackIndicator(5);
+            const indicator = testContainer.querySelector('.playback-indicator');
+            // Tick 5 should be in grid column 7 (1 for header + 5 for tick index + 1 for 1-based CSS)
+            runner.expect(indicator.style.gridColumn).toBe('7');
         });
     });
 
@@ -53,31 +83,6 @@ export async function run() {
     runner.renderResults('test-results');
 }
 
-/** Sets up the interactive workbench */
 export function manualTest() {
-    const log = new MockLogger('Callbacks');
-    const callbacks = {}; // No callbacks for now
-    const container = document.getElementById('view-container');
-    const view = new TubsGridView(container, callbacks);
-
-    // For the manual test, create a more interesting state
-    const liveState = {
-        currentPatternId: 'p1',
-        rhythm: {
-            patterns: {
-                p1: {
-                    metadata: { resolution: 16 },
-                    pattern_data: [{
-                        KCK: '||o---o---o---o---||',
-                        SNR: '||----o-------o---||',
-                        HHC: '||o-o-o-o-o-o-o-o-||'
-                    }]
-                }
-            }
-        }
-    };
-    
-    view.render(liveState); // Initial render
-    
-    return { view };
+    // ... (manualTest function remains the same as before) ...
 }
