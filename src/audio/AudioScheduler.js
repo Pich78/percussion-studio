@@ -1,15 +1,6 @@
 // file: src/audio/AudioScheduler.js
 
-/**
- * The high-level conductor that manages all musical timing. It uses a look-ahead
- * approach to schedule notes with the AudioPlayer for precise playback.
- */
 export class AudioScheduler {
-    /**
-     * @param {AudioPlayer} audioPlayer An instance of the low-level audio player.
-     * @param {function(number):void} onUpdateCallback A function called on each beat with the current beat index.
-     * @param {function():void} onPlaybackEndedCallback A function called when playback completes.
-     */
     constructor(audioPlayer, onUpdateCallback, onPlaybackEndedCallback) {
         this.audioPlayer = audioPlayer;
         this.onUpdateCallback = onUpdateCallback || (() => {});
@@ -18,52 +9,65 @@ export class AudioScheduler {
         this.rhythm = null;
         this.isPlaying = false;
         
-        // Playback state
         this.current16thNote = 0;
         this.nextNoteTime = 0.0;
         this.loop = false;
-        
-        // The scheduling loop timer
         this.timerID = null;
         
-        // How often the scheduler checks for upcoming notes (in milliseconds).
-        this.scheduleAheadTime = 0.1; // 100ms
-        this.lookahead = 25.0; // 25ms
+        // Timing constants
+        this.secondsPer16thNote = 0.0;
+        this.total16thNotes = 0;
+        this.scheduleAheadTime = 0.1; 
+        this.lookahead = 25.0; 
     }
 
     /**
-     * Provides the full, concrete rhythm data to be played.
+     * Provides the full, concrete rhythm data to be played. It calculates and
+     * caches timing information needed for playback.
      * @param {object} resolvedRhythmData The parsed rhythm object.
      */
     setRhythm(resolvedRhythmData) {
-        // Implementation to come...
+        this.rhythm = resolvedRhythmData;
+        
+        // --- Calculate timing constants ---
+        const beatsPerMinute = this.rhythm.global_bpm || 120;
+        const secondsPerBeat = 60.0 / beatsPerMinute;
+        // For now, we assume 16th note resolution (4 subdivisions per beat)
+        this.secondsPer16thNote = secondsPerBeat / 4.0;
+
+        // --- Calculate total length ---
+        let totalNotes = 0;
+        if (this.rhythm.playback_flow && this.rhythm.patterns) {
+            this.rhythm.playback_flow.forEach(flowItem => {
+                const pattern = this.rhythm.patterns[flowItem.pattern];
+                if (pattern && pattern.pattern_data) {
+                    // Assuming 16 steps per measure
+                    const notesPerMeasure = 16;
+                    const measuresInPattern = pattern.pattern_data.length;
+                    const repetitions = flowItem.repetitions || 1;
+                    totalNotes += (measuresInPattern * notesPerMeasure) * repetitions;
+                }
+            });
+        }
+        this.total16thNotes = totalNotes;
+
+        // Reset playback position
+        this.resetPosition();
     }
 
-    /**
-     * Starts or resumes the scheduling loop.
-     */
     play() {
         // Implementation to come...
     }
 
-    /**
-     * Halts the scheduling loop, saving the current position.
-     */
     pause() {
         // Implementation to come...
     }
 
-    /**
-     * Stops playback and resets the internal position to the beginning.
-     */
     stop() {
         this.pause();
         this.resetPosition();
     }
 
-    /**
-     * Resets the internal playback position to the beginning.
-     */
     resetPosition() {
         this.current16thNote = 0;
     }
