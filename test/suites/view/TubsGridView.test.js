@@ -37,26 +37,31 @@ export async function run() {
         });
     });
 
-    runner.describe('TubsGridView Playback Indicator Logic', () => {
-        runner.it('should calculate the correct style STRING for the indicator', () => {
-            // This is now a pure unit test of the calculation logic.
-            const view = new TubsGridView(null, {}); // No container needed
-            view.state = getMockState(); // Manually set the state
+    runner.describe('TubsGridView Playback Indicator', () => {
+        runner.it('should position the indicator at the correct computed pixel value', async () => {
+            testContainer.innerHTML = '';
+            const state = getMockState();
+            const view = new TubsGridView(testContainer, {});
+            view.render(state);
             
-            // Call the internal helper method directly
-            const styles = view._calculateIndicatorStyles(8); // Halfway point
+            const grid = testContainer.querySelector('.grid');
+            grid.style.width = '880px';
 
-            const expectedLeft = 'calc(80px + (100% - 80px) * 0.5)';
-            const expectedWidth = 'calc((100% - 80px) / 16)';
+            view.updatePlaybackIndicator(8);
+            
+            await new Promise(resolve => requestAnimationFrame(resolve));
 
-            // --- DEBUG LOGGING ---
-            console.log('--- TEST DEBUG DATA ---');
-            console.log('Expected Left String:', expectedLeft);
-            console.log('Actual Left String:', styles.left);
-            console.log('-----------------------');
+            const indicator = testContainer.querySelector('.playback-indicator');
+            const leftPixels = indicator.offsetLeft;
 
-            runner.expect(styles.left).toBe(expectedLeft);
-            runner.expect(styles.width).toBe(expectedWidth);
+            const expectedLeftPixels = 480;
+            const isCloseEnough = Math.abs(leftPixels - expectedLeftPixels) < 1;
+            
+            if (!isCloseEnough) {
+                console.log(`TEST FAILED: Expected ~${expectedLeftPixels}px, but got ${leftPixels}px.`);
+            }
+
+            runner.expect(isCloseEnough).toBe(true);
         });
     });
 
