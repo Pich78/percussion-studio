@@ -9,12 +9,8 @@ export async function run() {
     MockLogger.clearLogs();
     MockLogger.setLogTarget('log-output');
     
-    let testContainer = document.getElementById('test-sandbox');
-    if (!testContainer) {
-        testContainer = document.createElement('div');
-        testContainer.id = 'test-sandbox';
-        document.body.appendChild(testContainer);
-    }
+    // The sandbox is now guaranteed to exist in the HTML.
+    const testContainer = document.getElementById('test-sandbox');
 
     const getMockState = () => ({
         currentPatternId: 'p1',
@@ -49,17 +45,17 @@ export async function run() {
             const view = new TubsGridView(testContainer, {});
             view.render(state);
             
-            // CRITICAL FIX: Find the rendered grid and set its width directly.
             const grid = testContainer.querySelector('.grid');
-            grid.style.width = '880px'; // 80px header + 16 * 50px cells = 880px
+            // Set a predictable width on the grid element itself.
+            grid.style.width = '880px';
 
-            view.updatePlaybackIndicator(8); // Move to halfway point (tick 8 of 16)
+            view.updatePlaybackIndicator(8); // Move to halfway point
             
             const indicator = testContainer.querySelector('.playback-indicator');
             const computedStyle = window.getComputedStyle(indicator);
             const leftPixels = parseFloat(computedStyle.left);
 
-            // Calculation remains the same: 80px header + 50% of the remaining 800px
+            // Expected: 80px header + 50% of the remaining 800px = 480px.
             const expectedLeftPixels = 480;
 
             const isCloseEnough = Math.abs(leftPixels - expectedLeftPixels) < 1;

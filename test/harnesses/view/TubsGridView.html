@@ -35,6 +35,12 @@
             pointer-events: none;
             transition: left 0.05s linear;
         }
+
+        /* CRITICAL FIX: Hide the test sandbox from the layout */
+        #test-sandbox {
+            position: absolute;
+            visibility: hidden;
+        }
     </style>
 </head>
 <body>
@@ -57,6 +63,9 @@
         <h2>Execution Log</h2>
         <pre id="log-output"></pre>
     </div>
+
+    <!-- CRITICAL FIX: The sandbox is now a permanent, hidden element -->
+    <div id="test-sandbox"></div>
 
     <script type="module">
         import { run, manualTest } from '/percussion-studio/test/suites/view/TubsGridView.test.js';
