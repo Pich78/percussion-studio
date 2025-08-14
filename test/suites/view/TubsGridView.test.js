@@ -43,23 +43,37 @@ export async function run() {
     });
 
     runner.describe('TubsGridView Playback Indicator', () => {
-        runner.it('should update the left style of the indicator correctly', () => {
+        runner.it('should position the indicator at the correct computed pixel value', () => {
             testContainer.innerHTML = '';
             const state = getMockState();
             const view = new TubsGridView(testContainer, {});
-            view.render(state);
             
-            view.updatePlaybackIndicator(8); // Move to halfway point (tick 8 of 16)
-            const indicator = testContainer.querySelector('.playback-indicator');
-            const style = indicator.style.left;
+            // CRITICAL FIX: To test computed styles, the element must be in the DOM
+            // and have a defined size.
+            const gridContainer = testContainer.querySelector('.grid') || document.createElement('div');
+            testContainer.style.width = '880px'; // 80px header + 16 * 50px cells
 
-            // CRITICAL FIX: Normalize the style string by removing all whitespace
-            // This makes the test robust against browser formatting differences.
-            const normalizedStyle = style.replace(/\s/g, '');
+            view.render(state);
+            view.updatePlaybackIndicator(8); // Move to halfway point (tick 8 of 16)
             
-            // Now check for the essential parts of the calculation
-            const expected = 'calc(80px+(100%-80px)*0.5)';
-            runner.expect(normalizedStyle).toBe(expected);
+            const indicator = testContainer.querySelector('.playback-indicator');
+            
+            // Get the browser's actual computed style
+            const computedStyle = window.getComputedStyle(indicator);
+            const leftPixels = parseFloat(computedStyle.left);
+
+            // Calculate the expected pixel position
+            // Total width = 880px. Header = 80px. Cell area = 800px.
+            // Halfway into the cell area = 800px * 0.5 = 400px.
+            // Total left offset = 80px (header) + 400px = 480px.
+            const expectedLeftPixels = 480;
+
+            // Allow for a small tolerance for browser sub-pixel rendering
+            const isCloseEnough = Math.abs(leftPixels - expectedLeftPixels) < 1;
+            runner.expect(isCloseEnough).toBe(true);
+            
+            // Clean up style
+            testContainer.style.width = '';
         });
     });
 
