@@ -1,4 +1,4 @@
-// file: test/suites/view/TubsGridView.test.js (Complete, Final Version)
+// file: test/suites/view/TubsGridView.test.js (Complete, With Debug Logging)
 
 import { TestRunner } from '/percussion-studio/test/lib/TestRunner.js';
 import { MockLogger } from '/percussion-studio/test/mocks/MockLogger.js';
@@ -49,14 +49,24 @@ export async function run() {
 
             view.updatePlaybackIndicator(8);
             
-            // CRITICAL FIX: Wait for the browser's next paint cycle to ensure styles are computed.
             await new Promise(resolve => requestAnimationFrame(resolve));
 
             const indicator = testContainer.querySelector('.playback-indicator');
             const computedStyle = window.getComputedStyle(indicator);
             const leftPixels = parseFloat(computedStyle.left);
 
+            // --- DEBUG LOGGING ---
+            console.log('--- TEST DEBUG DATA ---');
+            console.log('Grid Width (set):', grid.style.width);
+            console.log('Grid Width (computed):', window.getComputedStyle(grid).width);
+            console.log('Indicator Left Style (raw):', computedStyle.left);
+            console.log('Indicator Left (parsed float):', leftPixels);
+            
             const expectedLeftPixels = 480;
+            console.log('Expected Left (pixels):', expectedLeftPixels);
+            console.log('-----------------------');
+            // --- END DEBUG LOGGING ---
+
             const isCloseEnough = Math.abs(leftPixels - expectedLeftPixels) < 1;
             runner.expect(isCloseEnough).toBe(true);
         });
