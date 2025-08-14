@@ -1,4 +1,4 @@
-// file: src/view/InstrumentMixerView.js (Complete)
+// file: src/view/InstrumentMixerView.js (Complete, Corrected Version)
 
 export class InstrumentMixerView {
     constructor(container, callbacks) {
@@ -7,18 +7,18 @@ export class InstrumentMixerView {
     }
 
     render(state) {
-        const { instrument_kit, mixer } = state.rhythm;
-        if (!instrument_kit || !mixer) {
+        // CRITICAL FIX: If rhythm or its properties don't exist, render nothing.
+        const { rhythm } = state;
+        if (!rhythm || !rhythm.instrument_kit || !rhythm.mixer) {
             this.container.innerHTML = '';
             return;
         }
 
+        const { instrument_kit, mixer } = rhythm;
         let html = '<div class="instrument-mixer">';
         
-        // Loop through the kit to maintain a consistent order
         for (const [symbol, instrumentId] of Object.entries(instrument_kit)) {
-            const trackState = mixer[instrumentId] || { volume: 1.0, muted: false }; // Default state
-
+            const trackState = mixer[instrumentId] || { volume: 1.0, muted: false };
             html += `
                 <div class="mixer-track" data-instrument-id="${instrumentId}">
                     <label>${symbol}</label>
@@ -31,30 +31,18 @@ export class InstrumentMixerView {
 
         html += '</div>';
         this.container.innerHTML = html;
-
         this.attachEventListeners();
     }
 
     attachEventListeners() {
-        const tracks = this.container.querySelectorAll('.mixer-track');
-        tracks.forEach(track => {
+        this.container.querySelectorAll('.mixer-track').forEach(track => {
             const instrumentId = track.dataset.instrumentId;
-
-            const volumeSlider = track.querySelector('.volume-slider');
-            if (volumeSlider) {
-                volumeSlider.addEventListener('input', (event) => {
-                    const volume = parseFloat(event.target.value);
-                    this.callbacks.onVolumeChange?.(instrumentId, volume);
-                });
-            }
-
-            const muteCheckbox = track.querySelector('.mute-checkbox');
-            if (muteCheckbox) {
-                muteCheckbox.addEventListener('change', (event) => {
-                    const isMuted = event.target.checked;
-                    this.callbacks.onToggleMute?.(instrumentId, isMuted);
-                });
-            }
+            track.querySelector('.volume-slider')?.addEventListener('input', (event) => {
+                this.callbacks.onVolumeChange?.(instrumentId, parseFloat(event.target.value));
+            });
+            track.querySelector('.mute-checkbox')?.addEventListener('change', (event) => {
+                this.callbacks.onToggleMute?.(instrumentId, event.target.checked);
+            });
         });
     }
 }

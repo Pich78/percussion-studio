@@ -1,6 +1,5 @@
-// file: src/App.js
+// file: src/App.js (Complete, Corrected Version)
 
-// Import Layers
 import { DataAccessLayer } from './dal/DataAccessLayer.js';
 import { AudioPlayer } from './audio/AudioPlayer.js';
 import { AudioScheduler } from './audio/AudioScheduler.js';
@@ -9,72 +8,96 @@ import { ProjectController } from './controller/ProjectController.js';
 import { EditController } from './controller/EditController.js';
 import { View } from './view/View.js';
 
-/**
- * The main orchestrator of the application.
- */
 class App {
     constructor() {
-        // Define the initial state of the application
         this.state = {
-            isLoading: true,
-            isPlaying: false,
-            isDirty: false,
-            loopPlayback: false,
-            masterVolume: 1.0,
-            rhythm: null,
-            currentPatternId: null,
-            error: null,
-            confirmation: null,
+            isLoading: true, isPlaying: false, isDirty: false, loopPlayback: false,
+            masterVolume: 1.0, rhythm: null, currentPatternId: null, error: null, confirmation: null,
         };
 
         // --- Initialize All Modules ---
-
-        // Audio Layer
         this.audioPlayer = new AudioPlayer();
-        this.audioScheduler = new AudioScheduler(this.audioPlayer, (beat) => {
+        this.audioScheduler = new AudioScheduler(this.audioPlayer, (beatNumber) => {
             // This is the onUpdateCallback for the scheduler
-            this.view.tubsGridView.updatePlaybackIndicator(beat);
+            const pattern = this.state.rhythm.patterns[this.state.currentPatternId];
+            if (!pattern) return;
+            const resolution = pattern.metadata.resolution || 16;
+            const ticksPerBeat = resolution / 4.0;
+            const tick = (beatNumber - 1) * ticksPerBeat;
+            this.view.tubsGridView.updatePlaybackIndicator(tick);
+        }, () => {
+            // onPlaybackEnded callback
+            this.setState({ isPlaying: false });
         });
 
-        // Controller Layer (passing dependencies)
         this.playbackController = new PlaybackController(this.audioScheduler, this.audioPlayer);
         this.projectController = new ProjectController(DataAccessLayer, this.audioPlayer, this.audioScheduler);
         this.editController = new EditController();
 
-        // View Layer (passing callbacks)
+        // Wire up ALL callbacks from the view to the controllers/app
         this.view = new View({
-            onPlay: () => this.playbackController.play(),
-            onPause: () => this.playbackController.pause(),
-            onStop: () => this.playbackController.stop(),
-            // More callbacks will be wired up here...
+            // Playback
+            onPlay: () => {
+                this.playbackController.play();
+                this.setState({ isPlaying: true });
+            },
+            onPause: () => {
+                this.playbackController.pause();
+                this.setState({ isPlaying: false });
+            },
+            onStop: () => {
+                this.playbackController.stop();
+                this.setState({ isPlaying: false });
+                this.view.tubsGridView.updatePlaybackIndicator(0); // Reset indicator visually
+            },
+            onMasterVolumeChange: (vol) => this.playbackController.setMasterVolume(vol),
+            onToggleLoop: (enabled) => this.playbackController.toggleLoop(enabled),
+            // Project
+            onNewProject: () => console.log('New Project clicked'),
+            onLoadProject: () => console.log('Load Project clicked'),
+            onSaveProject: () => console.log('Save Project clicked'),
+            // Instrument Mixer
+            onInstrumentVolumeChange: (id, vol) => console.log(`Volume change: ${id}, ${vol}`),
+            onInstrumentMuteToggle: (id, muted) => console.log(`Mute toggle: ${id}, ${muted}`),
+            // Modals
+            onErrorDismiss: () => this.setState({ error: null }),
         });
     }
 
     /**
-     * The main entry point to start the application.
+     * A central method to update state and trigger a re-render.
+     * @param {object} newState The properties of the state to update.
      */
+    setState(newState) {
+        this.state = { ...this.state, ...newState };
+        this.view.render(this.state);
+    }
+
     async init() {
-        // Render the initial "loading" state
         this.view.render(this.state);
 
         try {
-            // Use the ProjectController to load our default rhythm
+            // Load a rhythm that has multiple instruments to test the mixer
             const resolvedRhythm = await this.projectController.loadRhythm('test_rhythm');
             
-            // Update the state with the loaded data
-            this.state.rhythm = resolvedRhythm;
-            this.state.currentPatternId = resolvedRhythm.playback_flow[0].pattern; // Show the first pattern
+            // Placeholder for real mixer state management
+            resolvedRhythm.mixer = {
+                test_kick: { volume: 1.0, muted: false },
+                test_snare: { volume: 0.8, muted: false }
+            };
+            
+            this.setState({
+                rhythm: resolvedRhythm,
+                // Make sure we select a pattern that actually exists in test_rhythm
+                currentPatternId: resolvedRhythm.playback_flow[0].pattern,
+                isLoading: false
+            });
         } catch (error) {
             console.error(error);
-            this.state.error = { message: 'Failed to load default rhythm.', details: error.message };
-        } finally {
-            // Update the state and re-render
-            this.state.isLoading = false;
-            this.view.render(this.state);
+            this.setState({ error: { message: 'Failed to load default rhythm.', details: error.message }, isLoading: false });
         }
     }
 }
 
-// Create an instance of the app and start it!
 const app = new App();
 app.init();

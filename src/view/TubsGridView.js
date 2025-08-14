@@ -1,4 +1,4 @@
-// file: src/view/TubsGridView.js (Complete, Final Version)
+// file: src/view/TubsGridView.js (Complete, Corrected Version)
 
 export class TubsGridView {
     constructor(container, callbacks) {
@@ -48,39 +48,21 @@ export class TubsGridView {
         });
 
         gridHtml += `</div>`;
-        this.container.innerHTML = gridHtml;
+        this.container.innerHTML = html;
         this.indicator = this.container.querySelector('.playback-indicator');
         this.updatePlaybackIndicator(0);
     }
 
-    /**
-     * A "pure" method that calculates the style strings without touching the DOM.
-     * This makes the logic easily testable.
-     * @param {number} tick The current tick.
-     * @returns {{left: string, width: string} | null} The style object or null if data is missing.
-     */
-    _calculateIndicatorStyles(tick) {
-        if (!this.state.rhythm) return null;
+    updatePlaybackIndicator(tick) {
+        if (!this.indicator || !this.state.rhythm) return;
 
         const pattern = this.state.rhythm.patterns?.[this.state.currentPatternId];
-        if (!pattern) return null;
+        if (!pattern) return;
 
         const resolution = pattern.metadata.resolution || 16;
         const multiplier = tick / resolution;
 
-        return {
-            left: `calc(80px + (100% - 80px) * ${multiplier})`,
-            width: `calc((100% - 80px) / ${resolution})`
-        };
-    }
-
-    updatePlaybackIndicator(tick) {
-        if (!this.indicator) return;
-
-        const styles = this._calculateIndicatorStyles(tick);
-        if (styles) {
-            this.indicator.style.left = styles.left;
-            this.indicator.style.width = styles.width;
-        }
+        this.indicator.style.left = `calc(80px + (100% - 80px) * ${multiplier})`;
+        this.indicator.style.width = `calc((100% - 80px) / ${resolution})`;
     }
 }

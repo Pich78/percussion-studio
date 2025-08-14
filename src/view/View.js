@@ -1,30 +1,22 @@
-// file: src/view/View.js
+// file: src/view/View.js (Complete, Corrected Version)
 
-// Import all the individual view components we've built
 import { AppMenuView } from './AppMenuView.js';
 import { PlaybackControlsView } from './PlaybackControlsView.js';
 import { TubsGridView } from './TubsGridView.js';
 import { InstrumentMixerView } from './InstrumentMixerView.js';
-import { RhythmEditorView } from './RhythmEditorView.js';
 import { ConfirmationDialogView } from './ConfirmationDialogView.js';
 import { ErrorModalView } from './ErrorModalView.js';
 
-/**
- * The main UI manager. It owns all the sub-view modules and orchestrates
- * the rendering of the entire application based on the state.
- */
 export class View {
     constructor(callbacks) {
         this.callbacks = callbacks;
 
-        // Find all the container elements in the DOM
         const appMenuContainer = document.getElementById('app-menu-container');
         const playbackControlsContainer = document.getElementById('playback-controls-container');
         const tubsGridContainer = document.getElementById('grid-view-container');
         const instrumentMixerContainer = document.getElementById('instrument-mixer-container');
-        const appBody = document.body; // Modals are attached to the body
+        const appBody = document.body;
 
-        // Instantiate all the sub-view modules, passing their containers and callbacks
         this.appMenuView = new AppMenuView(appMenuContainer, {
             onNewProject: () => this.callbacks.onNewProject(),
             onLoadProject: () => this.callbacks.onLoadProject(),
@@ -40,22 +32,19 @@ export class View {
         });
 
         this.tubsGridView = new TubsGridView(tubsGridContainer, {});
-        this.instrumentMixerView = new InstrumentMixerView(instrumentMixerContainer, {});
         
-        // Modals need a separate flow
+        this.instrumentMixerView = new InstrumentMixerView(instrumentMixerContainer, {
+            onVolumeChange: (id, vol) => this.callbacks.onInstrumentVolumeChange(id, vol),
+            onToggleMute: (id, muted) => this.callbacks.onInstrumentMuteToggle(id, muted),
+        });
+        
         this.confirmationDialogView = new ConfirmationDialogView(appBody);
         this.errorModalView = new ErrorModalView(appBody, {
             onErrorDismiss: () => this.callbacks.onErrorDismiss()
         });
     }
 
-    /**
-     * The main rendering method. It takes the entire application state
-     * and passes the relevant "slice" of it to each sub-view.
-     * @param {object} state The full application state object.
-     */
     render(state) {
-        // Pass the relevant state slice to each sub-view
         this.appMenuView.render({ isDirty: state.isDirty });
         this.playbackControlsView.render({
             isPlaying: state.isPlaying,
@@ -68,8 +57,6 @@ export class View {
             currentPatternId: state.currentPatternId
         });
         this.instrumentMixerView.render({ rhythm: state.rhythm });
-
-        // Modals are driven by their specific state keys
         this.confirmationDialogView.render({ confirmation: state.confirmation });
         this.errorModalView.render({ error: state.error });
     }
