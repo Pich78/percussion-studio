@@ -1,4 +1,4 @@
-// file: test/suites/view/ConfirmationDialogView.test.js (Complete)
+// file: test/suites/view/ConfirmationDialogView.test.js (Complete, Final Version)
 
 import { TestRunner } from '/percussion-studio/test/lib/TestRunner.js';
 import { MockLogger } from '/percussion-studio/test/mocks/MockLogger.js';
@@ -9,6 +9,7 @@ export async function run() {
     MockLogger.clearLogs();
     MockLogger.setLogTarget('log-output');
     
+    // The test sandbox will act as the "app container" for the tests.
     const testContainer = document.getElementById('test-sandbox');
 
     runner.describe('ConfirmationDialogView Rendering', () => {
@@ -23,22 +24,20 @@ export async function run() {
             testContainer.innerHTML = '';
             const view = new ConfirmationDialogView(testContainer);
             view.render({ confirmation: { message: 'Are you sure?' } });
-
             const dialog = testContainer.querySelector('.modal-dialog');
             runner.expect(dialog === null).toBe(false);
             runner.expect(dialog.textContent.includes('Are you sure?')).toBe(true);
         });
 
-        runner.it('should clear itself when re-rendered with a null state', () => {
+        runner.it('should remove the dialog from the DOM when re-rendered with a null state', () => {
             testContainer.innerHTML = '';
             const view = new ConfirmationDialogView(testContainer);
-            // First, render the dialog
             view.render({ confirmation: { message: 'Test' } });
             runner.expect(testContainer.querySelector('.modal-dialog') === null).toBe(false);
 
-            // Now, render with a null state
             view.render({ confirmation: null });
             runner.expect(testContainer.querySelector('.modal-dialog') === null).toBe(true);
+            runner.expect(testContainer.innerHTML).toBe('');
         });
     });
 
@@ -46,12 +45,7 @@ export async function run() {
         runner.it('should fire the onConfirm callback when the confirm button is clicked', () => {
             testContainer.innerHTML = '';
             const callbackLog = new MockLogger('Callbacks');
-            const confirmationState = {
-                confirmation: {
-                    message: 'Test',
-                    onConfirm: () => callbackLog.log('onConfirm')
-                }
-            };
+            const confirmationState = { confirmation: { onConfirm: () => callbackLog.log('onConfirm') } };
             
             const view = new ConfirmationDialogView(testContainer);
             view.render(confirmationState);
@@ -63,12 +57,7 @@ export async function run() {
         runner.it('should fire the onCancel callback when the cancel button is clicked', () => {
             testContainer.innerHTML = '';
             const callbackLog = new MockLogger('Callbacks');
-            const confirmationState = {
-                confirmation: {
-                    message: 'Test',
-                    onCancel: () => callbackLog.log('onCancel')
-                }
-            };
+            const confirmationState = { confirmation: { onCancel: () => callbackLog.log('onCancel') } };
             
             const view = new ConfirmationDialogView(testContainer);
             view.render(confirmationState);
@@ -86,6 +75,7 @@ export function manualTest() {
     const log = new MockLogger('Callbacks');
     MockLogger.setLogTarget('log-output');
 
+    // The live view should attach to the main document body.
     const view = new ConfirmationDialogView(document.body);
 
     const showDialog = () => {

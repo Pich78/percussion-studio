@@ -1,4 +1,4 @@
-<!-- file: test/harnesses/view/ConfirmationDialogView.html -->
+<!-- file: test/harnesses/view/ConfirmationDialogView.html (Complete, Final Version) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,16 +14,17 @@
         button { font-size: 14px; padding: 8px 12px; margin: 0 5px 10px 0; }
         h1, h2 { border-bottom: 1px solid #ccc; padding-bottom: 5px; }
 
-        /* Modal specific styling */
-        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
         .modal-dialog { background-color: #fff; padding: 20px; border-radius: 5px; min-width: 300px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
         .modal-actions { margin-top: 20px; text-align: right; }
+        
+        #test-sandbox { position: absolute; visibility: hidden; }
     </style>
 </head>
 <body>
     <div class="test-panel">
         <h1>Automated Tests</h1>
-        <button id="run-tests-btn">Run Automated Tests</button>
+        <button id="run-tests-btn">Run All Tests</button>
         <div id="test-results"></div>
     </div>
 
@@ -37,8 +38,7 @@
         <pre id="log-output"></pre>
     </div>
 
-    <!-- The modal will be appended to the body, so we don't need a specific container here -->
-    <div id="test-sandbox" style="position: absolute; visibility: hidden;"></div>
+    <div id="test-sandbox"></div>
 
     <script type="module">
         import { run, manualTest } from '/percussion-studio/test/suites/view/ConfirmationDialogView.test.js';
@@ -48,7 +48,6 @@
             run();
         });
 
-        // Setup the manual test
         manualTest();
     </script>
 </body>

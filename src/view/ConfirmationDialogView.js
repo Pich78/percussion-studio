@@ -1,9 +1,13 @@
-// file: src/view/ConfirmationDialogView.js (Complete)
+// file: src/view/ConfirmationDialogView.js (Complete, Final Version)
 
 export class ConfirmationDialogView {
-    constructor(container) {
-        this.container = container;
-        this.state = {}; // To hold a reference to the confirmation object
+    constructor(appContainer) {
+        // The view will append its modal to this container (e.g., document.body)
+        this.appContainer = appContainer;
+        this.state = {};
+
+        // The view creates and manages its own root element
+        this.modalContainer = document.createElement('div');
 
         // Bind event handlers to 'this' instance
         this.handleConfirm = this.handleConfirm.bind(this);
@@ -11,12 +15,13 @@ export class ConfirmationDialogView {
     }
 
     render(state) {
-        // Store the state, which contains the message and callbacks
         this.state = state;
         
-        // If there's no confirmation request, render nothing.
+        // If there's no confirmation request, ensure the modal is removed from the DOM.
         if (!state.confirmation) {
-            this.clear();
+            if (this.modalContainer.parentNode === this.appContainer) {
+                this.appContainer.removeChild(this.modalContainer);
+            }
             return;
         }
 
@@ -34,37 +39,27 @@ export class ConfirmationDialogView {
             </div>
         `;
 
-        // Create a temporary element to hold the modal, so we don't
-        // overwrite the container's other children.
-        this.modalElement = document.createElement('div');
-        this.modalElement.innerHTML = html;
-        this.container.appendChild(this.modalElement);
+        this.modalContainer.innerHTML = html;
+        
+        // Ensure the modal is in the DOM before attaching listeners
+        if (this.modalContainer.parentNode !== this.appContainer) {
+            this.appContainer.appendChild(this.modalContainer);
+        }
 
         this.attachEventListeners();
     }
 
     attachEventListeners() {
-        this.container.querySelector('#confirm-btn')?.addEventListener('click', this.handleConfirm);
-        this.container.querySelector('#cancel-btn')?.addEventListener('click', this.handleCancel);
+        // Query within the view's own managed container for robustness
+        this.modalContainer.querySelector('#confirm-btn')?.addEventListener('click', this.handleConfirm);
+        this.modalContainer.querySelector('#cancel-btn')?.addEventListener('click', this.handleCancel);
     }
 
     handleConfirm() {
-        // Call the onConfirm function that was passed in the state object.
         this.state.confirmation?.onConfirm?.();
     }
 
     handleCancel() {
-        // Call the onCancel function that was passed in the state object.
         this.state.confirmation?.onCancel?.();
-    }
-
-    /**
-     * Helper method to safely remove the modal from the DOM.
-     */
-    clear() {
-        if (this.modalElement) {
-            this.container.removeChild(this.modalElement);
-            this.modalElement = null;
-        }
     }
 }
