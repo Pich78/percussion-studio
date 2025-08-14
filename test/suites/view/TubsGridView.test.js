@@ -9,7 +9,6 @@ export async function run() {
     MockLogger.clearLogs();
     MockLogger.setLogTarget('log-output');
     
-    // The sandbox is now guaranteed to exist in the HTML.
     const testContainer = document.getElementById('test-sandbox');
 
     const getMockState = () => ({
@@ -39,25 +38,26 @@ export async function run() {
     });
 
     runner.describe('TubsGridView Playback Indicator', () => {
-        runner.it('should position the indicator at the correct computed pixel value', () => {
+        // CRITICAL FIX: The test must be async to wait for rendering.
+        runner.it('should position the indicator at the correct computed pixel value', async () => {
             testContainer.innerHTML = '';
             const state = getMockState();
             const view = new TubsGridView(testContainer, {});
             view.render(state);
             
             const grid = testContainer.querySelector('.grid');
-            // Set a predictable width on the grid element itself.
             grid.style.width = '880px';
 
-            view.updatePlaybackIndicator(8); // Move to halfway point
+            view.updatePlaybackIndicator(8);
             
+            // This is the key: wait for the next browser paint cycle.
+            await new Promise(resolve => setTimeout(resolve, 0));
+
             const indicator = testContainer.querySelector('.playback-indicator');
             const computedStyle = window.getComputedStyle(indicator);
             const leftPixels = parseFloat(computedStyle.left);
 
-            // Expected: 80px header + 50% of the remaining 800px = 480px.
             const expectedLeftPixels = 480;
-
             const isCloseEnough = Math.abs(leftPixels - expectedLeftPixels) < 1;
             runner.expect(isCloseEnough).toBe(true);
         });

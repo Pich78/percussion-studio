@@ -35,8 +35,7 @@
             pointer-events: none;
             transition: left 0.05s linear;
         }
-
-        /* CRITICAL FIX: Hide the test sandbox from the layout */
+        
         #test-sandbox {
             position: absolute;
             visibility: hidden;
@@ -64,7 +63,6 @@
         <pre id="log-output"></pre>
     </div>
 
-    <!-- CRITICAL FIX: The sandbox is now a permanent, hidden element -->
     <div id="test-sandbox"></div>
 
     <script type="module">
