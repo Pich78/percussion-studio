@@ -16,7 +16,6 @@ export async function run() {
         document.body.appendChild(testContainer);
     }
 
-    // A more complete mock state that includes instrument definitions
     const getMockState = () => ({
         currentPatternId: 'p1',
         rhythm: {
@@ -38,21 +37,17 @@ export async function run() {
             testContainer.innerHTML = '';
             const view = new TubsGridView(testContainer, {});
             view.render(getMockState());
-            const headers = testContainer.querySelectorAll('.instrument-header');
-            runner.expect(headers.length).toBe(1);
-            const cells = testContainer.querySelectorAll('.grid-cell');
-            runner.expect(cells.length).toBe(16);
+            runner.expect(testContainer.querySelectorAll('.instrument-header').length).toBe(1);
+            runner.expect(testContainer.querySelectorAll('.grid-cell').length).toBe(16);
         });
 
         runner.it('should render note images with the correct src path', () => {
             testContainer.innerHTML = '';
             const view = new TubsGridView(testContainer, {});
             view.render(getMockState());
-            const kickCell = testContainer.querySelectorAll('.grid-cell')[0];
-            const img = kickCell.querySelector('img');
+            const img = testContainer.querySelector('img');
             runner.expect(img === null).toBe(false);
             const expectedSrc = '/percussion-studio/data/instruments/test_kick/kick_beater.svg';
-            // Use .includes() because the full URL might have the domain prepended
             runner.expect(img.src.includes(expectedSrc)).toBe(true);
         });
     });
@@ -72,7 +67,7 @@ export async function run() {
     runner.renderResults('test-results');
 }
 
-/** Sets up the interactive workbench - THIS IS THE FIX FOR THE DESTRUCTURE ERROR */
+/** Sets up the interactive workbench */
 export function manualTest() {
     const log = new MockLogger('Callbacks');
     const callbacks = {};
@@ -82,17 +77,24 @@ export function manualTest() {
     const liveState = {
         currentPatternId: 'p1',
         rhythm: {
-            instrument_kit: { KCK: 'test_kick', HHC: 'test_hat' },
+            instrument_kit: {
+                KCK: 'test_kick',
+                // THIS IS THE FIX: The 'HHC' track also maps to the 'test_kick' instrument folder,
+                // which we know contains a valid SVG file.
+                HHC: 'test_kick' 
+            },
             instruments: {
-                test_kick: { name: 'Test Kick', sounds: [{ letter: 'o', svg: 'kick_beater.svg' }] },
-                test_hat: { name: 'Test Hat', sounds: [{ letter: 'x', svg: 'kick_beater.svg' }] } // Re-use svg for test
+                test_kick: { name: 'Test Kick', sounds: [
+                    { letter: 'o', svg: 'kick_beater.svg' },
+                    { letter: 'x', svg: 'kick_beater.svg' } // Ensure both 'o' and 'x' are valid letters
+                ]}
             },
             patterns: {
                 p1: {
                     metadata: { resolution: 16 },
                     pattern_data: [{
                         KCK: '||o---o---o---o---||',
-                        HHC: '||o-o-o-o-o-o-o-o-||'
+                        HHC: '||x-x-x-x-x-x-x-x-||' // Using 'x' now
                     }]
                 }
             }

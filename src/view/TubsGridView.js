@@ -1,4 +1,4 @@
-// file: src/view/TubsGridView.js (Complete and Corrected)
+// file: src/view/TubsGridView.js (Complete)
 
 export class TubsGridView {
     constructor(container, callbacks) {
@@ -32,16 +32,15 @@ export class TubsGridView {
                 let cellContent = '';
                 if (noteChar && noteChar !== '-') {
                     const instrumentId = rhythm.instrument_kit[instrumentSymbol];
-                    
-                    // This is a placeholder for a more complex lookup system.
-                    // For now, we assume any note char maps to the first sound's SVG.
                     const instrumentData = rhythm.instruments?.[instrumentId];
-                    const svgFile = instrumentData?.sounds?.[0]?.svg || 'default.svg';
+                    // Find the sound definition that matches the character in the grid
+                    const soundDef = instrumentData?.sounds?.find(s => s.letter === noteChar);
+                    const svgFile = soundDef?.svg || 'default.svg';
                     
-                    // THIS IS THE CRITICAL PATH FIX:
-                    const imgSrc = `/percussion-studio/data/instruments/${instrumentId}/${svgFile}`;
-                    
-                    cellContent = `<img src="${imgSrc}" alt="note">`;
+                    if (instrumentId) { // Safety check
+                        const imgSrc = `/percussion-studio/data/instruments/${instrumentId}/${svgFile}`;
+                        cellContent = `<img src="${imgSrc}" alt="note">`;
+                    }
                 }
                 gridHtml += `<div class="grid-cell">${cellContent}</div>`;
             }
