@@ -1,0 +1,123 @@
+<!-- file: test/harnesses/view/ErrorModalView.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Harness: ErrorModalView</title>
+    <style>
+        body { font-family: sans-serif; display: flex; gap: 20px; padding: 20px; }
+        .test-panel, .live-panel, .log-panel { border: 1px solid #ccc; padding: 10px; }
+        .test-panel { flex: 2; }
+        .live-panel { flex: 2; }
+        .log-panel { flex: 1; background-color: #f9f9f9; }
+        #log-output { white-space: pre-wrap; word-wrap: break-word; font-family: monospace; font-size: 12px; }
+        button { font-size: 14px; padding: 8px 12px; margin: 0 5px 10px 0; }
+        h1, h2 { border-bottom: 1px solid #ccc; padding-bottom: 5px; }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-dialog { background-color: #fff; padding: 20px; border-radius: 5px; min-width: 300px; max-width: 500px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .modal-dialog h3 { margin-top: 0; color: #c00; }
+        .modal-details { background-color: #f3f3f3; border: 1px solid #ddd; padding: 10px; max-height: 200px; overflow-y: auto; font-family: monospace; }
+        .modal-actions { margin-top: 20px; text-align: right; }
+    </style>
+</head>
+<body>
+    <div class="test-panel">
+        <h1>Automated Tests</h1>
+        <button id="run-tests-btn">Run Automated Tests</button>
+        <div id="test-results"></div>
+    </div>
+    <div class="live-panel">
+        <h1>Live View Workbench</h1>
+        <button id="show-error-btn">Show Error Dialog</button>
+    </div>
+    <div class="log-panel">
+        <h2>Execution Log</h2>
+        <pre id="log-output"></pre>
+    </div>
+    <div id="test-sandbox" style="position: absolute; visibility: hidden;"></div>
+    <script type="module">
+        import { run, manualTest } from '/percussion-studio/test/suites/view/ErrorModalView.test.js';
+        document.getElementById('run-tests-btn').addEventListener('click', () => run());
+        manualTest();
+    </script>
+</body>
+</html>```
+
+#### **3. `test/suites/view/ErrorModalView.test.js` (The Test Suite Stub)**
+
+This test suite will check that the dialog renders correctly when `state.error` is populated and that it renders nothing otherwise.
+
+```javascript
+// file: test/suites/view/ErrorModalView.test.js
+
+import { TestRunner } from '/percussion-studio/test/lib/TestRunner.js';
+import { MockLogger } from '/percussion-studio/test/mocks/MockLogger.js';
+import { ErrorModalView } from '/percussion-studio/src/view/ErrorModalView.js';
+
+export async function run() {
+    const runner = new TestRunner();
+    MockLogger.clearLogs();
+    MockLogger.setLogTarget('log-output');
+    
+    const testContainer = document.getElementById('test-sandbox');
+
+    runner.describe('ErrorModalView Rendering', () => {
+        runner.it('should render nothing when state.error is null', () => {
+            testContainer.innerHTML = '';
+            const view = new ErrorModalView(testContainer, {});
+            view.render({ error: null });
+            runner.expect(testContainer.innerHTML).toBe('');
+        });
+
+        runner.it('should render the dialog when state.error is populated', () => {
+            testContainer.innerHTML = '';
+            const view = new ErrorModalView(testContainer, {});
+            const errorState = {
+                error: {
+                    message: 'File could not be loaded.',
+                    details: 'Network error 404'
+                }
+            };
+            view.render(errorState);
+
+            const dialog = testContainer.querySelector('.modal-dialog');
+            runner.expect(dialog === null).toBe(false);
+            runner.expect(dialog.textContent.includes('File could not be loaded.')).toBe(true);
+            runner.expect(dialog.textContent.includes('Network error 404')).toBe(true);
+        });
+    });
+
+    await runner.runAll();
+    runner.renderResults('test-results');
+}
+
+export function manualTest() {
+    const log = new MockLogger('Callbacks');
+    MockLogger.setLogTarget('log-output');
+
+    const callbacks = {
+        onErrorDismiss: () => {
+            log.log('onErrorDismiss');
+            hideDialog();
+        }
+    };
+
+    const view = new ErrorModalView(document.body, callbacks);
+
+    const showError = () => {
+        const state = {
+            error: {
+                message: 'Failed to load rhythm file.',
+                details: 'The file "ghost.rthm.yaml" was not found on the server (404).'
+            }
+        };
+        view.render(state);
+    };
+
+    const hideDialog = () => {
+        view.render({ error: null });
+    };
+
+    document.getElementById('show-error-btn').addEventListener('click', showError);
+}
