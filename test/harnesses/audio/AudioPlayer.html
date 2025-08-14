@@ -1,0 +1,41 @@
+<!-- file: test/harnesses/audio/AudioPlayer.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Harness: AudioPlayer</title>
+    <style>
+        body { font-family: sans-serif; display: flex; gap: 20px; padding: 20px; }
+        .main-panel { flex: 2; }
+        .log-panel { flex: 1; border: 1px solid #ccc; padding: 0 10px; background-color: #f9f9f9; }
+        #log-output { white-space: pre-wrap; word-wrap: break-word; font-family: monospace; font-size: 12px; }
+        button { font-size: 16px; padding: 10px 15px; cursor: pointer; margin-right: 10px; }
+        h1, h2 { border-bottom: 1px solid #ccc; padding-bottom: 5px; }
+    </style>
+</head>
+<body>
+
+    <div class="main-panel">
+        <h1>Test Runner for <code>AudioPlayer.js</code></h1>
+        <button id="run-tests-btn">Run All Tests</button>
+        <div id="test-results"></div>
+    </div>
+
+    <div class="log-panel">
+        <h2>Execution Log</h2>
+        <pre id="log-output"></pre>
+    </div>
+
+    <script type="module">
+        // Import the main test execution function from the suite.
+        import { run } from '/percussion-studio/test/suites/audio/AudioPlayer.test.js';
+
+        document.getElementById('run-tests-btn').addEventListener('click', () => {
+            const resultsContainer = document.getElementById('test-results');
+            resultsContainer.innerHTML = '<h2>Running tests...</h2>';
+            // Call the main run function from the test suite. It handles everything.
+            run();
+        });
+    </script>
+</body>
+</html>
