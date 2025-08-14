@@ -60,14 +60,20 @@ To discover available assets without depending on the GitHub API at runtime, the
     ```
 
 *   **Pattern Definition (`rock_verse.patt.yaml`):**
+    The `pattern_data` is a **list** where each item represents a single measure. This format was chosen for its high readability and to simplify the parsing logic in the application, as it eliminates the need for complex string manipulation.
+
     ```yaml
     metadata:
-      name: "Rock Verse Beat 1"
+      name: "Rock Verse Beat - 2 Measures"
       metric: "4/4"
       resolution: 16
     pattern_data:
-      KCK: "||o---|----|o---|----||"
-      SNR: "||----|o---|----|o---||"
+      - # Measure 1
+        KCK: "||o---|----|o---|----||"
+        SNR: "||----|o---|----|o---||"
+      - # Measure 2 (with variation)
+        KCK: "||o---|--o-|o---|----||"
+        SNR: "||----|o---|----|o-o-||"
     ```
 
 *   **Rhythm Definition (`my_first_song.rthm.yaml`):**
@@ -82,7 +88,6 @@ To discover available assets without depending on the GitHub API at runtime, the
       - pattern: "rock_fill_a"
         repetitions: 1
     ```
-
 ---
 
 ## 4. Build & Deployment Process

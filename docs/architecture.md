@@ -44,9 +44,9 @@ This layer is responsible for all application logic, broken down into specialize
 This layer encapsulates all Web Audio API logic.
 
 *   **`AudioScheduler` (High-Level Conductor):**
-    *   **Responsibilities:** A sophisticated state machine for all musical timing. It manages a look-ahead scheduling loop. It is responsible for interpreting all musical context properties from the current pattern, including **`metric` and `beats_per_measure_unit`**, and all BPM properties, including **static BPM per pattern** and **intra-pattern acceleration**. It is the **sole owner of the playback position state**, ensuring correct pause and resume functionality. It is also responsible for handling looping logic or firing an `onPlaybackEnded` callback.
-    *   **Interface:** `constructor(...)`, `setRhythm(...)`, `play()`, `pause()`, **`resetPosition()`**, `setInstrumentVolume(...)`.
-*   **`AudioPlayer` (Low-Level Executor):**
+    *   **Responsibilities:** A sophisticated state machine for all musical timing. It manages a look-ahead scheduling loop. It is the **sole owner of the playback position state**, ensuring correct pause and resume functionality. It is responsible for handling looping logic or firing an `onPlaybackEnded` callback.
+    *   **Data Interpretation:** It directly consumes the parsed pattern data. The `pattern_data` from the file is received as an **array of measure objects**. The scheduler's logic iterates through this array to play the measures in sequence. This simplifies parsing and robustly supports multi-measure patterns. It interprets all musical context properties from the current pattern, including **`metric` and `beats_per_measure_unit`**, and all BPM properties, including **static BPM per pattern** and **intra-pattern acceleration**.
+    *   **Interface:** `constructor(...)`, `setRhythm(...)`, `play()`, `pause()`, **`resetPosition()`**, `setInstrumentVolume(...)`.*   **`AudioPlayer` (Low-Level Executor):**
     *   **Responsibilities:** The sole facade for the Web Audio API. Manages the `AudioContext` and a master `GainNode` for global volume control. Pre-loads `.wav` files (including the two metronome sounds). Executes timed `play` commands. Implements "choke group" logic.
     *   **Interface:** `loadSounds(...)`, `playAt(...)`, `unloadSounds(...)`, `getAudioClockTime()`, `setMasterVolume(...)`.
 
