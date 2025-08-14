@@ -1,4 +1,4 @@
-// file: test/suites/view/ConfirmationDialogView.test.js
+// file: test/suites/view/ConfirmationDialogView.test.js (Complete)
 
 import { TestRunner } from '/percussion-studio/test/lib/TestRunner.js';
 import { MockLogger } from '/percussion-studio/test/mocks/MockLogger.js';
@@ -22,18 +22,59 @@ export async function run() {
         runner.it('should render the dialog when state.confirmation is populated', () => {
             testContainer.innerHTML = '';
             const view = new ConfirmationDialogView(testContainer);
-            const confirmationState = {
-                confirmation: {
-                    message: 'Are you sure?',
-                    onConfirm: () => {},
-                    onCancel: () => {}
-                }
-            };
-            view.render(confirmationState);
+            view.render({ confirmation: { message: 'Are you sure?' } });
 
             const dialog = testContainer.querySelector('.modal-dialog');
             runner.expect(dialog === null).toBe(false);
             runner.expect(dialog.textContent.includes('Are you sure?')).toBe(true);
+        });
+
+        runner.it('should clear itself when re-rendered with a null state', () => {
+            testContainer.innerHTML = '';
+            const view = new ConfirmationDialogView(testContainer);
+            // First, render the dialog
+            view.render({ confirmation: { message: 'Test' } });
+            runner.expect(testContainer.querySelector('.modal-dialog') === null).toBe(false);
+
+            // Now, render with a null state
+            view.render({ confirmation: null });
+            runner.expect(testContainer.querySelector('.modal-dialog') === null).toBe(true);
+        });
+    });
+
+    runner.describe('ConfirmationDialogView Callbacks', () => {
+        runner.it('should fire the onConfirm callback when the confirm button is clicked', () => {
+            testContainer.innerHTML = '';
+            const callbackLog = new MockLogger('Callbacks');
+            const confirmationState = {
+                confirmation: {
+                    message: 'Test',
+                    onConfirm: () => callbackLog.log('onConfirm')
+                }
+            };
+            
+            const view = new ConfirmationDialogView(testContainer);
+            view.render(confirmationState);
+            testContainer.querySelector('#confirm-btn').click();
+
+            callbackLog.wasCalledWith('onConfirm', undefined);
+        });
+
+        runner.it('should fire the onCancel callback when the cancel button is clicked', () => {
+            testContainer.innerHTML = '';
+            const callbackLog = new MockLogger('Callbacks');
+            const confirmationState = {
+                confirmation: {
+                    message: 'Test',
+                    onCancel: () => callbackLog.log('onCancel')
+                }
+            };
+            
+            const view = new ConfirmationDialogView(testContainer);
+            view.render(confirmationState);
+            testContainer.querySelector('#cancel-btn').click();
+
+            callbackLog.wasCalledWith('onCancel', undefined);
         });
     });
 
@@ -45,7 +86,6 @@ export function manualTest() {
     const log = new MockLogger('Callbacks');
     MockLogger.setLogTarget('log-output');
 
-    // In a real app, the body would be the container
     const view = new ConfirmationDialogView(document.body);
 
     const showDialog = () => {
@@ -54,11 +94,11 @@ export function manualTest() {
                 message: 'You have unsaved changes. Proceed?',
                 onConfirm: () => {
                     log.log('onConfirm');
-                    hideDialog(); // Close the dialog after confirming
+                    hideDialog();
                 },
                 onCancel: () => {
                     log.log('onCancel');
-                    hideDialog(); // Close the dialog after cancelling
+                    hideDialog();
                 }
             }
         };
