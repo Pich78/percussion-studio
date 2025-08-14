@@ -1,14 +1,10 @@
-// file: test/suites/dal/DataAccessLayer.test.js (Complete and Correct Final Version)
+// file: test/suites/dal/DataAccessLayer.test.js (Complete and Corrected)
 
 import { TestRunner } from '/percussion-studio/test/lib/TestRunner.js';
 import { MockLogger } from '/percussion-studio/test/mocks/MockLogger.js';
 import { DataAccessLayer } from '/percussion-studio/src/dal/DataAccessLayer.js';
 import { dump as dumpYaml } from "https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.mjs";
 
-/**
- * This is the main function that the HTML harness will call.
- * It sets up and runs all tests for the DataAccessLayer.
- */
 export async function run() {
     const runner = new TestRunner();
 
@@ -18,8 +14,6 @@ export async function run() {
     const originalFetch = window.fetch;
     const cleanup = () => { window.fetch = originalFetch; };
 
-    // --- Define Test Suites (These will queue tests) ---
-
     runner.describe('DAL Unit Tests', () => {
         runner.it('should successfully parse valid mock YAML data', async () => {
             const mockData = { success: true };
@@ -27,9 +21,7 @@ export async function run() {
             try {
                 const result = await DataAccessLayer.getRhythm('any');
                 runner.expect(result).toEqual(mockData);
-            } finally {
-                cleanup();
-            }
+            } finally { cleanup(); }
         });
 
         runner.it('should correctly throw a 404 error on failure', async () => {
@@ -37,9 +29,7 @@ export async function run() {
             try {
                 await runner.expect(() => DataAccessLayer.getPattern('non_existent'))
                       .toThrow("Failed to fetch pattern 'non_existent'. Server responded with status: 404");
-            } finally {
-                cleanup();
-            }
+            } finally { cleanup(); }
         });
 
         runner.it('should correctly throw a YAML parsing error', async () => {
@@ -47,9 +37,7 @@ export async function run() {
             try {
                 await runner.expect(() => DataAccessLayer.getRhythm('bad_syntax'))
                       .toThrow("Failed to parse YAML for rhythm 'bad_syntax'");
-            } finally {
-                cleanup();
-            }
+            } finally { cleanup(); }
         });
     });
 
@@ -102,30 +90,33 @@ export async function run() {
     runner.describe('DAL Export Tests', () => {
         runner.it('should call an injected JSZip mock with the correct file structure', async () => {
             const fileLogger = new MockLogger('zip.file');
-            
-            // 1. Create a local mock of the JSZip library. This is clean and self-contained.
+
+            // This mock is now correctly designed to handle nested folders.
             const mockJSZip = class {
-                constructor() { this.folders = {}; }
-                folder(name) {
-                    this.folders[name] = {
-                        file: (filename, content) => fileLogger.log('file', { path: `${name}/${filename}`, content }),
-                        folder: this.folder
-                    };
-                    return this.folders[name];
+                file(path, content) {
+                    fileLogger.log('file', { path, content });
                 }
-                file(filename, content) { fileLogger.log('file', { path: filename, content }); }
+                folder(name) {
+                    // Return an object that represents the folder.
+                    // Its methods will create paths relative to this folder.
+                    return {
+                        file: (filename, content) => {
+                            this.file(`${name}/${filename}`, content);
+                        },
+                        folder: (nestedName) => {
+                            return this.folder(`${name}/${nestedName}`);
+                        }
+                    };
+                }
                 async generateAsync() { return new Blob(); }
             };
 
-            // 2. Define sample data
             const mockRhythm = { global_bpm: 120 };
             const mockPatterns = [{ id: 'patt1', data: { metadata: { name: 'Verse' } } }];
             const mockInstruments = [{ id: 'kick1', data: { name: 'Acoustic Kick' } }];
 
-            // 3. Run the function and INJECT our mock class. No 'try...finally' is needed here.
             await DataAccessLayer.exportRhythmAsZip(mockRhythm, mockPatterns, mockInstruments, 'my_song', mockJSZip);
             
-            // 4. Assert that our mock was used.
             runner.expect(fileLogger.callCount).toBe(3);
             fileLogger.wasCalledWith('file', { path: 'my_song.rthm.yaml', content: 'global_bpm: 120\n' });
             fileLogger.wasCalledWith('file', { path: 'patterns/patt1.patt.yaml', content: 'metadata:\n  name: Verse\n' });
@@ -133,7 +124,6 @@ export async function run() {
         });
     });
     
-    // --- Run Tests Sequentially and Render ---
     await runner.runAll();
     runner.renderResults('test-results');
 }
