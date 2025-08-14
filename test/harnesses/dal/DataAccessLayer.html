@@ -1,20 +1,7 @@
-<!-- file: test/harnesses/dal/DataAccessLayer.html -->
+<!-- file: test/harnesses/dal/DataAccessLayer.html (MODERNIZED) -->
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Test Harness: DataAccessLayer</title>
-    <style>
-        body { font-family: sans-serif; display: flex; gap: 20px; padding: 20px; }
-        .main-panel { flex: 2; }
-        .log-panel { flex: 1; border: 1px solid #ccc; padding: 0 10px; background-color: #f9f9f9; }
-        #log-output { white-space: pre-wrap; word-wrap: break-word; font-family: monospace; font-size: 12px; }
-        button { font-size: 16px; padding: 10px 15px; cursor: pointer; }
-        h1, h2 { border-bottom: 1px solid #ccc; padding-bottom: 5px; }
-    </style>
-    <!-- Load JS-YAML library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
-</head>
+<!-- ... (head and style sections are the same) ... -->
 <body>
 
     <div class="main-panel">
@@ -22,38 +9,32 @@
         <button id="run-tests-btn">Run All Tests</button>
         <div id="test-results"></div>
     </div>
-
     <div class="log-panel">
         <h2>Execution Log</h2>
         <pre id="log-output"></pre>
     </div>
 
-    <!-- 1. Load Testing Libraries -->
-    <script src="/percussion-studio/test/lib/TestRunner.js"></script>
-    <script src="/percussion-studio/test/mocks/MockLogger.js"></script>
+    <!-- The magic happens here: We load a single "runner" script as a module -->
+    <script type="module">
+        // Import all the necessary components
+        import { DataAccessLayer } from '/percussion-studio/src/dal/DataAccessLayer.js';
+        import { runDalTests }      from '/percussion-studio/test/suites/dal/DataAccessLayer.test.js';
+        import { TestRunner }       from '/percussion-studio/test/lib/TestRunner.js';
+        import { MockLogger }       from '/percussion-studio/test/mocks/MockLogger.js';
 
-    <!-- 2. Load the Class Under Test -->
-    <script src="/percussion-studio/src/dal/DataAccessLayer.js"></script>
+        // Make classes available globally within this test harness for the tests to use
+        // In a full application, this would not be necessary.
+        window.DataAccessLayer = DataAccessLayer;
+        window.MockLogger = MockLogger;
 
-    <!-- 3. Load the Test Suite -->
-    <script src="/percussion-studio/test/suites/dal/DataAccessLayer.test.js"></script>
-
-    <!-- 4. Setup test execution -->
-    <script>
         document.getElementById('run-tests-btn').addEventListener('click', () => {
-            // Prepare the environment
             const resultsContainer = document.getElementById('test-results');
             resultsContainer.innerHTML = '<h2>Running tests...</h2>';
             MockLogger.clearLogs();
             MockLogger.setLogTarget('log-output');
 
-            // Initialize a new runner for this test run
             const runner = new TestRunner();
-
-            // Execute all test suites defined in the loaded test file
-            runDalTests(runner); // We will rename the function in the test file
-
-            // Render the results
+            runDalTests(runner);
             runner.renderResults('test-results');
         });
     </script>

@@ -1,20 +1,26 @@
 // file: test/mocks/MockLogger.js
 
-class MockLogger {
+/**
+ * A mock object utility for logging and verifying method calls during tests.
+ * Designed to be imported as an ES Module.
+ */
+export class MockLogger {
     constructor(name = 'Mock') {
         this.name = name;
         this.calls = [];
     }
 
-    // A generic method to be spied upon.
+    /**
+     * A generic method to be spied upon. Logs the call to the console and a target HTML element.
+     * @param {string} methodName The name of the method being called.
+     * @param {object} args The arguments passed to the method.
+     */
     log(methodName, args) {
         const logMessage = `[${this.name}] Method Called: ${methodName} with args: ${JSON.stringify(args)}`;
-        this.calls.push({ methodName, args });
+        this.calls.push({ methodName, args: JSON.parse(JSON.stringify(args)) }); // Deep copy args
 
-        // Also log to the console for developer convenience
         console.log(logMessage);
 
-        // Append log to the dedicated HTML element if it exists
         if (MockLogger.logTarget) {
             const now = new Date();
             const timestamp = `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}.${now.getMilliseconds()}`;
@@ -22,13 +28,22 @@ class MockLogger {
         }
     }
 
-    // --- (Verification methods like getCalled, wasCalledWith, callCount, clear remain the same) ---
-    getCalled(index) { return this.calls[index]; }
-    wasCalledWith(methodName, expectedArgs) { /* ... no change ... */ }
-    get callCount() { return this.calls.length; }
-    clear() { this.calls = []; }
+    get callCount() {
+        return this.calls.length;
+    }
 
+    wasCalledWith(methodName, expectedArgs) {
+        const call = this.calls.find(c => c.methodName === methodName && JSON.stringify(c.args) === JSON.stringify(expectedArgs));
+        if (!call) {
+            const actualCalls = this.calls.map(c => `${c.methodName}(${JSON.stringify(c.args)})`).join(', ') || 'None';
+            throw new Error(`Expected method '${methodName}' to be called with ${JSON.stringify(expectedArgs)}, but it was not. Actual calls: [${actualCalls}]`);
+        }
+    }
 
+    clear() {
+        this.calls = [];
+    }
+    
     /**
      * Sets the HTML element where all mock instances will write their logs.
      * @param {string} elementId The ID of the <pre> or <div> element.

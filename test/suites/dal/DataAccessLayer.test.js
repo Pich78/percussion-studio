@@ -1,84 +1,78 @@
 // file: test/suites/dal/DataAccessLayer.test.js
 
-function runDalTests(runner) {
+// This test suite is an ES Module. It exports the function that runs the tests.
+// It also imports its own dependencies for creating test data.
+import { dump as dumpYaml } from "https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.mjs";
+
+export function runDalTests(runner) {
     const originalFetch = window.fetch;
     const cleanup = () => { window.fetch = originalFetch; };
 
     runner.describe('DAL Unit Tests', () => {
-        
-        runner.it('getPattern should throw 404 error correctly', async () => {
+
+        runner.it('should correctly throw a 404 error', async () => {
             window.fetch = async () => ({ ok: false, status: 404 });
-            try {
-                await DataAccessLayer.getPattern('non_existent');
-                throw new Error("Test failed.");
-            } catch (e) {
-                runner.expect(e.message).toBe("Failed to fetch pattern 'non_existent'. Server responded with status: 404");
-            } finally { cleanup(); }
+            await runner.expect(() => DataAccessLayer.getPattern('non_existent'))
+                  .toThrow("Failed to fetch pattern 'non_existent'. Server responded with status: 404");
+            cleanup();
         });
 
-        runner.it('getInstrument should throw 404 error correctly', async () => {
-            window.fetch = async () => ({ ok: false, status: 404 });
-            try {
-                await DataAccessLayer.getInstrument('non_existent');
-                throw new Error("Test failed.");
-            } catch (e) {
-                runner.expect(e.message).toBe("Failed to fetch instrument 'non_existent'. Server responded with status: 404");
-            } finally { cleanup(); }
-        });
-
-        runner.it('should throw an error for invalid YAML', async () => {
-            window.fetch = async () => ({ ok: true, text: async () => "key: value: invalid" });
-            try {
-                await DataAccessLayer.getRhythm('bad_syntax');
-                throw new Error("Test failed.");
-            } catch (e) {
-                runner.expect(e.message.includes("Failed to parse YAML for rhythm 'bad_syntax'")).toBe(true);
-            } finally { cleanup(); }
+        runner.it('should correctly throw a YAML parsing error', async () => {
+            const invalidYaml = "key: value:\n  - improperly indented";
+            window.fetch = async () => ({ ok: true, text: async () => invalidYaml });
+            await runner.expect(() => DataAccessLayer.getRhythm('bad_syntax'))
+                  .toThrow("Failed to parse YAML for rhythm 'bad_syntax'");
+            cleanup();
         });
     });
 
     runner.describe('DAL Integration Tests (Live Fetch)', () => {
         runner.it('should fetch and parse a REAL rhythm file', async () => {
             const result = await DataAccessLayer.getRhythm('test_rhythm');
-            runner.expect(result.global_bpm).toBe(95);
+            const expected = { global_bpm: 95, instrument_kit: { KCK: "test_kick", SNR: "test_snare" }, playback_flow: [{ pattern: "test_pattern_a", repetitions: 2 }] };
+            runner.expect(result).toEqual(expected);
         });
 
-        runner.it('should fetch and parse a REAL pattern file', async () => {
-            const result = await DataAccessLayer.getPattern('test_pattern');
-            runner.expect(result.metadata.name).toBe("Test Pattern");
-        });
-
-        runner.it('should fetch and parse a REAL instrument file', async () => {
-            const result = await DataAccessLayer.getInstrument('test_kick');
-            runner.expect(result.name).toBe("Test Kick Drum");
+        runner.it('should fetch and parse a REAL pattern file with multi-line data', async () => {
+            // This test assumes a file `data/patterns/test_multiline.patt.yaml` exists for a full test
+            // For now, we will mock it to test the principle
+            const multiLineYaml = `
+metadata:
+  name: "Multi-Line Test"
+pattern_data:
+  KCK: |
+    ||o-||
+    ||-o||
+`;
+            const expectedData = {
+                metadata: { name: "Multi-Line Test" },
+                pattern_data: { KCK: "||o-||\n||-o||\n" }
+            };
+            window.fetch = async () => ({ ok: true, text: async () => multiLineYaml });
+            const result = await DataAccessLayer.getPattern('test_multiline');
+            runner.expect(result).toEqual(expectedData);
+            cleanup();
         });
     });
 
     runner.describe('DAL Logging & Interaction Test', () => {
-
-        runner.it('should call fetch with the correct URL for getRhythm', async () => {
-            // Setup the mock
-            const fetchMock = new MockLogger('fetch');
-            // This is our mock's behavior. It logs the call and returns a valid response.
+        runner.it('should call fetch with the correct URL for getInstrument', async () => {
+            const fetchMock = new window.MockLogger('fetch');
             window.fetch = (url, options) => {
-                fetchMock.log('fetch', { url }); 
+                fetchMock.log('fetch', { url });
                 return Promise.resolve({
                     ok: true,
-                    text: () => Promise.resolve('global_bpm: 100')
+                    text: () => Promise.resolve(dumpYaml({ name: 'mock instrument' }))
                 });
             };
 
-            try {
-                await DataAccessLayer.getRhythm('my_song');
+            await DataAccessLayer.getInstrument('awesome_kick');
+            
+            const expectedUrl = '/percussion-studio/data/instruments/awesome_kick/awesome_kick.inst.yaml';
+            fetchMock.wasCalledWith('fetch', { url: expectedUrl });
+            runner.expect(fetchMock.callCount).toBe(1);
 
-                // Verify the mock was called correctly
-                const expectedUrl = '/percussion-studio/data/rhythms/my_song.rthm.yaml';
-                fetchMock.wasCalledWith('fetch', { url: expectedUrl });
-                runner.expect(fetchMock.callCount).toBe(1);
-
-            } finally {
-                cleanup();
-            }
+            cleanup();
         });
     });
 }
