@@ -1,4 +1,4 @@
-// file: src/view/TubsGridView.js (Complete and Corrected)
+// file: src/view/TubsGridView.js (Final Corrected Version)
 
 export class TubsGridView {
     constructor(container, callbacks) {
@@ -21,17 +21,14 @@ export class TubsGridView {
         const gridStyles = `grid-template-columns: 80px repeat(${resolution}, 1fr);`;
         let gridHtml = `<div class="grid" style="${gridStyles}">`;
 
-        // The indicator is a direct child of the grid. CSS will handle its spanning.
+        // The indicator is a direct child. CSS will position it.
         gridHtml += `<div class="playback-indicator"></div>`;
         
-        // Loop through each instrument and add its parts directly to the grid
+        // Let the elements flow into the grid naturally.
         instruments.forEach(instrumentSymbol => {
-            // Instrument Header
             gridHtml += `<div class="instrument-header">${instrumentSymbol}</div>`;
-
             const noteString = measure[instrumentSymbol].replace(/\|/g, '');
             
-            // Grid Cells for this instrument
             for (let i = 0; i < resolution; i++) {
                 const noteChar = noteString[i];
                 let cellContent = '';
@@ -58,7 +55,9 @@ export class TubsGridView {
 
     updatePlaybackIndicator(tick) {
         if (!this.indicator) return;
-        // The grid columns start at 1. The first column is the header (col 1), so ticks start at column 2.
-        this.indicator.style.gridColumn = tick + 2;
+        // We now position the indicator using left percentage, which is more robust
+        // for absolutely positioned elements than changing grid-column.
+        const percentage = (tick / (this.rhythm.patterns[this.rhythm.currentPatternId]?.metadata.resolution || 16)) * 100;
+        this.indicator.style.left = `calc(80px + ${percentage}%)`; // Offset by header width
     }
 }
