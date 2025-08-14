@@ -1,0 +1,7 @@
+# file: data/instruments/test_kick/test_kick.inst.yaml
+name: "Test Kick Drum"
+symbol: "KCK"
+sounds:
+  - letter: "o"
+    svg: "kick.svg"
+    wav: "kick.wav"

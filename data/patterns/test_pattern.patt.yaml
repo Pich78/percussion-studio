@@ -1,0 +1,8 @@
+# file: data/patterns/test_pattern.patt.yaml
+metadata:
+  name: "Test Pattern"
+  metric: "4/4"
+  resolution: 16
+pattern_data:
+  KCK: "||o---|----|o---|----||"
+  SNR: "||----|o---|----|o---||"
