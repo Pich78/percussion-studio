@@ -1,0 +1,58 @@
+<!-- file: test/harnesses/view/TubsGridView.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Harness: TubsGridView</title>
+    <style>
+        body { font-family: sans-serif; display: flex; gap: 20px; padding: 20px; }
+        .test-panel, .live-panel { border: 1px solid #ccc; padding: 10px; }
+        .live-panel { background-color: #f0f0f0; }
+        #log-output { white-space: pre-wrap; word-wrap: break-word; font-family: monospace; font-size: 12px; }
+        /* Basic grid styling for the workbench */
+        #view-container .grid { display: grid; border: 1px solid #999; }
+        #view-container .instrument-row { display: contents; }
+        #view-container .instrument-header { background-color: #ddd; padding: 5px; border-bottom: 1px solid #999; border-right: 1px solid #999; }
+        #view-container .grid-cell { border-bottom: 1px solid #999; border-right: 1px solid #999; min-height: 40px; position: relative; }
+        #view-container .grid-cell svg { width: 100%; height: 100%; }
+        #view-container .playback-indicator { position: absolute; top: 0; bottom: 0; width: 3px; background-color: rgba(255, 0, 0, 0.5); }
+    </style>
+</head>
+<body>
+    <div class="test-panel">
+        <h1>Automated Tests</h1>
+        <button id="run-tests-btn">Run Automated Tests</button>
+        <div id="test-results"></div>
+        <hr>
+        <h3>Event Log</h3>
+        <pre id="log-output"></pre>
+    </div>
+
+    <div class="live-panel">
+        <h1>Live View Workbench</h1>
+        <div id="view-container"></div>
+        <hr>
+        <h3>Simulate State Changes</h3>
+        <div>
+            <label for="playback-tick">Playback Tick:</label>
+            <input type="number" id="playback-tick" value="0" min="0" max="15">
+        </div>
+    </div>
+
+    <script type="module">
+        import { run, manualTest } from '/percussion-studio/test/suites/view/TubsGridView.test.js';
+        
+        document.getElementById('run-tests-btn').addEventListener('click', () => {
+            document.getElementById('test-results').innerHTML = '<h2>Running tests...</h2>';
+            run();
+        });
+
+        // Manual workbench setup
+        const { view } = manualTest();
+        document.getElementById('playback-tick').addEventListener('input', (e) => {
+            const tick = parseInt(e.target.value, 10);
+            view.updatePlaybackIndicator(tick);
+        });
+    </script>
+</body>
+</html>
