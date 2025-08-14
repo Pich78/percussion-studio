@@ -60,13 +60,13 @@ To discover available assets without depending on the GitHub API at runtime, the
     ```
 
 *   **Pattern Definition (`rock_verse.patt.yaml`):**
-    The `pattern_data` is a **list** where each item represents a single measure. This format was chosen for its high readability and to simplify the parsing logic in the application, as it eliminates the need for complex string manipulation.
+    The `pattern_data` is a **list** where each item represents a single measure. This format was chosen for its high readability and to simplify parsing logic. The `metadata.resolution` property is critical, defining the number of subdivisions (ticks) per 4/4 measure (e.g., 4, 8, 16, 32, 64).
 
     ```yaml
     metadata:
       name: "Rock Verse Beat - 2 Measures"
       metric: "4/4"
-      resolution: 16
+      resolution: 16 # Defines subdivisions. 16 = 16th notes.
     pattern_data:
       - # Measure 1
         KCK: "||o---|----|o---|----||"
@@ -88,8 +88,7 @@ To discover available assets without depending on the GitHub API at runtime, the
       - pattern: "rock_fill_a"
         repetitions: 1
     ```
----
-
+    
 ## 4. Build & Deployment Process
 
 To ensure the `manifest.json` file is always up-to-date, its generation is automated.
