@@ -18,7 +18,25 @@ export class ProjectController {
      * @returns {object} The new, blank rhythm object.
      */
     createNewRhythm() {
-        // Implementation to come...
+        // This is the default structure for a brand new project.
+        return {
+            global_bpm: 120,
+            instrument_kit: {},
+            patterns: {
+                'untitled_pattern': {
+                    metadata: {
+                        name: 'Untitled Pattern',
+                        resolution: 16,
+                        metric: '4/4'
+                    },
+                    // Starts with one empty measure
+                    pattern_data: [{}]
+                }
+            },
+            playback_flow: [
+                { pattern: 'untitled_pattern', repetitions: 1 }
+            ]
+        };
     }
 
     /**
