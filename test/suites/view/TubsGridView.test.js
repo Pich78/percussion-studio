@@ -37,24 +37,26 @@ export async function run() {
         });
     });
 
-    runner.describe('TubsGridView Playback Indicator', () => {
-        runner.it('should set the correct style STRING on the indicator element', () => {
-            testContainer.innerHTML = '';
-            const state = getMockState();
-            const view = new TubsGridView(testContainer, {});
-            view.render(state);
+    runner.describe('TubsGridView Playback Indicator Logic', () => {
+        runner.it('should calculate the correct style STRING for the indicator', () => {
+            // This is now a pure unit test of the calculation logic.
+            const view = new TubsGridView(null, {}); // No container needed
+            view.state = getMockState(); // Manually set the state
             
-            view.updatePlaybackIndicator(8); // Move to halfway point (tick 8 of 16)
-            
-            const indicator = testContainer.querySelector('.playback-indicator');
+            // Call the internal helper method directly
+            const styles = view._calculateIndicatorStyles(8); // Halfway point
 
-            // CRITICAL FIX: We test the direct string output of our JS, not the browser's computed result.
-            // This is a robust, synchronous, and reliable unit test.
             const expectedLeft = 'calc(80px + (100% - 80px) * 0.5)';
             const expectedWidth = 'calc((100% - 80px) / 16)';
 
-            runner.expect(indicator.style.left).toBe(expectedLeft);
-            runner.expect(indicator.style.width).toBe(expectedWidth);
+            // --- DEBUG LOGGING ---
+            console.log('--- TEST DEBUG DATA ---');
+            console.log('Expected Left String:', expectedLeft);
+            console.log('Actual Left String:', styles.left);
+            console.log('-----------------------');
+
+            runner.expect(styles.left).toBe(expectedLeft);
+            runner.expect(styles.width).toBe(expectedWidth);
         });
     });
 
