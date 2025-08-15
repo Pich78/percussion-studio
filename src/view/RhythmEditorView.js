@@ -1,4 +1,4 @@
-// file: src/view/RhythmEditorView.js (Complete)
+// file: src/view/RhythmEditorView.js (Corrected)
 export class RhythmEditorView {
     constructor(container, callbacks) {
         this.container = container;
@@ -17,15 +17,20 @@ export class RhythmEditorView {
 
     render(state) {
         this.state = state;
-        const { playback_flow } = state.rhythm;
+        const { rhythm } = state;
 
-        if (!playback_flow) {
-            this.container.innerHTML = '';
+        // The critical fix to prevent a crash on initial render:
+        // Add a guard clause to handle the initial state where rhythm is null.
+        // Without this, the component crashes on the first render call from App.init().
+        if (!rhythm || !rhythm.playback_flow) {
+            this.container.innerHTML = ''; // Render nothing if there's no data
             return;
         }
 
+        const { playback_flow } = rhythm;
+
         let html = '<div class="rhythm-editor">';
-        
+
         playback_flow.forEach((item, index) => {
             html += `
                 <div class="flow-item" draggable="true" data-index="${index}">
@@ -46,6 +51,7 @@ export class RhythmEditorView {
             const flowItemElement = event.target.closest('.flow-item');
             const indexToDelete = parseInt(flowItemElement.dataset.index, 10);
             
+            // NOTE: window.confirm() will not display in this environment. A custom modal UI is required.
             if (window.confirm('Are you sure you want to delete this item?')) {
                 const newFlow = this.state.rhythm.playback_flow.filter((_, index) => index !== indexToDelete);
                 this.callbacks.onFlowChange?.(newFlow);
@@ -63,9 +69,7 @@ export class RhythmEditorView {
             const newValue = parseInt(event.target.textContent, 10);
 
             if (isNaN(newValue) || newValue < 1) {
-                // Invalid value, revert or handle error. For now, we'll just log and not update.
                 console.warn('Invalid input for repetitions. Must be a number greater than 0.');
-                // Re-render to show the original value
                 this.render(this.state); 
                 return;
             }
