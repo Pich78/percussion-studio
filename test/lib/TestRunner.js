@@ -48,12 +48,12 @@ export class TestRunner {
         return {
             toBe: (expected) => {
                 if (actual !== expected) {
-                    throw new Error(`Expected ${actual} to be ${expected}`);
+                    throw new Error(`Expected ${JSON.stringify(actual)} to be ${JSON.stringify(expected)}`);
                 }
             },
-            toBeInstanceOf: (expectedClass) => {
-                if (!(actual instanceof expectedClass)) {
-                    throw new Error(`Expected instance of ${expectedClass.name}, but got ${actual.constructor.name}.`);
+            toEqual: (expected) => {
+                if (JSON.stringify(actual) !== JSON.stringify(expected)) {
+                    throw new Error(`Expected ${JSON.stringify(actual)} to equal ${JSON.stringify(expected)}`);
                 }
             },
             toThrow: async (expectedErrorMessage) => {

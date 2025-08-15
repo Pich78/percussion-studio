@@ -1,13 +1,9 @@
 // file: test/mocks/MockLogger.js (Complete and Corrected)
 
 export class MockLogger {
-    static instances = new Map();
-    static logTarget = null;
-
     constructor(name = 'Mock') {
         this.name = name;
         this.calls = [];
-        MockLogger.instances.set(name, this);
     }
 
     log(methodName, args) {
@@ -49,17 +45,6 @@ export class MockLogger {
 
     clear() { this.calls = []; }
     
-    static getMockInstance(name) {
-        const instance = MockLogger.instances.get(name);
-        if (!instance) {
-            throw new Error(`MockLogger instance with name '${name}' not found.`);
-        }
-        return instance;
-    }
-    
     static setLogTarget(elementId) { MockLogger.logTarget = document.getElementById(elementId); }
-    static clearLogs() {
-        if (MockLogger.logTarget) MockLogger.logTarget.textContent = '';
-        MockLogger.instances.clear(); // Clear all instances when clearing logs
-    }
+    static clearLogs() { if (MockLogger.logTarget) MockLogger.logTarget.textContent = ''; }
 }
