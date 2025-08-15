@@ -1,4 +1,4 @@
-// file: test/suites/audio/AudioScheduler.test.js (Complete and Final)
+// file: test/suites/audio/AudioScheduler.test.js (Complete, Final Corrected Version)
 
 import { TestRunner } from '/percussion-studio/test/lib/TestRunner.js';
 import { MockLogger } from '/percussion-studio/test/mocks/MockLogger.js';
@@ -28,15 +28,25 @@ export async function run() {
     runner.describe('AudioScheduler - setRhythm', () => {
         runner.it('should correctly build a tick map from rhythm data', () => {
             const scheduler = new AudioScheduler(createMockPlayer(), null, null);
+            
+            // CRITICAL FIX: The mock rhythm must have a sound_kit.
             const testRhythm = {
                 global_bpm: 120,
-                instrument_kit: { KCK: 'kick_sound' },
+                sound_kit: { KCK: 'test_kick' },
                 playback_flow: [{ pattern: 'p1' }],
-                patterns: { p1: { metadata: { resolution: 8 }, pattern_data: [{ KCK: '||o-o-||' }] } }
+                patterns: {
+                    p1: {
+                        metadata: { resolution: 8 },
+                        pattern_data: [{ KCK: '||o-o-||' }]
+                    }
+                }
             };
+
             scheduler.setRhythm(testRhythm);
             runner.expect(scheduler.tickMap.length).toBe(8);
-            runner.expect(scheduler.tickMap[0].instrumentsToPlay).toEqual(['kick_sound']);
+            runner.expect(scheduler.tickMap[0].instrumentsToPlay).toEqual(['KCK_o']);
+            runner.expect(scheduler.tickMap[1].instrumentsToPlay).toEqual([]);
+            runner.expect(scheduler.tickMap[2].instrumentsToPlay).toEqual(['KCK_o']);
         });
 
         runner.it('should handle an empty playback_flow without erroring', () => {
@@ -48,18 +58,15 @@ export async function run() {
     });
 
     runner.describe('AudioScheduler - Playback Control', () => {
-        runner.it('should toggle isPlaying flag and timer on play() and pause()', () => {
+        runner.it('should toggle isPlaying flag and start timer on play()', () => {
             const scheduler = new AudioScheduler(createMockPlayer(), null, null);
-            // FIX: Provide a tickMap with more than one tick to prevent immediate stop()
             scheduler.tickMap = [
                 { instrumentsToPlay: [], secondsPerTick: 0.5 },
                 { instrumentsToPlay: [], secondsPerTick: 0.5 }
             ];
-            
             scheduler.play();
             runner.expect(scheduler.isPlaying).toBe(true);
             runner.expect(scheduler.timerID === null).toBe(false);
-            
             scheduler.pause();
             runner.expect(scheduler.isPlaying).toBe(false);
             runner.expect(scheduler.timerID === null).toBe(true);
@@ -68,21 +75,17 @@ export async function run() {
         runner.it('should schedule notes from the tick map step-by-step', () => {
             const playerMock = createMockPlayer();
             const scheduler = new AudioScheduler(playerMock, null, null);
-            
             scheduler.tickMap = [
                 { instrumentsToPlay: ['kick'], secondsPerTick: 0.25, isBeat: true },
                 { instrumentsToPlay: [], secondsPerTick: 0.25, isBeat: false },
                 { instrumentsToPlay: ['snare'], secondsPerTick: 0.25, isBeat: true }
             ];
             scheduler.nextNoteTime = 0.0;
-
-            // FIX: Manually call the internal methods to simulate the loop
-            scheduler.scheduleTick(); // schedules tick 0 (kick)
-            scheduler.advanceTick();  // advances to tick 1
-            scheduler.scheduleTick(); // schedules tick 1 (nothing)
-            scheduler.advanceTick();  // advances to tick 2
-            scheduler.scheduleTick(); // schedules tick 2 (snare)
-
+            scheduler.scheduleTick();
+            scheduler.advanceTick();
+            scheduler.scheduleTick();
+            scheduler.advanceTick();
+            scheduler.scheduleTick();
             playerMock.wasCalledWith('playAt', { id: 'kick', time: '0.000' });
             playerMock.wasCalledWith('playAt', { id: 'snare', time: '0.500' });
             runner.expect(playerMock.callCount).toBe(2);
@@ -97,28 +100,41 @@ export function manualTest() {
     console.log("Setting up manual test...");
     const beatDisplay = document.getElementById('beat-display');
     const onUpdate = (beatNumber) => {
-        // The scheduler now provides the absolute beat number directly
         const beatInMeasure = ((beatNumber - 1) % 4) + 1;
         const measure = Math.floor((beatNumber - 1) / 4) + 1;
         beatDisplay.textContent = `Measure: ${measure}, Beat: ${beatInMeasure}`;
     };
     const onEnd = () => { beatDisplay.textContent = 'Playback Ended.'; };
+
     const audioPlayer = new AudioPlayer();
     
-    audioPlayer.loadSounds([{ id: 'test_kick', path: '/percussion-studio/data/instruments/test_kick/kick.wav' }]);
+    // CRITICAL FIX: Use the correct new path for the sound file.
+    audioPlayer.loadSounds([{
+        id: 'KCK_o',
+        path: '/percussion-studio/data/sounds/test_kick/test_kick.normal.wav'
+    },
+    {
+        id: 'SNR_o',
+        path: '/percussion-studio/data/sounds/test_snare/test_snare.normal.wav'
+    }]);
+
     const scheduler = new AudioScheduler(audioPlayer, onUpdate, onEnd);
-    
+
     const simpleRhythm = {
-        instrument_kit: { KCK: 'test_kick' },
+        sound_kit: { KCK: 'test_kick', SNR: 'test_snare' },
         global_bpm: 120,
-        playback_flow: [{ pattern: 'four_on_the_floor', repetitions: 2 }],
+        playback_flow: [{ pattern: 'four_on_the_floor', repetitions: 4 }],
         patterns: {
             four_on_the_floor: {
                 metadata: { resolution: 16 },
-                pattern_data: [{ KCK: '||o---|----|o---|----||' }]
+                pattern_data: [{ 
+                    KCK: '||o---|----|o---|----||',
+                    SNR: '||----|o---|----|o---||'
+                }]
             }
         }
     };
     scheduler.setRhythm(simpleRhythm);
+    
     return scheduler;
 }
