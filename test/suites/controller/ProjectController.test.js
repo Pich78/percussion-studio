@@ -134,5 +134,3 @@ runner.describe('ProjectController - saveProject', () => {
     });
 });await runner.runAll();
 runner.renderResults('test-results');
-  
-}
