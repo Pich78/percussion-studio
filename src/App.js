@@ -1,4 +1,4 @@
-// file: src/App.js (Complete, Final Version)
+// file: src/App.js (Complete, Final Corrected Version)
 
 import { DataAccessLayer } from './dal/DataAccessLayer.js';
 import { AudioPlayer } from './audio/AudioPlayer.js';
@@ -25,6 +25,7 @@ class App {
             const currentTick = beatInMeasure * ticksPerBeat;
             this.view.tubsGridView.updatePlaybackIndicator(currentTick);
         }, () => {
+            // When playback ends naturally, update the state.
             this.setState({ isPlaying: false });
         });
 
@@ -33,6 +34,7 @@ class App {
         this.editController = new EditController();
 
         this.view = new View({
+            // CRITICAL FIX: These callbacks now update the application state.
             onPlay: () => {
                 this.playbackController.play();
                 this.setState({ isPlaying: true });
@@ -44,7 +46,7 @@ class App {
             onStop: () => {
                 this.playbackController.stop();
                 this.setState({ isPlaying: false });
-                this.view.tubsGridView.updatePlaybackIndicator(0);
+                this.view.tubsGridView.updatePlaybackIndicator(0); // Also reset indicator visually
             },
             onMasterVolumeChange: (vol) => this.playbackController.setMasterVolume(vol),
             onToggleLoop: (enabled) => this.playbackController.toggleLoop(enabled),
@@ -60,6 +62,9 @@ class App {
         });
     }
 
+    /**
+     * A central method to update state and trigger a re-render.
+     */
     setState(newState) {
         this.state = { ...this.state, ...newState };
         this.view.render(this.state);
@@ -69,9 +74,7 @@ class App {
         this.view.render(this.state);
 
         try {
-            // Load the manifest first
             await this.projectController.loadManifest();
-            // Then load the rhythm
             const resolvedRhythm = await this.projectController.loadRhythm('test_rhythm');
             
             resolvedRhythm.mixer = {
