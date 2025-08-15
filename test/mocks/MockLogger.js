@@ -1,9 +1,13 @@
-// file: test/mocks/MockLogger.js (Complete and Corrected)
+// file: test/mocks/MockLogger.js (Complete and Corrected - Fixed)
 
 export class MockLogger {
     constructor(name = 'Mock') {
         this.name = name;
         this.calls = [];
+        this.callLog = this.calls; // Alias for backward compatibility
+        
+        // Register this instance in the static registry
+        MockLogger.instances.set(name, this);
     }
 
     log(methodName, args) {
@@ -43,8 +47,25 @@ export class MockLogger {
         }
     }
 
-    clear() { this.calls = []; }
+    clear() { 
+        this.calls = []; 
+        this.callLog = this.calls; // Keep alias in sync
+    }
     
-    static setLogTarget(elementId) { MockLogger.logTarget = document.getElementById(elementId); }
-    static clearLogs() { if (MockLogger.logTarget) MockLogger.logTarget.textContent = ''; }
+    // Static methods and properties
+    static instances = new Map();
+    
+    static getMockInstance(name) {
+        return MockLogger.instances.get(name);
+    }
+    
+    static setLogTarget(elementId) { 
+        MockLogger.logTarget = document.getElementById(elementId); 
+    }
+    
+    static clearLogs() { 
+        if (MockLogger.logTarget) MockLogger.logTarget.textContent = ''; 
+        // Also clear all registered instances
+        MockLogger.instances.clear();
+    }
 }

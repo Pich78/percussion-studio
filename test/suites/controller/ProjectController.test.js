@@ -1,4 +1,4 @@
-// file: test/suites/controller/ProjectController.test.js (Complete, Final Version)
+// file: test/suites/controller/ProjectController.test.js (Complete, Final Version - Fixed)
 
 import { TestRunner } from '/percussion-studio/test/lib/TestRunner.js';
 import { MockLogger } from '/percussion-studio/test/mocks/MockLogger.js';
@@ -120,7 +120,9 @@ export async function run() {
             });
 
             // FIX 2: Check for unwanted calls to ensure we don't fetch unnecessary data.
-            MockLogger.getMockInstance('DataAccessLayer').callLog.forEach(call => {
+            // Use the corrected method to get the mock instance
+            const dalInstance = MockLogger.getMockInstance('DataAccessLayer');
+            dalInstance.callLog.forEach(call => {
                 if (!['getManifest', 'getRhythm', 'getInstrumentDef', 'getSoundPack', 'getPattern'].includes(call.methodName)) {
                     throw new Error(`Unexpected call to DAL method: ${call.methodName}`);
                 }

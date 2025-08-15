@@ -1,4 +1,4 @@
-// file: test/lib/TestRunner.js (Sequential Runner)
+// file: test/lib/TestRunner.js (Sequential Runner - Fixed)
 
 export class TestRunner {
     constructor() {
@@ -54,6 +54,11 @@ export class TestRunner {
             toEqual: (expected) => {
                 if (JSON.stringify(actual) !== JSON.stringify(expected)) {
                     throw new Error(`Expected ${JSON.stringify(actual)} to equal ${JSON.stringify(expected)}`);
+                }
+            },
+            toBeInstanceOf: (expectedClass) => {
+                if (!(actual instanceof expectedClass)) {
+                    throw new Error(`Expected ${actual} to be an instance of ${expectedClass.name}`);
                 }
             },
             toThrow: async (expectedErrorMessage) => {
