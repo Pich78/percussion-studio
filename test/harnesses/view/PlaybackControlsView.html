@@ -1,4 +1,4 @@
-<!-- file: test/harnesses/view/PlaybackControlsView.html -->
+<!-- file: test/harnesses/view/PlaybackControlsView.html (Complete, Corrected Version) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,49 +6,51 @@
     <title>Test Harness: PlaybackControlsView</title>
     <style>
         body { font-family: sans-serif; display: flex; gap: 20px; padding: 20px; }
-        .test-panel, .live-panel { border: 1px solid #ccc; padding: 10px; }
-        .live-panel { background-color: #f0f0f0; }
-        #log-output { white-space: pre-wrap; word-wrap: break-word; font-family: monospace; font-size: 12px; border: 1px solid #eee; padding: 5px; background: #fff; }
+        .test-panel, .live-panel, .log-panel { border: 1px solid #ccc; padding: 10px; }
+        .test-panel { flex: 2; }
+        .live-panel { flex: 2; background-color: #f0f0f0; }
+        .log-panel { flex: 1; background-color: #f9f9f9; }
+        #log-output { white-space: pre-wrap; word-wrap: break-word; font-family: monospace; font-size: 12px; }
         button { font-size: 14px; padding: 8px 12px; margin: 0 5px 10px 0; }
-        label { margin-right: 15px; }
+        h1, h2 { border-bottom: 1px solid #ccc; padding-bottom: 5px; }
+        
+        /* New styles for the refactored view */
+        [hidden] { display: none !important; }
+        .control-group { display: inline-flex; align-items: center; margin-left: 20px; }
+        #loop-btn.toggled { background-color: #007bff; color: white; border-color: #007bff; }
     </style>
 </head>
 <body>
     <div class="test-panel">
         <h1>Automated Tests</h1>
-        <button id="run-tests-btn">Run Automated Tests</button>
+        <button id="run-tests-btn">Run All Tests</button>
         <div id="test-results"></div>
     </div>
-
     <div class="live-panel">
         <h1>Live View Workbench</h1>
-        <div id="view-container">
-            <!-- The PlaybackControlsView will render itself here -->
-        </div>
+        <div id="view-container"></div>
         <hr>
         <h3>Simulate State Changes</h3>
         <div>
             <label><input type="checkbox" id="is-playing-check"> isPlaying</label>
             <label><input type="checkbox" id="is-loading-check"> isLoading</label>
+            <label><input type="checkbox" id="loop-check"> loopPlayback</label>
         </div>
-        <h3>Event Log</h3>
-        <pre id="log-output">Callback events will appear here.</pre>
     </div>
-
+    <div class="log-panel">
+        <h2>Execution Log</h2>
+        <pre id="log-output"></pre>
+    </div>
+    <div id="test-sandbox" style="position: absolute; visibility: hidden;"></div>
     <script type="module">
         import { run, manualTest } from '/percussion-studio/test/suites/view/PlaybackControlsView.test.js';
+        document.getElementById('run-tests-btn').addEventListener('click', () => run());
         
-        // Automated tests
-        document.getElementById('run-tests-btn').addEventListener('click', () => {
-            document.getElementById('test-results').innerHTML = '<h2>Running tests...</h2>';
-            run();
-        });
-
-        // Manual workbench setup
-        const { view, rerender } = manualTest();
+        const { rerender } = manualTest();
         document.getElementById('is-playing-check').addEventListener('change', rerender);
         document.getElementById('is-loading-check').addEventListener('change', rerender);
-        rerender(); // Initial render
+        document.getElementById('loop-check').addEventListener('change', rerender);
+        rerender();
     </script>
 </body>
 </html>

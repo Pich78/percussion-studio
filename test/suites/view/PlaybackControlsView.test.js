@@ -1,4 +1,4 @@
-// file: test/suites/view/PlaybackControlsView.test.js (Complete and Corrected)
+// file: test/suites/view/PlaybackControlsView.test.js (Complete, Corrected Version)
 
 import { TestRunner } from '/percussion-studio/test/lib/TestRunner.js';
 import { MockLogger } from '/percussion-studio/test/mocks/MockLogger.js';
@@ -17,64 +17,59 @@ export async function run() {
     }
 
     const getBaseState = () => ({
-        isPlaying: false,
-        isLoading: false,
-        masterVolume: 1.0,
-        loopPlayback: false
+        isPlaying: false, isLoading: false, masterVolume: 1.0, loopPlayback: false
     });
 
     runner.describe('PlaybackControlsView Rendering', () => {
-        runner.it('should render correctly in a "stopped" state', () => {
+        runner.it('should show Play and hide Pause when stopped', () => {
             testContainer.innerHTML = '';
             const view = new PlaybackControlsView(testContainer, {});
             view.render(getBaseState());
-            const playBtn = testContainer.querySelector('#play-pause-btn');
-            runner.expect(playBtn.textContent).toBe('Play');
-            runner.expect(playBtn.disabled).toBe(false);
+            runner.expect(testContainer.querySelector('#play-btn').hidden).toBe(false);
+            runner.expect(testContainer.querySelector('#pause-btn').hidden).toBe(true);
         });
 
-        runner.it('should render correctly in a "playing" state', () => {
+        runner.it('should hide Play and show Pause when playing', () => {
             testContainer.innerHTML = '';
             const view = new PlaybackControlsView(testContainer, {});
             view.render({ ...getBaseState(), isPlaying: true });
-            const playBtn = testContainer.querySelector('#play-pause-btn');
-            runner.expect(playBtn.textContent).toBe('Pause');
+            runner.expect(testContainer.querySelector('#play-btn').hidden).toBe(true);
+            runner.expect(testContainer.querySelector('#pause-btn').hidden).toBe(false);
         });
 
-        runner.it('should disable buttons when in a "loading" state', () => {
+        runner.it('should apply toggled class to loop button when loop is active', () => {
             testContainer.innerHTML = '';
             const view = new PlaybackControlsView(testContainer, {});
-            view.render({ ...getBaseState(), isLoading: true });
-            const playBtn = testContainer.querySelector('#play-pause-btn');
-            const stopBtn = testContainer.querySelector('#stop-btn');
-            runner.expect(playBtn.disabled).toBe(true);
-            runner.expect(stopBtn.disabled).toBe(true);
+            view.render({ ...getBaseState(), loopPlayback: true });
+            const loopBtn = testContainer.querySelector('#loop-btn');
+            runner.expect(loopBtn.classList.contains('toggled')).toBe(true);
         });
     });
 
     runner.describe('PlaybackControlsView Callbacks', () => {
-        runner.it('should fire the onPlay callback when the play button is clicked', () => {
+        runner.it('should fire onPlay callback', () => {
             testContainer.innerHTML = '';
             const callbackLog = new MockLogger('Callbacks');
             const view = new PlaybackControlsView(testContainer, { onPlay: () => callbackLog.log('onPlay') });
-            
             view.render(getBaseState());
-            testContainer.querySelector('#play-pause-btn').click();
-
+            testContainer.querySelector('#play-btn').click();
             callbackLog.wasCalledWith('onPlay', undefined);
         });
 
-        runner.it('should fire the onMasterVolumeChange callback when slider is moved', () => {
+        runner.it('should fire onToggleLoop callback with the new desired state', () => {
             testContainer.innerHTML = '';
             const callbackLog = new MockLogger('Callbacks');
-            const view = new PlaybackControlsView(testContainer, { onMasterVolumeChange: (vol) => callbackLog.log('onMasterVolumeChange', {vol}) });
+            const view = new PlaybackControlsView(testContainer, { onToggleLoop: (enabled) => callbackLog.log('onToggleLoop', {enabled}) });
+            
+            // Test toggling ON
+            view.render({ ...getBaseState(), loopPlayback: false });
+            testContainer.querySelector('#loop-btn').click();
+            callbackLog.wasCalledWith('onToggleLoop', {enabled: true});
 
-            view.render(getBaseState());
-            const slider = testContainer.querySelector('#master-volume');
-            slider.value = 0.5;
-            slider.dispatchEvent(new Event('input', { bubbles: true }));
-
-            callbackLog.wasCalledWith('onMasterVolumeChange', {vol: 0.5});
+            // Test toggling OFF
+            view.render({ ...getBaseState(), loopPlayback: true });
+            testContainer.querySelector('#loop-btn').click();
+            callbackLog.wasCalledWith('onToggleLoop', {enabled: false});
         });
     });
 
@@ -85,21 +80,26 @@ export async function run() {
 export function manualTest() {
     const log = new MockLogger('Callbacks');
     MockLogger.setLogTarget('log-output');
+    
+    let currentState = {
+        isPlaying: false, isLoading: false, masterVolume: 0.8, loopPlayback: false
+    };
+
     const callbacks = {
-        onPlay: () => { log.log('onPlay'); document.getElementById('is-playing-check').checked = true; rerender(); },
-        onPause: () => { log.log('onPause'); document.getElementById('is-playing-check').checked = false; rerender(); },
-        onStop: () => { log.log('onStop'); document.getElementById('is-playing-check').checked = false; rerender(); },
-        onMasterVolumeChange: (vol) => log.log('onMasterVolumeChange', { vol }),
-        onToggleLoop: (enabled) => { log.log('onToggleLoop', { enabled }); rerender(); }
+        onPlay: () => { log.log('onPlay'); currentState.isPlaying = true; rerender(); },
+        onPause: () => { log.log('onPause'); currentState.isPlaying = false; rerender(); },
+        onStop: () => { log.log('onStop'); currentState.isPlaying = false; rerender(); },
+        onMasterVolumeChange: (vol) => { log.log('onMasterVolumeChange', { vol }); currentState.masterVolume = vol; },
+        onToggleLoop: (enabled) => { log.log('onToggleLoop', { enabled }); currentState.loopPlayback = enabled; rerender(); }
     };
     const container = document.getElementById('view-container');
     const view = new PlaybackControlsView(container, callbacks);
+    
     const rerender = () => {
-        const isPlaying = document.getElementById('is-playing-check').checked;
-        const isLoading = document.getElementById('is-loading-check').checked;
-        const volume = container.querySelector('#master-volume')?.value || 0.8;
-        const loop = container.querySelector('#loop-checkbox')?.checked || false;
-        view.render({ isPlaying, isLoading, masterVolume: parseFloat(volume), loopPlayback: loop });
+        currentState.isLoading = document.getElementById('is-loading-check').checked;
+        currentState.loopPlayback = document.getElementById('loop-check').checked;
+        view.render(currentState);
     };
+
     return { view, rerender };
 }

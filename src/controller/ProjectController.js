@@ -41,7 +41,6 @@ export class ProjectController {
         const patternPromises = patternIds.map(id => this.dal.getPattern(id));
         const patterns = await Promise.all(patternPromises);
 
-        // CRITICAL FIX: Load ALL instrument definitions from the manifest dynamically
         const instDefPromises = this.manifest.instrument_defs.map(id => this.dal.getInstrumentDef(id));
         const instrumentDefs = await Promise.all(instDefPromises);
 
@@ -76,13 +75,17 @@ export class ProjectController {
         const resolvedRhythm = {
             ...rhythmData,
             patterns: {},
-            instrumentDefs: {},
+            instrumentDefs: {}, // Use this name to match docs, but was `instruments` in TubsGridView
             soundPacks: {}
         };
+        // CRITICAL FIX: The TubsGridView was looking for a property named 'instruments'.
+        // We will rename instrumentDefs to instruments to match what the view expects.
+        resolvedRhythm.instruments = {};
+
         patternIds.forEach((id, i) => { resolvedRhythm.patterns[id] = patterns[i]; });
         
         this.manifest.instrument_defs.forEach((id, i) => {
-             resolvedRhythm.instrumentDefs[id] = instrumentDefs[i];
+             resolvedRhythm.instruments[id] = instrumentDefs[i];
         });
 
         soundPackSymbols.forEach((symbol, i) => {
