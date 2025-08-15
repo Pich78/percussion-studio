@@ -1,5 +1,4 @@
 // file: test/suites/view/AppMenuView.test.js (Complete, with Enhanced Logging)
-
 import { TestRunner } from '/percussion-studio/test/lib/TestRunner.js';
 import { MockLogger } from '/percussion-studio/test/mocks/MockLogger.js';
 import { AppMenuView } from '/percussion-studio/src/view/AppMenuView.js';
@@ -8,14 +7,14 @@ export async function run() {
     const runner = new TestRunner();
     MockLogger.clearLogs();
     MockLogger.setLogTarget('log-output');
-    
+
     const testContainer = document.getElementById('test-sandbox');
 
     runner.describe('AppMenuView Rendering', () => {
         runner.it('should disable the save button when not dirty', () => {
             testContainer.innerHTML = '';
             const view = new AppMenuView(testContainer, {});
-            view.render({ isDirty: false });
+            view.render({ isDirty: false, appView: 'playing' });
             const saveBtn = testContainer.querySelector('#save-btn');
             runner.expect(saveBtn.disabled).toBe(true);
         });
@@ -23,41 +22,65 @@ export async function run() {
         runner.it('should enable the save button when dirty', () => {
             testContainer.innerHTML = '';
             const view = new AppMenuView(testContainer, {});
-            view.render({ isDirty: true });
+            view.render({ isDirty: true, appView: 'playing' });
             const saveBtn = testContainer.querySelector('#save-btn');
             runner.expect(saveBtn.disabled).toBe(false);
+        });
+
+        runner.it('should show "Go to Editing View" when in playing view', () => {
+            testContainer.innerHTML = '';
+            const view = new AppMenuView(testContainer, {});
+            view.render({ isDirty: false, appView: 'playing' });
+            const toggleBtn = testContainer.querySelector('#toggle-view-btn');
+            runner.expect(toggleBtn.textContent).toBe('Go to Editing View');
+        });
+
+        runner.it('should show "Go to Playing View" when in editing view', () => {
+            testContainer.innerHTML = '';
+            const view = new AppMenuView(testContainer, {});
+            view.render({ isDirty: false, appView: 'editing' });
+            const toggleBtn = testContainer.querySelector('#toggle-view-btn');
+            runner.expect(toggleBtn.textContent).toBe('Go to Playing View');
         });
     });
 
     runner.describe('AppMenuView Callbacks', () => {
         runner.it('should fire onNewProject when the new button is clicked', () => {
             testContainer.innerHTML = '';
-            const callbackLog = new MockLogger('Callbacks');
-            const view = new AppMenuView(testContainer, { onNewProject: () => callbackLog.log('onNewProject') });
-            view.render({ isDirty: false });
+            let called = false;
+            const view = new AppMenuView(testContainer, { onNewProject: () => called = true });
+            view.render({ isDirty: false, appView: 'playing' });
             testContainer.querySelector('#new-btn').click();
-            callbackLog.wasCalledWith('onNewProject', undefined);
+            runner.expect(called).toBe(true);
         });
 
         runner.it('should fire onLoadProject when the load button is clicked', () => {
             testContainer.innerHTML = '';
-            const callbackLog = new MockLogger('Callbacks');
-            const view = new AppMenuView(testContainer, { onLoadProject: () => callbackLog.log('onLoadProject') });
-            view.render({ isDirty: false });
+            let called = false;
+            const view = new AppMenuView(testContainer, { onLoadProject: () => called = true });
+            view.render({ isDirty: false, appView: 'playing' });
             testContainer.querySelector('#load-btn').click();
-            callbackLog.wasCalledWith('onLoadProject', undefined);
+            runner.expect(called).toBe(true);
         });
 
         runner.it('should fire onSaveProject when the save button is clicked', () => {
             testContainer.innerHTML = '';
-            const callbackLog = new MockLogger('Callbacks');
-            const view = new AppMenuView(testContainer, { onSaveProject: () => callbackLog.log('onSaveProject') });
-            view.render({ isDirty: true });
+            let called = false;
+            const view = new AppMenuView(testContainer, { onSaveProject: () => called = true });
+            view.render({ isDirty: true, appView: 'playing' });
             testContainer.querySelector('#save-btn').click();
-            callbackLog.wasCalledWith('onSaveProject', undefined);
+            runner.expect(called).toBe(true);
+        });
+
+        runner.it('should fire onToggleView when the toggle view button is clicked', () => {
+            testContainer.innerHTML = '';
+            let called = false;
+            const view = new AppMenuView(testContainer, { onToggleView: () => called = true });
+            view.render({ isDirty: false, appView: 'playing' });
+            testContainer.querySelector('#toggle-view-btn').click();
+            runner.expect(called).toBe(true);
         });
     });
-
     await runner.runAll();
     runner.renderResults('test-results');
 }
@@ -68,25 +91,27 @@ export async function run() {
 export function manualTest() {
     const log = new MockLogger('Callbacks');
     MockLogger.setLogTarget('log-output');
-    
-    // This object will hold the current state for the callbacks to access.
-    let currentState = { isDirty: false };
-
+    let currentState = {
+        isDirty: document.getElementById('is-dirty-check').checked,
+        appView: 'playing'
+    };
     const callbacks = {
-        // Each callback now logs the state at the time it was fired.
         onNewProject: () => log.log('onNewProject', { state: currentState }),
         onLoadProject: () => log.log('onLoadProject', { state: currentState }),
-        onSaveProject: () => log.log('onSaveProject', { state: currentState })
+        onSaveProject: () => log.log('onSaveProject', { state: currentState }),
+        onToggleView: () => {
+            log.log('onToggleView', { state: currentState });
+            // In the real app, the App class would do this. Here we simulate it.
+            currentState.appView = currentState.appView === 'playing' ? 'editing' : 'playing';
+            rerender();
+        }
     };
-
     const container = document.getElementById('view-container');
     const view = new AppMenuView(container, callbacks);
-    
     const rerender = () => {
-        // Update the shared state object before re-rendering.
         currentState.isDirty = document.getElementById('is-dirty-check').checked;
         view.render(currentState);
+        document.getElementById('current-state-display').innerText = `Current State: ${JSON.stringify(currentState)}`;
     };
-
-    return { view, rerender };
+    return { rerender };
 }
