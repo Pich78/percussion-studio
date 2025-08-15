@@ -2,20 +2,34 @@
 
 export class TubsGridView {
     constructor(container, callbacks) {
-        console.log('[TubsGridView] constructor called.');
-        this.container = container;
-        this.callbacks = callbacks || {};
-        this.state = {};
-        this.lastRenderedPatternId = null;
+    console.log('[TubsGridView] constructor called.');
+    this.container = container;
+    this.callbacks = callbacks || {};
+    this.state = {};
+    this.lastRenderedPatternId = null;
+    this.lastRenderedMeasureIndex = null;
+
+    // Use event delegation for better performance
+        this.container.addEventListener('click', this.handleGridClick.bind(this));
+    }
+
+    handleGridClick(event) {
+        const header = event.target.closest('.instrument-header');
+        if (header && this.callbacks.onToggleMute) {
+            const instrumentSymbol = header.dataset.symbol;
+            console.log(`[TubsGridView] Instrument header clicked for symbol: ${instrumentSymbol}. Firing onToggleMute callback.`);
+            this.callbacks.onToggleMute(instrumentSymbol);
+        }
     }
 
     render(state) {
-        console.log('[TubsGridView] render() called. New pattern:', state.currentPatternId, 'Last pattern:', this.lastRenderedPatternId);
         this.state = state;
-        const { currentPatternId, rhythm } = this.state;
+        const { currentPatternId, currentMeasureIndex = 0, rhythm } = this.state;
+        
+        console.log(`[TubsGridView] render() called. Pattern: ${currentPatternId}, Measure: ${currentMeasureIndex}. Last rendered: ${this.lastRenderedPatternId}, ${this.lastRenderedMeasureIndex}`);
 
-        if (currentPatternId === this.lastRenderedPatternId) {
-            console.log('[TubsGridView] Skipping render: pattern has not changed.');
+        if (currentPatternId === this.lastRenderedPatternId && currentMeasureIndex === this.lastRenderedMeasureIndex) {
+            console.log('[TubsGridView] Skipping render: pattern and measure have not changed.');
             return;
         }
 
@@ -23,14 +37,23 @@ export class TubsGridView {
             console.log('[TubsGridView] Rendering empty: No pattern available.');
             this.container.innerHTML = '<div>No pattern selected or available.</div>';
             this.lastRenderedPatternId = null;
+            this.lastRenderedMeasureIndex = null;
             return;
         }
 
         this.lastRenderedPatternId = currentPatternId;
-        console.log('[TubsGridView] Full re-render initiated for pattern:', currentPatternId);
+        this.lastRenderedMeasureIndex = currentMeasureIndex;
+        console.log('[TubsGridView] Full re-render initiated for pattern:', currentPatternId, 'measure:', currentMeasureIndex);
         
         const pattern = rhythm.patterns[currentPatternId];
-        const measure = pattern.pattern_data[0];
+        
+        if (!pattern.pattern_data || pattern.pattern_data.length <= currentMeasureIndex) {
+            console.error(`[TubsGridView] Invalid measure index (${currentMeasureIndex}) for pattern with ${pattern.pattern_data.length} measures.`);
+            this.container.innerHTML = `<div>Error: Invalid measure index.</div>`;
+            return;
+        }
+        
+        const measure = pattern.pattern_data[currentMeasureIndex];
         const resolution = pattern.metadata.resolution || 16;
         const instruments = Object.keys(measure);
 
@@ -39,7 +62,8 @@ export class TubsGridView {
         gridHtml += `<div class="playback-indicator"></div>`;
         
         instruments.forEach(instrumentSymbol => {
-            gridHtml += `<div class="instrument-header">${instrumentSymbol}</div>`;
+            // Add data-symbol attribute for identifying the instrument in click events
+            gridHtml += `<div class="instrument-header" data-symbol="${instrumentSymbol}">${instrumentSymbol}</div>`;
             const noteString = measure[instrumentSymbol].replace(/\|/g, '');
             
             for (let i = 0; i < resolution; i++) {
@@ -68,7 +92,8 @@ export class TubsGridView {
 
     updatePlaybackIndicator(tick) {
         if (!this.indicator) {
-            console.warn('[TubsGridView] updatePlaybackIndicator called but indicator element not found.');
+            // This can happen if a render hasn't occurred yet, not necessarily an error.
+            // console.warn('[TubsGridView] updatePlaybackIndicator called but indicator element not found.');
             return;
         }
         if (!this.state.rhythm) {
@@ -87,7 +112,7 @@ export class TubsGridView {
         const leftStyle = `calc(80px + (100% - 80px) * ${multiplier})`;
         const widthStyle = `calc((100% - 80px) / ${resolution})`;
 
-        console.log(`[TubsGridView] Updating indicator for tick ${tick}. Left: "${leftStyle}", Width: "${widthStyle}"`);
+        // console.log(`[TubsGridView] Updating indicator for tick ${tick}. Left: "${leftStyle}", Width: "${widthStyle}"`);
 
         this.indicator.style.left = leftStyle;
         this.indicator.style.width = widthStyle;
