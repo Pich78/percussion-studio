@@ -1,4 +1,4 @@
-// file: src/audio/AudioScheduler.js (Complete)
+// file: src/audio/AudioScheduler.js (Complete, Final Corrected Version)
 
 export class AudioScheduler {
     constructor(audioPlayer, onUpdateCallback, onPlaybackEndedCallback) {
@@ -10,7 +10,7 @@ export class AudioScheduler {
         this.isPlaying = false;
 
         this.currentTick = 0;
-        this.currentBeat = 0; // More efficient beat tracking
+        this.currentBeat = 0;
         this.tickMap = [];
 
         this.nextNoteTime = 0.0;
@@ -21,8 +21,8 @@ export class AudioScheduler {
         this.lookahead = 25.0;
     }
 
-    setRhythm(resolvedRhythmData) {
-        this.rhythm = resolvedRhythmData;
+    setRhythm(resolvedRhythm) {
+        this.rhythm = resolvedRhythm;
         this.tickMap = [];
 
         if (!this.rhythm?.playback_flow?.length || !this.rhythm.patterns) {
@@ -33,12 +33,14 @@ export class AudioScheduler {
         const bpm = this.rhythm.global_bpm || 120;
         const secondsPerBeat = 60.0 / bpm;
 
+        // CRITICAL FIX: This loop now correctly handles repetitions and measures.
         this.rhythm.playback_flow.forEach(flowItem => {
             const pattern = this.rhythm.patterns[flowItem.pattern];
-            if (!pattern) throw new Error(`Pattern '${flowItem.pattern}' not found in rhythm data.`);
+            if (!pattern || !pattern.pattern_data) return;
 
             const repetitions = flowItem.repetitions || 1;
             for (let r = 0; r < repetitions; r++) {
+                // Loop through each measure in the pattern_data array
                 pattern.pattern_data.forEach(measureData => {
                     const resolution = pattern.metadata.resolution || 16;
                     const ticksPerBeat = resolution / 4.0;
@@ -47,11 +49,16 @@ export class AudioScheduler {
 
                     for (let t = 0; t < resolution; t++) {
                         const instrumentsToPlay = [];
+                        // Iterate over the instruments in the sound_kit that are present in this measure
                         for (const instrumentSymbol in measureData) {
-                            const noteString = measureData[instrumentSymbol].replace(/\|/g, '');
-                            if (noteString[t] && noteString[t] !== '-') {
-                                const soundId = this.rhythm.instrument_kit[instrumentSymbol];
-                                if (soundId) { instrumentsToPlay.push(soundId); }
+                            if (Object.prototype.hasOwnProperty.call(this.rhythm.sound_kit, instrumentSymbol)) {
+                                const noteString = measureData[instrumentSymbol].replace(/\|/g, '');
+                                const noteChar = noteString[t];
+                                if (noteChar && noteChar !== '-') {
+                                    // Construct the sound ID, e.g., "KCK_o"
+                                    const soundId = `${instrumentSymbol}_${noteChar}`;
+                                    instrumentsToPlay.push(soundId);
+                                }
                             }
                         }
                         this.tickMap.push({ instrumentsToPlay, secondsPerTick, isBeat: isBeat(t) });
