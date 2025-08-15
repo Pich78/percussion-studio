@@ -1,8 +1,8 @@
-// file: src/dal/DataAccessLayer.js (Complete)
+// file: src/dal/DataAccessLayer.js (Complete, Final Corrected Version)
 
 import { load as loadYaml, dump as dumpYaml } from "https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.mjs";
 
-class DataAccessLayer {
+export class DataAccessLayer {
 
     static async getRhythm(id) {
         const filePath = `/percussion-studio/data/rhythms/${id}.rthm.yaml`;
@@ -14,9 +14,15 @@ class DataAccessLayer {
         return this._fetchAndParse(filePath, id, 'pattern');
     }
 
-    static async getInstrument(id) {
-        const filePath = `/percussion-studio/data/instruments/${id}/${id}.inst.yaml`;
-        return this._fetchAndParse(filePath, id, 'instrument');
+    static async getInstrumentDef(id) {
+        const filePath = `/percussion-studio/data/instruments/${id}.instdef.yaml`;
+        return this._fetchAndParse(filePath, id, 'instrument definition');
+    }
+
+    static async getSoundPack(instrumentSymbol, packName) {
+        const filename = `${instrumentSymbol}.${packName}.sndpack.yaml`;
+        const filePath = `/percussion-studio/data/sounds/${packName}/${filename}`;
+        return this._fetchAndParse(filePath, filename, 'sound pack');
     }
 
     static async _fetchAndParse(filePath, entityId, entityType) {
@@ -33,34 +39,28 @@ class DataAccessLayer {
     }
 
     /**
-     * Creates a .zip file using a provided JSZip constructor.
-     * @param {object} rhythmData The main rhythm object.
-     * @param {Array<object>} patternsData Array of pattern objects.
-     * @param {Array<object>} instrumentsData Array of instrument objects.
-     * @param {string} filename The base name for the zip file.
-     * @param {class} JSZip The constructor for the JSZip library (injected dependency).
+     * Creates a .zip file from rhythm and pattern data.
+     * @param {object} rhythmData - The rhythm object to be saved.
+     * @param {Array<object>} patternsData - An array of {id, data} objects for patterns.
+     * @param {string} filename - The base name for the zip file.
+     * @param {class} JSZip - The JSZip constructor (injected dependency).
      */
-    static async exportRhythmAsZip(rhythmData, patternsData, instrumentsData, filename, JSZip) {
+    static async exportRhythmAsZip(rhythmData, patternsData, filename, JSZip) {
         const zip = new JSZip();
 
+        // 1. Add the main rhythm file
         const rhythmYaml = dumpYaml(rhythmData);
         zip.file(`${filename}.rthm.yaml`, rhythmYaml);
 
+        // 2. Add all pattern files
         const patternsFolder = zip.folder("patterns");
-        for (const pattern of patternsData) {
+        patternsData.forEach(pattern => {
             const patternYaml = dumpYaml(pattern.data);
             patternsFolder.file(`${pattern.id}.patt.yaml`, patternYaml);
-        }
-
-        const instrumentsFolder = zip.folder("instruments");
-        for (const instrument of instrumentsData) {
-            const instrumentFolder = instrumentsFolder.folder(instrument.id);
-            const instrumentYaml = dumpYaml(instrument.data);
-            instrumentFolder.file(`${instrument.id}.inst.yaml`, instrumentYaml);
-        }
-
+        });
+        
+        // 3. Generate and trigger download
         const content = await zip.generateAsync({ type: "blob" });
-
         const link = document.createElement("a");
         link.href = URL.createObjectURL(content);
         link.download = `${filename}.zip`;
@@ -69,5 +69,3 @@ class DataAccessLayer {
         document.body.removeChild(link);
     }
 }
-
-export { DataAccessLayer };
