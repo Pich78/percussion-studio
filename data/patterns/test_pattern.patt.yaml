@@ -1,10 +1,8 @@
-# file: data/patterns/test_pattern.patt.yaml (Corrected)
-
+# file: data/patterns/test_pattern.patt.yaml (Updated with new sounds)
 metadata:
   name: "Test Pattern"
   metric: "4/4"
   resolution: 16
 pattern_data:
-  - # This hyphen makes the data a LIST of measures
-    KCK: "||o---|----|o---|----||"
+  - KCK: "||o---|p---|o---|p---||" # Using open and stopped hits
     SNR: "||----|o---|----|o---||"

@@ -1,0 +1,9 @@
+name: "Drum Kick"
+symbol: "KCK"
+sounds:
+  - letter: "o"
+    name: "Normal Hit"
+    svg: "open.svg"
+  - letter: "p"
+    name: "Stopped Hit"
+    svg: "presionado.svg"

@@ -1,12 +1,12 @@
-# file: data/patterns/test_multi_measure.patt.yaml
+# file: data/patterns/test_multi_measure.patt.yaml (Updated and simplified)
 metadata:
   name: "Test Multi Measure"
   metric: "2/4"
   resolution: 8
 pattern_data:
   - # Measure 1
-    KCK: "||o-|-o||"
-    HHC: "||x-x-||"
+    KCK: "||o-|-p||"
+    SNR: "||--|o-||"
   - # Measure 2
-    KCK: "||o-|--||"
-    HHC: "||x-x-||"
+    KCK: "||o-|p-||"
+    SNR: "||--|--||"

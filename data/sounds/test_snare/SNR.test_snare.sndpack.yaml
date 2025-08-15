@@ -1,0 +1,4 @@
+name: "Test Snare Sound Pack"
+sound_files:
+  o: "test_snare.normal.wav"
+  p: "test_snare.stopped.wav"

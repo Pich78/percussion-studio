@@ -1,8 +1,0 @@
-# file: data/instruments/test_snare/test_snare.inst.yaml
-
-name: "Test Snare Drum"
-symbol: "SNR"
-sounds:
-  - letter: "o"
-    svg: "snare_icon.svg"
-    wav: "snare.wav"
