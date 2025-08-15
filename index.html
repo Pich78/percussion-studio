@@ -6,48 +6,48 @@
     <title>Percussion Studio</title>
     <style>
         /* Basic Layout & Theme */
-        :root { --header-height: 50px; --footer-height: 100px; }
-        body { font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; }
-        header { height: var(--header-height); border-bottom: 1px solid #ccc; padding: 0 10px; }
+        :root { --header-height: 50px; --footer-height: 120px; --editor-width: 300px; }
+        body { font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; background-color: #f4f4f4; }
+        header { height: var(--header-height); border-bottom: 1px solid #ccc; padding: 0 10px; background-color: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 10; }
         main { flex-grow: 1; display: flex; overflow: hidden; }
-        footer { height: var(--footer-height); border-top: 1px solid #ccc; display: flex; }
-
-        /* Main Content Areas */
+        footer { height: var(--footer-height); border-top: 1px solid #ccc; display: flex; background-color: #fff; }
+        /* Main Content Areas - NEW LAYOUT */
+        .editor-area { width: var(--editor-width); border-right: 1px solid #ccc; padding: 10px; overflow-y: auto; background-color: #fafafa; }
         .grid-area { flex-grow: 1; padding: 10px; overflow: auto; }
         .mixer-area { width: 250px; border-left: 1px solid #ccc; padding: 10px; overflow-y: auto; }
         .controls-area { flex-grow: 1; padding: 10px; }
         
-        /* Copied Styles from Test Harnesses */
+        /* Styles copied from test harnesses for a consistent look */
         .grid { display: grid; position: relative; }
-        .instrument-header { background-color: #ddd; padding: 5px; border-bottom: 1px solid #999; border-right: 1px solid #999; }
+        .instrument-header { background-color: #ddd; padding: 5px; border-bottom: 1px solid #999; border-right: 1px solid #999; cursor: pointer; user-select: none; }
+        .instrument-header:hover { background-color: #ccc; }
         .grid-cell { border-bottom: 1px solid #999; border-right: 1px solid #999; min-height: 40px; }
         .grid-cell img { width: 100%; height: 100%; object-fit: contain; }
         .playback-indicator { position: absolute; top: 0; bottom: 0; background-color: rgba(255, 0, 0, 0.4); pointer-events: none; }
         .mixer-track { display: flex; align-items: center; margin-bottom: 10px; }
+        .flow-item { display: flex; align-items: center; padding: 8px; border: 1px solid #ddd; margin-bottom: 5px; background-color: #fff; cursor: grab; }
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
         .modal-dialog { background-color: #fff; padding: 20px; border-radius: 5px; min-width: 300px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
         .modal-actions { margin-top: 20px; text-align: right; }
     </style>
+      
 </head>
 <body>
-    <!-- Header for App Menu -->
     <header id="app-menu-container"></header>
-
     <!-- Main Content for Grid and Editor -->
     <main>
+        <!-- The Rhythm Editor (Flow View) is now active in the layout -->
+        <div id="rhythm-editor-container" class="editor-area"></div>
         <div id="grid-view-container" class="grid-area"></div>
-        <!-- <div id="rhythm-editor-container"></div> -->
     </main>
-    
     <!-- Footer for Playback and Mixer -->
     <footer>
         <div id="playback-controls-container" class="controls-area"></div>
         <div id="instrument-mixer-container" class="mixer-area"></div>
     </footer>
-
     <!-- Modals will be appended to the body by their views -->
-
     <!-- The single entry point for the entire application -->
     <script type="module" src="src/App.js"></script>
+      
 </body>
 </html>
