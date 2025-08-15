@@ -11,41 +11,46 @@
         .live-panel { flex: 2; background-color: #f0f0f0; }
         .log-panel { flex: 1; background-color: #f9f9f9; }
         #log-output { white-space: pre-wrap; word-wrap: break-word; font-family: monospace; font-size: 12px; }
-        button { font-size: 14px; padding: 8px 12px; margin: 0 5px 10px 0; }
+        button { font-size: 14px; padding: 8px 12px; margin: 0 5px 10px 0; cursor: pointer; }
         h1, h2 { border-bottom: 1px solid #ccc; padding-bottom: 5px; }
 
         /* Editor specific styling */
-        .flow-item { display: flex; align-items: center; padding: 8px; border: 1px solid #ddd; margin-bottom: 5px; background-color: #fff; }
+        .flow-item { display: flex; align-items: center; padding: 8px; border: 1px solid #ddd; margin-bottom: 5px; background-color: #fff; cursor: grab; }
+        .flow-item:active { cursor: grabbing; }
         .flow-item span { margin-right: 15px; }
-        .delete-btn { margin-left: auto; cursor: pointer; color: red; }
+        .repetitions { outline: none; border: 1px dashed transparent; }
+        .repetitions:focus { border: 1px dashed #007bff; background-color: #f0f8ff; }
+        .delete-btn { margin-left: auto; color: red; border: none; background: none; font-size: 1.2em; }
+        .add-pattern-btn { width: 100%; margin-top: 10px; font-size: 1.5em; }
+        .drag-over { border-top: 2px solid blue; }
     </style>
+  
 </head>
 <body>
     <div class="test-panel">
         <h1>Automated Tests</h1>
+        <p>Note: Complex UI like drag-and-drop is best tested manually below.</p>
         <button id="run-tests-btn">Run Automated Tests</button>
         <div id="test-results"></div>
     </div>
 
     <div class="live-panel">
-        <h1>Live View Workbench</h1>
-        <div id="view-container"></div>
-    </div>
+    <h1>Live View Workbench</h1>
+    <p>You can: <strong>Drag-and-drop</strong> items to re-order, <strong>click repetitions</strong> to edit them, <strong>click ✖</strong> to delete (with confirmation), and <strong>click +</strong> to add.</p>
+    <div id="view-container"></div></div><div class="log-panel">
+    <h2>Execution Log</h2>
+    <pre id="log-output"></pre></div><div id="test-sandbox" style="display: none;"></div><script type="module">
+    import { run, manualTest } from '/percussion-studio/test/suites/view/RhythmEditorView.test.js';
     
-    <div class="log-panel">
-        <h2>Execution Log</h2>
-        <pre id="log-output"></pre>
-    </div>
+    document.getElementById('run-tests-btn').addEventListener('click', () => {
+        document.getElementById('test-results').innerHTML = '<h2>Running tests...</h2>';
+        run();
+    });
 
-    <script type="module">
-        import { run, manualTest } from '/percussion-studio/test/suites/view/RhythmEditorView.test.js';
-        
-        document.getElementById('run-tests-btn').addEventListener('click', () => {
-            document.getElementById('test-results').innerHTML = '<h2>Running tests...</h2>';
-            run();
-        });
-
-        manualTest();
-    </script>
+    // Mock window.confirm for automated tests so they don't block
+    window.confirm = () => true;
+    manualTest();
+</script>
+  
 </body>
 </html>

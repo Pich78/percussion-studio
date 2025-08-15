@@ -1,16 +1,22 @@
 // file: src/view/RhythmEditorView.js (Complete)
-
 export class RhythmEditorView {
     constructor(container, callbacks) {
         this.container = container;
         this.callbacks = callbacks || {};
-        this.state = {}; // To hold the current state for event handlers
-        // Bind the event handler to 'this' instance
-        this.handleDeleteClick = this.handleDeleteClick.bind(this);
+        this.state = {};
+        this.draggedIndex = null; // To track the item being dragged
+
+        // Use event delegation for performance and simplicity
+        this.container.addEventListener('click', this.handleClick.bind(this));
+        this.container.addEventListener('dragstart', this.handleDragStart.bind(this));
+        this.container.addEventListener('dragover', this.handleDragOver.bind(this));
+        this.container.addEventListener('dragleave', this.handleDragLeave.bind(this));
+        this.container.addEventListener('drop', this.handleDrop.bind(this));
+        this.container.addEventListener('blur', this.handleBlur.bind(this), true); // Use capture phase for blur
     }
 
     render(state) {
-        this.state = state; // Store the current state
+        this.state = state;
         const { playback_flow } = state.rhythm;
 
         if (!playback_flow) {
@@ -22,37 +28,94 @@ export class RhythmEditorView {
         
         playback_flow.forEach((item, index) => {
             html += `
-                <div class="flow-item" data-index="${index}">
+                <div class="flow-item" draggable="true" data-index="${index}">
                     <span class="pattern-name">Pattern: ${item.pattern}</span>
-                    <span class="repetitions">Repetitions: ${item.repetitions}</span>
+                    <span class="repetitions" contenteditable="true" data-property="repetitions">${item.repetitions}</span>
                     <button class="delete-btn" title="Delete Item">✖</button>
                 </div>
             `;
         });
 
-        html += '</div>';
+        html += `<button class="add-pattern-btn">+</button></div>`;
         this.container.innerHTML = html;
-
-        this.attachEventListeners();
     }
 
-    attachEventListeners() {
-        const deleteButtons = this.container.querySelectorAll('.delete-btn');
-        deleteButtons.forEach(button => {
-            button.addEventListener('click', this.handleDeleteClick);
-        });
+    // --- Event Handlers (Delegated) ---
+    handleClick(event) {
+        if (event.target.classList.contains('delete-btn')) {
+            const flowItemElement = event.target.closest('.flow-item');
+            const indexToDelete = parseInt(flowItemElement.dataset.index, 10);
+            
+            if (window.confirm('Are you sure you want to delete this item?')) {
+                const newFlow = this.state.rhythm.playback_flow.filter((_, index) => index !== indexToDelete);
+                this.callbacks.onFlowChange?.(newFlow);
+            }
+        } else if (event.target.classList.contains('add-pattern-btn')) {
+            this.callbacks.onAddPatternClick?.();
+        }
     }
 
-    handleDeleteClick(event) {
-        const flowItemElement = event.target.closest('.flow-item');
-        const indexToDelete = parseInt(flowItemElement.dataset.index, 10);
+    handleBlur(event) {
+        if (event.target.hasAttribute('contenteditable')) {
+            const flowItemElement = event.target.closest('.flow-item');
+            const index = parseInt(flowItemElement.dataset.index, 10);
+            const property = event.target.dataset.property;
+            const newValue = parseInt(event.target.textContent, 10);
 
-        // Create a *new* flow array without the deleted item (immutability)
-        const newFlow = this.state.rhythm.playback_flow.filter((item, index) => {
-            return index !== indexToDelete;
-        });
+            if (isNaN(newValue) || newValue < 1) {
+                // Invalid value, revert or handle error. For now, we'll just log and not update.
+                console.warn('Invalid input for repetitions. Must be a number greater than 0.');
+                // Re-render to show the original value
+                this.render(this.state); 
+                return;
+            }
 
-        // Fire the callback with the new, updated flow
-        this.callbacks.onFlowChange?.(newFlow);
+            const newFlow = structuredClone(this.state.rhythm.playback_flow);
+            if (newFlow[index][property] !== newValue) {
+                newFlow[index][property] = newValue;
+                this.callbacks.onFlowChange?.(newFlow);
+            }
+        }
+    }
+
+    // --- Drag and Drop Handlers ---
+    handleDragStart(event) {
+        if (event.target.classList.contains('flow-item')) {
+            this.draggedIndex = parseInt(event.target.dataset.index, 10);
+            event.dataTransfer.effectAllowed = 'move';
+        }
+    }
+
+    handleDragOver(event) {
+        event.preventDefault(); // Necessary to allow drop
+        const target = event.target.closest('.flow-item');
+        if (target) {
+            target.classList.add('drag-over');
+        }
+    }
+
+    handleDragLeave(event) {
+        const target = event.target.closest('.flow-item');
+        if (target) {
+            target.classList.remove('drag-over');
+        }
+    }
+
+    handleDrop(event) {
+        event.preventDefault();
+        const targetElement = event.target.closest('.flow-item');
+        if (targetElement === null || this.draggedIndex === null) return;
+        
+        targetElement.classList.remove('drag-over');
+        const dropIndex = parseInt(targetElement.dataset.index, 10);
+
+        if (this.draggedIndex === dropIndex) return;
+
+        const flow = [...this.state.rhythm.playback_flow];
+        const [draggedItem] = flow.splice(this.draggedIndex, 1);
+        flow.splice(dropIndex, 0, draggedItem);
+        
+        this.draggedIndex = null;
+        this.callbacks.onFlowChange?.(flow);
     }
 }

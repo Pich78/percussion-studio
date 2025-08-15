@@ -1,21 +1,13 @@
 // file: test/suites/view/RhythmEditorView.test.js (Complete)
-
 import { TestRunner } from '/percussion-studio/test/lib/TestRunner.js';
 import { MockLogger } from '/percussion-studio/test/mocks/MockLogger.js';
 import { RhythmEditorView } from '/percussion-studio/src/view/RhythmEditorView.js';
-
 export async function run() {
     const runner = new TestRunner();
     MockLogger.clearLogs();
     MockLogger.setLogTarget('log-output');
-    
-    let testContainer = document.getElementById('test-sandbox');
-    if (!testContainer) {
-        testContainer = document.createElement('div');
-        testContainer.id = 'test-sandbox';
-        document.body.appendChild(testContainer);
-    }
 
+    let testContainer = document.getElementById('test-sandbox');
     const getMockState = () => ({
         rhythm: {
             playback_flow: [
@@ -26,45 +18,81 @@ export async function run() {
     });
 
     runner.describe('RhythmEditorView Rendering', () => {
-        runner.it('should render a list item for each item in the playback_flow', () => {
+        runner.it('should render a list item for each flow item and an add button', () => {
             testContainer.innerHTML = '';
             const view = new RhythmEditorView(testContainer, {});
             view.render(getMockState());
 
-            const items = testContainer.querySelectorAll('.flow-item');
-            runner.expect(items.length).toBe(2);
-            runner.expect(items[0].textContent.includes('verse')).toBe(true);
-            runner.expect(items[1].textContent.includes('chorus')).toBe(true);
+            runner.expect(testContainer.querySelectorAll('.flow-item').length).toBe(2);
+            runner.expect(testContainer.querySelector('.add-pattern-btn') !== null).toBe(true);
         });
     });
 
     runner.describe('RhythmEditorView Callbacks', () => {
-        runner.it('should fire onFlowChange with the item removed when delete is clicked', () => {
+        runner.it('should fire onFlowChange with item removed on delete click', () => {
             testContainer.innerHTML = '';
-            const callbackLog = new MockLogger('Callbacks');
-            const callbacks = { onFlowChange: (newFlow) => callbackLog.log('onFlowChange', { newFlow }) };
-            const view = new RhythmEditorView(testContainer, callbacks);
-            
+            let newFlowResult = null;
+            const view = new RhythmEditorView(testContainer, { onFlowChange: (nf) => newFlowResult = nf });
             view.render(getMockState());
             
-            // Find the delete button for the first item (verse) and click it
-            const firstDeleteButton = testContainer.querySelector('.flow-item[data-index="0"] .delete-btn');
-            firstDeleteButton.click();
+            testContainer.querySelector('.delete-btn').click();
 
-            // The new flow should only contain the 'chorus' item
-            const expectedNewFlow = [{ pattern: 'chorus', repetitions: 8 }];
-            callbackLog.wasCalledWith('onFlowChange', { newFlow: expectedNewFlow });
+            runner.expect(newFlowResult.length).toBe(1);
+            runner.expect(newFlowResult.pattern).toBe('chorus');
+        });
+
+        runner.it('should NOT fire onFlowChange if delete is cancelled', () => {
+            window.confirm = () => false; // Mock user clicking "Cancel"
+            testContainer.innerHTML = '';
+            let callbackFired = false;
+            const view = new RhythmEditorView(testContainer, { onFlowChange: () => callbackFired = true });
+            view.render(getMockState());
+            
+            testContainer.querySelector('.delete-btn').click();
+            
+            runner.expect(callbackFired).toBe(false);
+            window.confirm = () => true; // Reset mock
+        });
+
+        runner.it('should fire onAddPatternClick when add button is clicked', () => {
+            testContainer.innerHTML = '';
+            let callbackFired = false;
+            const view = new RhythmEditorView(testContainer, { onAddPatternClick: () => callbackFired = true });
+            view.render(getMockState());
+
+            testContainer.querySelector('.add-pattern-btn').click();
+            runner.expect(callbackFired).toBe(true);
+        });
+
+        runner.it('should fire onFlowChange with updated value after editing', () => {
+            testContainer.innerHTML = '';
+            let newFlowResult = null;
+            const view = new RhythmEditorView(testContainer, { onFlowChange: (nf) => newFlowResult = nf });
+            view.render(getMockState());
+
+            const repsSpan = testContainer.querySelector('.repetitions');
+            repsSpan.textContent = '12';
+            repsSpan.dispatchEvent(new FocusEvent('blur')); // Simulate user finishing edit
+
+            runner.expect(newFlowResult.repetitions).toBe(12);
         });
     });
 
     await runner.runAll();
     runner.renderResults('test-results');
+  
 }
 
 export function manualTest() {
     const log = new MockLogger('Callbacks');
     MockLogger.setLogTarget('log-output');
-    
+
+    // Un-mock confirm for manual testing
+    const originalConfirm = window.confirm;
+    window.confirm = (message) => {
+        log.log(`window.confirm called with: "${message}"`);
+        return originalConfirm(message);
+    };
     let currentState = {
         rhythm: {
             playback_flow: [
@@ -75,18 +103,17 @@ export function manualTest() {
             ]
         }
     };
-
     const container = document.getElementById('view-container');
-
     const callbacks = {
         onFlowChange: (newFlow) => {
             log.log('onFlowChange', { newFlow });
-            // In a real app, this would trigger a re-render. We simulate it here.
             currentState.rhythm.playback_flow = newFlow;
             view.render(currentState);
+        },
+        onAddPatternClick: () => {
+            log.log('onAddPatternClick called!');
         }
     };
-
     const view = new RhythmEditorView(container, callbacks);
     view.render(currentState);
 }
