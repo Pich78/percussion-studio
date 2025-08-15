@@ -72,7 +72,7 @@ export async function run() {
             const schedulerMock = createMockScheduler();
             const controller = new ProjectController(dalMock, playerMock, schedulerMock);
 
-            await controller.loadRhythm('my_song');
+            await controller.loadRhythm('test_rhythm');
 
             dalMock.wasCalledWith('getInstrumentDef', { id: 'kck_drum_kick' });
             dalMock.wasCalledWith('getInstrumentDef', { id: 'snr_drum_snare' });
@@ -104,7 +104,7 @@ export async function run() {
 
             let didThrow = false;
             try {
-                await controller.loadRhythm('my_song');
+                await controller.loadRhythm('test_rhythm');
             } catch (e) {
                 didThrow = true;
                 runner.expect(e.message.includes("File not found")).toBe(true);
