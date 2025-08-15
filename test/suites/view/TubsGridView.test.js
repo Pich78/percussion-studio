@@ -11,13 +11,12 @@ export async function run() {
     
     const testContainer = document.getElementById('test-sandbox');
 
-    // This mock state now includes the `instrumentDefsBySymbol` object
     const getMockState = () => ({
         currentPatternId: 'p1',
         rhythm: {
             instrument_kit: { KCK: 'test_kick' },
             instrumentDefsBySymbol: {
-                KCK: { name: 'Test Kick', sounds: [{ letter: 'o', svg: 'open.svg' }] }
+                KCK: { symbol: 'KCK', name: 'Test Kick', sounds: [{ letter: 'o', svg: 'open.svg' }] }
             },
             patterns: {
                 p1: {
@@ -49,13 +48,11 @@ export async function run() {
     });
 
     runner.describe('TubsGridView Playback Indicator Logic', () => {
-        // This is the correct, simple unit test that does not depend on the DOM
         runner.it('should calculate the correct style STRING for the indicator', () => {
-            const view = new TubsGridView(null, {});
+            const view = new TubsGridView(null, {}); // No container needed for this unit test
             view.state = getMockState();
             
-            // The test now calls the internal helper method which we have restored for testability
-            const styles = view._calculateIndicatorStyles(8);
+            const styles = view._calculateIndicatorStyles(8); // Halfway point
 
             const expectedLeft = 'calc(80px + (100% - 80px) * 0.5)';
             const expectedWidth = 'calc((100% - 80px) / 16)';
@@ -79,17 +76,17 @@ export function manualTest() {
     const liveState = {
         currentPatternId: 'p1',
         rhythm: {
-            instrument_kit: { KCK: 'test_kick', HHC: 'test_snare' }, // Using snare def for HHC visual
+            instrument_kit: { KCK: 'test_kick', SNR: 'test_snare' },
             instrumentDefsBySymbol: {
-                test_kick: { name: 'Test Kick', sounds: [{ letter: 'o', svg: 'open.svg' }] },
-                test_snare: { name: 'Test Snare', sounds: [{ letter: 'x', svg: 'presionado.svg' }] }
+                KCK: { name: 'Test Kick', sounds: [{ letter: 'o', svg: 'open.svg' }, { letter: 'p', svg: 'presionado.svg' }] },
+                SNR: { name: 'Test Snare', sounds: [{ letter: 'o', svg: 'open.svg' }] }
             },
             patterns: {
                 p1: {
                     metadata: { resolution: 16 },
                     pattern_data: [{
-                        KCK: '||o---o---o---o---||',
-                        HHC: '||x-x-x-x-x-x-x-x-||'
+                        KCK: '||o---p---o---p---||',
+                        SNR: '||----o-------o---||'
                     }]
                 }
             }
