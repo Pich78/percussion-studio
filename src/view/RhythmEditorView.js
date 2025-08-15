@@ -78,14 +78,19 @@ export class RhythmEditorView {
             for (let i = 0; i < resolution; i++) {
                 const noteChar = noteString[i] || emptyString[i];
                 let cellContent = '';
+                let hasNote = false;
+                
                 if (noteChar && noteChar !== '-') {
+                    hasNote = true;
                     const instDef = rhythm.instrumentDefsBySymbol[symbol];
                     const sound = instDef?.sounds.find(s => s.letter === noteChar);
                     if (sound?.svg) {
                         cellContent = `<img src="/percussion-studio/data/instruments/${sound.svg}" alt="${noteChar}">`;
                     }
                 }
-                gridHtml += `<div class="grid-cell" data-symbol="${symbol}" data-tick="${i}" data-measure="0">${cellContent}</div>`;
+                
+                // Add data attribute to indicate if cell has a note
+                gridHtml += `<div class="grid-cell" data-symbol="${symbol}" data-tick="${i}" data-measure="0" data-has-note="${hasNote}">${cellContent}</div>`;
             }
         });
 
@@ -188,7 +193,8 @@ export class RhythmEditorView {
             tick: parseInt(cellElement.dataset.tick, 10)
         };
 
-        const hasNote = cellElement.innerHTML.trim() !== '';
+        // Use the data-has-note attribute to determine if cell has a note
+        const hasNote = cellElement.dataset.hasNote === 'true';
 
         if (hasNote) {
             this.callbacks.onRemoveNote?.(position);
