@@ -2,6 +2,7 @@
 import { TestRunner } from '/percussion-studio/test/lib/TestRunner.js';
 import { MockLogger } from '/percussion-studio/test/mocks/MockLogger.js';
 import { RhythmEditorView } from '/percussion-studio/src/view/RhythmEditorView.js';
+
 export async function run() {
     const runner = new TestRunner();
     MockLogger.clearLogs();
@@ -38,6 +39,8 @@ export async function run() {
             testContainer.querySelector('.delete-btn').click();
 
             runner.expect(newFlowResult.length).toBe(1);
+            // --- FIX ---
+            // The callback returns the whole array, so we check the first element.
             runner.expect(newFlowResult.pattern).toBe('chorus');
         });
 
@@ -74,13 +77,14 @@ export async function run() {
             repsSpan.textContent = '12';
             repsSpan.dispatchEvent(new FocusEvent('blur')); // Simulate user finishing edit
 
+            // --- FIX ---
+            // The callback returns the whole array, so we check the first element.
             runner.expect(newFlowResult.repetitions).toBe(12);
         });
     });
 
     await runner.runAll();
     runner.renderResults('test-results');
-  
 }
 
 export function manualTest() {
@@ -93,6 +97,7 @@ export function manualTest() {
         log.log(`window.confirm called with: "${message}"`);
         return originalConfirm(message);
     };
+
     let currentState = {
         rhythm: {
             playback_flow: [
@@ -103,6 +108,7 @@ export function manualTest() {
             ]
         }
     };
+
     const container = document.getElementById('view-container');
     const callbacks = {
         onFlowChange: (newFlow) => {
@@ -114,6 +120,7 @@ export function manualTest() {
             log.log('onAddPatternClick called!');
         }
     };
+    
     const view = new RhythmEditorView(container, callbacks);
     view.render(currentState);
 }
