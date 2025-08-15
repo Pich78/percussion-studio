@@ -1,4 +1,4 @@
-// file: src/App.js (Complete, Final Corrected Version)
+// file: src/App.js (Complete, Corrected Version)
 
 import { DataAccessLayer } from './dal/DataAccessLayer.js';
 import { AudioPlayer } from './audio/AudioPlayer.js';
@@ -16,14 +16,9 @@ class App {
         };
 
         this.audioPlayer = new AudioPlayer();
-        this.audioScheduler = new AudioScheduler(this.audioPlayer, (beatNumber) => {
-            const pattern = this.state.rhythm.patterns[this.state.currentPatternId];
-            if (!pattern) return;
-            const resolution = pattern.metadata.resolution || 16;
-            const ticksPerBeat = resolution / 4.0;
-            const beatInMeasure = (beatNumber -1) % 4;
-            const currentTick = beatInMeasure * ticksPerBeat;
-            this.view.tubsGridView.updatePlaybackIndicator(currentTick);
+        this.audioScheduler = new AudioScheduler(this.audioPlayer, (tickInMeasure) => {
+            // CRITICAL FIX: The scheduler now gives us the current tick directly.
+            this.view.tubsGridView.updatePlaybackIndicator(tickInMeasure);
         }, () => {
             this.setState({ isPlaying: false });
         });
@@ -48,10 +43,8 @@ class App {
             },
             onMasterVolumeChange: (vol) => {
                 this.playbackController.setMasterVolume(vol);
-                // Also update the state so the slider position is preserved on re-renders
                 this.setState({ masterVolume: vol });
             },
-            // CRITICAL FIX: The onToggleLoop callback now updates the state.
             onToggleLoop: (enabled) => {
                 this.playbackController.toggleLoop(enabled);
                 this.setState({ loopPlayback: enabled });
@@ -75,16 +68,13 @@ class App {
 
     async init() {
         this.view.render(this.state);
-
         try {
             await this.projectController.loadManifest();
             const resolvedRhythm = await this.projectController.loadRhythm('test_rhythm');
-            
             resolvedRhythm.mixer = {
                 test_kick: { volume: 1.0, muted: false },
                 test_snare: { volume: 0.8, muted: false }
             };
-            
             this.setState({
                 rhythm: resolvedRhythm,
                 currentPatternId: resolvedRhythm.playback_flow[0].pattern,

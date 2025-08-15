@@ -10,7 +10,6 @@ export class AudioScheduler {
         this.isPlaying = false;
 
         this.currentTick = 0;
-        this.currentBeat = 0;
         this.tickMap = [];
 
         this.nextNoteTime = 0.0;
@@ -33,35 +32,31 @@ export class AudioScheduler {
         const bpm = this.rhythm.global_bpm || 120;
         const secondsPerBeat = 60.0 / bpm;
 
-        // CRITICAL FIX: This loop now correctly handles repetitions and measures.
         this.rhythm.playback_flow.forEach(flowItem => {
             const pattern = this.rhythm.patterns[flowItem.pattern];
             if (!pattern || !pattern.pattern_data) return;
 
             const repetitions = flowItem.repetitions || 1;
             for (let r = 0; r < repetitions; r++) {
-                // Loop through each measure in the pattern_data array
                 pattern.pattern_data.forEach(measureData => {
                     const resolution = pattern.metadata.resolution || 16;
                     const ticksPerBeat = resolution / 4.0;
                     const secondsPerTick = secondsPerBeat / ticksPerBeat;
-                    const isBeat = (tick) => (tick % ticksPerBeat) === 0;
-
+                    
                     for (let t = 0; t < resolution; t++) {
                         const instrumentsToPlay = [];
-                        // Iterate over the instruments in the sound_kit that are present in this measure
                         for (const instrumentSymbol in measureData) {
                             if (Object.prototype.hasOwnProperty.call(this.rhythm.sound_kit, instrumentSymbol)) {
                                 const noteString = measureData[instrumentSymbol].replace(/\|/g, '');
                                 const noteChar = noteString[t];
                                 if (noteChar && noteChar !== '-') {
-                                    // Construct the sound ID, e.g., "KCK_o"
                                     const soundId = `${instrumentSymbol}_${noteChar}`;
                                     instrumentsToPlay.push(soundId);
                                 }
                             }
                         }
-                        this.tickMap.push({ instrumentsToPlay, secondsPerTick, isBeat: isBeat(t) });
+                        // Each tick in the map now knows its position within its own measure.
+                        this.tickMap.push({ instrumentsToPlay, secondsPerTick, tickInMeasure: t });
                     }
                 });
             }
@@ -90,7 +85,6 @@ export class AudioScheduler {
 
     resetPosition() {
         this.currentTick = 0;
-        this.currentBeat = 0;
     }
 
     scheduler() {
@@ -117,10 +111,8 @@ export class AudioScheduler {
         
         const tickData = this.tickMap[this.currentTick];
 
-        if (tickData.isBeat) {
-            this.currentBeat++;
-            this.onUpdateCallback(this.currentBeat);
-        }
+        // Call the update callback on EVERY tick with the tick's position in its measure.
+        this.onUpdateCallback(tickData.tickInMeasure);
 
         this.nextNoteTime += tickData.secondsPerTick;
         this.currentTick++;
@@ -128,7 +120,6 @@ export class AudioScheduler {
         if (this.currentTick >= this.tickMap.length) {
             if (this.loop) {
                 this.currentTick = 0;
-                this.currentBeat = 0;
             } else {
                 this.onPlaybackEndedCallback();
                 this.stop();

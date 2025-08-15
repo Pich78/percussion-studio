@@ -75,19 +75,17 @@ export class ProjectController {
         const resolvedRhythm = {
             ...rhythmData,
             patterns: {},
-            instrumentDefs: {}, // Use this name to match docs, but was `instruments` in TubsGridView
-            soundPacks: {}
+            soundPacks: {},
+            instrumentDefsBySymbol: {} // CRITICAL FIX: Create the object the view needs
         };
-        // CRITICAL FIX: The TubsGridView was looking for a property named 'instruments'.
-        // We will rename instrumentDefs to instruments to match what the view expects.
-        resolvedRhythm.instruments = {};
-
-        patternIds.forEach((id, i) => { resolvedRhythm.patterns[id] = patterns[i]; });
         
-        this.manifest.instrument_defs.forEach((id, i) => {
-             resolvedRhythm.instruments[id] = instrumentDefs[i];
+        instrumentDefs.forEach(def => {
+            if (def.symbol) {
+                resolvedRhythm.instrumentDefsBySymbol[def.symbol] = def;
+            }
         });
 
+        patternIds.forEach((id, i) => { resolvedRhythm.patterns[id] = patterns[i]; });
         soundPackSymbols.forEach((symbol, i) => {
             const packName = soundKit[symbol];
             resolvedRhythm.soundPacks[`${symbol}.${packName}`] = soundPacks[i];
