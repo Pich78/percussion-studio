@@ -14,7 +14,7 @@ export async function run() {
         const logger = new MockLogger('DataAccessLayer');
         logger.getManifest = async () => {
             logger.log('getManifest');
-            return { instrument_defs: ['kck_drum_kick', 'snr_drum_snare', 'tom_drum_tom'] };
+            return { instrument_defs: ['kck_drum_kick', 'snr_drum_snare'] };
         };
         logger.getRhythm = async (id) => {
             logger.log('getRhythm', { id });
@@ -28,8 +28,8 @@ export async function run() {
         };
         logger.getInstrumentDef = async (id) => {
             logger.log('getInstrumentDef', { id });
-            if (id.includes('kick')) return { symbol: 'KCK' };
-            if (id.includes('snare')) return { symbol: 'SNR' };
+            if (id === 'kck_drum_kick') return { symbol: 'KCK' };
+            if (id === 'snr_drum_snare') return { symbol: 'SNR' };
             throw new Error(`Unknown instrument definition: ${id}`);
         };
         logger.getSoundPack = async (symbol, packName) => {
@@ -133,6 +133,7 @@ export async function run() {
             const dalMock = createMockDAL();
             // Override the getPattern mock to simulate an error
             dalMock.getPattern = async (id) => {
+                dalMock.log('getPattern', { id }); // Keep logging
                 throw new Error('File not found');
             };
             const controller = new ProjectController(dalMock, null, null);
