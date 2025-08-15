@@ -1,4 +1,4 @@
-// file: test/suites/view/TubsGridView.test.js (Complete, Corrected Version)
+// file: test/suites/view/TubsGridView.test.js (Definitive Final Version)
 
 import { TestRunner } from '/percussion-studio/test/lib/TestRunner.js';
 import { MockLogger } from '/percussion-studio/test/mocks/MockLogger.js';
@@ -11,12 +11,13 @@ export async function run() {
     
     const testContainer = document.getElementById('test-sandbox');
 
+    // Correct mock state with `instrumentDefsBySymbol`
     const getMockState = () => ({
         currentPatternId: 'p1',
         rhythm: {
             instrument_kit: { KCK: 'test_kick' },
-            instruments: {
-                test_kick: { name: 'Test Kick', sounds: [{ letter: 'o', svg: 'kick.svg' }] } // UPDATED
+            instrumentDefsBySymbol: {
+                KCK: { symbol: 'KCK', name: 'Test Kick', sounds: [{ letter: 'o', svg: 'open.svg' }] }
             },
             patterns: {
                 p1: {
@@ -41,23 +42,38 @@ export async function run() {
             const view = new TubsGridView(testContainer, {});
             view.render(getMockState());
             const img = testContainer.querySelector('img');
-            const expectedSrc = '/percussion-studio/data/instruments/test_kick/kick.svg'; // UPDATED
+            runner.expect(img === null).toBe(false); // Check that the image exists
+            const expectedSrc = '/percussion-studio/data/instruments/open.svg';
             runner.expect(img.src.includes(expectedSrc)).toBe(true);
         });
     });
 
-    runner.describe('TubsGridView Playback Indicator Logic', () => {
-        runner.it('should calculate the correct style STRING for the indicator', () => {
-            const view = new TubsGridView(null, {});
-            view.state = getMockState();
+    runner.describe('TubsGridView Playback Indicator', () => {
+        // This is the robust, pixel-based test that requires waiting for the render frame.
+        runner.it('should position the indicator at the correct computed pixel value', async () => {
+            testContainer.innerHTML = '';
+            const state = getMockState();
+            const view = new TubsGridView(testContainer, {});
+            view.render(state);
             
-            const styles = view._calculateIndicatorStyles(8);
+            const grid = testContainer.querySelector('.grid');
+            grid.style.width = '880px';
 
-            const expectedLeft = 'calc(80px + (100% - 80px) * 0.5)';
-            const expectedWidth = 'calc((100% - 80px) / 16)';
+            view.updatePlaybackIndicator(8);
+            
+            await new Promise(resolve => requestAnimationFrame(resolve));
 
-            runner.expect(styles.left).toBe(expectedLeft);
-            runner.expect(styles.width).toBe(expectedWidth);
+            const indicator = testContainer.querySelector('.playback-indicator');
+            const leftPixels = indicator.offsetLeft;
+
+            const expectedLeftPixels = 480;
+            const isCloseEnough = Math.abs(leftPixels - expectedLeftPixels) < 1;
+            
+            if (!isCloseEnough) {
+                console.log(`TEST FAILED: Expected ~${expectedLeftPixels}px, but got ${leftPixels}px.`);
+            }
+
+            runner.expect(isCloseEnough).toBe(true);
         });
     });
 
@@ -75,19 +91,17 @@ export function manualTest() {
     const liveState = {
         currentPatternId: 'p1',
         rhythm: {
-            instrument_kit: { KCK: 'test_kick', HHC: 'test_kick' },
-            instruments: {
-                test_kick: { name: 'Test Kick', sounds: [
-                    { letter: 'o', svg: 'kick.svg' }, // UPDATED
-                    { letter: 'x', svg: 'kick.svg' }  // UPDATED
-                ]}
+            instrument_kit: { KCK: 'test_kick', SNR: 'test_snare' },
+            instrumentDefsBySymbol: {
+                KCK: { name: 'Test Kick', sounds: [{ letter: 'o', svg: 'open.svg' }, { letter: 'p', svg: 'presionado.svg' }] },
+                SNR: { name: 'Test Snare', sounds: [{ letter: 'o', svg: 'open.svg' }] }
             },
             patterns: {
                 p1: {
                     metadata: { resolution: 16 },
                     pattern_data: [{
-                        KCK: '||o---o---o---o---||',
-                        HHC: '||x-x-x-x-x-x-x-x-||'
+                        KCK: '||o---p---o---p---||',
+                        SNR: '||----o-------o---||'
                     }]
                 }
             }
