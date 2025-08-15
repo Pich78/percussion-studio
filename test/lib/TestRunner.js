@@ -45,7 +45,7 @@ export class TestRunner {
     }
     
     expect(actual) {
-        return {
+        const expectObject = {
             toBe: (expected) => {
                 if (actual !== expected) {
                     throw new Error(`Expected ${JSON.stringify(actual)} to be ${JSON.stringify(expected)}`);
@@ -78,6 +78,27 @@ export class TestRunner {
                 }
             }
         };
+
+        // Add the 'not' property with negated assertions
+        expectObject.not = {
+            toBe: (expected) => {
+                if (actual === expected) {
+                    throw new Error(`Expected ${JSON.stringify(actual)} not to be ${JSON.stringify(expected)}`);
+                }
+            },
+            toEqual: (expected) => {
+                if (JSON.stringify(actual) === JSON.stringify(expected)) {
+                    throw new Error(`Expected ${JSON.stringify(actual)} not to equal ${JSON.stringify(expected)}`);
+                }
+            },
+            toBeInstanceOf: (expectedClass) => {
+                if (actual instanceof expectedClass) {
+                    throw new Error(`Expected ${actual} not to be an instance of ${expectedClass.name}`);
+                }
+            }
+        };
+
+        return expectObject;
     }
     
     renderResults(containerId) {
