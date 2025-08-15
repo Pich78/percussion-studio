@@ -1,4 +1,4 @@
-// file: test/suites/view/PlaybackControlsView.test.js (Complete, Final UI Version)
+// file: test/suites/view/PlaybackControlsView.test.js (Complete, Final Corrected Version)
 
 import { TestRunner } from '/percussion-studio/test/lib/TestRunner.js';
 import { MockLogger } from '/percussion-studio/test/mocks/MockLogger.js';
@@ -63,7 +63,6 @@ export async function run() {
             const callbackLog = new MockLogger('Callbacks');
             const view = new PlaybackControlsView(testContainer, { onToggleLoop: (enabled) => callbackLog.log('onToggleLoop', {enabled}) });
             
-            // Test toggling ON
             view.render({ ...getBaseState(), loopPlayback: false });
             testContainer.querySelector('#loop-btn').click();
             callbackLog.wasCalledWith('onToggleLoop', {enabled: true});
@@ -78,25 +77,50 @@ export function manualTest() {
     const log = new MockLogger('Callbacks');
     MockLogger.setLogTarget('log-output');
     
+    // This object is the single source of truth for the UI state
     let currentState = {
         isPlaying: false, isLoading: false, masterVolume: 0.8, loopPlayback: false
     };
 
-    const callbacks = {
+    const container = document.getElementById('view-container');
+    const view = new PlaybackControlsView(container, {
+        // Callbacks from the view update the central state object and then trigger a render
         onPlay: () => { log.log('onPlay'); currentState.isPlaying = true; rerender(); },
         onPause: () => { log.log('onPause'); currentState.isPlaying = false; rerender(); },
         onStop: () => { log.log('onStop'); currentState.isPlaying = false; rerender(); },
         onMasterVolumeChange: (vol) => { log.log('onMasterVolumeChange', { vol }); currentState.masterVolume = vol; },
-        onToggleLoop: (enabled) => { log.log('onToggleLoop', { enabled }); currentState.loopPlayback = enabled; rerender(); }
-    };
-    const container = document.getElementById('view-container');
-    const view = new PlaybackControlsView(container, callbacks);
+        onToggleLoop: (enabled) => {
+            log.log('onToggleLoop', { enabled });
+            currentState.loopPlayback = enabled;
+            rerender();
+        }
+    });
     
+    // This function now ONLY re-renders the view based on the current state
     const rerender = () => {
-        currentState.isLoading = document.getElementById('is-loading-check').checked;
-        currentState.loopPlayback = document.getElementById('loop-check').checked;
+        // Also, sync the checkboxes to match the current state
+        document.getElementById('is-playing-check').checked = currentState.isPlaying;
+        document.getElementById('is-loading-check').checked = currentState.isLoading;
+        document.getElementById('loop-check').checked = currentState.loopPlayback;
+        
         view.render(currentState);
     };
 
+    // Listeners on the checkboxes update the state and then call rerender
+    document.getElementById('is-playing-check').addEventListener('change', (e) => {
+        currentState.isPlaying = e.target.checked;
+        rerender();
+    });
+    document.getElementById('is-loading-check').addEventListener('change', (e) => {
+        currentState.isLoading = e.target.checked;
+        rerender();
+    });
+    document.getElementById('loop-check').addEventListener('change', (e) => {
+        currentState.loopPlayback = e.target.checked;
+        rerender();
+    });
+
+    rerender(); // Initial render
+    
     return { view, rerender };
 }
