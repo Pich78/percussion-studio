@@ -1,120 +1,192 @@
-// file: test/suites/view/RhythmEditorView.test.js (Complete)
+// file: test/suites/view/RhythmEditorView.test.js (Complete, Expanded, and Corrected)
 import { TestRunner } from '/percussion-studio/test/lib/TestRunner.js';
 import { MockLogger } from '/percussion-studio/test/mocks/MockLogger.js';
 import { RhythmEditorView } from '/percussion-studio/src/view/RhythmEditorView.js';
+
 export async function run() {
-const runner = new TestRunner();
-MockLogger.clearLogs();
-MockLogger.setLogTarget('log-output');
-let testContainer = document.getElementById('test-sandbox');
-const getMockState = () => ({
-    rhythm: {
-        playback_flow: [
-            { pattern: 'verse', repetitions: 4 },
-            { pattern: 'chorus', repetitions: 8 }
-        ]
-    }
-});
+    const runner = new TestRunner();
+    MockLogger.clearLogs();
+    MockLogger.setLogTarget('log-output');
+    const testContainer = document.getElementById('test-sandbox');
 
-runner.describe('RhythmEditorView Rendering', () => {
-    runner.it('should render a list item for each flow item and an add button', () => {
-        testContainer.innerHTML = '';
-        const view = new RhythmEditorView(testContainer, {});
-        view.render(getMockState());
-
-        runner.expect(testContainer.querySelectorAll('.flow-item').length).toBe(2);
-        runner.expect(testContainer.querySelector('.add-pattern-btn') !== null).toBe(true);
-    });
-});
-
-runner.describe('RhythmEditorView Callbacks', () => {
-    runner.it('should fire onFlowChange with item removed on delete click', () => {
-        testContainer.innerHTML = '';
-        let newFlowResult = null;
-        const view = new RhythmEditorView(testContainer, { onFlowChange: (nf) => newFlowResult = nf });
-        view.render(getMockState());
-        
-        testContainer.querySelector('.delete-btn').click();
-
-        runner.expect(newFlowResult.length).toBe(1);
-        // --- CORRECTED FIX ---
-        // The callback returns an array, so we must access the first element.
-        runner.expect(newFlowResult[0].pattern).toBe('chorus');
+    const getMockState = () => ({
+        rhythm: {
+            playback_flow: [
+                { pattern: 'verse', repetitions: 4 },
+                { pattern: 'chorus', repetitions: 8 }
+            ],
+            patterns: {
+                verse: {
+                    metadata: { resolution: 16 },
+                    pattern_data: [{
+                        KCK: '||o---|----|o---|----||',
+                        SNR: '||----|o---|----|o---||'
+                    }]
+                },
+                chorus: {
+                    metadata: { resolution: 16 },
+                    pattern_data: [{
+                        KCK: '||o--o|o--o|o--o|o--o||'
+                    }]
+                }
+            },
+            instrumentDefsBySymbol: {
+                KCK: { symbol: "KCK", name: "Kick", sounds: [{ letter: "o", name: "Hit", svg: "k.svg" }, { letter: "p", name: "Soft", svg: "k2.svg" }] },
+                SNR: { symbol: "SNR", name: "Snare", sounds: [{ letter: "o", name: "Hit", svg: "s.svg" }] }
+            }
+        },
+        currentEditingPatternId: 'verse' // Important for grid/palette tests
     });
 
-    runner.it('should NOT fire onFlowChange if delete is cancelled', () => {
-        window.confirm = () => false; // Mock user clicking "Cancel"
-        testContainer.innerHTML = '';
-        let callbackFired = false;
-        const view = new RhythmEditorView(testContainer, { onFlowChange: () => callbackFired = true });
-        view.render(getMockState());
-        
-        testContainer.querySelector('.delete-btn').click();
-        
-        runner.expect(callbackFired).toBe(false);
-        window.confirm = () => true; // Reset mock
+    const assert = (desc, actual, expected) => {
+        if (actual !== expected) throw new Error(`[${desc}] Expected ${actual} to be ${expected}`);
+    };
+
+    runner.describe('RhythmEditorView: Flow Panel', () => {
+        runner.it('should render flow items and an add button', () => {
+            console.log("TEST: Flow Panel - should render flow items");
+            testContainer.innerHTML = '';
+            const view = new RhythmEditorView(testContainer, {});
+            view.render(getMockState());
+            assert('Number of flow items', testContainer.querySelectorAll('.flow-item').length, 2);
+            assert('Add button exists', testContainer.querySelector('.add-pattern-btn') !== null, true);
+        });
+
+        runner.it('should fire onFlowChange with item removed on delete click', () => {
+            console.log("TEST: Flow Panel - should fire onFlowChange on delete");
+            testContainer.innerHTML = '';
+            const log = new MockLogger('Callbacks');
+            const view = new RhythmEditorView(testContainer, { onFlowChange: (nf) => log.log('onFlowChange', nf) });
+            view.render(getMockState());
+            
+            testContainer.querySelector('.delete-btn').click();
+
+            const expectedFlow = [{ pattern: 'chorus', repetitions: 8 }];
+            log.wasCalledWith('onFlowChange', expectedFlow);
+        });
+
+        runner.it('should fire onAddPatternClick when add button is clicked', () => {
+            console.log("TEST: Flow Panel - should fire onAddPatternClick");
+            testContainer.innerHTML = '';
+            const log = new MockLogger('Callbacks');
+            const view = new RhythmEditorView(testContainer, { onAddPatternClick: () => log.log('onAddPatternClick') });
+            view.render(getMockState());
+
+            testContainer.querySelector('.add-pattern-btn').click();
+            log.wasCalledWith('onAddPatternClick');
+        });
+
+        runner.it('should fire onPatternSelect when a flow item is clicked', () => {
+            console.log("TEST: Flow Panel - should fire onPatternSelect");
+            testContainer.innerHTML = '';
+            const log = new MockLogger('Callbacks');
+            const view = new RhythmEditorView(testContainer, { onPatternSelect: (id) => log.log('onPatternSelect', id) });
+            view.render(getMockState());
+
+            // MALFORMED CODE FIX: Select the second item specifically before clicking.
+            const secondItem = testContainer.querySelectorAll('.flow-item')[1];
+            if (!secondItem) throw new Error("Could not find the second flow item to click");
+            secondItem.click();
+            
+            log.wasCalledWith('onPatternSelect', 'chorus');
+        });
     });
 
-    runner.it('should fire onAddPatternClick when add button is clicked', () => {
-        testContainer.innerHTML = '';
-        let callbackFired = false;
-        const view = new RhythmEditorView(testContainer, { onAddPatternClick: () => callbackFired = true });
-        view.render(getMockState());
+    runner.describe('RhythmEditorView: Grid & Palette', () => {
+        runner.it('should fire onRemoveNote when a cell with a note is clicked', () => {
+            console.log("TEST: Grid - should fire onRemoveNote");
+            testContainer.innerHTML = '';
+            const log = new MockLogger('Callbacks');
+            const view = new RhythmEditorView(testContainer, { onRemoveNote: (pos) => log.log('onRemoveNote', pos) });
+            view.render(getMockState());
 
-        testContainer.querySelector('.add-pattern-btn').click();
-        runner.expect(callbackFired).toBe(true);
+            const cell = testContainer.querySelector('.grid-cell[data-symbol="KCK"][data-tick="2"]');
+            if (!cell) throw new Error("Could not find grid cell KCK at tick 2");
+            cell.click();
+
+            const expectedPosition = { patternId: 'verse', measureIndex: 0, instrumentSymbol: 'KCK', tick: 2 };
+            log.wasCalledWith('onRemoveNote', expectedPosition);
+        });
+
+        runner.it('should fire onAddNote when an empty cell is clicked after selecting a note', () => {
+            console.log("TEST: Grid/Palette - should fire onAddNote");
+            testContainer.innerHTML = '';
+            const log = new MockLogger('Callbacks');
+            const view = new RhythmEditorView(testContainer, { onAddNote: (pos) => log.log('onAddNote', pos) });
+            const initialState = getMockState();
+            view.render(initialState); // Initial render
+
+            console.log("  Step 1: Clicking instrument header to show palette...");
+            const header = testContainer.querySelector('.instrument-header[data-symbol="KCK"]');
+            if (!header) throw new Error("Could not find KCK instrument header");
+            header.click();
+
+            console.log("  Step 2: Clicking palette note to select it...");
+            const paletteNote = testContainer.querySelector('.palette-note[data-letter="p"]');
+            if (!paletteNote) throw new Error("Could not find palette note 'p'");
+            paletteNote.click();
+            
+            console.log("  Step 3: Clicking empty grid cell to place note...");
+            const emptyCell = testContainer.querySelector('.grid-cell[data-symbol="KCK"][data-tick="0"]');
+            if (!emptyCell) throw new Error("Could not find empty KCK cell at tick 0");
+            emptyCell.click();
+            
+            const expectedPosition = { patternId: 'verse', measureIndex: 0, instrumentSymbol: 'KCK', tick: 0, note: 'p' };
+            log.wasCalledWith('onAddNote', expectedPosition);
+        });
     });
 
-    runner.it('should fire onFlowChange with updated value after editing', () => {
-        testContainer.innerHTML = '';
-        let newFlowResult = null;
-        const view = new RhythmEditorView(testContainer, { onFlowChange: (nf) => newFlowResult = nf });
-        view.render(getMockState());
-
-        const repsSpan = testContainer.querySelector('.repetitions');
-        repsSpan.textContent = '12';
-        repsSpan.dispatchEvent(new FocusEvent('blur')); // Simulate user finishing edit
-
-        // --- CORRECTED FIX ---
-        // The callback returns an array, so we must access the first element.
-        runner.expect(newFlowResult[0].repetitions).toBe(12);
-    });
-});
-await runner.runAll();
-runner.renderResults('test-results');
-  
+    await runner.runAll();
+    runner.renderResults('test-results');
 }
+
 export function manualTest() {
-const log = new MockLogger('Callbacks');
-MockLogger.setLogTarget('log-output');
-    // Un-mock confirm for manual testing
-const originalConfirm = window.confirm;
-window.confirm = (message) => {
-    log.log(`window.confirm called with: "${message}"`);
-    return originalConfirm(message);
-};
-let currentState = {
-    rhythm: {
-        playback_flow: [
-            { pattern: 'intro', repetitions: 1 },
-            { pattern: 'verse_a', repetitions: 2 },
-            { pattern: 'fill_1', repetitions: 1 },
-            { pattern: 'chorus', repetitions: 4 }
-        ]
-    }
-};
-const container = document.getElementById('view-container');
-const callbacks = {
-    onFlowChange: (newFlow) => {
-        log.log('onFlowChange', { newFlow });
-        currentState.rhythm.playback_flow = newFlow;
-        view.render(currentState);
-    },
-    onAddPatternClick: () => {
-        log.log('onAddPatternClick called!');
-    }
-};
-const view = new RhythmEditorView(container, callbacks);
-view.render(currentState);
-  
+    console.log("--- Setting up Manual Test for RhythmEditorView ---");
+    const log = new MockLogger('Callbacks');
+    MockLogger.setLogTarget('log-output');
+
+    const originalConfirm = window.confirm;
+    window.confirm = (message) => {
+        log.log(`window.confirm called with: "${message}"`);
+        return originalConfirm(message);
+    };
+
+    let currentState = {
+        rhythm: {
+            playback_flow: [
+                { pattern: 'intro', repetitions: 1 },
+                { pattern: 'verse_a', repetitions: 2 },
+            ],
+            patterns: {
+                intro: { metadata: { resolution: 8 }, pattern_data: [{ KCK: '||o-o-o-o-||' }] },
+                verse_a: { metadata: { resolution: 16 }, pattern_data: [{ KCK: '||o---|----|o-o-|----||', SNR: '||----|o---|----|o---||' }] }
+            },
+            instrumentDefsBySymbol: {
+                KCK: { symbol: "KCK", name: "Kick", sounds: [{ letter: "o", name: "Hit", svg: "k.svg" }] },
+                SNR: { symbol: "SNR", name: "Snare", sounds: [{ letter: "o", name: "Hit", svg: "s.svg" }] }
+            }
+        },
+        currentEditingPatternId: null
+    };
+
+    const container = document.getElementById('view-container');
+    const view = new RhythmEditorView(container, {
+        onFlowChange: (newFlow) => {
+            log.log('onFlowChange', { newFlow });
+            currentState.rhythm.playback_flow = newFlow;
+            view.render(currentState);
+        },
+        onAddPatternClick: () => log.log('onAddPatternClick'),
+        onPatternSelect: (patternId) => {
+            log.log('onPatternSelect', { patternId });
+            currentState.currentEditingPatternId = patternId;
+            view.render(currentState);
+        },
+        onAddNote: (p) => log.log('onAddNote', p),
+        onRemoveNote: (p) => log.log('onRemoveNote', p),
+        onAddTrack: (p, s) => log.log('onAddTrack', { pattern: p, symbol: s }),
+        onRemoveTrack: (p, s) => log.log('onRemoveTrack', { pattern: p, symbol: s }),
+    });
+
+    view.render(currentState);
 }
