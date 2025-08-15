@@ -1,4 +1,4 @@
-// file: src/App.js (Complete, Corrected Version)
+// file: src/App.js (Complete, Final Corrected Version)
 
 import { DataAccessLayer } from './dal/DataAccessLayer.js';
 import { AudioPlayer } from './audio/AudioPlayer.js';
@@ -17,7 +17,6 @@ class App {
 
         this.audioPlayer = new AudioPlayer();
         this.audioScheduler = new AudioScheduler(this.audioPlayer, (tickInMeasure) => {
-            // CRITICAL FIX: The scheduler now gives us the current tick directly.
             this.view.tubsGridView.updatePlaybackIndicator(tickInMeasure);
         }, () => {
             this.setState({ isPlaying: false });
@@ -39,7 +38,7 @@ class App {
             onStop: () => {
                 this.playbackController.stop();
                 this.setState({ isPlaying: false });
-                this.view.tubsGridView.updatePlaybackIndicator(0);
+                this.view.tubsGridView.updatePlaybackIndicator(0); // App is responsible for visual reset on STOP
             },
             onMasterVolumeChange: (vol) => {
                 this.playbackController.setMasterVolume(vol);
@@ -67,14 +66,18 @@ class App {
     }
 
     async init() {
-        this.view.render(this.state);
+        this.view.render(this.state); // Initial render
+        this.view.tubsGridView.updatePlaybackIndicator(0); // Set initial position after first render
+
         try {
             await this.projectController.loadManifest();
             const resolvedRhythm = await this.projectController.loadRhythm('test_rhythm');
+            
             resolvedRhythm.mixer = {
                 test_kick: { volume: 1.0, muted: false },
                 test_snare: { volume: 0.8, muted: false }
             };
+            
             this.setState({
                 rhythm: resolvedRhythm,
                 currentPatternId: resolvedRhythm.playback_flow[0].pattern,

@@ -49,33 +49,19 @@ export class TubsGridView {
         gridHtml += `</div>`;
         this.container.innerHTML = gridHtml;
         this.indicator = this.container.querySelector('.playback-indicator');
-        this.updatePlaybackIndicator(0);
+        // CRITICAL FIX: The initial reset is no longer done here. The App is responsible.
     }
 
-    /**
-     * A "pure" method that calculates the style strings without touching the DOM.
-     * This is the key to robust, synchronous testing.
-     */
-    _calculateIndicatorStyles(tick) {
-        if (!this.state.rhythm) return null;
+    updatePlaybackIndicator(tick) {
+        if (!this.indicator || !this.state.rhythm) return;
+
         const pattern = this.state.rhythm.patterns?.[this.state.currentPatternId];
-        if (!pattern) return null;
+        if (!pattern) return;
 
         const resolution = pattern.metadata.resolution || 16;
         const multiplier = tick / resolution;
 
-        return {
-            left: `calc(80px + (100% - 80px) * ${multiplier})`,
-            width: `calc((100% - 80px) / ${resolution})`
-        };
-    }
-
-    updatePlaybackIndicator(tick) {
-        if (!this.indicator) return;
-        const styles = this._calculateIndicatorStyles(tick);
-        if (styles) {
-            this.indicator.style.left = styles.left;
-            this.indicator.style.width = styles.width;
-        }
+        this.indicator.style.left = `calc(80px + (100% - 80px) * ${multiplier})`;
+        this.indicator.style.width = `calc((100% - 80px) / ${resolution})`;
     }
 }
