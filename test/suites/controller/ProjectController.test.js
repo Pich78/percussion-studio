@@ -6,7 +6,6 @@ import { ProjectController } from '/percussion-studio/src/controller/ProjectCont
 
 export async function run() {
     const runner = new TestRunner();
-
     MockLogger.clearLogs();
     MockLogger.setLogTarget('log-output');
 
@@ -78,10 +77,15 @@ export async function run() {
             dalMock.wasCalledWith('getInstrumentDef', { id: 'kck_drum_kick' });
             dalMock.wasCalledWith('getInstrumentDef', { id: 'snr_drum_snare' });
 
-            // --- FIX 2: Add a check for `call.args` to prevent crash ---
+            // --- ADDED LOGGING FOR DEBUGGING ---
+            const log = new MockLogger('TEST-DEBUG');
+            log.log('Checking dalMock.callLog for unwanted calls...', dalMock.callLog);
+
+            // --- FIX 2: Add a defensive check for `call.args` to prevent crash ---
             const tomCall = dalMock.callLog.find(call =>
                 call.method === 'getInstrumentDef' && call.args && call.args.id === 'tom_drum_tom'
             );
+            log.log('Result of searching for tomCall:', tomCall);
             runner.expect(tomCall).toBe(undefined);
 
             const expectedSounds = [
@@ -137,4 +141,5 @@ export async function run() {
 
     await runner.runAll();
     runner.renderResults('test-results');
+
 }
