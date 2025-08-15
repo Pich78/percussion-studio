@@ -1,8 +1,21 @@
-// file: src/dal/DataAccessLayer.js (Complete, Final Corrected Version)
+// file: src/dal/DataAccessLayer.js (Complete, Updated Version)
 
 import { load as loadYaml, dump as dumpYaml } from "https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.mjs";
 
 export class DataAccessLayer {
+
+    /**
+     * Fetches and parses the main application manifest file.
+     * @returns {Promise<object>}
+     */
+    static async getManifest() {
+        const filePath = `/percussion-studio/manifest.json`;
+        const response = await fetch(filePath);
+        if (!response.ok) {
+            throw new Error(`Failed to fetch manifest.json. Server responded with status: ${response.status}`);
+        }
+        return response.json();
+    }
 
     static async getRhythm(id) {
         const filePath = `/percussion-studio/data/rhythms/${id}.rthm.yaml`;
@@ -38,13 +51,6 @@ export class DataAccessLayer {
         }
     }
 
-    /**
-     * Creates a .zip file from rhythm and pattern data.
-     * @param {object} rhythmData - The rhythm object to be saved.
-     * @param {Array<object>} patternsData - An array of {id, data} objects for patterns.
-     * @param {string} filename - The base name for the zip file.
-     * @param {class} JSZip - The JSZip constructor (injected dependency).
-     */
     static async exportRhythmAsZip(rhythmData, patternsData, filename, JSZip) {
         const zip = new JSZip();
 

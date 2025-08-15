@@ -1,4 +1,4 @@
-// file: src/controller/ProjectController.js (Complete, Corrected Version)
+// file: src/controller/ProjectController.js (Complete, Final Version)
 
 import { DataAccessLayer } from '../dal/DataAccessLayer.js';
 import JSZip from "https://esm.sh/jszip@3.10.1";
@@ -8,6 +8,16 @@ export class ProjectController {
         this.dal = dal;
         this.audioPlayer = audioPlayer;
         this.audioScheduler = audioScheduler;
+        this.manifest = null;
+    }
+
+    /**
+     * Fetches the manifest and caches it for future use.
+     */
+    async loadManifest() {
+        if (!this.manifest) {
+            this.manifest = await this.dal.getManifest();
+        }
     }
 
     createNewRhythm() {
@@ -27,15 +37,17 @@ export class ProjectController {
     }
 
     async loadRhythm(id) {
+        // Ensure the manifest is loaded before proceeding
+        await this.loadManifest();
+
         const rhythmData = await this.dal.getRhythm(id);
         
         const patternIds = [...new Set(rhythmData.playback_flow.map(item => item.pattern))];
         const patternPromises = patternIds.map(id => this.dal.getPattern(id));
         const patterns = await Promise.all(patternPromises);
 
-        // Placeholder for a manifest-driven system.
-        const instDefIds = ['drum_kick', 'drum_snare', 'drum_hihat']; 
-        const instDefPromises = instDefIds.map(id => this.dal.getInstrumentDef(id));
+        // CRITICAL FIX: Load ALL instrument definitions from the manifest dynamically
+        const instDefPromises = this.manifest.instrument_defs.map(id => this.dal.getInstrumentDef(id));
         const instrumentDefs = await Promise.all(instDefPromises);
 
         const soundKit = rhythmData.sound_kit;
@@ -69,14 +81,13 @@ export class ProjectController {
         const resolvedRhythm = {
             ...rhythmData,
             patterns: {},
-            instrumentDefs: {}, // Changed from `instruments` to match documentation
+            instrumentDefs: {},
             soundPacks: {}
         };
         patternIds.forEach((id, i) => { resolvedRhythm.patterns[id] = patterns[i]; });
         
-        instrumentDefs.forEach(def => {
-            const defId = instDefIds.find(id => def.symbol && id.includes(def.symbol.toLowerCase()));
-            if(defId) resolvedRhythm.instrumentDefs[defId] = def;
+        this.manifest.instrument_defs.forEach((id, i) => {
+             resolvedRhythm.instrumentDefs[id] = instrumentDefs[i];
         });
 
         soundPackSymbols.forEach((symbol, i) => {

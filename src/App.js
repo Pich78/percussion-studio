@@ -1,4 +1,4 @@
-// file: src/App.js (Complete, Final Corrected Version)
+// file: src/App.js (Complete, Final Version)
 
 import { DataAccessLayer } from './dal/DataAccessLayer.js';
 import { AudioPlayer } from './audio/AudioPlayer.js';
@@ -50,10 +50,7 @@ class App {
             onToggleLoop: (enabled) => this.playbackController.toggleLoop(enabled),
             onNewProject: () => console.log('New Project clicked'),
             onLoadProject: () => console.log('Load Project clicked'),
-            // CRITICAL FIX: Wire up the save button to the controller
             onSaveProject: () => {
-                // For now, we use a hardcoded filename.
-                // We also set isDirty to false, simulating a successful save.
                 this.projectController.saveProject(this.state.rhythm, 'my-rhythm');
                 this.setState({ isDirty: false });
             },
@@ -70,17 +67,23 @@ class App {
 
     async init() {
         this.view.render(this.state);
+
         try {
+            // Load the manifest first
+            await this.projectController.loadManifest();
+            // Then load the rhythm
             const resolvedRhythm = await this.projectController.loadRhythm('test_rhythm');
+            
             resolvedRhythm.mixer = {
                 test_kick: { volume: 1.0, muted: false },
                 test_snare: { volume: 0.8, muted: false }
             };
+            
             this.setState({
                 rhythm: resolvedRhythm,
                 currentPatternId: resolvedRhythm.playback_flow[0].pattern,
                 isLoading: false,
-                isDirty: true // Start in a "dirty" state to enable the save button
+                isDirty: true
             });
         } catch (error) {
             console.error(error);

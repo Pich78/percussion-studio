@@ -1,4 +1,4 @@
-// file: test/suites/dal/DataAccessLayer.test.js (Complete, Final Corrected Version)
+// file: test/suites/dal/DataAccessLayer.test.js (Complete, Final Version)
 
 import { TestRunner } from '/percussion-studio/test/lib/TestRunner.js';
 import { MockLogger } from '/percussion-studio/test/mocks/MockLogger.js';
@@ -13,6 +13,15 @@ export async function run() {
     const cleanup = () => { window.fetch = originalFetch; };
 
     runner.describe('DataAccessLayer - Unit Tests', () => {
+        runner.it('should call fetch with the correct URL for getManifest', async () => {
+            const fetchMock = new MockLogger('fetch');
+            window.fetch = (url) => { fetchMock.log('fetch', { url }); return Promise.resolve({ ok: true, json: async () => ({}) }); };
+            try {
+                await DataAccessLayer.getManifest();
+                fetchMock.wasCalledWith('fetch', { url: '/percussion-studio/manifest.json' });
+            } finally { cleanup(); }
+        });
+
         runner.it('should call fetch with the correct URL for getInstrumentDef', async () => {
             const fetchMock = new MockLogger('fetch');
             window.fetch = (url) => { fetchMock.log('fetch', { url }); return Promise.resolve({ ok: true, text: () => Promise.resolve('') }); };
@@ -33,6 +42,13 @@ export async function run() {
     });
 
     runner.describe('DataAccessLayer - Integration Tests (Live Fetch)', () => {
+        runner.it('should fetch and parse a REAL manifest.json file', async () => {
+            const result = await DataAccessLayer.getManifest();
+            // Check for a property we know is in our real manifest
+            runner.expect(Array.isArray(result.instrument_defs)).toBe(true);
+            runner.expect(result.instrument_defs.includes('drum_kick')).toBe(true);
+        });
+
         runner.it('should fetch and parse a REAL rhythm file', async () => {
             const result = await DataAccessLayer.getRhythm('test_rhythm');
             runner.expect(result.global_bpm).toBe(95);

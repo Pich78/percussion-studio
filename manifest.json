@@ -1,0 +1,18 @@
+{
+  "rhythms": [
+    "test_rhythm"
+  ],
+  "patterns": [
+    "test_pattern",
+    "test_multi_measure"
+  ],
+  "instrument_defs": [
+    "drum_kick",
+    "drum_snare",
+    "drum_hihat"
+  ],
+  "sound_packs": [
+    "KCK.test_kick",
+    "SNR.test_snare"
+  ]
+}
