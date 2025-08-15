@@ -5,17 +5,27 @@ export class TubsGridView {
         this.container = container;
         this.callbacks = callbacks || {};
         this.state = {};
+        this.lastRenderedPatternId = null; // To track if we need to re-render the grid
     }
 
     render(state) {
         this.state = state;
-
         const { currentPatternId, rhythm } = this.state;
+
+        // CRITICAL FIX: Only re-render the entire grid if the pattern has actually changed.
+        // This prevents re-rendering on simple state changes like play/pause.
+        if (currentPatternId === this.lastRenderedPatternId) {
+            return; // Nothing to do
+        }
+
         if (!rhythm || !currentPatternId || !rhythm.patterns?.[currentPatternId]) {
             this.container.innerHTML = '<div>No pattern selected or available.</div>';
+            this.lastRenderedPatternId = null;
             return;
         }
 
+        this.lastRenderedPatternId = currentPatternId;
+        
         const pattern = rhythm.patterns[currentPatternId];
         const measure = pattern.pattern_data[0];
         const resolution = pattern.metadata.resolution || 16;
@@ -49,12 +59,11 @@ export class TubsGridView {
         gridHtml += `</div>`;
         this.container.innerHTML = gridHtml;
         this.indicator = this.container.querySelector('.playback-indicator');
-        // CRITICAL FIX: The initial reset is no longer done here. The App is responsible.
+        this.updatePlaybackIndicator(0);
     }
 
     updatePlaybackIndicator(tick) {
         if (!this.indicator || !this.state.rhythm) return;
-
         const pattern = this.state.rhythm.patterns?.[this.state.currentPatternId];
         if (!pattern) return;
 
