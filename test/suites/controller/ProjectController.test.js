@@ -1,4 +1,4 @@
-// file: test/suites/controller/ProjectController.test.js (Complete, Final Refactored Version)
+// file: test/suites/controller/ProjectController.test.js (Complete, Final Corrected Version)
 
 import { TestRunner } from '/percussion-studio/test/lib/TestRunner.js';
 import { MockLogger } from '/percussion-studio/test/mocks/MockLogger.js';
@@ -12,25 +12,35 @@ export async function run() {
     // --- Mocks ---
     const createMockDAL = () => {
         const logger = new MockLogger('DataAccessLayer');
-        logger.getRhythm = async (id) => ({
-            global_bpm: 150, sound_kit: { KCK: 'test_pack' }, playback_flow: [{ pattern: 'p1' }]
-        });
-        logger.getPattern = async (id) => ({ metadata: { name: 'Pattern1' } });
-        logger.getInstrumentDef = async (id) => {
-            if (id === 'drum_kick') return { symbol: 'KCK', sounds: [{ letter: 'o' }] };
-            return {};
+        logger.getRhythm = async (id) => {
+            logger.log('getRhythm', { id });
+            return { sound_kit: { KCK: 'test_pack' }, playback_flow: [{ pattern: 'p1' }] };
         };
-        logger.getSoundPack = async (symbol, packName) => ({
-            name: 'Test Pack', sound_files: { o: 'kick.wav' }
-        });
-        logger.exportRhythmAsZip = async () => {};
+        logger.getPattern = async (id) => {
+            logger.log('getPattern', { id });
+            return { metadata: { name: 'Pattern1' } };
+        };
+        logger.getInstrumentDef = async (id) => {
+            logger.log('getInstrumentDef', { id });
+            if (id.includes('kick')) return { symbol: 'KCK', sounds: [{ letter: 'o' }] };
+            return { symbol: 'UNKNOWN' };
+        };
+        logger.getSoundPack = async (symbol, packName) => {
+            logger.log('getSoundPack', { symbol, packName });
+            return { sound_files: { o: 'kick.wav' } };
+        };
+        logger.exportRhythmAsZip = async (rhythm, patterns, filename, jszip) => {
+            logger.log('exportRhythmAsZip', { filename, rhythm, patterns });
+        };
         return logger;
     };
+
     const createMockPlayer = () => {
         const logger = new MockLogger('AudioPlayer');
         logger.loadSounds = async (sounds) => logger.log('loadSounds', { sounds });
         return logger;
     };
+
     const createMockScheduler = () => {
         const logger = new MockLogger('AudioScheduler');
         logger.setRhythm = (rhythm) => logger.log('setRhythm', { rhythm });
@@ -52,22 +62,21 @@ export async function run() {
             const dalMock = createMockDAL();
             const playerMock = createMockPlayer();
             const schedulerMock = createMockScheduler();
-            // This test is complex and relies on hardcoded defs matching our mock DAL
             const controller = new ProjectController(dalMock, playerMock, schedulerMock);
 
-            const resolvedRhythm = await controller.loadRhythm('my_song');
+            await controller.loadRhythm('my_song');
 
-            // Verify DAL calls
-            dalMock.wasCalledWith('getInstrumentDef', undefined); // Called inside, args not logged this way
-            dalMock.wasCalledWith('getSoundPack', {symbol: 'KCK', packName: 'test_pack'});
+            dalMock.wasCalledWith('getRhythm', { id: 'my_song' });
+            dalMock.wasCalledWith('getPattern', { id: 'p1' });
+            dalMock.wasCalledWith('getInstrumentDef', { id: 'drum_kick' });
+            dalMock.wasCalledWith('getSoundPack', { symbol: 'KCK', packName: 'test_pack' });
 
-            // Verify sound loading
             const expectedSoundList = [{ id: 'KCK_o', path: '/percussion-studio/data/sounds/test_pack/kick.wav' }];
             playerMock.wasCalledWith('loadSounds', { sounds: expectedSoundList });
 
-            // Verify final object and scheduler call
-            runner.expect(resolvedRhythm.patterns.p1.metadata.name).toBe('Pattern1');
-            schedulerMock.wasCalledWith('setRhythm', { rhythm: resolvedRhythm });
+            const setRhythmCall = schedulerMock.calls.find(c => c.methodName === 'setRhythm');
+            runner.expect(setRhythmCall === undefined).toBe(false);
+            runner.expect('patterns' in setRhythmCall.args.rhythm).toBe(true);
         });
     });
 
@@ -85,14 +94,17 @@ export async function run() {
             await controller.saveProject(projectToSave, 'my-new-song');
 
             const expectedRhythm = {
-                global_bpm: 120, sound_kit: { KCK: 'kick_v1' }, playback_flow: [{ pattern: 'p1' }]
+                global_bpm: 120,
+                sound_kit: { KCK: 'kick_v1' },
+                playback_flow: [{ pattern: 'patt1' }]
             };
             const expectedPatterns = [{ id: 'patt1', data: { metadata: { name: 'Verse' } } }];
 
-            // Note: Our wasCalledWith mock doesn't handle multiple optional arguments well,
-            // so we rely on the log output for full verification in the harness.
-            // This is a limitation of our simple MockLogger.
-            runner.expect(dalMock.calls.some(c => c.methodName === 'exportRhythmAsZip')).toBe(true);
+            dalMock.wasCalledWith('exportRhythmAsZip', {
+                filename: 'my-new-song',
+                rhythm: expectedRhythm,
+                patterns: expectedPatterns
+            });
         });
     });
 

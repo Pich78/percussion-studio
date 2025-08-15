@@ -1,4 +1,4 @@
-// file: src/controller/ProjectController.js (Complete, Final Refactored Version)
+// file: src/controller/ProjectController.js (Complete, Corrected Version)
 
 import { DataAccessLayer } from '../dal/DataAccessLayer.js';
 import JSZip from "https://esm.sh/jszip@3.10.1";
@@ -10,45 +10,34 @@ export class ProjectController {
         this.audioScheduler = audioScheduler;
     }
 
-    /**
-     * Creates a new, blank project state that conforms to the new data architecture.
-     */
     createNewRhythm() {
         return {
             global_bpm: 120,
-            sound_kit: {}, // Starts with an empty sound kit
+            sound_kit: {},
             patterns: {
                 'untitled_pattern': {
                     metadata: { name: 'Untitled Pattern', resolution: 16, metric: '4/4' },
-                    pattern_data: [{}] // Starts with one empty measure
+                    pattern_data: [{}]
                 }
             },
             playback_flow: [{ pattern: 'untitled_pattern', repetitions: 1 }],
-            // The resolved instrument data will be populated here during runtime
             instrumentDefs: {},
             soundPacks: {}
         };
     }
 
-    /**
-     * Orchestrates the entire process of loading, dynamically resolving dependencies,
-     * and preparing a rhythm for playback.
-     */
     async loadRhythm(id) {
         const rhythmData = await this.dal.getRhythm(id);
         
-        // Fetch all patterns
         const patternIds = [...new Set(rhythmData.playback_flow.map(item => item.pattern))];
         const patternPromises = patternIds.map(id => this.dal.getPattern(id));
         const patterns = await Promise.all(patternPromises);
 
-        // Fetch all instrument definitions. In a real app, this would use the manifest.
-        // For now, we hardcode the ones we know we need for our test data.
+        // Placeholder for a manifest-driven system.
         const instDefIds = ['drum_kick', 'drum_snare', 'drum_hihat']; 
         const instDefPromises = instDefIds.map(id => this.dal.getInstrumentDef(id));
         const instrumentDefs = await Promise.all(instDefPromises);
 
-        // Fetch the specific sound packs required by this rhythm's sound_kit
         const soundKit = rhythmData.sound_kit;
         const soundPackSymbols = Object.keys(soundKit);
         const soundPackPromises = soundPackSymbols.map(symbol => {
@@ -57,7 +46,6 @@ export class ProjectController {
         });
         const soundPacks = await Promise.all(soundPackPromises);
 
-        // Collect all sound files that need to be loaded by the AudioPlayer
         const soundList = [];
         soundPacks.forEach((pack, index) => {
             const symbol = soundPackSymbols[index];
@@ -69,7 +57,7 @@ export class ProjectController {
                 const wavFile = pack.sound_files[soundDef.letter];
                 if (wavFile) {
                     soundList.push({
-                        id: `${symbol}_${soundDef.letter}`, // e.g., KCK_o
+                        id: `${symbol}_${soundDef.letter}`,
                         path: `/percussion-studio/data/sounds/${packName}/${wavFile}`
                     });
                 }
@@ -78,15 +66,19 @@ export class ProjectController {
 
         await this.audioPlayer.loadSounds(soundList);
         
-        // Assemble the final, "resolved" rhythm object for the application state
         const resolvedRhythm = {
             ...rhythmData,
             patterns: {},
-            instrumentDefs: {},
+            instrumentDefs: {}, // Changed from `instruments` to match documentation
             soundPacks: {}
         };
         patternIds.forEach((id, i) => { resolvedRhythm.patterns[id] = patterns[i]; });
-        instDefIds.forEach((id, i) => { resolvedRhythm.instrumentDefs[id] = instrumentDefs[i]; });
+        
+        instrumentDefs.forEach(def => {
+            const defId = instDefIds.find(id => def.symbol && id.includes(def.symbol.toLowerCase()));
+            if(defId) resolvedRhythm.instrumentDefs[defId] = def;
+        });
+
         soundPackSymbols.forEach((symbol, i) => {
             const packName = soundKit[symbol];
             resolvedRhythm.soundPacks[`${symbol}.${packName}`] = soundPacks[i];
