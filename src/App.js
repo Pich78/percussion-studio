@@ -1,4 +1,4 @@
-// file: src/App.js (Complete, Final Corrected Version)
+// file: src/App.js (Complete, with BPM Logic)
 
 import { DataAccessLayer } from './dal/DataAccessLayer.js';
 import { AudioPlayer } from './audio/AudioPlayer.js';
@@ -12,7 +12,8 @@ class App {
     constructor() {
         this.state = {
             isLoading: true, isPlaying: false, isDirty: false, loopPlayback: false,
-            masterVolume: 1.0, rhythm: null, currentPatternId: null, error: null, confirmation: null,
+            masterVolume: 1.0, globalBPM: 120, // Add BPM to state
+            rhythm: null, currentPatternId: null, error: null, confirmation: null,
         };
 
         this.audioPlayer = new AudioPlayer();
@@ -38,7 +39,7 @@ class App {
             onStop: () => {
                 this.playbackController.stop();
                 this.setState({ isPlaying: false });
-                this.view.tubsGridView.updatePlaybackIndicator(0); // App is responsible for visual reset on STOP
+                this.view.tubsGridView.updatePlaybackIndicator(0);
             },
             onMasterVolumeChange: (vol) => {
                 this.playbackController.setMasterVolume(vol);
@@ -47,6 +48,11 @@ class App {
             onToggleLoop: (enabled) => {
                 this.playbackController.toggleLoop(enabled);
                 this.setState({ loopPlayback: enabled });
+            },
+            // Wire up the new BPM callback
+            onBPMChange: (newBPM) => {
+                this.audioScheduler.setBPM(newBPM);
+                this.setState({ globalBPM: newBPM });
             },
             onNewProject: () => console.log('New Project clicked'),
             onLoadProject: () => console.log('Load Project clicked'),
@@ -66,9 +72,7 @@ class App {
     }
 
     async init() {
-        this.view.render(this.state); // Initial render
-        this.view.tubsGridView.updatePlaybackIndicator(0); // Set initial position after first render
-
+        this.view.render(this.state);
         try {
             await this.projectController.loadManifest();
             const resolvedRhythm = await this.projectController.loadRhythm('test_rhythm');
@@ -81,6 +85,7 @@ class App {
             this.setState({
                 rhythm: resolvedRhythm,
                 currentPatternId: resolvedRhythm.playback_flow[0].pattern,
+                globalBPM: resolvedRhythm.global_bpm, // Use BPM from loaded rhythm
                 isLoading: false,
                 isDirty: true
             });

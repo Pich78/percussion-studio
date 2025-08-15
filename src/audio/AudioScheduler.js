@@ -1,4 +1,4 @@
-// file: src/audio/AudioScheduler.js (Complete, Final Corrected Version)
+// file: src/audio/AudioScheduler.js (Complete, with setBPM)
 
 export class AudioScheduler {
     constructor(audioPlayer, onUpdateCallback, onPlaybackEndedCallback) {
@@ -8,6 +8,7 @@ export class AudioScheduler {
 
         this.rhythm = null;
         this.isPlaying = false;
+        this.bpm = 120; // Default BPM
 
         this.currentTick = 0;
         this.tickMap = [];
@@ -20,6 +21,18 @@ export class AudioScheduler {
         this.lookahead = 25.0;
     }
 
+    /**
+     * Updates the playback tempo.
+     * @param {number} newBPM The new tempo in beats per minute.
+     */
+    setBPM(newBPM) {
+        this.bpm = newBPM;
+        // If a rhythm is loaded, we need to rebuild the tick map with new timing info.
+        if (this.rhythm) {
+            this.setRhythm(this.rhythm);
+        }
+    }
+
     setRhythm(resolvedRhythm) {
         this.rhythm = resolvedRhythm;
         this.tickMap = [];
@@ -29,8 +42,9 @@ export class AudioScheduler {
             return;
         }
 
-        const bpm = this.rhythm.global_bpm || 120;
-        const secondsPerBeat = 60.0 / bpm;
+        // Use the rhythm's BPM if present, otherwise use the current BPM.
+        this.bpm = this.rhythm.global_bpm || this.bpm;
+        const secondsPerBeat = 60.0 / this.bpm;
 
         this.rhythm.playback_flow.forEach(flowItem => {
             const pattern = this.rhythm.patterns[flowItem.pattern];
@@ -55,7 +69,6 @@ export class AudioScheduler {
                                 }
                             }
                         }
-                        // Each tick in the map now knows its position within its own measure.
                         this.tickMap.push({ instrumentsToPlay, secondsPerTick, tickInMeasure: t });
                     }
                 });
@@ -111,9 +124,7 @@ export class AudioScheduler {
         
         const tickData = this.tickMap[this.currentTick];
 
-        // Call the update callback on EVERY tick with the tick's position in its measure.
         this.onUpdateCallback(tickData.tickInMeasure);
-
         this.nextNoteTime += tickData.secondsPerTick;
         this.currentTick++;
 

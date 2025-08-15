@@ -1,4 +1,4 @@
-// file: src/view/PlaybackControlsView.js (Complete, Final UI Version)
+// file: src/view/PlaybackControlsView.js (Complete, with BPM Slider)
 
 export class PlaybackControlsView {
     constructor(container, callbacks) {
@@ -10,15 +10,17 @@ export class PlaybackControlsView {
         this.handleStopClick = this.handleStopClick.bind(this);
         this.handleVolumeChange = this.handleVolumeChange.bind(this);
         this.handleLoopToggle = this.handleLoopToggle.bind(this);
+        this.handleBPMChange = this.handleBPMChange.bind(this);
     }
 
     render(state) {
-        const { isPlaying, isLoading, masterVolume, loopPlayback } = state;
+        const { isPlaying, isLoading, masterVolume, loopPlayback, globalBPM } = state;
 
-        // Determine the disabled state for each button
+        const buttonsDisabled = isLoading;
         const playBtnDisabled = isPlaying || isLoading;
         const pauseBtnDisabled = !isPlaying || isLoading;
         const stopBtnDisabled = !isPlaying || isLoading;
+        const bpmSliderDisabled = isPlaying || isLoading;
         const loopBtnToggled = loopPlayback ? 'toggled' : '';
 
         const html = `
@@ -27,6 +29,11 @@ export class PlaybackControlsView {
                 <button id="pause-btn" ${pauseBtnDisabled ? 'disabled' : ''}>Pause</button>
                 <button id="stop-btn" ${stopBtnDisabled ? 'disabled' : ''}>Stop</button>
                 <button id="loop-btn" class="${loopBtnToggled}">Loop</button>
+                
+                <div class="control-group">
+                    <label for="bpm-slider">BPM: <span id="bpm-value">${globalBPM}</span></label>
+                    <input type="range" id="bpm-slider" min="40" max="240" step="1" value="${globalBPM}" ${bpmSliderDisabled ? 'disabled' : ''}>
+                </div>
                 
                 <div class="control-group">
                     <label for="master-volume">Master Volume</label>
@@ -44,6 +51,7 @@ export class PlaybackControlsView {
         this.container.querySelector('#stop-btn')?.addEventListener('click', this.handleStopClick);
         this.container.querySelector('#loop-btn')?.addEventListener('click', this.handleLoopToggle);
         this.container.querySelector('#master-volume')?.addEventListener('input', this.handleVolumeChange);
+        this.container.querySelector('#bpm-slider')?.addEventListener('input', this.handleBPMChange);
     }
 
     // --- Event Handlers ---
@@ -55,7 +63,12 @@ export class PlaybackControlsView {
     }
     handleLoopToggle(event) {
         const isCurrentlyLooping = event.target.classList.contains('toggled');
-        // The callback should signal the *new desired state*, which is the opposite of the current one.
         this.callbacks.onToggleLoop?.(!isCurrentlyLooping);
+    }
+    handleBPMChange(event) {
+        const newBPM = parseInt(event.target.value, 10);
+        // Update the numeric display in real-time
+        this.container.querySelector('#bpm-value').textContent = newBPM;
+        this.callbacks.onBPMChange?.(newBPM);
     }
 }
