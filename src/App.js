@@ -1,4 +1,4 @@
-// file: src/App.js (Complete, with BPM Logic)
+// file: src/App.js (Complete, with Mixer Logic)
 
 import { DataAccessLayer } from './dal/DataAccessLayer.js';
 import { AudioPlayer } from './audio/AudioPlayer.js';
@@ -12,7 +12,7 @@ class App {
     constructor() {
         this.state = {
             isLoading: true, isPlaying: false, isDirty: false, loopPlayback: false,
-            masterVolume: 1.0, globalBPM: 120, // Add BPM to state
+            masterVolume: 1.0, globalBPM: 120,
             rhythm: null, currentPatternId: null, error: null, confirmation: null,
         };
 
@@ -24,50 +24,49 @@ class App {
         });
 
         this.playbackController = new PlaybackController(this.audioScheduler, this.audioPlayer);
+        // Give the controller a way to access the current state when it needs it
+        this.playbackController.setStateProvider(this.state);
+        
         this.projectController = new ProjectController(DataAccessLayer, this.audioPlayer, this.audioScheduler);
         this.editController = new EditController();
 
         this.view = new View({
-            onPlay: () => {
-                this.playbackController.play();
-                this.setState({ isPlaying: true });
-            },
-            onPause: () => {
-                this.playbackController.pause();
-                this.setState({ isPlaying: false });
-            },
+            onPlay: () => { this.playbackController.play(); this.setState({ isPlaying: true }); },
+            onPause: () => { this.playbackController.pause(); this.setState({ isPlaying: false }); },
             onStop: () => {
                 this.playbackController.stop();
                 this.setState({ isPlaying: false });
                 this.view.tubsGridView.updatePlaybackIndicator(0);
             },
-            onMasterVolumeChange: (vol) => {
-                this.playbackController.setMasterVolume(vol);
-                this.setState({ masterVolume: vol });
+            onMasterVolumeChange: (vol) => { this.playbackController.setMasterVolume(vol); this.setState({ masterVolume: vol }); },
+            onToggleLoop: (enabled) => { this.playbackController.toggleLoop(enabled); this.setState({ loopPlayback: enabled }); },
+            onBPMChange: (newBPM) => { this.audioScheduler.setBPM(newBPM); this.setState({ globalBPM: newBPM }); },
+            
+            // CRITICAL FIX: Wire up the mixer callbacks
+            onInstrumentVolumeChange: (id, vol) => {
+                // Update the controller
+                this.playbackController.setInstrumentVolume(id, vol);
+                // Update the state so the slider position is remembered
+                const newMixer = { ...this.state.rhythm.mixer, [id]: { ...this.state.rhythm.mixer[id], volume: vol, muted: false } };
+                this.setState({ rhythm: { ...this.state.rhythm, mixer: newMixer } });
             },
-            onToggleLoop: (enabled) => {
-                this.playbackController.toggleLoop(enabled);
-                this.setState({ loopPlayback: enabled });
+            onInstrumentMuteToggle: (id, muted) => {
+                this.playbackController.toggleInstrumentMute(id, muted);
+                const newMixer = { ...this.state.rhythm.mixer, [id]: { ...this.state.rhythm.mixer[id], muted: muted } };
+                this.setState({ rhythm: { ...this.state.rhythm, mixer: newMixer } });
             },
-            // Wire up the new BPM callback
-            onBPMChange: (newBPM) => {
-                this.audioScheduler.setBPM(newBPM);
-                this.setState({ globalBPM: newBPM });
-            },
+
             onNewProject: () => console.log('New Project clicked'),
             onLoadProject: () => console.log('Load Project clicked'),
-            onSaveProject: () => {
-                this.projectController.saveProject(this.state.rhythm, 'my-rhythm');
-                this.setState({ isDirty: false });
-            },
-            onInstrumentVolumeChange: (id, vol) => console.log(`Volume change: ${id}, ${vol}`),
-            onInstrumentMuteToggle: (id, muted) => console.log(`Mute toggle: ${id}, ${muted}`),
+            onSaveProject: () => { this.projectController.saveProject(this.state.rhythm, 'my-rhythm'); this.setState({ isDirty: false }); },
             onErrorDismiss: () => this.setState({ error: null }),
         });
     }
 
     setState(newState) {
         this.state = { ...this.state, ...newState };
+        // Also update the controller's reference to the state
+        this.playbackController.setStateProvider(this.state);
         this.view.render(this.state);
     }
 
@@ -85,7 +84,7 @@ class App {
             this.setState({
                 rhythm: resolvedRhythm,
                 currentPatternId: resolvedRhythm.playback_flow[0].pattern,
-                globalBPM: resolvedRhythm.global_bpm, // Use BPM from loaded rhythm
+                globalBPM: resolvedRhythm.global_bpm,
                 isLoading: false,
                 isDirty: true
             });
