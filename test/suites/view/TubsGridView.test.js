@@ -1,4 +1,4 @@
-// file: test/suites/view/TubsGridView.test.js (Complete, Final Corrected Version)
+// file: test/suites/view/TubsGridView.test.js (Complete, Corrected Version)
 
 import { TestRunner } from '/percussion-studio/test/lib/TestRunner.js';
 import { MockLogger } from '/percussion-studio/test/mocks/MockLogger.js';
@@ -16,7 +16,7 @@ export async function run() {
         rhythm: {
             instrument_kit: { KCK: 'test_kick' },
             instruments: {
-                test_kick: { name: 'Test Kick', sounds: [{ letter: 'o', svg: 'kick_beater.svg' }] }
+                test_kick: { name: 'Test Kick', sounds: [{ letter: 'o', svg: 'kick.svg' }] } // UPDATED
             },
             patterns: {
                 p1: {
@@ -34,6 +34,15 @@ export async function run() {
             view.render(getMockState());
             runner.expect(testContainer.querySelectorAll('.instrument-header').length).toBe(1);
             runner.expect(testContainer.querySelectorAll('.grid-cell').length).toBe(16);
+        });
+
+        runner.it('should render note images with the correct src path', () => {
+            testContainer.innerHTML = '';
+            const view = new TubsGridView(testContainer, {});
+            view.render(getMockState());
+            const img = testContainer.querySelector('img');
+            const expectedSrc = '/percussion-studio/data/instruments/test_kick/kick.svg'; // UPDATED
+            runner.expect(img.src.includes(expectedSrc)).toBe(true);
         });
     });
 
@@ -69,8 +78,8 @@ export function manualTest() {
             instrument_kit: { KCK: 'test_kick', HHC: 'test_kick' },
             instruments: {
                 test_kick: { name: 'Test Kick', sounds: [
-                    { letter: 'o', svg: 'kick_beater.svg' },
-                    { letter: 'x', svg: 'kick_beater.svg' }
+                    { letter: 'o', svg: 'kick.svg' }, // UPDATED
+                    { letter: 'x', svg: 'kick.svg' }  // UPDATED
                 ]}
             },
             patterns: {
