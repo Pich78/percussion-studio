@@ -1,10 +1,12 @@
 // file: test/suites/controller/ProjectController.test.js (Complete, Final Version)
+
 import { TestRunner } from '/percussion-studio/test/lib/TestRunner.js';
 import { MockLogger } from '/percussion-studio/test/mocks/MockLogger.js';
 import { ProjectController } from '/percussion-studio/src/controller/ProjectController.js';
 
 export async function run() {
     const runner = new TestRunner();
+
     MockLogger.clearLogs();
     MockLogger.setLogTarget('log-output');
 
@@ -77,7 +79,7 @@ export async function run() {
             dalMock.wasCalledWith('getInstrumentDef', { id: 'snr_drum_snare' });
 
             // --- FIX 2: Add a check for `call.args` to prevent crash ---
-            const tomCall = dalMock.callLog.find(call => 
+            const tomCall = dalMock.callLog.find(call =>
                 call.method === 'getInstrumentDef' && call.args && call.args.id === 'tom_drum_tom'
             );
             runner.expect(tomCall).toBe(undefined);
@@ -118,13 +120,13 @@ export async function run() {
                 playback_flow: [{ pattern: 'patt1' }],
             };
             await controller.saveProject(projectToSave, 'my-new-song');
-            
+
             const expectedRhythmFile = {
                 global_bpm: 120, sound_kit: { KCK: 'kick_v1' }, playback_flow: [{ pattern: 'patt1' }]
             };
             // --- FIX 3: Correct the pattern ID to match the test data ---
             const expectedPatterns = [{ id: 'patt1', data: { metadata: { name: 'Verse' } } }];
-            
+
             dalMock.wasCalledWith('exportRhythmAsZip', {
                 filename: 'my-new-song',
                 rhythm: expectedRhythmFile,
@@ -132,8 +134,7 @@ export async function run() {
             });
         });
     });
-    
+
     await runner.runAll();
     runner.renderResults('test-results');
-      
 }
