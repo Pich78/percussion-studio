@@ -33,7 +33,14 @@ This layer is responsible for all application logic, broken down into specialize
     *   **Responsibilities:** Manages the project lifecycle.
         *   **Loading State:** Sets `state.isLoading = true` at the beginning of any loading sequence and `state.isLoading = false` only after all assets are successfully loaded.
         *   **Dirty State Handling:** Before executing a destructive action (`loadRhythm`, `createNewRhythm`), it must check if `state.isDirty` is true and trigger a confirmation dialog.
-        *   **Loading:** Orchestrates the multi-step dependency resolution process for loading existing rhythms.
+        *   **Data Resolution (Loading):** Orchestrates the multi-step dependency resolution process for loading a rhythm. This is a critical responsibility:
+            1.  Fetches the main Rhythm file (`.rthm.yaml`).
+            2.  For each entry in the `sound_kit` (e.g., `KCK: "test_kick"`), it determines the required Instrument Definition (`drum_kick.instdef.yaml`) and the required Sound Pack (`KCK.test_kick.sndpack.yaml`) based on the key (`KCK`) and value (`test_kick`).
+            3.  Fetches all required Instrument Definition and Sound Pack files.
+            4.  Fetches all unique Pattern files listed in the `playback_flow`.
+            5.  Assembles a single, deeply "resolved" rhythm object in memory that contains all the loaded data.
+            6.  Collects all `.wav` file paths from the loaded Sound Packs and passes the list to the `AudioPlayer`.
+            7.  After sounds are loaded, it passes the resolved rhythm object to the `AudioScheduler`.
         *   **New Project Creation:** Contains a `createNewRhythm()` method to generate a default project structure.
     *   **Error Handling:** Implements a master `try...catch` block and performs a logical validation pass on all loaded data.
 *   **`EditController` (Sub-Controller):**

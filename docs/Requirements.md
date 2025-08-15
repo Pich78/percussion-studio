@@ -21,89 +21,103 @@ This document outlines the requirements for a web-based software application des
 
 ## 3. Data Management & Structure
 
-The application's data is organized into a strict file system structure and managed via a central manifest file.
+The application's data is organized into a strict, decoupled structure that separates instrument definitions from their sounds. This is managed via a central manifest file. The file naming conventions are critical to how the application resolves and links data.
 
 ### 3.1. File Naming Conventions & Directory Structure
 
-To ensure clarity and enable powerful tooling, all data files will use a compound extension format.
+To enable automated data resolution, all data files use a specific compound extension and naming scheme.
 
-*   **Instruments:** `*.inst.yaml`
-*   **Patterns:** `*.patt.yaml`
-*   **Rhythms:** `*.rthm.yaml`
+*   **Instrument Definitions:** `*.instdef.yaml` (e.g., `drum_kick.instdef.yaml`)
+    *   Defines the abstract properties of an instrument type.
+*   **Sound Packs:** `<symbol>.<pack_name>.sndpack.yaml` (e.g., `KCK.test_kick.sndpack.yaml`)
+    *   Provides the concrete sound files for an instrument definition. The `<symbol>` in the filename **must** match the `symbol` inside the corresponding Instrument Definition file.
+*   **Patterns:** `*.patt.yaml` (e.g., `rock_verse.patt.yaml`)
+*   **Rhythms:** `*.rthm.yaml` (e.g., `my_song.rthm.yaml`)
 
 These files are stored in the following directory structure:
-*   **/instruments/:** Contains a subdirectory for each unique instrument version (e.g., `acoustic_kick/`). This subdirectory holds the instrument's definition file (`acoustic_kick.inst.yaml`) and all its sound (`.wav`) and image (`.svg`) assets.
-*   **/patterns/:** Directly contains all Pattern definition files (e.g., `rock_verse.patt.yaml`).
-*   **/rhythms/:** Directly contains all Rhythm definition files (e.g., `my_first_song.rthm.yaml`).
 
-***Architectural Rationale:*** *Using specific extensions like `.patt.yaml` instead of a generic `.yaml` is a deliberate design choice. It provides immediate clarity to developers about a file's purpose and structure. Crucially, it allows for schema-based validation and autocompletion in modern code editors (like VS Code), which dramatically reduces the chance of manual errors when writing or editing data files.*
+*   **/instruments/:** Contains all Instrument Definition files (`.instdef.yaml`) and their associated SVG assets. This folder defines "what an instrument is".
+*   **/sounds/:** Contains subdirectories for each unique Sound Pack. The subdirectory name must match the `<pack_name>` from the filename (e.g., `test_kick/`). This subdirectory holds the Sound Pack's definition file (`KCK.test_kick.sndpack.yaml`) and all its sound (`.wav`) assets. This folder defines "what an instrument sounds like".
+*   **/patterns/:** Contains all Pattern definition files.
+*   **/rhythms/:** Contains all Rhythm definition files.
+
+***Architectural Rationale:*** *This decoupled structure is a powerful design choice. It makes both Instrument Definitions and Sound Packs highly reusable. A single `drum_kick.instdef.yaml` can be used by dozens of different Sound Packs (e.g., `KCK.acoustic.sndpack.yaml`, `KCK.808.sndpack.yaml`). The strict naming convention (`KCK.test_kick...`) allows the application's `ProjectController` to automatically discover and link these files without needing explicit paths written in the data files, which makes the system much more robust and maintainable.*
 
 ### 3.2. Data Discovery: The Manifest File
 
 To discover available assets without depending on the GitHub API at runtime, the application will use a central manifest file.
 
 *   **File:** A file named `manifest.json` will be located at the root of the repository.
-*   **Content:** This file contains a JSON object listing the unique filenames (without extensions) of all available rhythms, patterns, and instruments.
-*   **Function:** On startup, the application makes a single request to fetch `manifest.json`. This file's content is then used to populate all asset lists within the application.
+*   **Content:** This file contains a JSON object listing the unique filenames (without extensions) of all available rhythms, patterns, instrument definitions, and sound packs.
+*   **Function:** On startup, the application makes a single request to fetch `manifest.json`. This file's content is then used to populate all asset lists within the application's UI (e.g., in the "Load Rhythm" dialog).
     *   ***Architectural Rationale:*** *The manifest file approach was chosen over making live calls to the GitHub API to avoid risks of API downtime, rate limiting, and performance issues. The manifest file provides a robust, single-request solution that is more stable and performant.*
 
 ### 3.3. Data Formats (YAML)
 
-*   **Instrument Definition (`acoustic_kick.inst.yaml`):**
+*   **Instrument Definition (`data/instruments/drum_kick.instdef.yaml`):**
+    *   `symbol`: The unique, system-wide identifier for this instrument type (e.g., KCK).
+    *   `sounds`: A list of articulations the instrument can produce. Each sound has a `letter` for use in patterns and a default `svg` icon.
     ```yaml
-    name: "Acoustic Kick Drum"
+    name: "Drum Kick"
     symbol: "KCK"
     sounds:
       - letter: "o"
-        svg: "kick_beater.svg"
-        wav: "kick_sound.wav"
+        name: "Normal Hit"
+        svg: "open.svg"
+      - letter: "p"
+        name: "Stopped Hit"
+        svg: "presionado.svg"
     ```
 
-*   **Pattern Definition (`rock_verse.patt.yaml`):**
-    The `pattern_data` is a **list** where each item represents a single measure. This format was chosen for its high readability and to simplify parsing logic. The `metadata.resolution` property is critical, defining the number of subdivisions (ticks) per 4/4 measure (e.g., 4, 8, 16, 32, 64).
-
+*   **Sound Pack (`data/sounds/test_kick/KCK.test_kick.sndpack.yaml`):**
+    *   `sound_files`: A mapping where the key is a `letter` from the Instrument Definition and the value is the corresponding `.wav` filename.
     ```yaml
-    metadata:
-      name: "Rock Verse Beat - 2 Measures"
-      metric: "4/4"
-      resolution: 16 # Defines subdivisions. 16 = 16th notes.
-    pattern_data:
-      - # Measure 1
-        KCK: "||o---|----|o---|----||"
-        SNR: "||----|o---|----|o---||"
-      - # Measure 2 (with variation)
-        KCK: "||o---|--o-|o---|----||"
-        SNR: "||----|o---|----|o-o-||"
+    name: "Test Kick Sound Pack"
+    sound_files:
+      o: "test_kick.normal.wav"
+      p: "test_kick.stopped.wav"
     ```
 
-*   **Rhythm Definition (`my_first_song.rthm.yaml`):**
+*   **Rhythm Definition (`data/rhythms/my_song.rthm.yaml`):**
+    *   `sound_kit`: The "casting list" for the rhythm. The key is an instrument `symbol` (e.g., `KCK`) which will be used in patterns. The value is the `<pack_name>` (e.g., `test_kick`) to be used for that instrument.
     ```yaml
     global_bpm: 120
-    instrument_kit:
-      KCK: "acoustic_kick"
-      SNR: "rock_snare_1"
+    sound_kit:
+      KCK: "test_kick"
+      SNR: "test_snare"
     playback_flow:
       - pattern: "rock_verse"
         repetitions: 8
-      - pattern: "rock_fill_a"
-        repetitions: 1
     ```
-    
+
+*   **Pattern Definition (`data/patterns/rock_verse.patt.yaml`):**
+    *   The keys in `pattern_data` now correspond to the `symbol`s defined in the Rhythm's `sound_kit`. The characters in the notation string correspond to the `letter`s from the Instrument Definition.
+    ```yaml
+    metadata:
+      name: "Rock Verse"
+      metric: "4/4"
+      resolution: 16
+    pattern_data:
+      - # Measure 1
+        KCK: "||o---|p---|o---|----||"
+        SNR: "||----|o---|----|o---||"
+    ```
+
 ## 4. Build & Deployment Process
 
-To ensure the `manifest.json` file is always up-to-date, its generation is automated.
+To ensure the `manifest.json` file is always up-to-date and reflects the true state of the data files in the repository, its generation is automated.
 
 ### 4.1. Local Development & Debugging
 
-*   **Manifest Script:** A Python script (`generate_manifest.py`) will reside in the repository's root. This script, when executed, scans the data directories for files with the correct compound extensions and writes the `manifest.json` file.
-*   **Local Workflow:** The developer can run `python generate_manifest.py` manually after adding or removing assets to test changes locally.
+*   **Manifest Script:** A Python script (`generate_manifest.py`) will reside in the repository's root. This script, when executed, scans the `data` directories for files with the correct compound extensions (`.instdef.yaml`, `.sndpack.yaml`, etc.) and writes the `manifest.json` file.
+*   **Local Workflow:** The developer can run `python generate_manifest.py` manually after adding or removing assets to test changes locally before committing.
 
 ### 4.2. Automated Production Build (GitHub Actions)
 
 *   **Trigger:** A GitHub Actions workflow will be configured to run automatically on every push to the `main` branch.
 *   **Process:** The Action will execute the `generate_manifest.py` script and automatically commit the updated `manifest.json` file back to the repository if any changes are detected.
-    *   ***Architectural Rationale:*** *The GitHub Actions approach was chosen over a local Git Hook because it provides a **centralized, guaranteed, and transparent** source of truth for automation that requires zero setup from collaborators, ensuring the manifest is always correct.*
-
+    *   ***Architectural Rationale:*** *The GitHub Actions approach was chosen over a local Git Hook because it provides a **centralized, guaranteed, and transparent** source of truth for automation that requires zero setup from collaborators, ensuring the manifest is always correct and removing the possibility of human error.*
+    
 ---
 
 ## 5. Application Views & Functionality
