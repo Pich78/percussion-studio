@@ -41,26 +41,29 @@ export class ProjectController {
       // 1. Ensure manifest is loaded
       await this.loadManifest();
 
-      // 2. Fetch the main rhythm file
+      // 2. Fetch the main rhythm file to find out what we need
       console.log(`[ProjectController] Fetching main rhythm file: ${id}.rthm.yaml`);
       const rhythmData = await this.dal.getRhythm(id);
       const soundKit = rhythmData.sound_kit;
-      console.log('[ProjectController] Rhythm file loaded. Sound kit:', soundKit);
-
-      // 3. Fetch all required Instrument Definitions based on the rhythm's sound_kit
       const requiredSymbols = Object.keys(soundKit);
-      console.log('[ProjectController] Required instrument symbols:', requiredSymbols);
-      const instDefPromises = requiredSymbols.map(symbol => {
-        // Find the full instrument def name from the manifest (e.g., 'drum_kick' from 'KCK')
-        const defName = this.manifest.instrument_defs.find(def => def.startsWith(symbol.toLowerCase()));
-        if (!defName) throw new Error(`Instrument definition for symbol '${symbol}' not found in manifest.`);
-        console.log(`[ProjectController]   - Found mapping in manifest: ${symbol} -> ${defName}`);
-        return this.dal.getInstrumentDef(defName);
+      console.log('[ProjectController] Rhythm file loaded. Sound kit requires symbols:', requiredSymbols);
+
+      // 3. --- CORRECTED LOGIC ---
+      // Load ALL instrument definitions from the manifest first. This is the robust way.
+      console.log('[ProjectController] Loading all available instrument definitions from manifest...');
+      const instDefPromises = this.manifest.instrument_defs.map(defId => this.dal.getInstrumentDef(defId));
+      const allInstrumentDefs = await Promise.all(instDefPromises);
+      console.log('[ProjectController] All instrument definitions loaded.');
+
+      // Create an in-memory map for easy lookup (Symbol -> Definition)
+      const instrumentDefsBySymbol = {};
+      allInstrumentDefs.forEach(def => {
+        instrumentDefsBySymbol[def.symbol] = def;
       });
-      const instrumentDefs = await Promise.all(instDefPromises);
-      console.log('[ProjectController] All required instrument definitions loaded.', instrumentDefs);
+      console.log('[ProjectController] Created instrument definition map by symbol:', instrumentDefsBySymbol);
 
       // 4. Fetch all required Sound Packs based on the sound_kit
+      console.log('[ProjectController] Fetching required sound packs...');
       const soundPackPromises = requiredSymbols.map(symbol => {
         const packName = soundKit[symbol];
         return this.dal.getSoundPack(symbol, packName);
@@ -80,8 +83,10 @@ export class ProjectController {
       soundPacks.forEach((pack, index) => {
         const symbol = requiredSymbols[index];
         const packName = soundKit[symbol];
-        const instDef = instrumentDefs.find(def => def.symbol === symbol);
-        if (!instDef) return;
+        const instDef = instrumentDefsBySymbol[symbol]; // Use the map for reliable lookup
+        if (!instDef) {
+          throw new Error(`Data inconsistency: Rhythm requires symbol '${symbol}', but no loaded instrument definition provides it.`);
+        }
 
         Object.entries(pack.sound_files).forEach(([letter, wavFile]) => {
           soundList.push({
@@ -99,10 +104,9 @@ export class ProjectController {
         ...rhythmData,
         patterns: {},
         soundPacks: {},
-        instrumentDefsBySymbol: {}
+        instrumentDefsBySymbol // Add the complete map to the resolved object
       };
-      
-      instrumentDefs.forEach(def => { resolvedRhythm.instrumentDefsBySymbol[def.symbol] = def; });
+
       patternIds.forEach((pId, i) => { resolvedRhythm.patterns[pId] = patterns[i]; });
       requiredSymbols.forEach((symbol, i) => {
         const packName = soundKit[symbol];
@@ -118,10 +122,11 @@ export class ProjectController {
       // Re-throw the error so the App layer can catch it and display it to the user.
       throw new Error(`Failed to load rhythm project "${id}". Reason: ${error.message}`);
     }
+
   }
 
   async saveProject(projectData, filename) {
-    console.log(`[ProjectController] Preparing to save project data as "${filename}.zip"`);
+    console.log(`[ProjectController] Preparing to save project data as "${filename}.zip`);
     const rhythmFileContent = {
       global_bpm: projectData.global_bpm,
       sound_kit: projectData.sound_kit,
@@ -129,8 +134,8 @@ export class ProjectController {
     };
     const patternsToSave = Object.entries(projectData.patterns).map(([id, data]) => ({ id, data }));
     console.log('[ProjectController] Data prepared for export:', { rhythmFileContent, patternsToSave });
-
     await this.dal.exportRhythmAsZip(rhythmFileContent, patternsToSave, filename, JSZip);
     console.log('[ProjectController] Export complete.');
+
   }
 }
