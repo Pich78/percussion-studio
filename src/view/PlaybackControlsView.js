@@ -1,4 +1,4 @@
-// file: src/view/PlaybackControlsView.js (Complete, Refactored Version)
+// file: src/view/PlaybackControlsView.js (Complete, Final UI Version)
 
 export class PlaybackControlsView {
     constructor(container, callbacks) {
@@ -14,18 +14,18 @@ export class PlaybackControlsView {
 
     render(state) {
         const { isPlaying, isLoading, masterVolume, loopPlayback } = state;
-        const buttonsDisabled = isLoading;
 
-        // Use CSS classes and the 'hidden' attribute for state changes
-        const playBtnHidden = isPlaying;
-        const pauseBtnHidden = !isPlaying;
+        // Determine the disabled state for each button
+        const playBtnDisabled = isPlaying || isLoading;
+        const pauseBtnDisabled = !isPlaying || isLoading;
+        const stopBtnDisabled = !isPlaying || isLoading;
         const loopBtnToggled = loopPlayback ? 'toggled' : '';
 
         const html = `
             <div class="playback-controls">
-                <button id="play-btn" ${buttonsDisabled ? 'disabled' : ''} ${playBtnHidden ? 'hidden' : ''}>Play</button>
-                <button id="pause-btn" ${buttonsDisabled ? 'disabled' : ''} ${pauseBtnHidden ? 'hidden' : ''}>Pause</button>
-                <button id="stop-btn" ${buttonsDisabled ? 'disabled' : ''}>Stop</button>
+                <button id="play-btn" ${playBtnDisabled ? 'disabled' : ''}>Play</button>
+                <button id="pause-btn" ${pauseBtnDisabled ? 'disabled' : ''}>Pause</button>
+                <button id="stop-btn" ${stopBtnDisabled ? 'disabled' : ''}>Stop</button>
                 <button id="loop-btn" class="${loopBtnToggled}">Loop</button>
                 
                 <div class="control-group">
@@ -47,24 +47,15 @@ export class PlaybackControlsView {
     }
 
     // --- Event Handlers ---
-    handlePlayClick() {
-        this.callbacks.onPlay?.();
-    }
-    handlePauseClick() {
-        this.callbacks.onPause?.();
-    }
-    handleStopClick() {
-        this.callbacks.onStop?.();
-    }
+    handlePlayClick() { this.callbacks.onPlay?.(); }
+    handlePauseClick() { this.callbacks.onPause?.(); }
+    handleStopClick() { this.callbacks.onStop?.(); }
     handleVolumeChange(event) {
         this.callbacks.onMasterVolumeChange?.(parseFloat(event.target.value));
     }
     handleLoopToggle(event) {
-        // Toggle the current state. The new state will be set by the App.
-        this.callbacks.onToggleLoop?.(!this.isLooping());
-    }
-    // Helper to read the current loop state from the DOM
-    isLooping() {
-        return this.container.querySelector('#loop-btn')?.classList.contains('toggled');
+        const isCurrentlyLooping = event.target.classList.contains('toggled');
+        // The callback should signal the *new desired state*, which is the opposite of the current one.
+        this.callbacks.onToggleLoop?.(!isCurrentlyLooping);
     }
 }

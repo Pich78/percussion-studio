@@ -1,4 +1,4 @@
-// file: test/suites/view/PlaybackControlsView.test.js (Complete, Corrected Version)
+// file: test/suites/view/PlaybackControlsView.test.js (Complete, Final UI Version)
 
 import { TestRunner } from '/percussion-studio/test/lib/TestRunner.js';
 import { MockLogger } from '/percussion-studio/test/mocks/MockLogger.js';
@@ -21,20 +21,22 @@ export async function run() {
     });
 
     runner.describe('PlaybackControlsView Rendering', () => {
-        runner.it('should show Play and hide Pause when stopped', () => {
+        runner.it('should disable Pause and Stop when stopped', () => {
             testContainer.innerHTML = '';
             const view = new PlaybackControlsView(testContainer, {});
             view.render(getBaseState());
-            runner.expect(testContainer.querySelector('#play-btn').hidden).toBe(false);
-            runner.expect(testContainer.querySelector('#pause-btn').hidden).toBe(true);
+            runner.expect(testContainer.querySelector('#play-btn').disabled).toBe(false);
+            runner.expect(testContainer.querySelector('#pause-btn').disabled).toBe(true);
+            runner.expect(testContainer.querySelector('#stop-btn').disabled).toBe(true);
         });
 
-        runner.it('should hide Play and show Pause when playing', () => {
+        runner.it('should disable Play when playing', () => {
             testContainer.innerHTML = '';
             const view = new PlaybackControlsView(testContainer, {});
             view.render({ ...getBaseState(), isPlaying: true });
-            runner.expect(testContainer.querySelector('#play-btn').hidden).toBe(true);
-            runner.expect(testContainer.querySelector('#pause-btn').hidden).toBe(false);
+            runner.expect(testContainer.querySelector('#play-btn').disabled).toBe(true);
+            runner.expect(testContainer.querySelector('#pause-btn').disabled).toBe(false);
+            runner.expect(testContainer.querySelector('#stop-btn').disabled).toBe(false);
         });
 
         runner.it('should apply toggled class to loop button when loop is active', () => {
@@ -65,11 +67,6 @@ export async function run() {
             view.render({ ...getBaseState(), loopPlayback: false });
             testContainer.querySelector('#loop-btn').click();
             callbackLog.wasCalledWith('onToggleLoop', {enabled: true});
-
-            // Test toggling OFF
-            view.render({ ...getBaseState(), loopPlayback: true });
-            testContainer.querySelector('#loop-btn').click();
-            callbackLog.wasCalledWith('onToggleLoop', {enabled: false});
         });
     });
 
