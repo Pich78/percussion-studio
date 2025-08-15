@@ -30,10 +30,8 @@
         document.getElementById('run-tests-btn').addEventListener('click', () => {
             const resultsDiv = document.getElementById('test-results');
             resultsDiv.innerHTML = '<h2>Running tests...</h2>';
-            // Corrected call: run() is the function that initializes and runs the TestRunner
-            run().then(() => {
-                resultsDiv.innerHTML = '<h2>Tests Finished. Check the log.</h2>';
-            }).catch(e => {
+            // Now the imported `run()` function handles running the tests and rendering the results.
+            run().catch(e => {
                 console.error('Test runner failed:', e);
                 resultsDiv.innerHTML = `<h2 style="color: red;">Test runner failed: ${e.message}</h2>`;
             });

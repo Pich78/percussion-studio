@@ -109,6 +109,7 @@ export async function run() {
         });
     });
 
+    // The logic to run tests and render results is now in the test file.
     await runner.runAll();
     runner.renderResults('test-results');
 }
