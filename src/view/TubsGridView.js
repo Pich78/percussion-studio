@@ -1,4 +1,4 @@
-// file: src/view/TubsGridView.js (Complete, Final Version)
+// file: src/view/TubsGridView.js (Complete, Final Corrected Version)
 
 export class TubsGridView {
     constructor(container, callbacks) {
@@ -53,16 +53,26 @@ export class TubsGridView {
         this.updatePlaybackIndicator(0);
     }
 
-    updatePlaybackIndicator(tick) {
-        if (!this.indicator || !this.state.rhythm) return;
-
+    _calculateIndicatorStyles(tick) {
+        if (!this.state.rhythm) return null;
         const pattern = this.state.rhythm.patterns?.[this.state.currentPatternId];
-        if (!pattern) return;
+        if (!pattern) return null;
 
         const resolution = pattern.metadata.resolution || 16;
         const multiplier = tick / resolution;
 
-        this.indicator.style.left = `calc(80px + (100% - 80px) * ${multiplier})`;
-        this.indicator.style.width = `calc((100% - 80px) / ${resolution})`;
+        return {
+            left: `calc(80px + (100% - 80px) * ${multiplier})`,
+            width: `calc((100% - 80px) / ${resolution})`
+        };
+    }
+
+    updatePlaybackIndicator(tick) {
+        if (!this.indicator) return;
+        const styles = this._calculateIndicatorStyles(tick);
+        if (styles) {
+            this.indicator.style.left = styles.left;
+            this.indicator.style.width = styles.width;
+        }
     }
 }

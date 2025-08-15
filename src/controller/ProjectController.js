@@ -1,4 +1,4 @@
-// file: src/controller/ProjectController.js (Complete)
+// file: src/controller/ProjectController.js (Complete, Corrected Version)
 
 import JSZip from "https://esm.sh/jszip@3.10.1";
 
@@ -24,18 +24,22 @@ export class ProjectController {
         const patternPromises = patternIds.map(patternId => this.dal.getPattern(patternId));
         const patterns = await Promise.all(patternPromises);
         
-        const instrumentIds = Object.values(rhythmData.instrument_kit);
+        const instrumentIds = [...new Set(Object.values(rhythmData.instrument_kit))];
         const instrumentPromises = instrumentIds.map(instId => this.dal.getInstrument(instId));
         const instruments = await Promise.all(instrumentPromises);
 
         const soundList = [];
-        instruments.forEach((instrument, index) => {
+        instruments.forEach((instrumentData, index) => {
             const instrumentId = instrumentIds[index];
-            instrument.sounds.forEach((sound, soundIndex) => {
-                soundList.push({
-                    id: `${instrumentId}_${soundIndex}`,
-                    path: `data/instruments/${instrumentId}/${sound.wav}`
-                });
+            instrumentData.sounds.forEach((sound, soundIndex) => {
+                // CRITICAL FIX: The ID for the sound MUST match the instrumentId from the kit.
+                // We assume for now the first sound ('o') is the primary sound.
+                if (soundIndex === 0) {
+                    soundList.push({
+                        id: instrumentId,
+                        path: `data/instruments/${instrumentId}/${sound.wav}`
+                    });
+                }
             });
         });
         
@@ -44,42 +48,34 @@ export class ProjectController {
         const resolvedRhythm = {
             ...rhythmData,
             patterns: {},
+            instruments: {}
         };
         patternIds.forEach((patternId, index) => {
             resolvedRhythm.patterns[patternId] = patterns[index];
+        });
+        instrumentIds.forEach((instrumentId, index) => {
+            resolvedRhythm.instruments[instrumentId] = instruments[index];
         });
 
         this.audioScheduler.setRhythm(resolvedRhythm);
         return resolvedRhythm;
     }
 
-    /**
-     * Gathers all project data and tells the DAL to export it as a ZIP file.
-     * @param {object} projectData The full, resolved project data object.
-     * @param {string} filename The name for the exported file (without extension).
-     */
     async saveProject(projectData, filename) {
-        // 1. Create the slim rhythm data for the .rthm.yaml file
         const rhythmFileContent = {
             global_bpm: projectData.global_bpm,
             instrument_kit: projectData.instrument_kit,
             playback_flow: projectData.playback_flow
         };
-
-        // 2. Gather all patterns used in the project
         const patternsToSave = Object.entries(projectData.patterns).map(([id, data]) => ({ id, data }));
-
-        // 3. Gather all instruments used in the project.
-        // This assumes the full instrument data is available in the project state.
         const instrumentsToSave = Object.entries(projectData.instruments || {}).map(([id, data]) => ({ id, data }));
 
-        // 4. Call the DAL to perform the export, injecting the JSZip dependency.
         await this.dal.exportRhythmAsZip(
             rhythmFileContent,
             patternsToSave,
             instrumentsToSave,
             filename,
-            JSZip // Inject the real JSZip library
+            JSZip
         );
     }
 }
