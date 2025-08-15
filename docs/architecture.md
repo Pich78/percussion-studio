@@ -13,7 +13,7 @@ The application is built on a **State-Driven, Component-Based Architecture** usi
 3.  The main **App** class receives this new State and passes it to the **View**.
 4.  The **View** re-renders the necessary parts of the UI to reflect the new State.
 
-The application `state` object will include flags to manage UI behavior, such as `{ error: object | null, confirmation: object | null, isPlaying: boolean, isLoading: boolean, loopPlayback: boolean, isUntitled: boolean, isDirty: boolean }`.
+The application `state` object will include flags to manage UI behavior, such as `{ appView: 'playing' | 'editing', error: object | null, confirmation: object | null, isPlaying: boolean, isLoading: boolean, loopPlayback: boolean, isUntitled: boolean, isDirty: boolean }`.
 
 ## 3. Core Modules & Components
 
@@ -70,7 +70,7 @@ This layer is responsible for all DOM manipulation.
     *   **`PlaybackControlsView`:** Renders shared controls, including a Play/Pause button, a **distinct Stop button**, and the Loop Playback checkbox. It must **disable the global BPM slider** when `state.isPlaying` is true, and **disable Play/Stop buttons** when `state.isLoading` is true.
     *   **`InstrumentMixerView`:** Renders individual instrument controls.
     *   **`RhythmEditorView`:** Renders controls specific to the editing view.
-    *   **`AppMenuView`:** Renders the main application menu.
+    *   **`AppMenuView`:** Renders the main application menu (New, Load, Save) and the control to switch between Playing and Editing views.
     *   **`ErrorModalView`:** Displays detailed error messages.
     *   **`ConfirmationDialogView`:** Displays a confirmation prompt to prevent data loss.
 
