@@ -30,7 +30,7 @@ export async function run() {
             logger.log('getInstrumentDef', { id });
             if (id.includes('kick')) return { symbol: 'KCK' };
             if (id.includes('snare')) return { symbol: 'SNR' };
-            return { symbol: 'UNKNOWN' };
+            throw new Error(`Unknown instrument definition: ${id}`);
         };
         logger.getSoundPack = async (symbol, packName) => {
             logger.log('getSoundPack', { symbol, packName });
