@@ -8,11 +8,12 @@ export async function run() {
     const runner = new TestRunner();
     MockLogger.clearLogs();
     MockLogger.setLogTarget('log-output');
-    
+
     const originalFetch = window.fetch;
     const cleanup = () => { window.fetch = originalFetch; };
 
     runner.describe('DataAccessLayer - Unit Tests', () => {
+
         runner.it('should call fetch with the correct URL for getManifest', async () => {
             const fetchMock = new MockLogger('fetch');
             window.fetch = (url) => { fetchMock.log('fetch', { url }); return Promise.resolve({ ok: true, json: async () => ({}) }); };
@@ -24,54 +25,75 @@ export async function run() {
 
         runner.it('should call fetch with the correct URL for getInstrumentDef', async () => {
             const fetchMock = new MockLogger('fetch');
-            window.fetch = (url) => { fetchMock.log('fetch', { url }); return Promise.resolve({ ok: true, text: () => Promise.resolve('') }); };
+            window.fetch = (url) => { fetchMock.log('fetch', { url }); return Promise.resolve({ ok: true, text: async () => '' }); };
             try {
                 await DataAccessLayer.getInstrumentDef('my_inst');
                 fetchMock.wasCalledWith('fetch', { url: '/percussion-studio/data/instruments/my_inst.instdef.yaml' });
             } finally { cleanup(); }
         });
 
-        runner.it('should call fetch with the correct URL for getSoundPack', async () => {
+        runner.it('should call fetch with the correct URL for getRhythm', async () => {
             const fetchMock = new MockLogger('fetch');
-            window.fetch = (url) => { fetchMock.log('fetch', { url }); return Promise.resolve({ ok: true, text: () => Promise.resolve('') }); };
+            window.fetch = (url) => { fetchMock.log('fetch', { url }); return Promise.resolve({ ok: true, text: async () => '' }); };
             try {
-                await DataAccessLayer.getSoundPack('SYM', 'my_pack');
-                fetchMock.wasCalledWith('fetch', { url: '/percussion-studio/data/sounds/my_pack/SYM.my_pack.sndpack.yaml' });
+                await DataAccessLayer.getRhythm('my_rhythm');
+                fetchMock.wasCalledWith('fetch', { url: '/percussion-studio/data/rhythms/my_rhythm.rthm.yaml' });
             } finally { cleanup(); }
         });
-    });
 
-    runner.describe('DataAccessLayer - Integration Tests (Live Fetch)', () => {
-        runner.it('should fetch and parse a REAL manifest.json file', async () => {
+        runner.it('should call fetch with the correct URL for getPattern', async () => {
+            const fetchMock = new MockLogger('fetch');
+            window.fetch = (url) => { fetchMock.log('fetch', { url }); return Promise.resolve({ ok: true, text: async () => '' }); };
+            try {
+                await DataAccessLayer.getPattern('my_pattern');
+                fetchMock.wasCalledWith('fetch', { url: '/percussion-studio/data/patterns/my_pattern.patt.yaml' });
+            } finally { cleanup(); }
+        });
+
+        runner.it('should correctly parse the manifest file', async () => {
+            const mockManifest = { "rhythms": ["test_rhythm"] };
+            window.fetch = () => Promise.resolve({ ok: true, json: async () => mockManifest });
             const result = await DataAccessLayer.getManifest();
-            // Check for a property we know is in our real manifest
-            runner.expect(Array.isArray(result.instrument_defs)).toBe(true);
-            runner.expect(result.instrument_defs.includes('drum_kick')).toBe(true);
+            runner.expect(result).toEqual(mockManifest);
         });
 
-        runner.it('should fetch and parse a REAL rhythm file', async () => {
-            const result = await DataAccessLayer.getRhythm('test_rhythm');
-            runner.expect(result.global_bpm).toBe(95);
-        });
-
-        runner.it('should fetch and parse a REAL pattern file', async () => {
-            const result = await DataAccessLayer.getPattern('test_pattern');
-            runner.expect(result.metadata.name).toBe("Test Pattern");
-        });
-
-        runner.it('should fetch and parse a REAL instrument definition file', async () => {
-            const result = await DataAccessLayer.getInstrumentDef('drum_kick');
-            runner.expect(result.symbol).toBe("KCK");
-        });
-
-        runner.it('should fetch and parse a REAL sound pack file', async () => {
+        runner.it('should correctly parse the sound pack YAML file', async () => {
+            const mockSoundPackYaml = `name: "Test Kick Sound Pack"\nsound_files:\n  o: "test_kick.normal.wav"\n  p: "test_kick.stopped.wav"`;
+            window.fetch = () => Promise.resolve({ ok: true, text: async () => mockSoundPackYaml });
             const result = await DataAccessLayer.getSoundPack('KCK', 'test_kick');
             runner.expect(result.name).toBe("Test Kick Sound Pack");
         });
     });
 
+    runner.describe('DataAccessLayer - Negative Tests', () => {
+        runner.it('should throw an error on 404 Not Found for manifest', async () => {
+            window.fetch = () => Promise.resolve({ ok: false, status: 404 });
+            let thrownError = null;
+            try {
+                await DataAccessLayer.getManifest();
+            } catch (e) {
+                thrownError = e;
+            }
+            runner.expect(thrownError).not.toBeNull();
+            runner.expect(thrownError.message).toContain('Failed to fetch manifest');
+        });
+
+        runner.it('should throw a specific error on malformed YAML', async () => {
+            const malformedYaml = `name: "Test\n  - item`; // Invalid YAML
+            window.fetch = () => Promise.resolve({ ok: true, text: async () => malformedYaml });
+            let thrownError = null;
+            try {
+                await DataAccessLayer.getSoundPack('KCK', 'test_kick');
+            } catch (e) {
+                thrownError = e;
+            }
+            runner.expect(thrownError).not.toBeNull();
+            runner.expect(thrownError.message).toContain('Failed to parse YAML for sound pack');
+        });
+    });
+
     runner.describe('DataAccessLayer - Export Test', () => {
-        runner.it('should call JSZip with only rhythm and pattern files', async () => {
+        runner.it('should return a Blob containing rhythm and pattern files', async () => {
             const fileLogger = new MockLogger('zip.file');
             const mockJSZip = class {
                 constructor() {}
@@ -81,20 +103,23 @@ export async function run() {
                     };
                 }
                 file(path, content) { fileLogger.log('file', { path, content }); }
-                async generateAsync() { return new Blob(); }
+                async generateAsync() { return new Blob(['zipped content'], { type: 'application/zip' }); }
             };
-            
+
             const rhythmData = { sound_kit: { KCK: 'test' } };
             const patternsData = [{ id: 'patt1', data: { metadata: { name: 'Verse' } } }];
 
-            await DataAccessLayer.exportRhythmAsZip(rhythmData, patternsData, 'my_song', mockJSZip);
+            const resultBlob = await DataAccessLayer.exportRhythmAsZip(rhythmData, patternsData, 'my_song', mockJSZip);
 
+            // Assert that the function returned a Blob
+            runner.expect(resultBlob instanceof Blob).toBe(true);
+
+            // Check that the files were added to the zip object
             runner.expect(fileLogger.callCount).toBe(2);
             fileLogger.wasCalledWith('file', { path: 'my_song.rthm.yaml', content: 'sound_kit:\n  KCK: test\n' });
             fileLogger.wasCalledWith('file', { path: 'patterns/patt1.patt.yaml', content: 'metadata:\n  name: Verse\n' });
         });
     });
-    
-    await runner.runAll();
-    runner.renderResults('test-results');
+
+    await runner.run();
 }

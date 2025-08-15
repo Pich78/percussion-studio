@@ -26,9 +26,16 @@
     <div id="test-sandbox" style="position: absolute; visibility: hidden;"></div>
     <script type="module">
         import { run } from '/percussion-studio/test/suites/dal/DataAccessLayer.test.js';
+
         document.getElementById('run-tests-btn').addEventListener('click', () => {
-            document.getElementById('test-results').innerHTML = '<h2>Running tests...</h2>';
-            run();
+            const resultsDiv = document.getElementById('test-results');
+            resultsDiv.innerHTML = '<h2>Running tests...</h2>';
+            run().then(() => {
+                resultsDiv.innerHTML = '<h2>Tests Finished. Check the log.</h2>';
+            }).catch(e => {
+                console.error('Test runner failed:', e);
+                resultsDiv.innerHTML = `<h2 style="color: red;">Test runner failed: ${e.message}</h2>`;
+            });
         });
     </script>
 </body>
