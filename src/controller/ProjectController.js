@@ -1,4 +1,4 @@
-// file: src/controller/ProjectController.js (Complete, Final Version)
+// file: src/controller/ProjectController.js (Complete, Corrected Version)
 
 import { DataAccessLayer } from '../dal/DataAccessLayer.js';
 import JSZip from "https://esm.sh/jszip@3.10.1";
@@ -11,9 +11,6 @@ export class ProjectController {
         this.manifest = null;
     }
 
-    /**
-     * Fetches the manifest and caches it for future use.
-     */
     async loadManifest() {
         if (!this.manifest) {
             this.manifest = await this.dal.getManifest();
@@ -37,9 +34,7 @@ export class ProjectController {
     }
 
     async loadRhythm(id) {
-        // Ensure the manifest is loaded before proceeding
         await this.loadManifest();
-
         const rhythmData = await this.dal.getRhythm(id);
         
         const patternIds = [...new Set(rhythmData.playback_flow.map(item => item.pattern))];

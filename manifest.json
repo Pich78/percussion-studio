@@ -8,8 +8,7 @@
   ],
   "instrument_defs": [
     "drum_kick",
-    "drum_snare",
-    "drum_hihat"
+    "drum_snare"
   ],
   "sound_packs": [
     "KCK.test_kick",

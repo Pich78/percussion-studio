@@ -1,4 +1,4 @@
-// file: test/suites/view/InstrumentMixerView.test.js (Complete)
+// file: test/suites/view/InstrumentMixerView.test.js (Complete, Corrected Version)
 
 import { TestRunner } from '/percussion-studio/test/lib/TestRunner.js';
 import { MockLogger } from '/percussion-studio/test/mocks/MockLogger.js';
@@ -72,7 +72,7 @@ export async function run() {
             
             view.render(getMockState());
             const kickMute = testContainer.querySelector('[data-instrument-id="kick_1"] .mute-checkbox');
-            kickMute.click(); // This will change the 'checked' state and trigger the event
+            kickMute.click();
 
             callbackLog.wasCalledWith('onToggleMute', { id: 'kick_1', muted: true });
         });
@@ -85,21 +85,25 @@ export async function run() {
 export function manualTest() {
     const log = new MockLogger('Callbacks');
     MockLogger.setLogTarget('log-output');
+    
     const callbacks = {
         onVolumeChange: (instrumentId, volume) => log.log('onVolumeChange', { instrumentId, volume }),
         onToggleMute: (instrumentId, muted) => log.log('onToggleMute', { instrumentId, muted })
     };
+
     const container = document.getElementById('view-container');
     const view = new InstrumentMixerView(container, callbacks);
+
     const mockState = {
         rhythm: {
-            instrument_kit: { KCK: 'test_kick', SNR: 'test_snare', HHC: 'test_hihat' },
+            // CRITICAL FIX: Removed HHC from the mock data
+            instrument_kit: { KCK: 'test_kick', SNR: 'test_snare' },
             mixer: {
                 test_kick: { volume: 1.0, muted: false },
-                test_snare: { volume: 0.8, muted: false },
-                test_hihat: { volume: 0.5, muted: true }
+                test_snare: { volume: 0.8, muted: false }
             }
         }
     };
+    
     view.render(mockState);
 }
