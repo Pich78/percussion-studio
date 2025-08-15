@@ -1,101 +1,136 @@
 // file: test/suites/controller/ProjectController.test.js (Complete, Final Version)
-
 import { TestRunner } from '/percussion-studio/test/lib/TestRunner.js';
 import { MockLogger } from '/percussion-studio/test/mocks/MockLogger.js';
 import { ProjectController } from '/percussion-studio/src/controller/ProjectController.js';
-
 export async function run() {
-    const runner = new TestRunner();
-    MockLogger.clearLogs();
-    MockLogger.setLogTarget('log-output');
+  const runner = new TestRunner();
+  MockLogger.clearLogs();
+  MockLogger.setLogTarget('log-output');
 
-    // --- Mocks ---
-    const createMockDAL = () => {
-        const logger = new MockLogger('DataAccessLayer');
-        logger.getManifest = async () => {
-            logger.log('getManifest');
-            return { instrument_defs: ['drum_kick'] };
-        };
-        logger.getRhythm = async (id) => {
-            logger.log('getRhythm', { id });
-            return { sound_kit: { KCK: 'test_pack' }, playback_flow: [{ pattern: 'p1' }] };
-        };
-        logger.getPattern = async (id) => {
-            logger.log('getPattern', { id });
-            return { metadata: { name: 'Pattern1' } };
-        };
-        logger.getInstrumentDef = async (id) => {
-            logger.log('getInstrumentDef', { id });
-            if (id.includes('kick')) return { symbol: 'KCK', sounds: [{ letter: 'o' }] };
-            return { symbol: 'UNKNOWN' };
-        };
-        logger.getSoundPack = async (symbol, packName) => {
-            logger.log('getSoundPack', { symbol, packName });
-            return { sound_files: { o: 'kick.wav' } };
-        };
-        logger.exportRhythmAsZip = async (rhythm, patterns, filename, jszip) => {
-            logger.log('exportRhythmAsZip', { filename, rhythm, patterns });
-        };
-        return logger;
+  // --- Mocks ---
+  const createMockDAL = () => {
+    const logger = new MockLogger('DataAccessLayer');
+    logger.getManifest = async () => {
+      logger.log('getManifest');
+      // Provide a manifest with more instruments than needed
+      return { instrument_defs: ['kck_drum_kick', 'snr_drum_snare', 'tom_drum_tom'] };
     };
-
-    const createMockPlayer = () => {
-        const logger = new MockLogger('AudioPlayer');
-        logger.loadSounds = async (sounds) => logger.log('loadSounds', { sounds });
-        return logger;
+    logger.getRhythm = async (id) => {
+      logger.log('getRhythm', { id });
+      // This rhythm only requires KCK and SNR
+      return { sound_kit: { KCK: 'acoustic_kick', SNR: 'acoustic_snare' }, playback_flow: [{ pattern: 'p1' }] };
     };
-
-    const createMockScheduler = () => {
-        const logger = new MockLogger('AudioScheduler');
-        logger.setRhythm = (rhythm) => logger.log('setRhythm', { rhythm });
-        return logger;
+    logger.getPattern = async (id) => {
+      logger.log('getPattern', { id });
+      return { metadata: { name: 'Pattern1' } };
     };
+    logger.getInstrumentDef = async (id) => {
+      logger.log('getInstrumentDef', { id });
+      if (id.includes('kick')) return { symbol: 'KCK' };
+      if (id.includes('snare')) return { symbol: 'SNR' };
+      return { symbol: 'UNKNOWN' };
+    };
+    logger.getSoundPack = async (symbol, packName) => {
+      logger.log('getSoundPack', { symbol, packName });
+      if (symbol === 'KCK') return { sound_files: { o: 'kick.wav' } };
+      if (symbol === 'SNR') return { sound_files: { o: 'snare.wav' } };
+      return {};
+    };
+    logger.exportRhythmAsZip = async (rhythm, patterns, filename, jszip) => {
+      logger.log('exportRhythmAsZip', { filename, rhythm, patterns });
+    };
+    return logger;
+  };
 
-    runner.describe('ProjectController - createNewRhythm', () => {
-        runner.it('should create a new rhythm structure with a sound_kit', () => {
-            const controller = new ProjectController(null, null, null);
-            const newRhythm = controller.createNewRhythm();
-            runner.expect('sound_kit' in newRhythm).toBe(true);
-        });
+  const createMockPlayer = () => {
+    const logger = new MockLogger('AudioPlayer');
+    logger.loadSounds = async (sounds) => logger.log('loadSounds', { sounds });
+    return logger;
+  };
+
+  const createMockScheduler = () => {
+    const logger = new MockLogger('AudioScheduler');
+    logger.setRhythm = (rhythm) => logger.log('setRhythm', { rhythm });
+    return logger;
+  };
+
+  runner.describe('ProjectController - createNewRhythm', () => {
+    runner.it('should create a valid new rhythm structure', () => {
+      const controller = new ProjectController(null, null, null);
+      const newRhythm = controller.createNewRhythm();
+      runner.expect(typeof newRhythm.sound_kit).toBe('object');
+      runner.expect(typeof newRhythm.patterns.untitled_pattern).toBe('object');
+      runner.expect(newRhythm.playback_flow.pattern).toBe('untitled_pattern');
+    });
+  });
+
+  runner.describe('ProjectController - loadRhythm (SoundKit-Driven)', () => {
+    runner.it('should load only the dependencies specified in the sound_kit', async () => {
+      const dalMock = createMockDAL();
+      const playerMock = createMockPlayer();
+      const schedulerMock = createMockScheduler();
+      const controller = new ProjectController(dalMock, playerMock, schedulerMock);
+
+      await controller.loadRhythm('my_song');
+
+      // VERIFY it was driven by the sound_kit, not the whole manifest
+      dalMock.wasCalledWith('getInstrumentDef', { id: 'kck_drum_kick' });
+      dalMock.wasCalledWith('getInstrumentDef', { id: 'snr_drum_snare' });
+      dalMock.wasNotCalledWith('getInstrumentDef', { id: 'tom_drum_tom' });
+
+      // VERIFY the correct sounds were sent to the player
+      const expectedSounds = [
+        { id: 'KCK_o', path: '/percussion-studio/data/sounds/acoustic_kick/kick.wav' },
+        { id: 'SNR_o', path: '/percussion-studio/data/sounds/acoustic_snare/snare.wav' }
+      ];
+      playerMock.wasCalledWith('loadSounds', { sounds: expectedSounds });
+
+      // VERIFY scheduler was updated
+      runner.expect(schedulerMock.callLog.some(c => c.method === 'setRhythm')).toBe(true);
     });
 
-    runner.describe('ProjectController - loadRhythm (Manifest-Driven)', () => {
-        runner.it('should use the manifest to dynamically load all dependencies', async () => {
-            const dalMock = createMockDAL();
-            const playerMock = createMockPlayer();
-            const schedulerMock = createMockScheduler();
-            const controller = new ProjectController(dalMock, playerMock, schedulerMock);
+    runner.it('should throw an error if a data dependency fails to load', async () => {
+      const dalMock = createMockDAL();
+      // Make the DAL fail
+      dalMock.getPattern = async () => { throw new Error("File not found"); };
+      const controller = new ProjectController(dalMock, createMockPlayer(), createMockScheduler());
 
-            await controller.loadRhythm('my_song');
-
-            dalMock.wasCalledWith('getManifest', undefined);
-            dalMock.wasCalledWith('getInstrumentDef', { id: 'drum_kick' });
-        });
+      let didThrow = false;
+      try {
+        await controller.loadRhythm('my_song');
+      } catch (e) {
+        didThrow = true;
+        runner.expect(e.message.includes("File not found")).toBe(true);
+      }
+      runner.expect(didThrow).toBe(true);
     });
+  });
 
-    runner.describe('ProjectController - saveProject', () => {
-        runner.it('should gather user data and call the DAL to export', async () => {
-            const dalMock = createMockDAL();
-            const controller = new ProjectController(dalMock, null, null);
-            const projectToSave = {
-                global_bpm: 120,
-                sound_kit: { KCK: 'kick_v1' },
-                patterns: { patt1: { metadata: { name: 'Verse' } } },
-                playback_flow: [{ pattern: 'patt1' }],
-            };
-            await controller.saveProject(projectToSave, 'my-new-song');
-            const expectedRhythm = {
-                global_bpm: 120, sound_kit: { KCK: 'kick_v1' }, playback_flow: [{ pattern: 'patt1' }]
-            };
-            const expectedPatterns = [{ id: 'patt1', data: { metadata: { name: 'Verse' } } }];
-            dalMock.wasCalledWith('exportRhythmAsZip', {
-                filename: 'my-new-song',
-                rhythm: expectedRhythm,
-                patterns: expectedPatterns
-            });
-        });
+  runner.describe('ProjectController - saveProject', () => {
+    runner.it('should gather data and call the DAL to export', async () => {
+      const dalMock = createMockDAL();
+      const controller = new ProjectController(dalMock, null, null);
+      const projectToSave = {
+        global_bpm: 120,
+        sound_kit: { KCK: 'kick_v1' },
+        patterns: { patt1: { metadata: { name: 'Verse' } } },
+        playback_flow: [{ pattern: 'patt1' }],
+      };
+      await controller.saveProject(projectToSave, 'my-new-song');
+      
+      const expectedRhythmFile = {
+        global_bpm: 120, sound_kit: { KCK: 'kick_v1' }, playback_flow: [{ pattern: 'patt1' }]
+      };
+      const expectedPatterns = [{ id: 'patt1', data: { metadata: { name: 'Verse' } } }];
+      
+      dalMock.wasCalledWith('exportRhythmAsZip', {
+        filename: 'my-new-song',
+        rhythm: expectedRhythmFile,
+        patterns: expectedPatterns
+      });
     });
-
-    await runner.runAll();
-    runner.renderResults('test-results');
+  });
+  
+  await runner.runAll();
+  runner.renderResults('test-results');
 }
