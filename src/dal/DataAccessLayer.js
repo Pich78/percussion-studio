@@ -48,18 +48,15 @@ export class DataAccessLayer {
     static async exportRhythmAsZip(rhythmData, patternsData, filename, JSZip) {
         const zip = new JSZip();
 
-        // 1. Add the main rhythm file
         const rhythmYaml = dumpYaml(rhythmData);
         zip.file(`${filename}.rthm.yaml`, rhythmYaml);
 
-        // 2. Add all pattern files
         const patternsFolder = zip.folder("patterns");
         patternsData.forEach(pattern => {
             const patternYaml = dumpYaml(pattern.data);
             patternsFolder.file(`${pattern.id}.patt.yaml`, patternYaml);
         });
         
-        // 3. Generate and trigger download
         const content = await zip.generateAsync({ type: "blob" });
         const link = document.createElement("a");
         link.href = URL.createObjectURL(content);

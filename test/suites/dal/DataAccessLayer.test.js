@@ -12,14 +12,46 @@ export async function run() {
     const originalFetch = window.fetch;
     const cleanup = () => { window.fetch = originalFetch; };
 
-    runner.describe('DataAccessLayer - Unit Tests & Live Fetch', () => {
-        // All 6 'get' tests remain here, unchanged
-        runner.it('should call fetch with the correct URL for getInstrumentDef', async () => { /* ... */ });
-        runner.it('should call fetch with the correct URL for getSoundPack', async () => { /* ... */ });
-        runner.it('should fetch and parse a REAL rhythm file', async () => { /* ... */ });
-        runner.it('should fetch and parse a REAL pattern file', async () => { /* ... */ });
-        runner.it('should fetch and parse a REAL instrument definition file', async () => { /* ... */ });
-        runner.it('should fetch and parse a REAL sound pack file', async () => { /* ... */ });
+    runner.describe('DataAccessLayer - Unit Tests', () => {
+        runner.it('should call fetch with the correct URL for getInstrumentDef', async () => {
+            const fetchMock = new MockLogger('fetch');
+            window.fetch = (url) => { fetchMock.log('fetch', { url }); return Promise.resolve({ ok: true, text: () => Promise.resolve('') }); };
+            try {
+                await DataAccessLayer.getInstrumentDef('my_inst');
+                fetchMock.wasCalledWith('fetch', { url: '/percussion-studio/data/instruments/my_inst.instdef.yaml' });
+            } finally { cleanup(); }
+        });
+
+        runner.it('should call fetch with the correct URL for getSoundPack', async () => {
+            const fetchMock = new MockLogger('fetch');
+            window.fetch = (url) => { fetchMock.log('fetch', { url }); return Promise.resolve({ ok: true, text: () => Promise.resolve('') }); };
+            try {
+                await DataAccessLayer.getSoundPack('SYM', 'my_pack');
+                fetchMock.wasCalledWith('fetch', { url: '/percussion-studio/data/sounds/my_pack/SYM.my_pack.sndpack.yaml' });
+            } finally { cleanup(); }
+        });
+    });
+
+    runner.describe('DataAccessLayer - Integration Tests (Live Fetch)', () => {
+        runner.it('should fetch and parse a REAL rhythm file', async () => {
+            const result = await DataAccessLayer.getRhythm('test_rhythm');
+            runner.expect(result.global_bpm).toBe(95);
+        });
+
+        runner.it('should fetch and parse a REAL pattern file', async () => {
+            const result = await DataAccessLayer.getPattern('test_pattern');
+            runner.expect(result.metadata.name).toBe("Test Pattern");
+        });
+
+        runner.it('should fetch and parse a REAL instrument definition file', async () => {
+            const result = await DataAccessLayer.getInstrumentDef('drum_kick');
+            runner.expect(result.symbol).toBe("KCK");
+        });
+
+        runner.it('should fetch and parse a REAL sound pack file', async () => {
+            const result = await DataAccessLayer.getSoundPack('KCK', 'test_kick');
+            runner.expect(result.name).toBe("Test Kick Sound Pack");
+        });
     });
 
     runner.describe('DataAccessLayer - Export Test', () => {

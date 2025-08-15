@@ -1,4 +1,4 @@
-<!-- file: test/harnesses/dal/DataAccessLayer.html (Simplified) -->
+<!-- file: test/harnesses/dal/DataAccessLayer.html (Complete, Final Corrected Version) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,26 +14,20 @@
     </style>
 </head>
 <body>
-
     <div class="main-panel">
         <h1>Test Runner for <code>DataAccessLayer.js</code></h1>
         <button id="run-tests-btn">Run All Tests</button>
         <div id="test-results"></div>
     </div>
-
     <div class="log-panel">
         <h2>Execution Log</h2>
         <pre id="log-output"></pre>
     </div>
-
+    <div id="test-sandbox" style="position: absolute; visibility: hidden;"></div>
     <script type="module">
-        // The harness only needs to know about the test suite's "run" function.
         import { run } from '/percussion-studio/test/suites/dal/DataAccessLayer.test.js';
-
         document.getElementById('run-tests-btn').addEventListener('click', () => {
-            const resultsContainer = document.getElementById('test-results');
-            resultsContainer.innerHTML = '<h2>Running tests...</h2>';
-            // Just call the main run function. It handles everything else.
+            document.getElementById('test-results').innerHTML = '<h2>Running tests...</h2>';
             run();
         });
     </script>
