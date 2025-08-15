@@ -19,8 +19,8 @@ export async function run() {
                 verse: {
                     metadata: { resolution: 16 },
                     pattern_data: [{
-                        KCK: '||o---|----|o---|----||',
-                        SNR: '||----|o---|----|o---||'
+                        KCK: '||o---|----|o---|----||', // After stripping |: "o---o---o---" - so tick 0 has 'o', tick 1,2,3 are empty, tick 4 has 'o'
+                        SNR: '||----|o---|----|o---||'  // After stripping |: "o---o---o---" - so tick 4 has 'o'
                     }]
                 },
                 chorus: {
@@ -100,11 +100,18 @@ export async function run() {
             const view = new RhythmEditorView(testContainer, { onRemoveNote: (pos) => log.log('onRemoveNote', pos) });
             view.render(getMockState());
 
-            const cell = testContainer.querySelector('.grid-cell[data-symbol="KCK"][data-tick="2"]');
-            if (!cell) throw new Error("Could not find grid cell KCK at tick 2");
+            // Based on KCK: '||o---|----|o---|----||' -> after stripping |: "o---o---o---"
+            // Tick 0 has 'o', so clicking it should remove the note
+            const cell = testContainer.querySelector('.grid-cell[data-symbol="KCK"][data-tick="0"]');
+            if (!cell) throw new Error("Could not find grid cell KCK at tick 0");
+            
+            // Verify the cell actually has content (should have an img tag)
+            console.log("  Cell content:", cell.innerHTML);
+            console.log("  Cell data-has-note:", cell.dataset.hasNote);
+            
             cell.click();
 
-            const expectedPosition = { patternId: 'verse', measureIndex: 0, instrumentSymbol: 'KCK', tick: 2 };
+            const expectedPosition = { patternId: 'verse', measureIndex: 0, instrumentSymbol: 'KCK', tick: 0 };
             log.wasCalledWith('onRemoveNote', expectedPosition);
         });
 
@@ -127,11 +134,18 @@ export async function run() {
             paletteNote.click();
             
             console.log("  Step 3: Clicking empty grid cell to place note...");
-            const emptyCell = testContainer.querySelector('.grid-cell[data-symbol="KCK"][data-tick="0"]');
-            if (!emptyCell) throw new Error("Could not find empty KCK cell at tick 0");
+            // Based on KCK: '||o---|----|o---|----||' -> after stripping |: "o---o---o---"
+            // Tick 1 is empty (-), so we should be able to add a note there
+            const emptyCell = testContainer.querySelector('.grid-cell[data-symbol="KCK"][data-tick="1"]');
+            if (!emptyCell) throw new Error("Could not find empty KCK cell at tick 1");
+            
+            // Verify the cell is actually empty
+            console.log("  Empty cell content:", emptyCell.innerHTML);
+            console.log("  Empty cell data-has-note:", emptyCell.dataset.hasNote);
+            
             emptyCell.click();
             
-            const expectedPosition = { patternId: 'verse', measureIndex: 0, instrumentSymbol: 'KCK', tick: 0, note: 'p' };
+            const expectedPosition = { patternId: 'verse', measureIndex: 0, instrumentSymbol: 'KCK', tick: 1, note: 'p' };
             log.wasCalledWith('onAddNote', expectedPosition);
         });
     });
