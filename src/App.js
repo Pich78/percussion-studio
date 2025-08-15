@@ -25,7 +25,6 @@ class App {
             const currentTick = beatInMeasure * ticksPerBeat;
             this.view.tubsGridView.updatePlaybackIndicator(currentTick);
         }, () => {
-            // When playback ends naturally, update the state.
             this.setState({ isPlaying: false });
         });
 
@@ -34,7 +33,6 @@ class App {
         this.editController = new EditController();
 
         this.view = new View({
-            // CRITICAL FIX: These callbacks now update the application state.
             onPlay: () => {
                 this.playbackController.play();
                 this.setState({ isPlaying: true });
@@ -46,10 +44,18 @@ class App {
             onStop: () => {
                 this.playbackController.stop();
                 this.setState({ isPlaying: false });
-                this.view.tubsGridView.updatePlaybackIndicator(0); // Also reset indicator visually
+                this.view.tubsGridView.updatePlaybackIndicator(0);
             },
-            onMasterVolumeChange: (vol) => this.playbackController.setMasterVolume(vol),
-            onToggleLoop: (enabled) => this.playbackController.toggleLoop(enabled),
+            onMasterVolumeChange: (vol) => {
+                this.playbackController.setMasterVolume(vol);
+                // Also update the state so the slider position is preserved on re-renders
+                this.setState({ masterVolume: vol });
+            },
+            // CRITICAL FIX: The onToggleLoop callback now updates the state.
+            onToggleLoop: (enabled) => {
+                this.playbackController.toggleLoop(enabled);
+                this.setState({ loopPlayback: enabled });
+            },
             onNewProject: () => console.log('New Project clicked'),
             onLoadProject: () => console.log('Load Project clicked'),
             onSaveProject: () => {
@@ -62,9 +68,6 @@ class App {
         });
     }
 
-    /**
-     * A central method to update state and trigger a re-render.
-     */
     setState(newState) {
         this.state = { ...this.state, ...newState };
         this.view.render(this.state);
