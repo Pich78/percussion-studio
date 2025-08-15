@@ -68,27 +68,15 @@ export async function run() {
     runner.describe('DataAccessLayer - Negative Tests', () => {
         runner.it('should throw an error on 404 Not Found for manifest', async () => {
             window.fetch = () => Promise.resolve({ ok: false, status: 404 });
-            let thrownError = null;
-            try {
-                await DataAccessLayer.getManifest();
-            } catch (e) {
-                thrownError = e;
-            }
-            runner.expect(thrownError).not.toBeNull();
-            runner.expect(thrownError.message).toContain('Failed to fetch manifest');
+            // Corrected call: pass the async function to toThrow
+            await runner.expect(() => DataAccessLayer.getManifest()).toThrow('Failed to fetch manifest');
         });
 
         runner.it('should throw a specific error on malformed YAML', async () => {
             const malformedYaml = `name: "Test\n  - item`; // Invalid YAML
             window.fetch = () => Promise.resolve({ ok: true, text: async () => malformedYaml });
-            let thrownError = null;
-            try {
-                await DataAccessLayer.getSoundPack('KCK', 'test_kick');
-            } catch (e) {
-                thrownError = e;
-            }
-            runner.expect(thrownError).not.toBeNull();
-            runner.expect(thrownError.message).toContain('Failed to parse YAML for sound pack');
+            // Corrected call: pass the async function to toThrow
+            await runner.expect(() => DataAccessLayer.getSoundPack('KCK', 'test_kick')).toThrow('Failed to parse YAML for sound pack');
         });
     });
 
@@ -121,5 +109,6 @@ export async function run() {
         });
     });
 
-    await runner.run();
+    await runner.runAll();
+    runner.renderResults('test-results');
 }
