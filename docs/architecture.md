@@ -6,14 +6,27 @@ This document outlines the final software architecture for the Percussion Practi
 
 ## 2. High-Level Architecture & Principles
 
-The application is built on a **State-Driven, Component-Based Architecture** using **Vanilla JavaScript**. The central principle is a strict **one-way data flow** for predictable state management:
+The application is built around an **Application Shell** architecture. The Shell manages global services and data, and it dynamically loads one of two primary **Sub-Apps**: the `PlaybackApp` or the `EditingApp`.
 
-1.  A user interaction in the **View** triggers a callback to a **Controller**.
-2.  The **Controller** executes the required logic and produces a new, immutable **State** object.
-3.  The main **App** class receives this new State and passes it to the **View**.
-4.  The **View** re-renders the necessary parts of the UI to reflect the new State.
+Each Sub-App is a self-contained, **State-Driven, Component-Based Module** built with **Vanilla JavaScript**. The central principle within each module is a strict **one-way data flow** for predictable state management:
 
-The application `state` object will include flags to manage UI behavior, such as `{ appView: 'playing' | 'editing', error: object | null, confirmation: object | null, isPlaying: boolean, isLoading: boolean, loopPlayback: boolean, isUntitled: boolean, isDirty: boolean }`.
+1.  A user interaction in a **View** (e.g., clicking "Pause") triggers a callback to a **Controller** within the active Sub-App.
+2.  The **Controller** executes the required logic and produces a new, immutable **State** object for that Sub-App.
+3.  The **Sub-App** class receives this new State and passes it to its managed **Views**.
+4.  The **Views** re-render the necessary parts of the UI to reflect the new State.
+
+This separation ensures that the logic and state for "Playing" are completely isolated from the logic and state for "Editing," allowing for independent development and debugging.
+
+The application's state is now separated by concern:
+
+*   **`App` (Shell) State:** Manages the high-level view and the master data model.
+    *   `{ appView: 'playing' | 'editing', currentRhythm: object | null, isLoading: boolean, error: object | null, confirmation: object | null }`
+*   **`PlaybackApp` State:** Manages all state related to the playback experience.
+    *   `{ isPlaying: boolean, loopPlayback: boolean, masterVolume: number, currentMeasureIndex: number, currentTickIndex: number }`
+*   **`EditingApp` State:** Manages all state related to the editing experience.
+    *   `{ isDirty: boolean, isUntitled: boolean, selectedPatternId: string, activeNoteSymbol: string }`
+
+> **Architectural Rationale:** The previous monolithic `App` class was responsible for all state, which would become difficult to manage as editing features grew. The Application Shell model provides a clear separation of concerns. The Shell handles *what* to display (Playback or Editing), while the Sub-Apps handle the *how* for their specific domain. This makes the overall system more modular and maintainable.
 
 ## 3. Core Modules & Components
 
