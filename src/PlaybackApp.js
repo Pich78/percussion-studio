@@ -1,4 +1,4 @@
-// file: src/PlaybackApp.js
+// file: src/PlaybackApp.js (Corrected Constructor Logic)
 import { PlaybackControlsView } from './view/PlaybackControlsView.js';
 import { TubsGridView } from './view/TubsGridView.js';
 import { InstrumentMixerView } from './view/InstrumentMixerView.js';
@@ -6,9 +6,8 @@ import { InstrumentMixerView } from './view/InstrumentMixerView.js';
 export class PlaybackApp {
     constructor(container, props) {
         this.container = container;
-        this.props = props; // { rhythm, playbackController, audioScheduler, ... }
+        this.props = props;
 
-        // PlaybackApp owns its specific state
         this.state = {
             isPlaying: false,
             loopPlayback: false,
@@ -16,8 +15,8 @@ export class PlaybackApp {
             masterVolume: 1.0,
             currentMeasureIndex: 0,
         };
-
-        // Create the HTML structure for the playback view
+        
+        // --- FIX: Create the HTML structure FIRST ---
         this.container.innerHTML = `
             <div id="grid-view-container" class="grid-area"></div>
             <footer id="playback-footer">
@@ -26,10 +25,10 @@ export class PlaybackApp {
             </footer>
         `;
 
-        // Instantiate views and bind them to the new containers
+        // --- THEN, instantiate views that need those elements ---
         this.tubsGridView = new TubsGridView(
             document.getElementById('grid-view-container'),
-            {} // Callbacks for TubsGridView if any
+            {}
         );
 
         this.playbackControlsView = new PlaybackControlsView(
@@ -46,20 +45,20 @@ export class PlaybackApp {
 
         this.instrumentMixerView = new InstrumentMixerView(
             document.getElementById('instrument-mixer-container'),
-            {} // Callbacks for InstrumentMixerView
+            {}
         );
 
-        // Link the AudioScheduler's update callback to our internal handler
-        this.props.audioScheduler.onUpdateCallback = this.handleTickUpdate.bind(this);
-        this.props.audioScheduler.onPlaybackEndedCallback = this.handlePlaybackEnded.bind(this);
+        if (this.props.audioScheduler) {
+            this.props.audioScheduler.onUpdateCallback = this.handleTickUpdate.bind(this);
+            this.props.audioScheduler.onPlaybackEndedCallback = this.handlePlaybackEnded.bind(this);
+        }
     }
 
     setState(newState) {
         this.state = { ...this.state, ...newState };
-        this.render(); // Re-render all child views with the new state
+        this.render();
     }
 
-    // --- Callback Handlers ---
     handlePlay() {
         this.props.audioScheduler.setBPM(this.state.globalBPM);
         this.props.playbackController.play();
@@ -111,7 +110,7 @@ export class PlaybackApp {
 
         this.playbackControlsView.render({
             isPlaying: this.state.isPlaying,
-            isLoading: this.props.isLoading, // Get isLoading from shell props
+            isLoading: this.props.isLoading,
             loopPlayback: this.state.loopPlayback,
             globalBPM: this.state.globalBPM,
             masterVolume: this.state.masterVolume,
@@ -121,10 +120,10 @@ export class PlaybackApp {
     }
 
     destroy() {
-        // Clean up the DOM and remove any listeners if necessary
         this.container.innerHTML = '';
-        // Unset callbacks to prevent memory leaks
-        this.props.audioScheduler.onUpdateCallback = () => {};
-        this.props.audioScheduler.onPlaybackEndedCallback = () => {};
+        if (this.props.audioScheduler) {
+            this.props.audioScheduler.onUpdateCallback = () => {};
+            this.props.audioScheduler.onPlaybackEndedCallback = () => {};
+        }
     }
 }

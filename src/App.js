@@ -1,11 +1,10 @@
-// file: src/App.js (Updated to use real Sub-Apps)
+// file: src/App.js (Corrected for Test Failures)
 import { DataAccessLayer } from './dal/DataAccessLayer.js';
 import { AudioPlayer } from './audio/AudioPlayer.js';
 import { AudioScheduler } from './audio/AudioScheduler.js';
 import { PlaybackController } from './controller/PlaybackController.js';
 import { ProjectController } from './controller/ProjectController.js';
 
-// --- MODIFICATION: Import real Sub-Apps ---
 import { PlaybackApp } from './PlaybackApp.js';
 import { EditingApp } from './EditingApp.js';
 
@@ -50,7 +49,7 @@ export class App {
 
     createRealControllers() {
         const audioPlayer = new AudioPlayer();
-        const audioScheduler = new AudioScheduler(audioPlayer, () => {}, () => {});
+        const audioScheduler = new AudioScheduler(audioPlayer); // Simplified constructor
         const playbackController = new PlaybackController(audioScheduler, audioPlayer);
         const projectController = new ProjectController(DataAccessLayer, audioPlayer, audioScheduler);
         return { audioPlayer, audioScheduler, playbackController, projectController, dal: DataAccessLayer };
@@ -60,17 +59,20 @@ export class App {
         const oldAppView = this.state.appView;
         this.state = { ...this.state, ...newState };
 
+        // Render global views that depend on the state
         if (this.appMenuView) {
             this.appMenuView.render(this.state);
         }
         this.errorModalView.render(this.state);
         this.confirmationDialogView.render(this.state);
         
-        if (this.activeSubApp && typeof this.activeSubApp.render === 'function') {
+        // Propagate isLoading state change to the active sub-app
+        if (this.activeSubApp) {
             this.activeSubApp.props.isLoading = this.state.isLoading;
             this.activeSubApp.render();
         }
 
+        // If the view has changed, trigger the re-routing.
         if (oldAppView !== this.state.appView) {
             this.renderApp();
         }
@@ -78,6 +80,7 @@ export class App {
 
     toggleView() {
         const newView = this.state.appView === 'playing' ? 'editing' : 'playing';
+        // Only set the state. The setState method will handle the rerender.
         this.setState({ appView: newView });
     }
 
@@ -85,6 +88,7 @@ export class App {
         this.setState({ isLoading: true });
         try {
             const rhythm = await this.projectController.loadRhythm(id);
+            // After loading, set the state AND explicitly render the app
             this.setState({ currentRhythm: rhythm, isLoading: false });
             this.renderApp();
         } catch (error) {
@@ -97,6 +101,12 @@ export class App {
             this.activeSubApp.destroy();
         }
 
+        // Do not render a sub-app if there is no rhythm data
+        if (!this.state.currentRhythm) {
+            this.container.innerHTML = '<div>Loading Rhythm...</div>'; // Or some placeholder
+            return;
+        }
+
         const subAppProps = {
             rhythm: this.state.currentRhythm,
             isLoading: this.state.isLoading,
@@ -104,8 +114,6 @@ export class App {
             audioScheduler: this.audioScheduler,
             playbackController: this.playbackController,
         };
-
-        if (!subAppProps.rhythm) return; // Don't render a sub-app without data
 
         if (this.state.appView === 'playing') {
             this.activeSubApp = new this.subApps.PlaybackApp(this.container, subAppProps);
@@ -119,7 +127,7 @@ export class App {
     }
 
     async init() {
-        this.setState({ isLoading: true });
+        if (this.appMenuView) this.appMenuView.render(this.state);
         await this.projectController.loadManifest();
         const defaultRhythmId = this.projectController.manifest?.rhythms[0];
         if (defaultRhythmId) {
@@ -127,6 +135,5 @@ export class App {
         } else {
             this.setState({ error: { message: "No rhythms found." }, isLoading: false });
         }
-        if (this.appMenuView) this.appMenuView.render(this.state);
     }
 }

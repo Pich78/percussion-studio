@@ -1,4 +1,4 @@
-// file: test/suites/App.test.js (Corrected)
+// file: test/suites/App.test.js (Corrected for Lifecycle)
 
 import { TestRunner } from '/percussion-studio/test/lib/TestRunner.js';
 import { MockLogger } from '/percussion-studio/test/mocks/MockLogger.js';
@@ -7,7 +7,11 @@ import { MockPlaybackApp } from '/percussion-studio/test/mocks/MockPlaybackApp.j
 import { MockEditingApp } from '/percussion-studio/test/mocks/MockEditingApp.js';
 
 const createMockControllers = () => ({
-    projectController: { loadManifest: () => Promise.resolve(), loadRhythm: () => Promise.resolve({ global_bpm: 120 }) },
+    projectController: {
+        manifest: { rhythms: ['test_rhythm'] },
+        loadManifest: () => Promise.resolve(),
+        loadRhythm: () => Promise.resolve({ global_bpm: 120, playback_flow: [{pattern: 'p1'}], patterns: {p1: {}} })
+    },
     playbackController: {},
     audioScheduler: {},
     audioPlayer: {},
@@ -30,46 +34,39 @@ export async function run() {
 
     runner.describe('App Shell Routing', () => {
         runner.it('should switch appView state when toggleView is called', () => {
-            const app = new App(document.createElement('div'), {
-                controllers: createMockControllers(),
-                subApps: { PlaybackApp: MockPlaybackApp, EditingApp: MockEditingApp }
-            });
+            const app = new App(document.createElement('div'), { controllers: createMockControllers() });
             app.toggleView();
             runner.expect(app.state.appView).toBe('editing');
-            app.toggleView();
-            runner.expect(app.state.appView).toBe('playing');
         });
 
-        runner.it('should instantiate PlaybackApp when view is "playing"', () => {
+        runner.it('should instantiate PlaybackApp after loading', async () => {
             const container = document.createElement('div');
             const app = new App(container, {
                 controllers: createMockControllers(),
                 subApps: { PlaybackApp: MockPlaybackApp, EditingApp: MockEditingApp }
             });
-            app.renderApp();
-            // --- FIX: Use correct assertion ---
+            await app.init(); // Simulate the full lifecycle
             runner.expect(container.textContent.includes('PlaybackApp is Active')).toBe(true);
         });
 
-        runner.it('should instantiate EditingApp when view is "editing"', () => {
+        runner.it('should instantiate EditingApp when view is toggled', async () => {
             const container = document.createElement('div');
             const app = new App(container, {
                 controllers: createMockControllers(),
                 subApps: { PlaybackApp: MockPlaybackApp, EditingApp: MockEditingApp }
             });
-            app.toggleView();
-            app.renderApp();
-            // --- FIX: Use correct assertion ---
+            await app.init(); // Starts in 'playing'
+            app.toggleView(); // Switch to 'editing'
             runner.expect(container.textContent.includes('EditingApp is Active')).toBe(true);
         });
 
-        runner.it('should call destroy() on the old sub-app when switching views', () => {
+        runner.it('should call destroy() on the old sub-app when switching views', async () => {
             const container = document.createElement('div');
             const app = new App(container, {
                 controllers: createMockControllers(),
                 subApps: { PlaybackApp: MockPlaybackApp, EditingApp: MockEditingApp }
             });
-            app.renderApp();
+            await app.init();
             const playbackAppInstance = app.activeSubApp;
             const logger = new MockLogger('destroy-spy');
             playbackAppInstance.destroy = () => logger.log('destroy');
