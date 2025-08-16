@@ -17,6 +17,32 @@
         .mixer-area { width: 250px; border-left: 1px solid #ccc; padding: 10px; overflow-y: auto; }
         .grid-area { flex-grow: 1; }
 
+        /* --- NEW CSS FOR EDITOR LAYOUT --- */
+        .editor-layout {
+            display: flex;
+            height: 100%;
+            width: 100%;
+            gap: 10px;
+        }
+        .flow-panel {
+            width: 250px;
+            border-right: 1px solid #ccc;
+            padding: 10px;
+            overflow-y: auto;
+        }
+        .grid-panel {
+            flex-grow: 1;
+            padding: 10px;
+            overflow: auto;
+        }
+        .palette-panel {
+            width: 200px;
+            border-left: 1px solid #ccc;
+            padding: 10px;
+            overflow-y: auto;
+        }
+        /* --- END OF NEW CSS --- */
+
         /* Component-specific styles */
         .app-menu button { margin-right: 10px; }
         .playback-controls { display: flex; align-items: center; justify-content: space-between; width: 100%;}
@@ -24,9 +50,34 @@
         .slider-group { display: flex; align-items: center; gap: 20px; }
         .control-group { display: flex; align-items: center; gap: 8px; }
         .playback-controls button.toggled { background-color: #3498db; color: white; border-color: #2980b9; }
-        .grid { display: grid; position: relative; }
-        .instrument-header { background-color: #ddd; padding: 5px; border-bottom: 1px solid #999; border-right: 1px solid #999; cursor: pointer; user-select: none; }
-        .grid-cell { border-bottom: 1px solid #999; border-right: 1px solid #999; min-height: 40px; }
+        
+        /* --- MODIFICATION: Apply grid styles to BOTH views --- */
+        .grid, .pattern-grid { 
+            display: grid; 
+            position: relative; 
+        }
+        .instrument-header { 
+            background-color: #ddd; 
+            padding: 5px; 
+            border-bottom: 1px solid #999; 
+            border-right: 1px solid #999; 
+            cursor: pointer; 
+            user-select: none; 
+        }
+        .grid-cell { 
+            border-bottom: 1px solid #999; 
+            border-right: 1px solid #999; 
+            min-height: 40px; 
+        }
+        /* This rule is the most important for fixing the giant SVGs */
+        .grid-cell img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            pointer-events: none; /* Make sure clicks go to the cell, not the image */
+        }
+        /* --- END OF MODIFICATION --- */
+        
         .playback-indicator { position: absolute; top: 0; bottom: 0; background-color: rgba(255, 0, 0, 0.4); pointer-events: none; }
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
         .modal-dialog { background-color: #fff; padding: 20px; border-radius: 5px; min-width: 300px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
