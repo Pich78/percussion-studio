@@ -1,4 +1,4 @@
-// file: src/App.js
+// file: src/App.js (Corrected and Regenerated)
 import { DataAccessLayer } from './dal/DataAccessLayer.js';
 import { AudioPlayer } from './audio/AudioPlayer.js';
 import { AudioScheduler } from './audio/AudioScheduler.js';
@@ -49,6 +49,7 @@ export class App {
 
     createRealControllers() {
         const audioPlayer = new AudioPlayer();
+        // --- MODIFICATION: Use the new, simpler constructor ---
         const audioScheduler = new AudioScheduler(audioPlayer);
         const playbackController = new PlaybackController(audioScheduler, audioPlayer);
         const projectController = new ProjectController(DataAccessLayer, audioPlayer, audioScheduler);
@@ -67,7 +68,6 @@ export class App {
         
         if (this.activeSubApp) {
             this.activeSubApp.props.isLoading = this.state.isLoading;
-            // Pass the updated rhythm to the active sub-app immediately
             this.activeSubApp.props.rhythm = this.state.currentRhythm;
             this.activeSubApp.render();
         }
