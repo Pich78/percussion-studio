@@ -1,0 +1,96 @@
+<!-- file: test/harnesses/PlaybackApp.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Harness: PlaybackApp</title>
+    <style>
+        :root { --footer-height: 120px; }
+        body { font-family: sans-serif; display: flex; gap: 20px; padding: 20px; }
+        .main-panel { flex: 2; }
+        .log-panel { flex: 1; border: 1px solid #ccc; padding: 0 10px; background-color: #f9f9f9; }
+        #log-output { white-space: pre-wrap; word-wrap: break-word; font-family: monospace; font-size: 12px; }
+        h1, h2 { border-bottom: 1px solid #ccc; padding-bottom: 5px; }
+        
+        /* Copied styles from index.html for components to render correctly */
+        #app-main-container { display: flex; flex-direction: column; height: 500px; border: 1px solid #ccc; }
+        footer { border-top: 1px solid #ccc; background-color: #fff; }
+        #playback-footer { height: var(--footer-height); display: flex; }
+        .controls-area { flex-grow: 1; padding: 10px; }
+        .mixer-area { width: 250px; border-left: 1px solid #ccc; padding: 10px; overflow-y: auto; }
+        .grid-area { flex-grow: 1; }
+        .playback-controls { display: flex; align-items: center; justify-content: space-between; width: 100%;}
+        .button-group button { margin-right: 8px; }
+        .slider-group { display: flex; align-items: center; gap: 20px; }
+        .control-group { display: flex; align-items: center; gap: 8px; }
+        .playback-controls button.toggled { background-color: #3498db; color: white; border-color: #2980b9; }
+        .grid { display: grid; position: relative; }
+        .instrument-header { background-color: #ddd; padding: 5px; border-bottom: 1px solid #999; }
+        .grid-cell { border-bottom: 1px solid #999; border-right: 1px solid #999; min-height: 40px; }
+        .playback-indicator { position: absolute; top: 0; bottom: 0; background-color: rgba(255, 0, 0, 0.4); pointer-events: none; }
+    </style>
+</head>
+<body>
+    <div class="main-panel">
+        <h1>Test Runner for <code>PlaybackApp.js</code></h1>
+        <button id="run-tests-btn">Run Automated Tests</button>
+        <hr>
+        <h2>Manual Test (Standalone PlaybackApp)</h2>
+        <div id="app-main-container">
+            <!-- PlaybackApp will be rendered here -->
+        </div>
+        <div id="test-results"></div>
+    </div>
+    <div class="log-panel">
+        <h2>Execution Log</h2>
+        <pre id="log-output"></pre>
+    </div>
+
+    <script type="module">
+        import { run } from '/percussion-studio/test/suites/PlaybackApp.test.js';
+        import { PlaybackApp } from '/percussion-studio/src/PlaybackApp.js';
+        
+        // For the manual harness, we need to create REAL global controllers
+        import { AudioPlayer } from '/percussion-studio/src/audio/AudioPlayer.js';
+        import { AudioScheduler } from '/percussion-studio/src/audio/AudioScheduler.js';
+        import { PlaybackController } from '/percussion-studio/src/controller/PlaybackController.js';
+        import { ProjectController } from '/percussion-studio/src/controller/ProjectController.js';
+        import { DataAccessLayer } from '/percussion-studio/src/dal/DataAccessLayer.js';
+
+        document.getElementById('run-tests-btn').addEventListener('click', () => {
+            document.getElementById('test-results').innerHTML = '<h2>Running tests...</h2>';
+            run();
+        });
+
+        // --- Manual Testing Setup ---
+        async function manualSetup() {
+            const mainContainer = document.getElementById('app-main-container');
+
+            // 1. Create real instances of all services
+            const audioPlayer = new AudioPlayer();
+            const audioScheduler = new AudioScheduler(audioPlayer);
+            const playbackController = new PlaybackController(audioScheduler, audioPlayer);
+            const projectController = new ProjectController(DataAccessLayer, audioPlayer, audioScheduler);
+
+            // 2. Load a real rhythm using the ProjectController
+            await projectController.loadManifest();
+            const rhythm = await projectController.loadRhythm('test_rhythm');
+
+            // 3. These are the "props" that the App Shell would normally provide
+            const props = {
+                rhythm,
+                isLoading: false,
+                audioPlayer,
+                audioScheduler,
+                playbackController
+            };
+
+            // 4. Instantiate and render the PlaybackApp directly
+            const playbackApp = new PlaybackApp(mainContainer, props);
+            playbackApp.render();
+        }
+        
+        manualSetup();
+    </script>
+</body>
+</html>
