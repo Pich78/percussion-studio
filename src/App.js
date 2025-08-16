@@ -41,12 +41,12 @@ class App {
 
             // Playback Callbacks
             onPlay: () => {
-                // 1. Explicitly sync the BPM from the UI state to the audio engine.
+                // 1. Sync the BPM from the UI state to the audio engine.
                 this.audioScheduler.setBPM(this.state.globalBPM);
                 // 2. Now, tell the controller to play.
                 this.playbackController.play();
                 this.setState({ isPlaying: true });
-            },       
+            },      
             onPause: () => { this.playbackController.pause(); this.setState({ isPlaying: false }); },
             onStop: () => {
                 this.playbackController.stop();
@@ -55,7 +55,7 @@ class App {
             },
             onMasterVolumeChange: (vol) => { this.playbackController.setMasterVolume(vol); this.setState({ masterVolume: vol }); },
             onToggleLoop: (enabled) => { this.playbackController.toggleLoop(enabled); this.setState({ loopPlayback: enabled }); },
-            onBPMChange: (newBPM) => { this.audioScheduler.setBPM(newBPM); this.setState({ globalBPM: newBPM }); },
+            onBPMChange: (newBPM) => { this.setState({ globalBPM: newBPM }); },
             onToggleMetronome: (enabled) => { this.setState({ metronomeEnabled: enabled }); },
 
             // Mixer Callbacks
