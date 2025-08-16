@@ -1,4 +1,4 @@
-// file: src/view/PlaybackControlsView.js (Modified with Logging)
+// file: src/view/PlaybackControlsView.js (Modified with new range)
 
 const getTime = () => new Date().toISOString();
 
@@ -41,7 +41,9 @@ export class PlaybackControlsView {
                 <div class.slider-group">
                     <div class="control-group">
                         <label for="bpm-slider">BPM: <span id="bpm-value">${globalBPM}</span></label>
-                        <input type="range" id="bpm-slider" min="40" max="240" step="1" value="${globalBPM}" ${bpmSliderDisabled ? 'disabled' : ''}>
+                        <!-- --- MODIFICATION START --- -->
+                        <input type="range" id="bpm-slider" min="20" max="200" step="1" value="${globalBPM}" ${bpmSliderDisabled ? 'disabled' : ''}>
+                        <!-- --- MODIFICATION END --- -->
                     </div>
                     
                     <div class="control-group">

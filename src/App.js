@@ -1,4 +1,4 @@
-// file: src/App.js (Modified with Logging)
+// file: src/App.js (Modified with Keyboard Controls)
 import { DataAccessLayer } from './dal/DataAccessLayer.js';
 import { AudioPlayer } from './audio/AudioPlayer.js';
 import { AudioScheduler } from './audio/AudioScheduler.js';
@@ -78,8 +78,6 @@ class App {
             // Editing Callbacks
             onFlowChange: (newFlow) => this.handleEdit(() => this.editController.updatePlaybackFlow(this.state.rhythm, newFlow)),
 
-            // --- CRITICAL FIX ---
-            // Add the missing callback handler for adding a new pattern.
             onAddPatternClick: () => {
                 const patternId = prompt("Enter a unique name for the new pattern (e.g., 'new_chorus'):");
                 if (patternId && patternId.trim() !== "") {
@@ -113,7 +111,42 @@ class App {
                 e.returnValue = '';
             }
         });
+
+        // --- MODIFICATION START ---
+        // Add a global listener for keyboard events.
+        window.addEventListener('keydown', this.handleKeyDown.bind(this));
+        // --- MODIFICATION END ---
     }
+
+    // --- MODIFICATION START ---
+    /**
+     * Handles global keydown events for fine-tuning the BPM.
+     * @param {KeyboardEvent} event The keyboard event.
+     */
+    handleKeyDown(event) {
+        // We only care about ArrowLeft and ArrowRight, and only when not playing.
+        if (this.state.isPlaying || (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight')) {
+            return;
+        }
+
+        // Prevent the browser's default behavior (like scrolling).
+        event.preventDefault();
+
+        const currentBPM = this.state.globalBPM;
+        let newBPM = event.key === 'ArrowLeft' ? currentBPM - 1 : currentBPM + 1;
+
+        // Clamp the new value to the valid range [20, 200].
+        const minBPM = 20;
+        const maxBPM = 200;
+        newBPM = Math.max(minBPM, Math.min(newBPM, maxBPM));
+
+        // Only update the state if the BPM has actually changed.
+        if (newBPM !== currentBPM) {
+            console.log(`[${getTime()}][App][handleKeyDown][BPM] Key press '${event.key}' updating BPM from ${currentBPM} to ${newBPM}.`);
+            this.setState({ globalBPM: newBPM });
+        }
+    }
+    // --- MODIFICATION END ---
 
     setState(newState) {
         this.state = { ...this.state, ...newState };
