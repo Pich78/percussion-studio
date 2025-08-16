@@ -1,91 +1,103 @@
-# Final Architecture & Design Document
+Final Architecture & Design Document
 
-## 1. Introduction
+1. Introduction
 
 This document outlines the final software architecture for the Percussion Practice Application. It is a complete blueprint for implementation, incorporating all functional and technical requirements. The architecture prioritizes modularity, maintainability, and performance within the specified technology stack.
 
-## 2. High-Level Architecture & Principles
+2. High-Level Architecture & Principles
 
-The application is built on a **State-Driven, Component-Based Architecture** using **Vanilla JavaScript**. The central principle is a strict **one-way data flow** for predictable state management:
+The application is built on an Application Shell Architecture. This model separates global concerns from feature-specific logic by using a main "Shell" that loads and manages independent "Sub-Applications."
 
-1.  A user interaction in the **View** triggers a callback to a **Controller**.
-2.  The **Controller** executes the required logic and produces a new, immutable **State** object.
-3.  The main **App** class receives this new State and passes it to the **View**.
-4.  The **View** re-renders the necessary parts of the UI to reflect the new State.
+The core principles of this architecture are:
 
-The application `state` object will include flags to manage UI behavior, such as `{ appView: 'playing' | 'editing', error: object | null, confirmation: object | null, isPlaying: boolean, isLoading: boolean, loopPlayback: boolean, isUntitled: boolean, isDirty: boolean }`.
+Centralized Ownership: A single Application Shell (App.js) owns all shared services (like the AudioPlayer and ProjectController) and the master copy of the application's data (the currently loaded rhythm).
 
-## 3. Core Modules & Components
+Independent Sub-Applications: The primary features of the application, "Playing" (PlaybackApp.js) and "Editing" (EditingApp.js), are encapsulated in their own classes. Each sub-app is a self-contained module with its own state, controllers, and views.
 
-The application is divided into four primary layers: **Controller**, **Audio**, **View**, and **Data Access**.
+One-Way Data Flow (Hierarchical): A strict one-way data flow is maintained at two levels:
 
-### 3.1. The Controller Layer
+Shell-to-Sub-App: The Shell passes shared services and the master data down to the active sub-app as "props" during instantiation.
 
-This layer is responsible for all application logic, broken down into specialized classes.
+Within each Sub-App: Each sub-app implements its own internal state-driven, one-way data flow to manage its UI and logic, just as the original architecture did.
 
-*   **`App` (Main Orchestrator):**
-    *   **Responsibilities:** Initializes all modules. Owns the single, authoritative application `state` object. Acts as a message bus, delegating user actions. Triggers the `View.render()` method upon state changes. Listens to the browser's `beforeunload` event to prevent accidental data loss.
-*   **`PlaybackController` (Sub-Controller):**
-    *   **Responsibilities:** Manages playback logic (Play, Pause, Stop). Manages individual and master volume/mute controls.
-    *   **Metronome Logic:** When the metronome is enabled, it dynamically generates an "in-memory" metronome pattern (with an accented sound for the first beat of the measure) and instrument, which are then passed to the `View` and `AudioScheduler`.
-    *   **Interacts with:** `AudioScheduler`, `AudioPlayer`.
-*   **`ProjectController` (Sub-Controller):**
-    *   **Responsibilities:** Manages the project lifecycle.
-        *   **Loading State:** Sets `state.isLoading = true` at the beginning of any loading sequence and `state.isLoading = false` only after all assets are successfully loaded.
-        *   **Dirty State Handling:** Before executing a destructive action (`loadRhythm`, `createNewRhythm`), it must check if `state.isDirty` is true and trigger a confirmation dialog.
-        *   **Data Resolution (Loading):** Orchestrates the multi-step dependency resolution process for loading a rhythm. This is a critical responsibility:
-            1.  Fetches the main Rhythm file (`.rthm.yaml`).
-            2.  For each entry in the `sound_kit` (e.g., `KCK: "test_kick"`), it determines the required Instrument Definition (`drum_kick.instdef.yaml`) and the required Sound Pack (`KCK.test_kick.sndpack.yaml`) based on the key (`KCK`) and value (`test_kick`).
-            3.  Fetches all required Instrument Definition and Sound Pack files.
-            4.  Fetches all unique Pattern files listed in the `playback_flow`.
-            5.  Assembles a single, deeply "resolved" rhythm object in memory that contains all the loaded data.
-            6.  Collects all `.wav` file paths from the loaded Sound Packs and passes the list to the `AudioPlayer`.
-            7.  After sounds are loaded, it passes the resolved rhythm object to the `AudioScheduler`.
-        *   **New Project Creation:** Contains a `createNewRhythm()` method to generate a default project structure.
-    *   **Error Handling:** Implements a master `try...catch` block and performs a logical validation pass on all loaded data.
-*   **`EditController` (Sub-Controller):**
-    *   **Responsibilities:** Manages all modifications to the rhythm data structure. Upon any modification, it is responsible for updating the state to `{ isDirty: true }`.
+The Application Shell's state object will be simplified to manage only the highest-level concerns: { appView: 'playing' | 'editing', currentRhythm: object | null, isLoading: boolean, error: object | null, confirmation: object | null }.
 
-### 3.2. The Audio Layer
+3. Core Modules & Components
 
-This layer encapsulates all Web Audio API logic.
+The application is now divided into three primary layers: The Application Shell, Shared Services, and The Sub-Applications.
 
-*   **`AudioScheduler` (High-Level Conductor):**
-    *   **Responsibilities:** A sophisticated state machine for all musical timing. It manages a look-ahead scheduling loop. It is the **sole owner of the playback tick state**, ensuring correct pause and resume functionality. It is responsible for handling looping logic or firing an `onPlaybackEnded` callback.
-    *   **Data Interpretation:** It directly consumes the parsed pattern data. The `pattern_data` from the file is received as an array of measure objects. The scheduler's logic iterates through this array to play the measures in sequence. It interprets all musical context properties from the current pattern, including **`metric`, `resolution`**, and all BPM properties, including **static BPM per pattern** and **intra-pattern acceleration**.
-    *   **Interface:** `constructor(...)`, `setRhythm(...)`, `play()`, `pause()`, **`resetPosition()`**, `setInstrumentVolume(...)`.
-    
-*   **`AudioPlayer` (Low-Level Executor):**
-    *   **Responsibilities:** The sole facade for the Web Audio API. Manages the `AudioContext` and a master `GainNode` for global volume control. Pre-loads `.wav` files (including the two metronome sounds). Executes timed `play` commands. Implements "choke group" logic.
-    *   **Interface:** `loadSounds(...)`, `playAt(...)`, `unloadSounds(...)`, `getAudioClockTime()`, `setMasterVolume(...)`.
+3.1. The Application Shell (App.js)
 
-### 3.3. The View Layer (UI)
+This class is the main orchestrator and the application's entry point.
 
-This layer is responsible for all DOM manipulation.
+Responsibilities:
 
-*   **`View` (Main UI Manager):**
-    *   **Responsibilities:** Manages all sub-view modules. Implements a smart `render(state)` method. Provides a dedicated `updatePlaybackIndicator(beatIndex)` method.
-*   **Sub-View Modules:**
-    *   **`TubsGridView`:** Renders the main notation grid, including the **`.svg` image** for each note. Its `updatePlaybackIndicator` method will move the bar according to the position passed to it. **On `pause`, the bar remains in place. On `stop`, the bar is moved to position 0.**
-    *   **`PlaybackControlsView`:** Renders shared controls, including a Play/Pause button, a **distinct Stop button**, and the Loop Playback checkbox. It must **disable the global BPM slider** when `state.isPlaying` is true, and **disable Play/Stop buttons** when `state.isLoading` is true.
-    *   **`InstrumentMixerView`:** Renders individual instrument controls.
-    *   **`RhythmEditorView`:** Renders controls specific to the editing view.
-    *   **`AppMenuView`:** Renders the main application menu (New, Load, Save) and the control to switch between Playing and Editing views.
-    *   **`ErrorModalView`:** Displays detailed error messages.
-    *   **`ConfirmationDialogView`:** Displays a confirmation prompt to prevent data loss.
+Initializes all Shared Services (AudioPlayer, ProjectController, DataAccessLayer).
 
-### 3.4. The Data Access Layer (DAL)
+Owns the master  It is the single source of truth for the loaded project data.
 
-This layer handles fetching remote data and generating files for download.
+Manages Top-Level View State: Controls which sub-application is currently active based on state.appView.
 
-*   **Responsibilities:** Fetching and parsing `.yaml` files. The parsing methods will be wrapped in `try...catch` blocks to handle syntax errors. Uses third-party libraries (loaded from a CDN) for YAML parsing and ZIP creation.
-*   **Interface:** `getInstrument(id)`, `getPattern(id)`, `getRhythm(id)`, `exportRhythmAsZip(...)`.
+Acts as a Router: When the view changes, it is responsible for destroying the old sub-app instance and creating a new one, injecting the necessary data and services.
 
-## 5. Key Architectural Decisions & Tradeoffs
+Handles Global Concerns: Listens to the browser's beforeunload event and manages global keyboard shortcuts. It also orchestrates the initial project loading sequence.
 
-1.  **Framework Choice (Vanilla JS):** We will use Vanilla JS with a disciplined, state-driven architecture. This respects the project's constraints but requires careful implementation of UI rendering logic to ensure maintainability.
-2.  **Audio Timing Logic (Dynamic BPM):** The `AudioScheduler` will handle complex intra-pattern acceleration logic. As a direct tradeoff, the global BPM slider will be disabled during playback to prevent conflicting sources of timing changes.
-3.  **Data Model (Rhythm-Centric):** The `Rhythm` file is the central point of configuration, mapping abstract instrument categories to concrete instruments. This makes `Pattern` files highly reusable but concentrates the data resolution logic in the `ProjectController`.
-4.  **Error Handling & User Safety:** The architecture includes robust, multi-phase validation for data loading and a "dirty state" confirmation system to prevent accidental data loss. A global "loading" state will prevent playback before audio assets are ready.
-5.  **Feature Scope:** **Undo/Redo** functionality and **Offline Capability** have been explicitly de-scoped for the initial version to manage complexity.
-6.  **Dependency Management (CDN):** All third-party libraries will be loaded from CDNs. This simplifies the development environment at the cost of requiring an internet connection for initial application load.
+3.2. Shared Services
+
+These are singleton instances created by the App shell and passed down to the active sub-app.
+
+: Its responsibilities are unchanged. It manages the project lifecycle (loading, saving, data resolution). It is now instantiated once by the Shell.
+
+: Its responsibilities are unchanged. It remains the sole facade for the Web Audio API, managing the AudioContext and pre-loading sounds.
+
+ (DAL): Its responsibilities are unchanged. It handles all fetching and parsing of remote data files.
+
+3.3. The Sub-Applications
+
+These are self-contained modules that manage a major feature of the application.
+
+3.3.1. PlaybackApp.js (Sub-App)
+
+Scope: Manages the entire "Playing View" experience.
+
+Initialization: Is instantiated by the App shell. Its constructor receives the currentRhythm data and instances of the AudioPlayer and ProjectController.
+
+Owns Playback State: Manages its own focused state object, e.g., { isPlaying: boolean, loopPlayback: boolean, currentMeasureIndex: 0, masterVolume: 1.0 }.
+
+Owns Playback Controllers: Instantiates its own PlaybackController and AudioScheduler.
+
+Owns Playback Views: Instantiates and manages all views related to playback: TubsGridView, PlaybackControlsView, and InstrumentMixerView.
+
+3.3.2. EditingApp.js (Sub-App)
+
+Scope: Manages the entire "Editing View" experience.
+
+Initialization: Is instantiated by the App shell. Its constructor receives the currentRhythm data and a callback to notify the Shell of changes (onRhythmUpdate).
+
+Owns Editing State: Manages its own focused state object, e.g., { isDirty: boolean, selectedPatternId: string, activeNoteSymbol: string }.
+
+Owns Editing Controllers: Instantiates and manages its own EditController.
+
+Owns Editing Views: Instantiates and manages the RhythmEditorView and all its child components (Flow Panel, Grid, Palette).
+
+Data Synchronization: When a user's edits modify the rhythm, it holds the changes in its local state. Upon saving or navigating away, it uses the onRhythmUpdate callback to pass the new, modified rhythm object back up to the App shell.
+
+5. Key Architectural Decisions & Tradeoffs
+
+Application Shell Architecture: We have explicitly chosen a Shell architecture over a single monolithic app.
+
+Benefit: This provides a strong separation of concerns, allowing the playback and editing features to be developed and debugged independently. It simplifies state management within each context and makes the application more scalable.
+
+Tradeoff: This introduces a small amount of complexity in managing the lifecycle of the sub-apps and ensuring data is passed correctly between the Shell and the active sub-app.
+
+Framework Choice (Vanilla JS): We will continue to use Vanilla JS with a disciplined, state-driven architecture within each sub-application.
+
+Audio Timing Logic (Dynamic BPM): The AudioScheduler (now owned by the PlaybackApp) will handle complex intra-pattern acceleration logic. The global BPM slider will be disabled during playback to prevent conflicting timing sources.
+
+Data Model (Rhythm-Centric): The Rhythm file remains the central point of configuration. The data resolution logic remains concentrated in the ProjectController (now a shared service).
+
+Error Handling & User Safety: The architecture continues to include robust data loading validation and a "dirty state" confirmation system to prevent accidental data loss.
+
+Feature Scope: Undo/Redo functionality and Offline Capability remain de-scoped for the initial version.
+
+Dependency Management (CDN): All third-party libraries will be loaded from CDNs.
