@@ -1,4 +1,6 @@
-// file: src/audio/AudioScheduler.js (Complete, with setBPM)
+// file: src/audio/AudioScheduler.js (Modified with Fix and Logging)
+
+const getTime = () => new Date().toISOString();
 
 export class AudioScheduler {
     constructor(audioPlayer, onUpdateCallback, onPlaybackEndedCallback) {
@@ -22,28 +24,42 @@ export class AudioScheduler {
     }
 
     /**
-     * Updates the playback tempo.
+     * Updates the playback tempo and rebuilds the timing map.
      * @param {number} newBPM The new tempo in beats per minute.
      */
     setBPM(newBPM) {
+        console.log(`[${getTime()}][AudioScheduler][setBPM][BPM] Received new BPM value: ${newBPM}.`);
         this.bpm = newBPM;
-        // If a rhythm is loaded, we need to rebuild the tick map with new timing info.
+        // If a rhythm is loaded, we must rebuild the tick map with the new timing info.
         if (this.rhythm) {
-            this.setRhythm(this.rhythm);
+            console.log(`[${getTime()}][AudioScheduler][setBPM][BPM] Rhythm is loaded, rebuilding tick map to apply new BPM.`);
+            this.rebuildTickMap();
         }
     }
 
+    /**
+     * Loads a new rhythm, sets its BPM, and builds the initial timing map.
+     * @param {object} resolvedRhythm The fully resolved rhythm object.
+     */
     setRhythm(resolvedRhythm) {
         this.rhythm = resolvedRhythm;
-        this.tickMap = [];
+        // This is the ONLY place where the BPM should be set from the rhythm file.
+        this.bpm = this.rhythm.global_bpm || this.bpm;
+        console.log(`[${getTime()}][AudioScheduler][setRhythm][BPM] Setting initial BPM from loaded rhythm file: ${this.bpm}.`);
+        this.rebuildTickMap();
+        this.resetPosition();
+    }
 
+    /**
+     * Centralized method to calculate the timing of every note based on the current BPM.
+     */
+    rebuildTickMap() {
+        this.tickMap = [];
         if (!this.rhythm?.playback_flow?.length || !this.rhythm.patterns) {
-            this.resetPosition();
             return;
         }
+        console.log(`[${getTime()}][AudioScheduler][rebuildTickMap][BPM] Rebuilding tick map using current BPM: ${this.bpm}.`);
 
-        // Use the rhythm's BPM if present, otherwise use the current BPM.
-        this.bpm = this.rhythm.global_bpm || this.bpm;
         const secondsPerBeat = 60.0 / this.bpm;
 
         this.rhythm.playback_flow.forEach(flowItem => {
@@ -74,8 +90,7 @@ export class AudioScheduler {
                 });
             }
         });
-        
-        this.resetPosition();
+        console.log(`[${getTime()}][AudioScheduler][rebuildTickMap][BPM] Tick map rebuild complete. Total ticks: ${this.tickMap.length}.`);
     }
 
     play() {
@@ -124,7 +139,11 @@ export class AudioScheduler {
         
         const tickData = this.tickMap[this.currentTick];
 
-        this.onUpdateCallback(tickData.tickInMeasure);
+        // The onUpdateCallback was missing the measure index. Let's calculate it.
+        const resolution = this.rhythm.patterns[this.rhythm.playback_flow[0].pattern].metadata.resolution;
+        const currentMeasure = Math.floor(this.currentTick / resolution);
+        
+        this.onUpdateCallback(tickData.tickInMeasure, currentMeasure);
         this.nextNoteTime += tickData.secondsPerTick;
         this.currentTick++;
 
