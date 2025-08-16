@@ -37,6 +37,12 @@
     .playback-indicator { position: absolute; top: 0; bottom: 0; background-color: rgba(255, 0, 0, 0.4); pointer-events: none; }
     .mixer-track { display: flex; align-items: center; margin-bottom: 10px; }
     .flow-item { display: flex; align-items: center; padding: 8px; border: 1px solid #ddd; margin-bottom: 5px; background-color: #fff; cursor: grab; }
+    /* Style for active/toggled buttons like the Loop button */
+    .playback-controls button.toggled {
+        background-color: #3498db; /* A distinct "on" color */
+        color: white;
+        border-color: #2980b9;
+    }
     .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
     .modal-dialog { background-color: #fff; padding: 20px; border-radius: 5px; min-width: 300px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
     .modal-actions { margin-top: 20px; text-align: right; }
