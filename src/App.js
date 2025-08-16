@@ -159,7 +159,7 @@ class App {
             const resolvedRhythm = await this.projectController.loadRhythm(id);
             this.setState({
                 rhythm: resolvedRhythm,
-                currentPatternId: resolvedRhythm.playback_flow.pattern,
+                currentPatternId: resolvedRhythm.playback_flow[0].pattern,
                 globalBPM: resolvedRhythm.global_bpm,
                 isLoading: false,
                 isDirty: false,
