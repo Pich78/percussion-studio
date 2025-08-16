@@ -5,24 +5,31 @@
     <meta charset="UTF-8">
     <title>Percussion Studio</title>
     <style>
-        /* All styles remain the same */
         :root { --header-height: 50px; --footer-height: 120px; }
         body { font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; background-color: #f4f4f4; }
         header { height: var(--header-height); border-bottom: 1px solid #ccc; padding: 0 10px; background-color: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 10; display: flex; align-items: center; }
-        main { flex-grow: 1; overflow: auto; } /* Changed to auto */
-        footer { height: var(--footer-height); border-top: 1px solid #ccc; display: flex; background-color: #fff; }
+        main { flex-grow: 1; overflow: auto; display: flex; flex-direction: column;}
+        footer { border-top: 1px solid #ccc; background-color: #fff; }
 
-        /* The main container for sub-apps */
-        #app-main-container {
-            height: 100%;
-            display: flex; /* Helps sub-apps manage their layout */
-            flex-direction: column;
-        }
+        /* Style for the footer created by PlaybackApp */
+        #playback-footer { height: var(--footer-height); display: flex; }
+        .controls-area { flex-grow: 1; padding: 10px; }
+        .mixer-area { width: 250px; border-left: 1px solid #ccc; padding: 10px; overflow-y: auto; }
+        .grid-area { flex-grow: 1; }
 
         /* Component-specific styles */
         .app-menu button { margin-right: 10px; }
+        .playback-controls { display: flex; align-items: center; justify-content: space-between; width: 100%;}
+        .button-group button { margin-right: 8px; }
+        .slider-group { display: flex; align-items: center; gap: 20px; }
+        .control-group { display: flex; align-items: center; gap: 8px; }
+        .playback-controls button.toggled { background-color: #3498db; color: white; border-color: #2980b9; }
         .grid { display: grid; position: relative; }
-        /* ... other styles remain unchanged ... */
+        .instrument-header { background-color: #ddd; padding: 5px; border-bottom: 1px solid #999; border-right: 1px solid #999; cursor: pointer; user-select: none; }
+        .grid-cell { border-bottom: 1px solid #999; border-right: 1px solid #999; min-height: 40px; }
+        .playback-indicator { position: absolute; top: 0; bottom: 0; background-color: rgba(255, 0, 0, 0.4); pointer-events: none; }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-dialog { background-color: #fff; padding: 20px; border-radius: 5px; min-width: 300px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
         .modal-actions { margin-top: 20px; text-align: right; }
     </style>
 </head>
@@ -30,12 +37,10 @@
     <header id="app-menu-container"></header>
 
     <main id="app-main-container">
-        <!-- Sub-apps will be rendered here by App.js -->
+        <!-- The active sub-app (PlaybackApp or EditingApp) will be rendered here by App.js -->
     </main>
     
-    <footer>
-        <!-- Footer content might be managed by sub-apps in the future -->
-    </footer>
+    <!-- The footer is now part of the main container and managed by the sub-app -->
 
     <script type="module">
         import { App } from './src/App.js';
