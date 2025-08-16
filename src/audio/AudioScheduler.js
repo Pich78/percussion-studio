@@ -1,12 +1,15 @@
-// file: src/audio/AudioScheduler.js (Corrected with Proper Timing Logic and Logging)
+// file: src/audio/AudioScheduler.js (Corrected and Regenerated)
 
 const getTime = () => new Date().toISOString();
 
 export class AudioScheduler {
-    constructor(audioPlayer, onUpdateCallback, onPlaybackEndedCallback) {
+    // --- MODIFICATION: Remove callbacks from constructor ---
+    constructor(audioPlayer) {
         this.audioPlayer = audioPlayer;
-        this.onUpdateCallback = onUpdateCallback || (() => {});
-        this.onPlaybackEndedCallback = onPlaybackEndedCallback || (() => {});
+        
+        // --- MODIFICATION: Initialize callbacks as public, empty properties ---
+        this.onUpdateCallback = () => {};
+        this.onPlaybackEndedCallback = () => {};
 
         this.rhythm = null;
         this.isPlaying = false;
@@ -57,13 +60,10 @@ export class AudioScheduler {
             for (let r = 0; r < repetitions; r++) {
                 pattern.pattern_data.forEach(measureData => {
                     const resolution = pattern.metadata.resolution || 16;
-                    
-                    // --- TIMING CALCULATION FIX ---
                     const metric = pattern.metadata.metric || '4/4';
                     const beatsPerMeasure = parseInt(metric.split('/')[0], 10) || 4;
                     const secondsPerMeasure = secondsPerBeat * beatsPerMeasure;
                     const secondsPerTick = secondsPerMeasure / resolution;
-                    // --- END OF FIX ---
                     
                     for (let t = 0; t < resolution; t++) {
                         const instrumentsToPlay = [];

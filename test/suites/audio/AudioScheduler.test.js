@@ -21,15 +21,18 @@ export async function run() {
 
     runner.describe('AudioScheduler Initialization', () => {
         runner.it('should initialize with correct default state', () => {
-            const scheduler = new AudioScheduler(createMockPlayer(), null, null);
+            // --- FIX: Use new constructor signature ---
+            const scheduler = new AudioScheduler(createMockPlayer());
             runner.expect(scheduler.isPlaying).toBe(false);
             runner.expect(scheduler.currentTick).toBe(0);
+            runner.expect(typeof scheduler.onUpdateCallback).toBe('function');
         });
     });
 
     runner.describe('AudioScheduler - setRhythm', () => {
         runner.it('should correctly build a tick map from rhythm data', () => {
-            const scheduler = new AudioScheduler(createMockPlayer(), null, null);
+            // --- FIX: Use new constructor signature ---
+            const scheduler = new AudioScheduler(createMockPlayer());
             
             const testRhythm = {
                 global_bpm: 120,
@@ -51,7 +54,8 @@ export async function run() {
         });
 
         runner.it('should handle an empty playback_flow without erroring', () => {
-            const scheduler = new AudioScheduler(createMockPlayer(), null, null);
+            // --- FIX: Use new constructor signature ---
+            const scheduler = new AudioScheduler(createMockPlayer());
             const emptyRhythm = { global_bpm: 120, playback_flow: [], patterns: {} };
             scheduler.setRhythm(emptyRhythm);
             runner.expect(scheduler.tickMap.length).toBe(0);
@@ -60,7 +64,8 @@ export async function run() {
 
     runner.describe('AudioScheduler - Playback Control', () => {
         runner.it('should toggle isPlaying flag and start timer on play()', () => {
-            const scheduler = new AudioScheduler(createMockPlayer(), null, null);
+            // --- FIX: Use new constructor signature ---
+            const scheduler = new AudioScheduler(createMockPlayer());
             const mockRhythm = {
                 global_bpm: 120,
                 sound_kit: { KCK: 'test' },
@@ -80,11 +85,9 @@ export async function run() {
 
         runner.it('should schedule notes from the tick map step-by-step', () => {
             const playerMock = createMockPlayer();
-            const scheduler = new AudioScheduler(playerMock, null, null);
+            // --- FIX: Use new constructor signature ---
+            const scheduler = new AudioScheduler(playerMock);
             
-            // FIX: This rhythm is now logically consistent.
-            // At 60 BPM (1 beat/sec) in 4/4, a measure is 4 seconds long.
-            // With resolution: 16, each tick is 4s / 16 = 0.25 seconds.
             const testRhythm = {
                 global_bpm: 60,
                 sound_kit: { KICK: 'kick_pack', SNARE: 'snare_pack' },
@@ -93,8 +96,8 @@ export async function run() {
                     p1: {
                         metadata: { resolution: 16, metric: '4/4' },
                         pattern_data: [{
-                            KICK: 'o---------------',  // Note at tick 0
-                            SNARE: '--o-------------'  // Note at tick 2
+                            KICK: 'o---------------',
+                            SNARE: '--o-------------'
                         }]
                     }
                 }
@@ -104,13 +107,11 @@ export async function run() {
 
             scheduler.nextNoteTime = 0.0;
             
-            scheduler.scheduleTick(); // schedules tick 0 (KICK at 0.000s)
-            scheduler.advanceTick();  // nextNoteTime becomes 0.250s
-            
-            scheduler.scheduleTick(); // schedules tick 1 (nothing)
-            scheduler.advanceTick();  // nextNoteTime becomes 0.500s
-            
-            scheduler.scheduleTick(); // schedules tick 2 (SNARE at 0.500s)
+            scheduler.scheduleTick();
+            scheduler.advanceTick();
+            scheduler.scheduleTick();
+            scheduler.advanceTick();
+            scheduler.scheduleTick();
             
             playerMock.wasCalledWith('playAt', { id: 'KICK_o', time: '0.000' });
             playerMock.wasCalledWith('playAt', { id: 'SNARE_o', time: '0.500' });
@@ -143,7 +144,10 @@ export function manualTest() {
         path: '/percussion-studio/data/sounds/test_snare/test_snare.normal.wav'
     }]);
 
-    const scheduler = new AudioScheduler(audioPlayer, onUpdate, onEnd);
+    // --- FIX: Use new constructor and assign callbacks as properties ---
+    const scheduler = new AudioScheduler(audioPlayer);
+    scheduler.onUpdateCallback = onUpdate;
+    scheduler.onPlaybackEndedCallback = onEnd;
 
     const simpleRhythm = {
         sound_kit: { KCK: 'test_kick', SNR: 'test_snare' },
