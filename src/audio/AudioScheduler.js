@@ -1,167 +1,159 @@
-// file: test/suites/audio/AudioScheduler.test.js (Corrected with Proper Test Setup)
+// file: src/audio/AudioScheduler.js (Modified with Fix and Logging)
 
-import { TestRunner } from '/percussion-studio/test/lib/TestRunner.js';
-import { MockLogger } from '/percussion-studio/test/mocks/MockLogger.js';
-import { AudioScheduler } from '/percussion-studio/src/audio/AudioScheduler.js';
-import { AudioPlayer } from '/percussion-studio/src/audio/AudioPlayer.js';
+const getTime = () => new Date().toISOString();
 
-export async function run() {
-    const runner = new TestRunner();
-    MockLogger.clearLogs();
-    MockLogger.setLogTarget('log-output');
+export class AudioScheduler {
+    constructor(audioPlayer, onUpdateCallback, onPlaybackEndedCallback) {
+        this.audioPlayer = audioPlayer;
+        this.onUpdateCallback = onUpdateCallback || (() => {});
+        this.onPlaybackEndedCallback = onPlaybackEndedCallback || (() => {});
 
-    const createMockPlayer = () => {
-        const logger = new MockLogger('AudioPlayer');
-        logger.playAt = (id, time) => logger.log('playAt', { id, time: time.toFixed(3) });
-        logger.getAudioClockTime = () => 0;
-        return logger;
-    };
+        this.rhythm = null;
+        this.isPlaying = false;
+        this.bpm = 120; // Default BPM
 
-    runner.describe('AudioScheduler Initialization', () => {
-        runner.it('should initialize with correct default state', () => {
-            const scheduler = new AudioScheduler(createMockPlayer(), null, null);
-            runner.expect(scheduler.isPlaying).toBe(false);
-            runner.expect(scheduler.currentTick).toBe(0);
-        });
-    });
+        this.currentTick = 0;
+        this.tickMap = [];
 
-    runner.describe('AudioScheduler - setRhythm', () => {
-        runner.it('should correctly build a tick map from rhythm data', () => {
-            const scheduler = new AudioScheduler(createMockPlayer(), null, null);
-            
-            const testRhythm = {
-                global_bpm: 120,
-                sound_kit: { KCK: 'test_kick' },
-                playback_flow: [{ pattern: 'p1' }],
-                patterns: {
-                    p1: {
-                        metadata: { resolution: 8 },
-                        pattern_data: [{ KCK: '||o-o-||' }]
+        this.nextNoteTime = 0.0;
+        this.loop = false;
+        this.timerID = null;
+
+        this.scheduleAheadTime = 0.1;
+        this.lookahead = 25.0;
+    }
+
+    /**
+     * Updates the playback tempo and rebuilds the timing map.
+     * @param {number} newBPM The new tempo in beats per minute.
+     */
+    setBPM(newBPM) {
+        console.log(`[${getTime()}][AudioScheduler][setBPM][BPM] Received new BPM value: ${newBPM}.`);
+        this.bpm = newBPM;
+        // If a rhythm is loaded, we must rebuild the tick map with the new timing info.
+        if (this.rhythm) {
+            console.log(`[${getTime()}][AudioScheduler][setBPM][BPM] Rhythm is loaded, rebuilding tick map to apply new BPM.`);
+            this.rebuildTickMap();
+        }
+    }
+
+    /**
+     * Loads a new rhythm, sets its BPM, and builds the initial timing map.
+     * @param {object} resolvedRhythm The fully resolved rhythm object.
+     */
+    setRhythm(resolvedRhythm) {
+        this.rhythm = resolvedRhythm;
+        // This is the ONLY place where the BPM should be set from the rhythm file.
+        this.bpm = this.rhythm.global_bpm || this.bpm;
+        console.log(`[${getTime()}][AudioScheduler][setRhythm][BPM] Setting initial BPM from loaded rhythm file: ${this.bpm}.`);
+        this.rebuildTickMap();
+        this.resetPosition();
+    }
+
+    /**
+     * Centralized method to calculate the timing of every note based on the current BPM.
+     */
+    rebuildTickMap() {
+        this.tickMap = [];
+        if (!this.rhythm?.playback_flow?.length || !this.rhythm.patterns) {
+            return;
+        }
+        console.log(`[${getTime()}][AudioScheduler][rebuildTickMap][BPM] Rebuilding tick map using current BPM: ${this.bpm}.`);
+
+        const secondsPerBeat = 60.0 / this.bpm;
+
+        this.rhythm.playback_flow.forEach(flowItem => {
+            const pattern = this.rhythm.patterns[flowItem.pattern];
+            if (!pattern || !pattern.pattern_data) return;
+
+            const repetitions = flowItem.repetitions || 1;
+            for (let r = 0; r < repetitions; r++) {
+                pattern.pattern_data.forEach(measureData => {
+                    const resolution = pattern.metadata.resolution || 16;
+                    const ticksPerBeat = resolution / 4.0;
+                    const secondsPerTick = secondsPerBeat / ticksPerBeat;
+                    
+                    for (let t = 0; t < resolution; t++) {
+                        const instrumentsToPlay = [];
+                        for (const instrumentSymbol in measureData) {
+                            if (Object.prototype.hasOwnProperty.call(this.rhythm.sound_kit, instrumentSymbol)) {
+                                const noteString = measureData[instrumentSymbol].replace(/\|/g, '');
+                                const noteChar = noteString[t];
+                                if (noteChar && noteChar !== '-') {
+                                    const soundId = `${instrumentSymbol}_${noteChar}`;
+                                    instrumentsToPlay.push(soundId);
+                                }
+                            }
+                        }
+                        this.tickMap.push({ instrumentsToPlay, secondsPerTick, tickInMeasure: t });
                     }
-                }
-            };
-
-            scheduler.setRhythm(testRhythm);
-            runner.expect(scheduler.tickMap.length).toBe(8);
-            runner.expect(scheduler.tickMap[0].instrumentsToPlay).toEqual(['KCK_o']);
-            runner.expect(scheduler.tickMap[1].instrumentsToPlay).toEqual([]);
-            runner.expect(scheduler.tickMap[2].instrumentsToPlay).toEqual(['KCK_o']);
+                });
+            }
         });
+        console.log(`[${getTime()}][AudioScheduler][rebuildTickMap][BPM] Tick map rebuild complete. Total ticks: ${this.tickMap.length}.`);
+    }
 
-        runner.it('should handle an empty playback_flow without erroring', () => {
-            const scheduler = new AudioScheduler(createMockPlayer(), null, null);
-            const emptyRhythm = { global_bpm: 120, playback_flow: [], patterns: {} };
-            scheduler.setRhythm(emptyRhythm);
-            runner.expect(scheduler.tickMap.length).toBe(0);
+    play() {
+        if (this.isPlaying || this.tickMap.length === 0) return;
+        this.isPlaying = true;
+        this.nextNoteTime = this.audioPlayer.getAudioClockTime();
+        this.scheduler();
+    }
+
+    pause() {
+        this.isPlaying = false;
+        clearTimeout(this.timerID);
+        this.timerID = null;
+    }
+
+    stop() {
+        this.pause();
+        this.resetPosition();
+    }
+
+    resetPosition() {
+        this.currentTick = 0;
+    }
+
+    scheduler() {
+        while (this.nextNoteTime < this.audioPlayer.getAudioClockTime() + this.scheduleAheadTime) {
+            this.scheduleTick();
+            this.advanceTick();
+        }
+        if (this.isPlaying) {
+            this.timerID = setTimeout(() => this.scheduler(), this.lookahead);
+        }
+    }
+
+    scheduleTick() {
+        const tickData = this.tickMap[this.currentTick];
+        if (!tickData) return;
+
+        tickData.instrumentsToPlay.forEach(soundId => {
+            this.audioPlayer.playAt(soundId, this.nextNoteTime);
         });
-    });
+    }
 
-    runner.describe('AudioScheduler - Playback Control', () => {
-        // --- TEST FIX #1 ---
-        runner.it('should toggle isPlaying flag and start timer on play()', () => {
-            const scheduler = new AudioScheduler(createMockPlayer(), null, null);
-            // FIX: Instead of manually setting tickMap, provide a minimal rhythm object.
-            // This ensures this.rhythm is not null when play() calls advanceTick().
-            const mockRhythm = {
-                global_bpm: 120,
-                sound_kit: { KCK: 'test' },
-                playback_flow: [{ pattern: 'p1' }],
-                patterns: { p1: { metadata: { resolution: 4 }, pattern_data: [{ KCK: 'o---' }] } }
-            };
-            scheduler.setRhythm(mockRhythm);
-            
-            scheduler.play();
-            runner.expect(scheduler.isPlaying).toBe(true);
-            runner.expect(scheduler.timerID === null).toBe(false);
-            
-            scheduler.pause();
-            runner.expect(scheduler.isPlaying).toBe(false);
-            runner.expect(scheduler.timerID === null).toBe(true);
-        });
+    advanceTick() {
+        if (this.currentTick >= this.tickMap.length) return;
+        
+        const tickData = this.tickMap[this.currentTick];
 
-        // --- TEST FIX #2 ---
-        runner.it('should schedule notes from the tick map step-by-step', () => {
-            const playerMock = createMockPlayer();
-            const scheduler = new AudioScheduler(playerMock, null, null);
-            
-            // FIX: Create a rhythm that generates the desired tick map.
-            const testRhythm = {
-                global_bpm: 60, // 1 beat per second, so 1 tick = 0.25s
-                sound_kit: { KICK: 'kick_pack', SNARE: 'snare_pack' },
-                playback_flow: [{ pattern: 'p1' }],
-                patterns: {
-                    p1: {
-                        metadata: { resolution: 4 },
-                        pattern_data: [{
-                            KICK: 'o---',  // Note at tick 0
-                            SNARE: '--o-'   // Note at tick 2
-                        }]
-                    }
-                }
-            };
-            scheduler.setRhythm(testRhythm);
+        // The onUpdateCallback was missing the measure index. Let's calculate it.
+        const resolution = this.rhythm.patterns[this.rhythm.playback_flow[0].pattern].metadata.resolution;
+        const currentMeasure = Math.floor(this.currentTick / resolution);
+        
+        this.onUpdateCallback(tickData.tickInMeasure, currentMeasure);
+        this.nextNoteTime += tickData.secondsPerTick;
+        this.currentTick++;
 
-            // Now we can safely test the advanceTick method
-            scheduler.nextNoteTime = 0.0;
-            
-            scheduler.scheduleTick(); // schedules tick 0 (KICK_o at 0.0s)
-            scheduler.advanceTick();  // advances to tick 1, nextNoteTime becomes 0.25s
-            
-            scheduler.scheduleTick(); // schedules tick 1 (nothing)
-            scheduler.advanceTick();  // advances to tick 2, nextNoteTime becomes 0.5s
-            
-            scheduler.scheduleTick(); // schedules tick 2 (SNARE_o at 0.5s)
-            
-            // Assertions
-            playerMock.wasCalledWith('playAt', { id: 'KICK_o', time: '0.000' });
-            playerMock.wasCalledWith('playAt', { id: 'SNARE_o', time: '0.500' });
-            runner.expect(playerMock.callCount).toBe(2);
-        });
-    });
-    
-    await runner.runAll();
-    runner.renderResults('test-results');
-}
-
-export function manualTest() {
-    console.log("Setting up manual test...");
-    const beatDisplay = document.getElementById('beat-display');
-
-    // FIX: Update callback signature to match the new scheduler output
-    const onUpdate = (tickInMeasure, measureIndex) => {
-        const measure = measureIndex + 1;
-        beatDisplay.textContent = `Measure: ${measure}, Tick: ${tickInMeasure}`;
-    };
-    const onEnd = () => { beatDisplay.textContent = 'Playback Ended.'; };
-
-    const audioPlayer = new AudioPlayer();
-    
-    audioPlayer.loadSounds([{
-        id: 'KCK_o',
-        path: '/percussion-studio/data/sounds/test_kick/test_kick.normal.wav'
-    },
-    {
-        id: 'SNR_o',
-        path: '/percussion-studio/data/sounds/test_snare/test_snare.normal.wav'
-    }]);
-
-    const scheduler = new AudioScheduler(audioPlayer, onUpdate, onEnd);
-
-    const simpleRhythm = {
-        sound_kit: { KCK: 'test_kick', SNR: 'test_snare' },
-        global_bpm: 120,
-        playback_flow: [{ pattern: 'four_on_the_floor', repetitions: 4 }],
-        patterns: {
-            four_on_the_floor: {
-                metadata: { resolution: 16 },
-                pattern_data: [{ 
-                    KCK: '||o---|----|o---|----||',
-                    SNR: '||----|o---|----|o---||'
-                }]
+        if (this.currentTick >= this.tickMap.length) {
+            if (this.loop) {
+                this.currentTick = 0;
+            } else {
+                this.onPlaybackEndedCallback();
+                this.stop();
             }
         }
-    };
-    scheduler.setRhythm(simpleRhythm);
-    
-    return scheduler;
+    }
 }

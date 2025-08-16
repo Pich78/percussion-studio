@@ -1,4 +1,4 @@
-// file: test/suites/audio/AudioScheduler.test.js (Complete, Final Corrected Version)
+// file: test/suites/audio/AudioScheduler.test.js (Corrected with Proper Test Setup)
 
 import { TestRunner } from '/percussion-studio/test/lib/TestRunner.js';
 import { MockLogger } from '/percussion-studio/test/mocks/MockLogger.js';
@@ -29,7 +29,6 @@ export async function run() {
         runner.it('should correctly build a tick map from rhythm data', () => {
             const scheduler = new AudioScheduler(createMockPlayer(), null, null);
             
-            // CRITICAL FIX: The mock rhythm must have a sound_kit.
             const testRhythm = {
                 global_bpm: 120,
                 sound_kit: { KCK: 'test_kick' },
@@ -58,36 +57,64 @@ export async function run() {
     });
 
     runner.describe('AudioScheduler - Playback Control', () => {
+        // --- TEST FIX #1 ---
         runner.it('should toggle isPlaying flag and start timer on play()', () => {
             const scheduler = new AudioScheduler(createMockPlayer(), null, null);
-            scheduler.tickMap = [
-                { instrumentsToPlay: [], secondsPerTick: 0.5 },
-                { instrumentsToPlay: [], secondsPerTick: 0.5 }
-            ];
+            // FIX: Instead of manually setting tickMap, provide a minimal rhythm object.
+            // This ensures this.rhythm is not null when play() calls advanceTick().
+            const mockRhythm = {
+                global_bpm: 120,
+                sound_kit: { KCK: 'test' },
+                playback_flow: [{ pattern: 'p1' }],
+                patterns: { p1: { metadata: { resolution: 4 }, pattern_data: [{ KCK: 'o---' }] } }
+            };
+            scheduler.setRhythm(mockRhythm);
+            
             scheduler.play();
             runner.expect(scheduler.isPlaying).toBe(true);
             runner.expect(scheduler.timerID === null).toBe(false);
+            
             scheduler.pause();
             runner.expect(scheduler.isPlaying).toBe(false);
             runner.expect(scheduler.timerID === null).toBe(true);
         });
 
+        // --- TEST FIX #2 ---
         runner.it('should schedule notes from the tick map step-by-step', () => {
             const playerMock = createMockPlayer();
             const scheduler = new AudioScheduler(playerMock, null, null);
-            scheduler.tickMap = [
-                { instrumentsToPlay: ['kick'], secondsPerTick: 0.25, isBeat: true },
-                { instrumentsToPlay: [], secondsPerTick: 0.25, isBeat: false },
-                { instrumentsToPlay: ['snare'], secondsPerTick: 0.25, isBeat: true }
-            ];
+            
+            // FIX: Create a rhythm that generates the desired tick map.
+            const testRhythm = {
+                global_bpm: 60, // 1 beat per second, so 1 tick = 0.25s
+                sound_kit: { KICK: 'kick_pack', SNARE: 'snare_pack' },
+                playback_flow: [{ pattern: 'p1' }],
+                patterns: {
+                    p1: {
+                        metadata: { resolution: 4 },
+                        pattern_data: [{
+                            KICK: 'o---',  // Note at tick 0
+                            SNARE: '--o-'   // Note at tick 2
+                        }]
+                    }
+                }
+            };
+            scheduler.setRhythm(testRhythm);
+
+            // Now we can safely test the advanceTick method
             scheduler.nextNoteTime = 0.0;
-            scheduler.scheduleTick();
-            scheduler.advanceTick();
-            scheduler.scheduleTick();
-            scheduler.advanceTick();
-            scheduler.scheduleTick();
-            playerMock.wasCalledWith('playAt', { id: 'kick', time: '0.000' });
-            playerMock.wasCalledWith('playAt', { id: 'snare', time: '0.500' });
+            
+            scheduler.scheduleTick(); // schedules tick 0 (KICK_o at 0.0s)
+            scheduler.advanceTick();  // advances to tick 1, nextNoteTime becomes 0.25s
+            
+            scheduler.scheduleTick(); // schedules tick 1 (nothing)
+            scheduler.advanceTick();  // advances to tick 2, nextNoteTime becomes 0.5s
+            
+            scheduler.scheduleTick(); // schedules tick 2 (SNARE_o at 0.5s)
+            
+            // Assertions
+            playerMock.wasCalledWith('playAt', { id: 'KICK_o', time: '0.000' });
+            playerMock.wasCalledWith('playAt', { id: 'SNARE_o', time: '0.500' });
             runner.expect(playerMock.callCount).toBe(2);
         });
     });
@@ -99,16 +126,16 @@ export async function run() {
 export function manualTest() {
     console.log("Setting up manual test...");
     const beatDisplay = document.getElementById('beat-display');
-    const onUpdate = (beatNumber) => {
-        const beatInMeasure = ((beatNumber - 1) % 4) + 1;
-        const measure = Math.floor((beatNumber - 1) / 4) + 1;
-        beatDisplay.textContent = `Measure: ${measure}, Beat: ${beatInMeasure}`;
+
+    // FIX: Update callback signature to match the new scheduler output
+    const onUpdate = (tickInMeasure, measureIndex) => {
+        const measure = measureIndex + 1;
+        beatDisplay.textContent = `Measure: ${measure}, Tick: ${tickInMeasure}`;
     };
     const onEnd = () => { beatDisplay.textContent = 'Playback Ended.'; };
 
     const audioPlayer = new AudioPlayer();
     
-    // CRITICAL FIX: Use the correct new path for the sound file.
     audioPlayer.loadSounds([{
         id: 'KCK_o',
         path: '/percussion-studio/data/sounds/test_kick/test_kick.normal.wav'
