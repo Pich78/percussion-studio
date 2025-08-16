@@ -1,4 +1,4 @@
-// file: src/PlaybackApp.js (Corrected Constructor Logic)
+// file: src/PlaybackApp.js
 import { PlaybackControlsView } from './view/PlaybackControlsView.js';
 import { TubsGridView } from './view/TubsGridView.js';
 import { InstrumentMixerView } from './view/InstrumentMixerView.js';
@@ -6,8 +6,9 @@ import { InstrumentMixerView } from './view/InstrumentMixerView.js';
 export class PlaybackApp {
     constructor(container, props) {
         this.container = container;
-        this.props = props;
+        this.props = props; // { rhythm, playbackController, audioScheduler, ... }
 
+        // PlaybackApp owns its specific state
         this.state = {
             isPlaying: false,
             loopPlayback: false,
@@ -15,24 +16,24 @@ export class PlaybackApp {
             masterVolume: 1.0,
             currentMeasureIndex: 0,
         };
-        
-        // --- FIX: Create the HTML structure FIRST ---
+
+        // Apply Tailwind classes for layout and Material Design look
         this.container.innerHTML = `
-            <div id="grid-view-container" class="grid-area"></div>
-            <footer id="playback-footer">
-                <div id="playback-controls-container" class="controls-area"></div>
-                <div id="instrument-mixer-container" class="mixer-area"></div>
+            <div id="grid-view-container" class="flex-grow p-4 overflow-auto"></div>
+            <footer id="playback-footer" class="h-32 bg-white shadow-inner flex p-4 items-center gap-4">
+                <div id="playback-controls-container" class="flex-grow"></div>
+                <div id="instrument-mixer-container" class="w-72 border-l border-slate-200 pl-4 h-full overflow-y-auto"></div>
             </footer>
         `;
 
-        // --- THEN, instantiate views that need those elements ---
+        // Instantiate views and bind them to the new containers
         this.tubsGridView = new TubsGridView(
-            document.getElementById('grid-view-container'),
-            {}
+            this.container.querySelector('#grid-view-container'),
+            {} // Callbacks for TubsGridView if any
         );
 
         this.playbackControlsView = new PlaybackControlsView(
-            document.getElementById('playback-controls-container'),
+            this.container.querySelector('#playback-controls-container'),
             {
                 onPlay: this.handlePlay.bind(this),
                 onPause: this.handlePause.bind(this),
@@ -44,10 +45,11 @@ export class PlaybackApp {
         );
 
         this.instrumentMixerView = new InstrumentMixerView(
-            document.getElementById('instrument-mixer-container'),
-            {}
+            this.container.querySelector('#instrument-mixer-container'),
+            {} // Callbacks for InstrumentMixerView
         );
 
+        // Link the AudioScheduler's update callback to our internal handler
         if (this.props.audioScheduler) {
             this.props.audioScheduler.onUpdateCallback = this.handleTickUpdate.bind(this);
             this.props.audioScheduler.onPlaybackEndedCallback = this.handlePlaybackEnded.bind(this);
@@ -56,9 +58,10 @@ export class PlaybackApp {
 
     setState(newState) {
         this.state = { ...this.state, ...newState };
-        this.render();
+        this.render(); // Re-render all child views with the new state
     }
 
+    // --- Callback Handlers ---
     handlePlay() {
         this.props.audioScheduler.setBPM(this.state.globalBPM);
         this.props.playbackController.play();
@@ -110,7 +113,7 @@ export class PlaybackApp {
 
         this.playbackControlsView.render({
             isPlaying: this.state.isPlaying,
-            isLoading: this.props.isLoading,
+            isLoading: this.props.isLoading, // Get isLoading from shell props
             loopPlayback: this.state.loopPlayback,
             globalBPM: this.state.globalBPM,
             masterVolume: this.state.masterVolume,
@@ -120,7 +123,9 @@ export class PlaybackApp {
     }
 
     destroy() {
+        // Clean up the DOM and remove any listeners if necessary
         this.container.innerHTML = '';
+        // Unset callbacks to prevent memory leaks
         if (this.props.audioScheduler) {
             this.props.audioScheduler.onUpdateCallback = () => {};
             this.props.audioScheduler.onPlaybackEndedCallback = () => {};
