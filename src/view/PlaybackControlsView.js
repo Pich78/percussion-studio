@@ -25,19 +25,25 @@ export class PlaybackControlsView {
 
         const html = `
             <div class="playback-controls">
-                <button id="play-btn" ${playBtnDisabled ? 'disabled' : ''}>Play</button>
-                <button id="pause-btn" ${pauseBtnDisabled ? 'disabled' : ''}>Pause</button>
-                <button id="stop-btn" ${stopBtnDisabled ? 'disabled' : ''}>Stop</button>
-                <button id="loop-btn" class="${loopBtnToggled}">Loop</button>
-                
-                <div class="control-group">
-                    <label for="bpm-slider">BPM: <span id="bpm-value">${globalBPM}</span></label>
-                    <input type="range" id="bpm-slider" min="40" max="240" step="1" value="${globalBPM}" ${bpmSliderDisabled ? 'disabled' : ''}>
+                <!-- Button Group -->
+                <div class="button-group">
+                    <button id="play-btn" ${playBtnDisabled ? 'disabled' : ''}>Play</button>
+                    <button id="pause-btn" ${pauseBtnDisabled ? 'disabled' : ''}>Pause</button>
+                    <button id="stop-btn" ${stopBtnDisabled ? 'disabled' : ''}>Stop</button>
+                    <button id="loop-btn" class="${loopBtnToggled}">Loop</button>
                 </div>
                 
-                <div class="control-group">
-                    <label for="master-volume">Master Volume</label>
-                    <input type="range" id="master-volume" min="0" max="1" step="0.01" value="${masterVolume}">
+                <!-- Slider Group -->
+                <div class="slider-group">
+                    <div class="control-group">
+                        <label for="bpm-slider">BPM: <span id="bpm-value">${globalBPM}</span></label>
+                        <input type="range" id="bpm-slider" min="40" max="240" step="1" value="${globalBPM}" ${bpmSliderDisabled ? 'disabled' : ''}>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="master-volume">Master Volume</label>
+                        <input type="range" id="master-volume" min="0" max="1" step="0.01" value="${masterVolume}">
+                    </div>
                 </div>
             </div>
         `;

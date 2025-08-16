@@ -40,7 +40,13 @@ class App {
             onToggleView: () => this.toggleViewMode(),
 
             // Playback Callbacks
-            onPlay: () => { this.playbackController.play(this.state); this.setState({ isPlaying: true }); },
+            onPlay: () => {
+                // 1. Explicitly sync the BPM from the UI state to the audio engine.
+                this.audioScheduler.setBPM(this.state.globalBPM);
+                // 2. Now, tell the controller to play.
+                this.playbackController.play();
+                this.setState({ isPlaying: true });
+            },       
             onPause: () => { this.playbackController.pause(); this.setState({ isPlaying: false }); },
             onStop: () => {
                 this.playbackController.stop();

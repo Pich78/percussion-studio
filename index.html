@@ -12,32 +12,53 @@
         main { flex-grow: 1; overflow: hidden; } /* A single main area */
         footer { height: var(--footer-height); border-top: 1px solid #ccc; display: flex; background-color: #fff; }
 
-    /* Main View Containers */
-    .editor-area, .grid-area { height: 100%; padding: 10px; overflow: auto; box-sizing: border-box; }
+        /* Main View Containers */
+        .editor-area, .grid-area { height: 100%; padding: 10px; overflow: auto; box-sizing: border-box; }
 
-    /* NEW CSS LOGIC FOR VIEW SWITCHING */
-    /* By default, show playing view (grid) and hide editing view */
-    .editor-area { display: none; }
-    .grid-area { display: block; }
-    /* When in editing mode, reverse the visibility */
-    body.editing-mode .editor-area { display: block; }
-    body.editing-mode .grid-area { display: none; }
-    
-    /* Footer Areas */
-    .mixer-area { width: 250px; border-left: 1px solid #ccc; padding: 10px; overflow-y: auto; }
-    .controls-area { flex-grow: 1; padding: 10px; }
-    
-    /* Component-specific styles copied from harnesses */
-    .app-menu button { margin-right: 10px; }
-    .grid { display: grid; position: relative; }
-    .instrument-header { background-color: #ddd; padding: 5px; border-bottom: 1px solid #999; border-right: 1px solid #999; cursor: pointer; user-select: none; }
-    .instrument-header:hover { background-color: #ccc; }
-    .grid-cell { border-bottom: 1px solid #999; border-right: 1px solid #999; min-height: 40px; }
-    .grid-cell img { width: 100%; height: 100%; object-fit: contain; }
-    .playback-indicator { position: absolute; top: 0; bottom: 0; background-color: rgba(255, 0, 0, 0.4); pointer-events: none; }
-    .mixer-track { display: flex; align-items: center; margin-bottom: 10px; }
-    .flow-item { display: flex; align-items: center; padding: 8px; border: 1px solid #ddd; margin-bottom: 5px; background-color: #fff; cursor: grab; }
-    /* Style for active/toggled buttons like the Loop button */
+        /* NEW CSS LOGIC FOR VIEW SWITCHING */
+        /* By default, show playing view (grid) and hide editing view */
+        .editor-area { display: none; }
+        .grid-area { display: block; }
+        /* When in editing mode, reverse the visibility */
+        body.editing-mode .editor-area { display: block; }
+        body.editing-mode .grid-area { display: none; }
+        
+        /* Footer Areas */
+        .mixer-area { width: 250px; border-left: 1px solid #ccc; padding: 10px; overflow-y: auto; }
+        .controls-area { flex-grow: 1; padding: 10px; }
+        
+        /* Component-specific styles copied from harnesses */
+        .app-menu button { margin-right: 10px; }
+        .grid { display: grid; position: relative; }
+        .instrument-header { background-color: #ddd; padding: 5px; border-bottom: 1px solid #999; border-right: 1px solid #999; cursor: pointer; user-select: none; }
+        .instrument-header:hover { background-color: #ccc; }
+        .grid-cell { border-bottom: 1px solid #999; border-right: 1px solid #999; min-height: 40px; }
+        .grid-cell img { width: 100%; height: 100%; object-fit: contain; }
+        .playback-indicator { position: absolute; top: 0; bottom: 0; background-color: rgba(255, 0, 0, 0.4); pointer-events: none; }
+        .mixer-track { display: flex; align-items: center; margin-bottom: 10px; }
+        .flow-item { display: flex; align-items: center; padding: 8px; border: 1px solid #ddd; margin-bottom: 5px; background-color: #fff; cursor: grab; }
+        /* Style for active/toggled buttons like the Loop button */.playback-controls {
+        display: flex; /* This is the key change! */
+        align-items: center; /* Vertically align items in the middle */
+        justify-content: space-between; /* Put space between button and slider groups */
+        width: 100%;
+    }
+
+    .button-group button {
+        margin-right: 8px; /* Add some space between buttons */
+    }
+
+    .slider-group {
+        display: flex;
+        align-items: center;
+        gap: 20px; /* Adds space between the two sliders */
+    }
+
+    .control-group {
+        display: flex;
+        align-items: center;
+        gap: 8px; /* Adds space between a label and its slider */
+    }
     .playback-controls button.toggled {
         background-color: #3498db; /* A distinct "on" color */
         color: white;
