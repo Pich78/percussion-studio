@@ -1,15 +1,13 @@
-// file: src/App.js (Refactored as Application Shell - Corrected)
+// file: src/App.js (Updated to use real Sub-Apps)
 import { DataAccessLayer } from './dal/DataAccessLayer.js';
 import { AudioPlayer } from './audio/AudioPlayer.js';
 import { AudioScheduler } from './audio/AudioScheduler.js';
 import { PlaybackController } from './controller/PlaybackController.js';
 import { ProjectController } from './controller/ProjectController.js';
 
-// Sub-App placeholders - will be real imports later
-import { MockPlaybackApp } from '/percussion-studio/test/mocks/MockPlaybackApp.js';
-import { MockEditingApp } from '/percussion-studio/test/mocks/MockEditingApp.js';
-// import { PlaybackApp } from './PlaybackApp.js';
-// import { EditingApp } from './EditingApp.js';
+// --- MODIFICATION: Import real Sub-Apps ---
+import { PlaybackApp } from './PlaybackApp.js';
+import { EditingApp } from './EditingApp.js';
 
 import { AppMenuView } from './view/AppMenuView.js';
 import { ConfirmationDialogView } from './view/ConfirmationDialogView.js';
@@ -29,8 +27,8 @@ export class App {
         };
 
         this.subApps = testConfig.subApps || {
-            PlaybackApp: MockPlaybackApp,
-            EditingApp: MockEditingApp
+            PlaybackApp: PlaybackApp,
+            EditingApp: EditingApp
         };
         const controllers = testConfig.controllers || this.createRealControllers();
 
@@ -39,13 +37,11 @@ export class App {
         this.playbackController = controllers.playbackController;
         this.projectController = controllers.projectController;
 
-        // --- FIX: Safely initialize global views ---
         const appMenuContainer = document.getElementById('app-menu-container');
         if (appMenuContainer) {
             this.appMenuView = new AppMenuView(appMenuContainer, {
                 onToggleView: this.toggleView.bind(this),
                 onLoadProject: this.loadProject.bind(this, 'test_rhythm'),
-                 // ... other menu callbacks
             });
         }
         this.errorModalView = new ErrorModalView(document.body, {});
@@ -69,6 +65,11 @@ export class App {
         }
         this.errorModalView.render(this.state);
         this.confirmationDialogView.render(this.state);
+        
+        if (this.activeSubApp && typeof this.activeSubApp.render === 'function') {
+            this.activeSubApp.props.isLoading = this.state.isLoading;
+            this.activeSubApp.render();
+        }
 
         if (oldAppView !== this.state.appView) {
             this.renderApp();
@@ -98,10 +99,13 @@ export class App {
 
         const subAppProps = {
             rhythm: this.state.currentRhythm,
+            isLoading: this.state.isLoading,
             audioPlayer: this.audioPlayer,
             audioScheduler: this.audioScheduler,
             playbackController: this.playbackController,
         };
+
+        if (!subAppProps.rhythm) return; // Don't render a sub-app without data
 
         if (this.state.appView === 'playing') {
             this.activeSubApp = new this.subApps.PlaybackApp(this.container, subAppProps);
@@ -123,7 +127,6 @@ export class App {
         } else {
             this.setState({ error: { message: "No rhythms found." }, isLoading: false });
         }
-        // Initial render of global views
         if (this.appMenuView) this.appMenuView.render(this.state);
     }
 }
