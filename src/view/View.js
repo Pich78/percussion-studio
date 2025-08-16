@@ -1,4 +1,4 @@
-// file: src/view/View.js (Complete, Corrected Version)
+// file: src/view/View.js (Modified with Logging and CRITICAL FIX)
 import { AppMenuView } from './AppMenuView.js';
 import { PlaybackControlsView } from './PlaybackControlsView.js';
 import { TubsGridView } from './TubsGridView.js';
@@ -6,6 +6,9 @@ import { InstrumentMixerView } from './InstrumentMixerView.js';
 import { RhythmEditorView } from './RhythmEditorView.js';
 import { ConfirmationDialogView } from './ConfirmationDialogView.js';
 import { ErrorModalView } from './ErrorModalView.js';
+
+const getTime = () => new Date().toISOString();
+
 export class View {
 constructor(callbacks) {
 this.callbacks = callbacks;
@@ -29,7 +32,9 @@ this.callbacks = callbacks;
         onPause: () => this.callbacks.onPause(),
         onStop: () => this.callbacks.onStop(),
         onMasterVolumeChange: (vol) => this.callbacks.onMasterVolumeChange(vol),
-        onToggleLoop: (enabled) => this.callbacks.onToggleLoop(enabled)
+        onToggleLoop: (enabled) => this.callbacks.onToggleLoop(enabled),
+        // Pass the BPM callback through
+        onBPMChange: (newBPM) => this.callbacks.onBPMChange(newBPM)
     });
 
     this.tubsGridView = new TubsGridView(tubsGridContainer, {
@@ -54,17 +59,25 @@ this.callbacks = callbacks;
     this.errorModalView = new ErrorModalView(appBody, {
         onErrorDismiss: () => this.callbacks.onErrorDismiss()
     });
-}render(state) {
+}
+render(state) {
+    console.log(`[${getTime()}][View][render][BPM] Main view rendering. Passing state down to sub-views. Current globalBPM: ${state.globalBPM}. Full state:`, state);
     // Add/remove a class on the body to control which main view is visible via CSS
     document.body.classList.toggle('editing-mode', state.appView === 'editing');
 
     this.appMenuView.render({ isDirty: state.isDirty, appView: state.appView });
+    
+    // --- CRITICAL FIX IS HERE ---
+    // You must pass the globalBPM state down to the playback controls view.
     this.playbackControlsView.render({
         isPlaying: state.isPlaying,
         isLoading: state.isLoading,
         masterVolume: state.masterVolume,
-        loopPlayback: state.loopPlayback
+        loopPlayback: state.loopPlayback,
+        globalBPM: state.globalBPM 
     });
+    // --- END OF CRITICAL FIX ---
+
     this.tubsGridView.render({
         rhythm: state.rhythm,
         currentPatternId: state.currentPatternId,

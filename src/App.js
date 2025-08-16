@@ -1,4 +1,4 @@
-// file: src/App.js (Complete, with Mixer Logic)
+// file: src/App.js (Modified with Logging)
 import { DataAccessLayer } from './dal/DataAccessLayer.js';
 import { AudioPlayer } from './audio/AudioPlayer.js';
 import { AudioScheduler } from './audio/AudioScheduler.js';
@@ -6,6 +6,8 @@ import { PlaybackController } from './controller/PlaybackController.js';
 import { ProjectController } from './controller/ProjectController.js';
 import { EditController } from './controller/EditController.js';
 import { View } from './view/View.js';
+
+const getTime = () => new Date().toISOString();
 
 class App {
     constructor() {
@@ -17,6 +19,7 @@ class App {
             rhythm: null, currentPatternId: null, currentMeasureIndex: 0,
             error: null, confirmation: null,
         };
+        console.log(`[${getTime()}][App][constructor][BPM] Initializing state. Default globalBPM: ${this.state.globalBPM}.`);
 
         this.audioPlayer = new AudioPlayer();
         this.audioScheduler = new AudioScheduler(this.audioPlayer,
@@ -41,6 +44,7 @@ class App {
 
             // Playback Callbacks
             onPlay: () => {
+                console.log(`[${getTime()}][App][onPlay][BPM] Play button pressed. Syncing BPM to audio engine with value: ${this.state.globalBPM}.`);
                 // 1. Sync the BPM from the UI state to the audio engine.
                 this.audioScheduler.setBPM(this.state.globalBPM);
                 // 2. Now, tell the controller to play.
@@ -55,7 +59,11 @@ class App {
             },
             onMasterVolumeChange: (vol) => { this.playbackController.setMasterVolume(vol); this.setState({ masterVolume: vol }); },
             onToggleLoop: (enabled) => { this.playbackController.toggleLoop(enabled); this.setState({ loopPlayback: enabled }); },
-            onBPMChange: (newBPM) => { this.setState({ globalBPM: newBPM }); },
+            onBPMChange: (newBPM) => { 
+                console.log(`[${getTime()}][App][onBPMChange][BPM] Received new BPM value from view: ${newBPM}. Updating state.`);
+                this.setState({ globalBPM: newBPM }); 
+                console.log(`[${getTime()}][App][onBPMChange][BPM] State updated by slider. New state:`, this.state);
+            },
             onToggleMetronome: (enabled) => { this.setState({ metronomeEnabled: enabled }); },
 
             // Mixer Callbacks
@@ -163,6 +171,8 @@ class App {
         this.setState({ isLoading: true });
         try {
             const resolvedRhythm = await this.projectController.loadRhythm(id);
+            console.log(`[${getTime()}][App][loadProject][BPM] Received resolved rhythm from controller. Preparing to set state with global_bpm: ${resolvedRhythm.global_bpm}.`);
+
             this.setState({
                 rhythm: resolvedRhythm,
                 currentPatternId: resolvedRhythm.playback_flow[0].pattern,
@@ -171,6 +181,8 @@ class App {
                 isDirty: false,
                 isPlaying: false,
             });
+            console.log(`[${getTime()}][App][loadProject][BPM] State updated after loading project. New state:`, this.state);
+
         } catch (error) {
             console.error(error);
             this.setState({ error: { message: `Failed to load rhythm: ${id}.`, details: error.message }, isLoading: false });
@@ -180,7 +192,7 @@ class App {
     async init() {
         this.view.render(this.state);
         await this.projectController.loadManifest();
-        const defaultRhythmId = this.projectController.manifest.rhythms;
+        const defaultRhythmId = this.projectController.manifest.rhythms[0]; // Assuming you want to load the first rhythm
         if (defaultRhythmId) {
             await this.loadProject(defaultRhythmId);
         } else {

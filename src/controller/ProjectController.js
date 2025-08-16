@@ -1,6 +1,9 @@
-// file: src/controller/ProjectController.js (Complete, Corrected Version)
+// file: src/controller/ProjectController.js (Modified with Logging)
 import { DataAccessLayer } from '../dal/DataAccessLayer.js';
 import JSZip from "https://esm.sh/jszip@3.10.1";
+
+const getTime = () => new Date().toISOString();
+
 export class ProjectController {
   constructor(dal, audioPlayer, audioScheduler) {
     this.dal = dal;
@@ -36,7 +39,7 @@ export class ProjectController {
   }
 
   async loadRhythm(id) {
-    console.log(`[ProjectController] Starting to load rhythm with id: "${id}"`);
+    console.log(`[${getTime()}][ProjectController][loadRhythm][BPM] Starting rhythm load process for id: "${id}".`);
     try {
       // 1. Ensure manifest is loaded
       await this.loadManifest();
@@ -44,6 +47,8 @@ export class ProjectController {
       // 2. Fetch the main rhythm file to find out what we need
       console.log(`[ProjectController] Fetching main rhythm file: ${id}.rthm.yaml`);
       const rhythmData = await this.dal.getRhythm(id);
+      console.log(`[${getTime()}][ProjectController][loadRhythm][BPM] Rhythm file data fetched. Found global_bpm from file: ${rhythmData.global_bpm}. Raw data:`, rhythmData);
+      
       const soundKit = rhythmData.sound_kit;
       const requiredSymbols = Object.keys(soundKit);
       console.log('[ProjectController] Rhythm file loaded. Sound kit requires symbols:', requiredSymbols);
@@ -113,7 +118,7 @@ export class ProjectController {
         resolvedRhythm.soundPacks[`${symbol}.${packName}`] = soundPacks[i];
       });
 
-      console.log('[ProjectController] Successfully assembled final resolved rhythm object.', resolvedRhythm);
+      console.log(`[${getTime()}][ProjectController][loadRhythm][BPM] Assembled final resolved rhythm object to be returned. Value of global_bpm: ${resolvedRhythm.global_bpm}. Full object:`, resolvedRhythm);
       this.audioScheduler.setRhythm(resolvedRhythm);
       return resolvedRhythm;
 

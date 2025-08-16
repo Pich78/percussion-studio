@@ -1,4 +1,6 @@
-// file: src/view/PlaybackControlsView.js (Complete, with BPM Slider)
+// file: src/view/PlaybackControlsView.js (Modified with Logging)
+
+const getTime = () => new Date().toISOString();
 
 export class PlaybackControlsView {
     constructor(container, callbacks) {
@@ -15,6 +17,8 @@ export class PlaybackControlsView {
 
     render(state) {
         const { isPlaying, isLoading, masterVolume, loopPlayback, globalBPM } = state;
+        console.log(`[${getTime()}][PlaybackControlsView][render][BPM] Rendering controls. Received globalBPM: ${globalBPM}. Full state props:`, state);
+
 
         const buttonsDisabled = isLoading;
         const playBtnDisabled = isPlaying || isLoading;
@@ -34,7 +38,7 @@ export class PlaybackControlsView {
                 </div>
                 
                 <!-- Slider Group -->
-                <div class="slider-group">
+                <div class.slider-group">
                     <div class="control-group">
                         <label for="bpm-slider">BPM: <span id="bpm-value">${globalBPM}</span></label>
                         <input type="range" id="bpm-slider" min="40" max="240" step="1" value="${globalBPM}" ${bpmSliderDisabled ? 'disabled' : ''}>
@@ -73,6 +77,7 @@ export class PlaybackControlsView {
     }
     handleBPMChange(event) {
         const newBPM = parseInt(event.target.value, 10);
+        console.log(`[${getTime()}][PlaybackControlsView][handleBPMChange][BPM] Slider value changed. New value: ${newBPM}. Firing onBPMChange callback.`);
         // Update the numeric display in real-time
         this.container.querySelector('#bpm-value').textContent = newBPM;
         this.callbacks.onBPMChange?.(newBPM);
