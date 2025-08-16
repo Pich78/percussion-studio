@@ -1,3 +1,4 @@
+<!-- file: index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,103 +6,13 @@
     <title>Percussion Studio</title>
     <!-- 1. Add Tailwind CSS via CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        /* 2. Custom CSS for things Tailwind doesn't handle easily */
-        .vertical-text {
-            writing-mode: vertical-rl;
-            transform: rotate(180deg);
-        }
-
-        /* NEW: Grid and Playback Indicator Styles */
-        .grid {
-            position: relative;
-            display: grid;
-            gap: 1px;
-            background-color: #e2e8f0;
-            border: 1px solid #cbd5e1;
-            border-radius: 4px;
-            overflow: hidden;
-        }
-
-        /* Playback indicator - the moving highlight */
-        .playback-indicator {
-            position: absolute;
-            top: 0;
-            height: 100%;
-            background: linear-gradient(90deg, 
-                rgba(59, 130, 246, 0.3) 0%, 
-                rgba(59, 130, 246, 0.5) 50%, 
-                rgba(59, 130, 246, 0.3) 100%);
-            border-left: 2px solid rgb(59, 130, 246);
-            border-right: 1px solid rgba(59, 130, 246, 0.6);
-            pointer-events: none;
-            z-index: 10;
-            transition: left 0.05s ease-out;
-        }
-
-        /* Instrument headers (left column) */
-        .instrument-header {
-            background-color: #f8fafc;
-            border: 1px solid #e2e8f0;
-            padding: 8px 4px;
-            font-weight: 600;
-            text-align: center;
-            cursor: pointer;
-            transition: background-color 0.15s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-        }
-
-        .instrument-header:hover {
-            background-color: #e2e8f0;
-        }
-
-        /* Grid cells (where the notes appear) */
-        .grid-cell {
-            background-color: white;
-            border: 1px solid #e2e8f0;
-            padding: 4px;
-            min-height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background-color 0.1s ease;
-        }
-
-        .grid-cell:hover {
-            background-color: #f1f5f9;
-        }
-
-        /* Note images inside grid cells */
-        .grid-cell img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-        }
-
-        /* Optional: Add some visual feedback for beats */
-        .grid-cell:nth-child(4n+2) { /* Every 4th beat */
-            border-left: 2px solid #94a3b8;
-        }
-
-        /* Add subtle alternating row colors */
-        .grid .instrument-header:nth-child(odd) {
-            background-color: #f1f5f9;
-        }
-
-        .grid .instrument-header:nth-child(odd) ~ .grid-cell:nth-child(even) {
-            background-color: #f9fafb;
-        }
-    </style>
+    <!-- 2. Link to the global custom stylesheet -->
+    <link rel="stylesheet" href="/percussion-studio/css/main.css">
 </head>
-<!-- 3. Apply global Tailwind classes for a Material look -->
 <body class="bg-slate-100 text-slate-800 flex flex-col h-screen">
 
     <header id="app-menu-container" class="bg-white shadow-md z-20 h-16 flex items-center px-4"></header>
 
-    <!-- The main container is now a flex-grow element with a relative position for the sidebars -->
     <main id="app-main-container" class="flex-grow relative overflow-hidden"></main>
     
     <script type="module">

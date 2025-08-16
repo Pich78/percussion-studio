@@ -1,4 +1,4 @@
-// file: src/view/AppMenuView.js (Complete)
+// file: src/view/AppMenuView.js
 export class AppMenuView {
     constructor(container, callbacks) {
         this.container = container;
@@ -7,17 +7,22 @@ export class AppMenuView {
 
     render(state) {
         const { isDirty, appView } = state;
-        const saveDisabled = !isDirty;
+        
+        const btnBase = "px-4 py-2 rounded-md text-sm font-medium transition-colors duration-150";
+        const btnPrimary = "bg-slate-100 hover:bg-slate-200 text-slate-700";
+        const btnSave = "bg-blue-500 hover:bg-blue-600 text-white disabled:bg-slate-400";
 
-        // Determine button text based on the current view
-        const toggleViewText = appView === 'editing' ? 'Go to Playing View' : 'Go to Editing View';
+        const toggleViewText = appView === 'editing' ? 'Go to Playing' : 'Go to Editing';
 
         const html = `
-            <div class="app-menu">
-                <button id="new-btn">New Project</button>
-                <button id="load-btn">Load Project</button>
-                <button id="save-btn" ${saveDisabled ? 'disabled' : ''}>Save Project</button>
-                <button id="toggle-view-btn">${toggleViewText}</button>
+            <div class="flex items-center gap-4">
+                <h1 class="text-xl font-bold text-slate-700 mr-4">Percussion Studio</h1>
+                <button id="new-btn" class="${btnBase} ${btnPrimary}">New</button>
+                <button id="load-btn" class="${btnBase} ${btnPrimary}">Load</button>
+                <button id="save-btn" class="${btnBase} ${btnSave}" ${!isDirty ? 'disabled' : ''}>Save</button>
+            </div>
+            <div class="ml-auto">
+                <button id="toggle-view-btn" class="${btnBase} ${btnPrimary}">${toggleViewText}</button>
             </div>
         `;
         this.container.innerHTML = html;
@@ -25,18 +30,9 @@ export class AppMenuView {
     }
 
     attachEventListeners() {
-        this.container.querySelector('#new-btn')?.addEventListener('click', () => {
-            this.callbacks.onNewProject?.();
-        });
-        this.container.querySelector('#load-btn')?.addEventListener('click', () => {
-            this.callbacks.onLoadProject?.();
-        });
-        this.container.querySelector('#save-btn')?.addEventListener('click', () => {
-            this.callbacks.onSaveProject?.();
-        });
-        // Add event listener for the new button
-        this.container.querySelector('#toggle-view-btn')?.addEventListener('click', () => {
-            this.callbacks.onToggleView?.();
-        });
+        this.container.querySelector('#new-btn')?.addEventListener('click', () => this.callbacks.onNewProject?.());
+        this.container.querySelector('#load-btn')?.addEventListener('click', () => this.callbacks.onLoadProject?.());
+        this.container.querySelector('#save-btn')?.addEventListener('click', () => this.callbacks.onSaveProject?.());
+        this.container.querySelector('#toggle-view-btn')?.addEventListener('click', () => this.callbacks.onToggleView?.());
     }
 }

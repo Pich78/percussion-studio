@@ -4,50 +4,40 @@
 <head>
     <meta charset="UTF-8">
     <title>Test Harness: AppMenuView</title>
-    <style>
-        body { font-family: sans-serif; display: flex; gap: 20px; padding: 20px; }
-        .test-panel, .live-panel, .log-panel { border: 1px solid #ccc; padding: 10px; }
-        .test-panel { flex: 2; }
-        .live-panel { flex: 2; background-color: #f0f0f0; }
-        .log-panel { flex: 1; background-color: #f9f9f9; }
-        #log-output { white-space: pre-wrap; word-wrap: break-word; font-family: monospace; font-size: 12px; }
-        button { font-size: 14px; padding: 8px 12px; margin: 0 5px 10px 0; }
-        h1, h2, h3 { border-bottom: 1px solid #ccc; padding-bottom: 5px; }
-    </style>
+    <!-- 1. Add Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 2. Link to the global custom stylesheet -->
+    <link rel="stylesheet" href="/percussion-studio/css/main.css">
 </head>
-<body>
-    <div class="test-panel">
-        <h1>Automated Tests</h1>
-        <button id="run-tests-btn">Run Automated Tests</button>
-        <div id="test-results"></div>
-    </div>
-    <div class="live-panel">
-        <h1>Live View Workbench</h1>
-        <p>In this harness, clicking "Toggle View" simulates the callback, then immediately re-renders with the new state.</p>
-        <div id="view-container"></div>
-        <hr>
-        <h3>Simulate State Changes</h3>
-        <div>
-            <label><input type="checkbox" id="is-dirty-check"> isDirty (unsaved changes)</label>
-        </div>
-        <div id="current-state-display" style="margin-top: 10px; font-family: monospace;"></div>
-    </div>
-    <div class="log-panel">
-        <h2>Execution Log</h2>
-        <pre id="log-output"></pre>
-    </div>
-    <div id="test-sandbox" style="position: absolute; visibility: hidden;"></div>
-    <script type="module">
-        import { run, manualTest } from '/percussion-studio/test/suites/view/AppMenuView.test.js';
+<body class="bg-slate-100 p-8">
+    <h1 class="text-2xl font-bold mb-4 border-b pb-2">Live View: <code>AppMenuView.js</code></h1>
+    
+    <div id="view-container" class="bg-white shadow-md z-20 h-16 flex items-center px-4 mb-8"></div>
 
-        document.getElementById('run-tests-btn').addEventListener('click', () => {
-            document.getElementById('test-results').innerHTML = '<h2>Running tests...</h2>';
-            run();
+    <div class="controls space-x-2">
+        <button id="render-clean-btn" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Render (Clean State)</button>
+        <button id="render-dirty-btn" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">Render (Dirty State)</button>
+    </div>
+
+    <script type="module">
+        import { AppMenuView } from '/percussion-studio/src/view/AppMenuView.js';
+
+        const container = document.getElementById('view-container');
+        const view = new AppMenuView(container, {
+            onNewProject: () => console.log('Callback: onNewProject fired'),
+            onLoadProject: () => console.log('Callback: onLoadProject fired'),
+            onSaveProject: () => console.log('Callback: onSaveProject fired'),
+            onToggleView: () => console.log('Callback: onToggleView fired'),
         });
 
-        const { rerender } = manualTest();
-        document.getElementById('is-dirty-check').addEventListener('change', rerender);
-        rerender(); // Initial render
+        view.render({ isDirty: false, appView: 'playing' });
+
+        document.getElementById('render-clean-btn').addEventListener('click', () => {
+            view.render({ isDirty: false, appView: 'playing' });
+        });
+        document.getElementById('render-dirty-btn').addEventListener('click', () => {
+            view.render({ isDirty: true, appView: 'editing' });
+        });
     </script>
 </body>
 </html>
