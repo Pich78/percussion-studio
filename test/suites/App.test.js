@@ -1,12 +1,11 @@
-// file: test/suites/App.test.js
+// file: test/suites/App.test.js (Corrected)
 
 import { TestRunner } from '/percussion-studio/test/lib/TestRunner.js';
 import { MockLogger } from '/percussion-studio/test/mocks/MockLogger.js';
-import { App } from '/percussion-studio/src/App.js'; // The class we are testing
+import { App } from '/percussion-studio/src/App.js';
 import { MockPlaybackApp } from '/percussion-studio/test/mocks/MockPlaybackApp.js';
 import { MockEditingApp } from '/percussion-studio/test/mocks/MockEditingApp.js';
 
-// Mock the global controllers so the App can initialize
 const createMockControllers = () => ({
     projectController: { loadManifest: () => Promise.resolve(), loadRhythm: () => Promise.resolve({ global_bpm: 120 }) },
     playbackController: {},
@@ -31,7 +30,10 @@ export async function run() {
 
     runner.describe('App Shell Routing', () => {
         runner.it('should switch appView state when toggleView is called', () => {
-            const app = new App(document.createElement('div'), { controllers: createMockControllers() });
+            const app = new App(document.createElement('div'), {
+                controllers: createMockControllers(),
+                subApps: { PlaybackApp: MockPlaybackApp, EditingApp: MockEditingApp }
+            });
             app.toggleView();
             runner.expect(app.state.appView).toBe('editing');
             app.toggleView();
@@ -44,8 +46,9 @@ export async function run() {
                 controllers: createMockControllers(),
                 subApps: { PlaybackApp: MockPlaybackApp, EditingApp: MockEditingApp }
             });
-            app.renderApp(); // Manually trigger render
-            runner.expect(container.textContent).toContain('PlaybackApp is Active');
+            app.renderApp();
+            // --- FIX: Use correct assertion ---
+            runner.expect(container.textContent.includes('PlaybackApp is Active')).toBe(true);
         });
 
         runner.it('should instantiate EditingApp when view is "editing"', () => {
@@ -54,9 +57,10 @@ export async function run() {
                 controllers: createMockControllers(),
                 subApps: { PlaybackApp: MockPlaybackApp, EditingApp: MockEditingApp }
             });
-            app.toggleView(); // Switch to editing
+            app.toggleView();
             app.renderApp();
-            runner.expect(container.textContent).toContain('EditingApp is Active');
+            // --- FIX: Use correct assertion ---
+            runner.expect(container.textContent.includes('EditingApp is Active')).toBe(true);
         });
 
         runner.it('should call destroy() on the old sub-app when switching views', () => {
@@ -65,13 +69,12 @@ export async function run() {
                 controllers: createMockControllers(),
                 subApps: { PlaybackApp: MockPlaybackApp, EditingApp: MockEditingApp }
             });
-            app.renderApp(); // Renders PlaybackApp
+            app.renderApp();
             const playbackAppInstance = app.activeSubApp;
             const logger = new MockLogger('destroy-spy');
-            playbackAppInstance.destroy = () => logger.log('destroy'); // Add a spy
+            playbackAppInstance.destroy = () => logger.log('destroy');
 
-            app.toggleView(); // Switch to editing
-            app.renderApp();
+            app.toggleView();
 
             logger.wasCalledWith('destroy');
         });

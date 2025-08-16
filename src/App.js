@@ -1,4 +1,4 @@
-// file: src/App.js (Refactored as Application Shell)
+// file: src/App.js (Refactored as Application Shell - Corrected)
 import { DataAccessLayer } from './dal/DataAccessLayer.js';
 import { AudioPlayer } from './audio/AudioPlayer.js';
 import { AudioScheduler } from './audio/AudioScheduler.js';
@@ -28,10 +28,9 @@ export class App {
             confirmation: null,
         };
 
-        // Allow injecting mocks for testing
         this.subApps = testConfig.subApps || {
-            PlaybackApp: MockPlaybackApp, // Replace with real PlaybackApp
-            EditingApp: MockEditingApp    // Replace with real EditingApp
+            PlaybackApp: MockPlaybackApp,
+            EditingApp: MockEditingApp
         };
         const controllers = testConfig.controllers || this.createRealControllers();
 
@@ -40,12 +39,15 @@ export class App {
         this.playbackController = controllers.playbackController;
         this.projectController = controllers.projectController;
 
-        // Global views managed by the shell
-        this.appMenuView = new AppMenuView(document.getElementById('app-menu-container'), {
-            onToggleView: this.toggleView.bind(this),
-            onLoadProject: this.loadProject.bind(this, 'test_rhythm'), // Example ID
-            // ... other menu callbacks
-        });
+        // --- FIX: Safely initialize global views ---
+        const appMenuContainer = document.getElementById('app-menu-container');
+        if (appMenuContainer) {
+            this.appMenuView = new AppMenuView(appMenuContainer, {
+                onToggleView: this.toggleView.bind(this),
+                onLoadProject: this.loadProject.bind(this, 'test_rhythm'),
+                 // ... other menu callbacks
+            });
+        }
         this.errorModalView = new ErrorModalView(document.body, {});
         this.confirmationDialogView = new ConfirmationDialogView(document.body, {});
     }
@@ -59,18 +61,18 @@ export class App {
     }
 
     setState(newState) {
-        const oldState = { ...this.state };
+        const oldAppView = this.state.appView;
         this.state = { ...this.state, ...newState };
 
-        // If the view has changed, re-route the sub-app
-        if (oldState.appView !== this.state.appView) {
-            this.renderApp();
+        if (this.appMenuView) {
+            this.appMenuView.render(this.state);
         }
-
-        // Always render global components
-        this.appMenuView.render(this.state);
         this.errorModalView.render(this.state);
         this.confirmationDialogView.render(this.state);
+
+        if (oldAppView !== this.state.appView) {
+            this.renderApp();
+        }
     }
 
     toggleView() {
@@ -83,7 +85,7 @@ export class App {
         try {
             const rhythm = await this.projectController.loadRhythm(id);
             this.setState({ currentRhythm: rhythm, isLoading: false });
-            this.renderApp(); // Re-render the sub-app with the new rhythm
+            this.renderApp();
         } catch (error) {
             this.setState({ error: { message: `Failed to load rhythm: ${id}`, details: error.message }, isLoading: false });
         }
@@ -121,5 +123,7 @@ export class App {
         } else {
             this.setState({ error: { message: "No rhythms found." }, isLoading: false });
         }
+        // Initial render of global views
+        if (this.appMenuView) this.appMenuView.render(this.state);
     }
 }
