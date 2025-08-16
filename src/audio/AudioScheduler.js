@@ -1,4 +1,4 @@
-// file: src/audio/AudioScheduler.js (Modified with Fix and Logging)
+// file: src/audio/AudioScheduler.js (Corrected with Proper Timing Logic and Logging)
 
 const getTime = () => new Date().toISOString();
 
@@ -10,7 +10,7 @@ export class AudioScheduler {
 
         this.rhythm = null;
         this.isPlaying = false;
-        this.bpm = 120; // Default BPM
+        this.bpm = 120;
 
         this.currentTick = 0;
         this.tickMap = [];
@@ -23,36 +23,23 @@ export class AudioScheduler {
         this.lookahead = 25.0;
     }
 
-    /**
-     * Updates the playback tempo and rebuilds the timing map.
-     * @param {number} newBPM The new tempo in beats per minute.
-     */
     setBPM(newBPM) {
         console.log(`[${getTime()}][AudioScheduler][setBPM][BPM] Received new BPM value: ${newBPM}.`);
         this.bpm = newBPM;
-        // If a rhythm is loaded, we must rebuild the tick map with the new timing info.
         if (this.rhythm) {
             console.log(`[${getTime()}][AudioScheduler][setBPM][BPM] Rhythm is loaded, rebuilding tick map to apply new BPM.`);
             this.rebuildTickMap();
         }
     }
 
-    /**
-     * Loads a new rhythm, sets its BPM, and builds the initial timing map.
-     * @param {object} resolvedRhythm The fully resolved rhythm object.
-     */
     setRhythm(resolvedRhythm) {
         this.rhythm = resolvedRhythm;
-        // This is the ONLY place where the BPM should be set from the rhythm file.
         this.bpm = this.rhythm.global_bpm || this.bpm;
         console.log(`[${getTime()}][AudioScheduler][setRhythm][BPM] Setting initial BPM from loaded rhythm file: ${this.bpm}.`);
         this.rebuildTickMap();
         this.resetPosition();
     }
 
-    /**
-     * Centralized method to calculate the timing of every note based on the current BPM.
-     */
     rebuildTickMap() {
         this.tickMap = [];
         if (!this.rhythm?.playback_flow?.length || !this.rhythm.patterns) {
@@ -70,8 +57,13 @@ export class AudioScheduler {
             for (let r = 0; r < repetitions; r++) {
                 pattern.pattern_data.forEach(measureData => {
                     const resolution = pattern.metadata.resolution || 16;
-                    const ticksPerBeat = resolution / 4.0;
-                    const secondsPerTick = secondsPerBeat / ticksPerBeat;
+                    
+                    // --- TIMING CALCULATION FIX ---
+                    const metric = pattern.metadata.metric || '4/4';
+                    const beatsPerMeasure = parseInt(metric.split('/')[0], 10) || 4;
+                    const secondsPerMeasure = secondsPerBeat * beatsPerMeasure;
+                    const secondsPerTick = secondsPerMeasure / resolution;
+                    // --- END OF FIX ---
                     
                     for (let t = 0; t < resolution; t++) {
                         const instrumentsToPlay = [];
@@ -90,7 +82,7 @@ export class AudioScheduler {
                 });
             }
         });
-        console.log(`[${getTime()}][AudioScheduler][rebuildTickMap][BPM] Tick map rebuild complete. Total ticks: ${this.tickMap.length}.`);
+        console.log(`[${getTime()}][AudioScheduler][rebuildTickMap][BPM] Tick map rebuild complete. Total ticks: ${this.tickMap.length}. Calculated secondsPerTick: ${this.tickMap[0]?.secondsPerTick || 'N/A'}`);
     }
 
     play() {
@@ -139,7 +131,6 @@ export class AudioScheduler {
         
         const tickData = this.tickMap[this.currentTick];
 
-        // The onUpdateCallback was missing the measure index. Let's calculate it.
         const resolution = this.rhythm.patterns[this.rhythm.playback_flow[0].pattern].metadata.resolution;
         const currentMeasure = Math.floor(this.currentTick / resolution);
         
