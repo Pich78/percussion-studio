@@ -1,11 +1,10 @@
-// file: test/suites/EditingApp.test.js
+// file: test/suites/EditingApp.test.js (Corrected with Robust Mocks)
 
 import { TestRunner } from '/percussion-studio/test/lib/TestRunner.js';
 import { MockLogger } from '/percussion-studio/test/mocks/MockLogger.js';
 import { EditingApp } from '/percussion-studio/src/EditingApp.js';
 
 // --- Mocks ---
-// Mock the controller to spy on its method calls
 class MockEditController {
     constructor() { this.logger = new MockLogger('MockEditController'); }
     updatePlaybackFlow(rhythm, newFlow) { this.logger.log('updatePlaybackFlow', { newFlow }); return { ...rhythm, playback_flow: newFlow, updated: true }; }
@@ -16,19 +15,29 @@ class MockEditController {
     addPattern(rhythm, payload) { this.logger.log('addPattern', { payload }); return { ...rhythm, patterns: {...rhythm.patterns, [payload.patternId]: {}}, playback_flow: [...rhythm.playback_flow], updated: true }; }
 }
 
-// Mock the view since we are not testing the DOM here
 class MockRhythmEditorView {
     constructor() { this.logger = new MockLogger('MockRhythmEditorView'); }
     render(state) { this.logger.log('render', state); }
 }
 
-// Helper to create props for the EditingApp
+// --- FIX: Create a more realistic mock rhythm object ---
+const createMockRhythm = () => ({
+    global_bpm: 120,
+    playback_flow: [{ pattern: 'p1', repetitions: 4 }],
+    patterns: {
+        p1: {
+            metadata: { resolution: 16, metric: '4/4' },
+            pattern_data: [{ KCK: '||----------------||' }]
+        }
+    }
+});
+
 const createMockProps = (rhythm) => {
     const logger = new MockLogger('AppShell');
     return {
-        rhythm: rhythm || { global_bpm: 120, playback_flow: [{ pattern: 'p1' }], patterns: {p1: {}} },
+        rhythm: rhythm || createMockRhythm(),
         onRhythmUpdate: (newRhythm) => logger.log('onRhythmUpdate', newRhythm),
-        shellLogger: logger // Expose the logger for assertions
+        shellLogger: logger
     };
 };
 
@@ -37,16 +46,15 @@ export async function run() {
     MockLogger.clearLogs();
     MockLogger.setLogTarget('log-output');
     
-    // Inject the mock EditController into the EditingApp prototype for testing
-    EditingApp.prototype.editController = new MockEditController();
-    EditingApp.prototype.rhythmEditorView = new MockRhythmEditorView();
-
-
     runner.describe('EditingApp Initialization', () => {
         runner.it('should initialize with correct default state', () => {
             const container = document.createElement('div');
-            const props = createMockProps({ playback_flow: [{ pattern: 'verse' }] });
+            const rhythm = createMockRhythm();
+            rhythm.playback_flow[0].pattern = 'verse'; // Customize for test
+            const props = createMockProps(rhythm);
             const editingApp = new EditingApp(container, props);
+            // Inject mocks post-construction for a cleaner test
+            editingApp.rhythmEditorView = new MockRhythmEditorView();
 
             runner.expect(editingApp.state.isDirty).toBe(false);
             runner.expect(editingApp.state.currentEditingPatternId).toBe('verse');
@@ -58,12 +66,15 @@ export async function run() {
             const container = document.createElement('div');
             const props = createMockProps();
             const editingApp = new EditingApp(container, props);
+            editingApp.editController = new MockEditController(); // Inject mock
+            editingApp.rhythmEditorView = new MockRhythmEditorView();
             
             const newFlow = [{ pattern: 'new_p', repetitions: 1 }];
             editingApp.handleFlowChange(newFlow);
 
             runner.expect(editingApp.state.isDirty).toBe(true);
-            props.shellLogger.wasCalledWith('onRhythmUpdate', { ...props.rhythm, playback_flow: newFlow, updated: true });
+            const expectedRhythm = { ...props.rhythm, playback_flow: newFlow, updated: true };
+            props.shellLogger.wasCalledWith('onRhythmUpdate', expectedRhythm);
             editingApp.editController.logger.wasCalledWith('updatePlaybackFlow', { newFlow });
         });
 
@@ -71,12 +82,15 @@ export async function run() {
             const container = document.createElement('div');
             const props = createMockProps();
             const editingApp = new EditingApp(container, props);
+            editingApp.editController = new MockEditController(); // Inject mock
+            editingApp.rhythmEditorView = new MockRhythmEditorView();
 
             const position = { patternId: 'p1', tick: 0, note: 'o' };
             editingApp.handleAddNote(position);
 
             runner.expect(editingApp.state.isDirty).toBe(true);
-            props.shellLogger.wasCalledWith('onRhythmUpdate', { ...props.rhythm, updated: true });
+            const expectedRhythm = { ...props.rhythm, updated: true };
+            props.shellLogger.wasCalledWith('onRhythmUpdate', expectedRhythm);
             editingApp.editController.logger.wasCalledWith('addNote', { pos: position });
         });
         
@@ -84,11 +98,11 @@ export async function run() {
             const container = document.createElement('div');
             const props = createMockProps();
             const editingApp = new EditingApp(container, props);
+            editingApp.rhythmEditorView = new MockRhythmEditorView();
             
             editingApp.handlePatternSelect('new_pattern_id');
             
             runner.expect(editingApp.state.currentEditingPatternId).toBe('new_pattern_id');
-            // Check that onRhythmUpdate was NOT called for an internal state change
             runner.expect(props.shellLogger.callCount).toBe(0);
         });
     });
