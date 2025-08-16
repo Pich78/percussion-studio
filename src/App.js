@@ -1,238 +1,125 @@
-// file: src/App.js (Modified with Keyboard Controls)
+// file: src/App.js (Refactored as Application Shell)
 import { DataAccessLayer } from './dal/DataAccessLayer.js';
 import { AudioPlayer } from './audio/AudioPlayer.js';
 import { AudioScheduler } from './audio/AudioScheduler.js';
 import { PlaybackController } from './controller/PlaybackController.js';
 import { ProjectController } from './controller/ProjectController.js';
-import { EditController } from './controller/EditController.js';
-import { View } from './view/View.js';
 
-const getTime = () => new Date().toISOString();
+// Sub-App placeholders - will be real imports later
+import { MockPlaybackApp } from '/percussion-studio/test/mocks/MockPlaybackApp.js';
+import { MockEditingApp } from '/percussion-studio/test/mocks/MockEditingApp.js';
+// import { PlaybackApp } from './PlaybackApp.js';
+// import { EditingApp } from './EditingApp.js';
 
-class App {
-    constructor() {
+import { AppMenuView } from './view/AppMenuView.js';
+import { ConfirmationDialogView } from './view/ConfirmationDialogView.js';
+import { ErrorModalView } from './view/ErrorModalView.js';
+
+export class App {
+    constructor(container, testConfig = {}) {
+        this.container = container;
+        this.activeSubApp = null;
+
         this.state = {
             appView: 'playing',
-            isLoading: true, isPlaying: false, isDirty: false, loopPlayback: false, metronomeEnabled: false,
-            masterVolume: 1.0,
-            globalBPM: 100,
-            rhythm: null, currentPatternId: null, currentMeasureIndex: 0,
-            error: null, confirmation: null,
+            isLoading: true,
+            currentRhythm: null,
+            error: null,
+            confirmation: null,
         };
-        console.log(`[${getTime()}][App][constructor][BPM] Initializing state. Default globalBPM: ${this.state.globalBPM}.`);
 
-        this.audioPlayer = new AudioPlayer();
-        this.audioScheduler = new AudioScheduler(this.audioPlayer,
-            (tick, measure) => { // onTick callback
-                this.view.tubsGridView.updatePlaybackIndicator(tick);
-                if (this.state.currentMeasureIndex !== measure) {
-                    this.setState({ currentMeasureIndex: measure });
-                }
-            },
-            () => { // onPlaybackEnded callback
-                this.setState({ isPlaying: false });
-            }
-        );
+        // Allow injecting mocks for testing
+        this.subApps = testConfig.subApps || {
+            PlaybackApp: MockPlaybackApp, // Replace with real PlaybackApp
+            EditingApp: MockEditingApp    // Replace with real EditingApp
+        };
+        const controllers = testConfig.controllers || this.createRealControllers();
 
-        this.playbackController = new PlaybackController(this.audioScheduler, this.audioPlayer);
-        this.projectController = new ProjectController(DataAccessLayer, this.audioPlayer, this.audioScheduler);
-        this.editController = new EditController();
+        this.audioPlayer = controllers.audioPlayer;
+        this.audioScheduler = controllers.audioScheduler;
+        this.playbackController = controllers.playbackController;
+        this.projectController = controllers.projectController;
 
-        this.view = new View({
-            // View Mode Callback
-            onToggleView: () => this.toggleViewMode(),
-
-            // Playback Callbacks
-            onPlay: () => {
-                console.log(`[${getTime()}][App][onPlay][BPM] Play button pressed. Syncing BPM to audio engine with value: ${this.state.globalBPM}.`);
-                // 1. Sync the BPM from the UI state to the audio engine.
-                this.audioScheduler.setBPM(this.state.globalBPM);
-                // 2. Now, tell the controller to play.
-                this.playbackController.play();
-                this.setState({ isPlaying: true });
-            },      
-            onPause: () => { this.playbackController.pause(); this.setState({ isPlaying: false }); },
-            onStop: () => {
-                this.playbackController.stop();
-                this.setState({ isPlaying: false, currentMeasureIndex: 0 });
-                this.view.tubsGridView.updatePlaybackIndicator(0);
-            },
-            onMasterVolumeChange: (vol) => { this.playbackController.setMasterVolume(vol); this.setState({ masterVolume: vol }); },
-            onToggleLoop: (enabled) => { this.playbackController.toggleLoop(enabled); this.setState({ loopPlayback: enabled }); },
-            onBPMChange: (newBPM) => { 
-                console.log(`[${getTime()}][App][onBPMChange][BPM] Received new BPM value from view: ${newBPM}. Updating state.`);
-                this.setState({ globalBPM: newBPM }); 
-                console.log(`[${getTime()}][App][onBPMChange][BPM] State updated by slider. New state:`, this.state);
-            },
-            onToggleMetronome: (enabled) => { this.setState({ metronomeEnabled: enabled }); },
-
-            // Mixer Callbacks
-            onInstrumentVolumeChange: (id, vol) => this.handleMixerChange(id, { volume: vol }),
-            onInstrumentMuteToggle: (id, muted) => this.handleMixerChange(id, { muted }),
-
-            // Project Lifecycle Callbacks
-            onNewProject: () => this.handleProjectAction(() => this.newProject()),
-            onLoadProject: (id) => this.handleProjectAction(() => this.loadProject(id)),
-            onSaveProject: () => { this.projectController.saveProject(this.state.rhythm, 'my-rhythm'); this.setState({ isDirty: false }); },
-
-            // Editing Callbacks
-            onFlowChange: (newFlow) => this.handleEdit(() => this.editController.updatePlaybackFlow(this.state.rhythm, newFlow)),
-
-            onAddPatternClick: () => {
-                const patternId = prompt("Enter a unique name for the new pattern (e.g., 'new_chorus'):");
-                if (patternId && patternId.trim() !== "") {
-                    this.handleEdit(() => this.editController.addPattern(this.state.rhythm, {
-                        patternId: patternId.trim(),
-                        metadata: { name: patternId.trim(), metric: '4/4', resolution: 16 }
-                    }));
-                }
-            },
-
-            // TubsGridView Callbacks
-            onToggleInstrumentMute: (symbol) => {
-                const soundPackName = this.state.rhythm.sound_kit[symbol];
-                const isMuted = this.state.rhythm.mixer[soundPackName]?.muted ?? false;
-                this.handleMixerChange(soundPackName, { muted: !isMuted });
-            },
-
-            // Modal Callbacks
-            onErrorDismiss: () => this.setState({ error: null }),
-            onConfirmationAccept: () => {
-                const action = this.state.confirmation.onAccept;
-                this.setState({ confirmation: null });
-                action();
-            },
-            onConfirmationCancel: () => this.setState({ confirmation: null }),
+        // Global views managed by the shell
+        this.appMenuView = new AppMenuView(document.getElementById('app-menu-container'), {
+            onToggleView: this.toggleView.bind(this),
+            onLoadProject: this.loadProject.bind(this, 'test_rhythm'), // Example ID
+            // ... other menu callbacks
         });
-
-        window.addEventListener('beforeunload', (e) => {
-            if (this.state.isDirty) {
-                e.preventDefault();
-                e.returnValue = '';
-            }
-        });
-
-        // --- MODIFICATION START ---
-        // Add a global listener for keyboard events.
-        window.addEventListener('keydown', this.handleKeyDown.bind(this));
-        // --- MODIFICATION END ---
+        this.errorModalView = new ErrorModalView(document.body, {});
+        this.confirmationDialogView = new ConfirmationDialogView(document.body, {});
     }
 
-    // --- MODIFICATION START ---
-    /**
-     * Handles global keydown events for fine-tuning the BPM.
-     * @param {KeyboardEvent} event The keyboard event.
-     */
-    handleKeyDown(event) {
-        // We only care about ArrowLeft and ArrowRight, and only when not playing.
-        if (this.state.isPlaying || (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight')) {
-            return;
-        }
-
-        // Prevent the browser's default behavior (like scrolling).
-        event.preventDefault();
-
-        const currentBPM = this.state.globalBPM;
-        let newBPM = event.key === 'ArrowLeft' ? currentBPM - 1 : currentBPM + 1;
-
-        // Clamp the new value to the valid range [20, 200].
-        const minBPM = 20;
-        const maxBPM = 200;
-        newBPM = Math.max(minBPM, Math.min(newBPM, maxBPM));
-
-        // Only update the state if the BPM has actually changed.
-        if (newBPM !== currentBPM) {
-            console.log(`[${getTime()}][App][handleKeyDown][BPM] Key press '${event.key}' updating BPM from ${currentBPM} to ${newBPM}.`);
-            this.setState({ globalBPM: newBPM });
-        }
+    createRealControllers() {
+        const audioPlayer = new AudioPlayer();
+        const audioScheduler = new AudioScheduler(audioPlayer, () => {}, () => {});
+        const playbackController = new PlaybackController(audioScheduler, audioPlayer);
+        const projectController = new ProjectController(DataAccessLayer, audioPlayer, audioScheduler);
+        return { audioPlayer, audioScheduler, playbackController, projectController, dal: DataAccessLayer };
     }
-    // --- MODIFICATION END ---
 
     setState(newState) {
+        const oldState = { ...this.state };
         this.state = { ...this.state, ...newState };
-        this.view.render(this.state);
-    } // --- State Update Helpers ---
 
-    toggleViewMode() {
+        // If the view has changed, re-route the sub-app
+        if (oldState.appView !== this.state.appView) {
+            this.renderApp();
+        }
+
+        // Always render global components
+        this.appMenuView.render(this.state);
+        this.errorModalView.render(this.state);
+        this.confirmationDialogView.render(this.state);
+    }
+
+    toggleView() {
         const newView = this.state.appView === 'playing' ? 'editing' : 'playing';
         this.setState({ appView: newView });
     }
 
-    handleMixerChange(id, props) {
-        const newMixer = {
-            ...this.state.rhythm.mixer,
-            [id]: { ...this.state.rhythm[id], ...props }
-        };
-        this.playbackController.setInstrumentMix(newMixer);
-        this.setState({ rhythm: { ...this.state.rhythm, mixer: newMixer }, isDirty: true });
-    }
-
-    handleEdit(editFunction) {
-        const newRhythm = editFunction();
-        this.setState({ rhythm: newRhythm, isDirty: true });
-    }
-
-    handleProjectAction(action) {
-        if (this.state.isDirty) {
-            this.setState({
-                confirmation: {
-                    message: 'You have unsaved changes. Are you sure you want to continue?',
-                    onAccept: action,
-                }
-            });
-        } else {
-            action();
-        }
-    } // --- Core Logic Methods ---
-
-    async newProject() {
-        console.log("Creating new project...");
-        const newRhythm = this.projectController.createNewRhythm();
-        this.setState({
-            rhythm: newRhythm,
-            currentPatternId: newRhythm.playback_flow.pattern,
-            globalBPM: newRhythm.global_bpm,
-            isDirty: true,
-            isPlaying: false,
-            isLoading: false,
-            appView: 'editing'
-        });
-    }
-
     async loadProject(id) {
-        console.log(`Loading project: ${id}...`);
         this.setState({ isLoading: true });
         try {
-            const resolvedRhythm = await this.projectController.loadRhythm(id);
-            console.log(`[${getTime()}][App][loadProject][BPM] Received resolved rhythm from controller. Preparing to set state with global_bpm: ${resolvedRhythm.global_bpm}.`);
-
-            this.setState({
-                rhythm: resolvedRhythm,
-                currentPatternId: resolvedRhythm.playback_flow[0].pattern,
-                globalBPM: resolvedRhythm.global_bpm,
-                isLoading: false,
-                isDirty: false,
-                isPlaying: false,
-            });
-            console.log(`[${getTime()}][App][loadProject][BPM] State updated after loading project. New state:`, this.state);
-
+            const rhythm = await this.projectController.loadRhythm(id);
+            this.setState({ currentRhythm: rhythm, isLoading: false });
+            this.renderApp(); // Re-render the sub-app with the new rhythm
         } catch (error) {
-            console.error(error);
-            this.setState({ error: { message: `Failed to load rhythm: ${id}.`, details: error.message }, isLoading: false });
+            this.setState({ error: { message: `Failed to load rhythm: ${id}`, details: error.message }, isLoading: false });
+        }
+    }
+
+    renderApp() {
+        if (this.activeSubApp && typeof this.activeSubApp.destroy === 'function') {
+            this.activeSubApp.destroy();
+        }
+
+        const subAppProps = {
+            rhythm: this.state.currentRhythm,
+            audioPlayer: this.audioPlayer,
+            audioScheduler: this.audioScheduler,
+            playbackController: this.playbackController,
+        };
+
+        if (this.state.appView === 'playing') {
+            this.activeSubApp = new this.subApps.PlaybackApp(this.container, subAppProps);
+        } else {
+            this.activeSubApp = new this.subApps.EditingApp(this.container, subAppProps);
+        }
+
+        if (this.activeSubApp) {
+            this.activeSubApp.render();
         }
     }
 
     async init() {
-        this.view.render(this.state);
+        this.setState({ isLoading: true });
         await this.projectController.loadManifest();
-        const defaultRhythmId = this.projectController.manifest.rhythms[0]; // Assuming you want to load the first rhythm
+        const defaultRhythmId = this.projectController.manifest?.rhythms[0];
         if (defaultRhythmId) {
             await this.loadProject(defaultRhythmId);
         } else {
-            this.setState({ error: { message: "No rhythms found in manifest.json." }, isLoading: false });
+            this.setState({ error: { message: "No rhythms found." }, isLoading: false });
         }
     }
-
 }
-const app = new App();
-app.init();

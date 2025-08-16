@@ -1,0 +1,78 @@
+<!-- file: test/harnesses/App.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Harness: App Shell</title>
+    <style>
+        body { font-family: sans-serif; display: flex; gap: 20px; padding: 20px; }
+        .main-panel { flex: 2; }
+        .log-panel { flex: 1; border: 1px solid #ccc; padding: 0 10px; background-color: #f9f9f9; }
+        .controls button { font-size: 14px; padding: 8px 12px; margin: 0 5px 10px 0; }
+        #log-output { white-space: pre-wrap; word-wrap: break-word; font-family: monospace; font-size: 12px; }
+        h1, h2 { border-bottom: 1px solid #ccc; padding-bottom: 5px; }
+        #app-container { min-height: 150px; border: 1px solid #999; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="main-panel">
+        <h1>Test Runner for <code>App.js</code> (Shell)</h1>
+        <button id="run-tests-btn">Run Automated Tests</button>
+        <hr>
+        <h2>Manual Test</h2>
+        <div class="controls">
+            <button id="toggle-view-btn">Toggle View</button>
+        </div>
+        <div id="app-container">
+            <!-- The active sub-app will be rendered here -->
+        </div>
+        <div id="test-results"></div>
+    </div>
+    <div class="log-panel">
+        <h2>Execution Log</h2>
+        <pre id="log-output"></pre>
+    </div>
+
+    <script type="module">
+        import { run } from '/percussion-studio/test/suites/App.test.js';
+        import { App } from '/percussion-studio/src/App.js';
+        import { MockPlaybackApp } from '/percussion-studio/test/mocks/MockPlaybackApp.js';
+        import { MockEditingApp } from '/percussion-studio/test/mocks/MockEditingApp.js';
+
+        document.getElementById('run-tests-btn').addEventListener('click', () => {
+            document.getElementById('test-results').innerHTML = '<h2>Running tests...</h2>';
+            run();
+        });
+
+        // --- Manual Testing Setup ---
+        // Mock controllers for manual test
+        const mockControllers = {
+            projectController: { loadManifest: async () => {}, loadRhythm: async () => ({ global_bpm: 150 }) },
+            playbackController: {},
+            audioScheduler: {},
+            audioPlayer: {},
+            dal: {}
+        };
+
+        const appContainer = document.getElementById('app-container');
+
+        // Instantiate the App Shell, injecting our mock sub-apps for visual testing
+        const appShell = new App(appContainer, {
+            controllers: mockControllers,
+            subApps: {
+                PlaybackApp: MockPlaybackApp,
+                EditingApp: MockEditingApp
+            }
+        });
+        
+        // Initialize the app (which will render the default PlaybackApp)
+        appShell.init();
+
+        // Wire up the manual control button
+        document.getElementById('toggle-view-btn').addEventListener('click', () => {
+            appShell.toggleView();
+        });
+
+    </script>
+</body>
+</html>
