@@ -1,0 +1,114 @@
+<!-- file: test/harnesses/EditingApp.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Harness: EditingApp</title>
+    <style>
+        body { font-family: sans-serif; display: flex; gap: 20px; padding: 20px; }
+        .main-panel { flex: 3; }
+        .log-panel { flex: 1; border: 1px solid #ccc; padding: 0 10px; background-color: #f9f9f9; max-height: 95vh; overflow-y: auto; }
+        #log-output { white-space: pre-wrap; word-wrap: break-word; font-family: monospace; font-size: 12px; }
+        h1, h2 { border-bottom: 1px solid #ccc; padding-bottom: 5px; }
+        
+        /* Copied styles from index.html for components to render correctly */
+        #app-main-container { display: flex; flex-direction: column; height: 70vh; border: 1px solid #ccc; }
+        .editor-layout { display: flex; height: 100%; width: 100%; gap: 10px; }
+        .flow-panel { width: 250px; border-right: 1px solid #ccc; padding: 10px; overflow-y: auto; }
+        .grid-panel { flex-grow: 1; padding: 10px; overflow: auto; }
+        .palette-panel { width: 200px; border-left: 1px solid #ccc; padding: 10px; overflow-y: auto; }
+        .flow-item { display: flex; align-items: center; padding: 8px; border: 1px solid #ddd; margin-bottom: 5px; background-color: #fff; cursor: grab; user-select: none; }
+        .flow-item.selected { border-color: #007bff; background-color: #e3f2fd; }
+        .flow-item:active { cursor: grabbing; }
+        .flow-item span { margin-right: 15px; }
+        .repetitions { outline: none; border: 1px dashed transparent; }
+        .repetitions:focus { border: 1px dashed #007bff; background-color: #f0f8ff; }
+        .delete-btn { margin-left: auto; color: red; border: none; background: none; font-size: 1.2em; cursor: pointer; }
+        .add-pattern-btn { width: 100%; margin-top: 10px; font-size: 1.5em; }
+        .drag-over { border-top: 2px solid blue; }
+        .pattern-grid { display: grid; }
+        .instrument-header { background-color: #eee; padding: 5px; cursor: pointer; }
+        .instrument-header.selected { background-color: #cce5ff; }
+        .grid-cell { border: 1px solid #ddd; min-height: 30px; }
+        .grid-cell img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+        .palette-note { display: flex; align-items: center; gap: 10px; padding: 5px; cursor: pointer; }
+        .palette-note.selected { background-color: #cce5ff; }
+        .palette-note img { width: 24px; height: 24px; }
+    </style>
+</head>
+<body>
+    <div class="main-panel">
+        <h1>Test Runner for <code>EditingApp.js</code></h1>
+        <button id="run-tests-btn">Run Automated Tests</button>
+        <hr>
+        <h2>Manual Test (Standalone EditingApp)</h2>
+        <div id="app-main-container">
+            <!-- EditingApp will be rendered here -->
+        </div>
+        <div id="test-results"></div>
+    </div>
+    <div class="log-panel">
+        <h2>Execution Log</h2>
+        <pre id="log-output"></pre>
+    </div>
+
+    <script type="module">
+        import { run } from '/percussion-studio/test/suites/EditingApp.test.js';
+        import { EditingApp } from '/percussion-studio/src/EditingApp.js';
+        import { MockLogger } from '/percussion-studio/test/mocks/MockLogger.js';
+        
+        // For the manual harness, we need to create REAL global controllers
+        import { AudioPlayer } from '/percussion-studio/src/audio/AudioPlayer.js';
+        import { AudioScheduler } from '/percussion-studio/src/audio/AudioScheduler.js';
+        import { PlaybackController } from '/percussion-studio/src/controller/PlaybackController.js';
+        import { ProjectController } from '/percussion-studio/src/controller/ProjectController.js';
+        import { DataAccessLayer } from '/percussion-studio/src/dal/DataAccessLayer.js';
+
+        document.getElementById('run-tests-btn').addEventListener('click', () => {
+            document.getElementById('test-results').innerHTML = '<h2>Running tests...</h2>';
+            run();
+        });
+
+        // --- Manual Testing Setup ---
+        async function manualSetup() {
+            const mainContainer = document.getElementById('app-main-container');
+            const logOutput = document.getElementById('log-output');
+            MockLogger.setLogTarget('log-output');
+            const harnessLogger = new MockLogger('Harness');
+
+            // 1. Create real instances of all services
+            const audioPlayer = new AudioPlayer();
+            const audioScheduler = new AudioScheduler(audioPlayer);
+            const playbackController = new PlaybackController(audioScheduler, audioPlayer);
+            const projectController = new ProjectController(DataAccessLayer, audioPlayer, audioScheduler);
+
+            // 2. Load a real rhythm using the ProjectController
+            await projectController.loadManifest();
+            const rhythm = await projectController.loadRhythm('test_rhythm');
+
+            // 3. These are the "props" that the App Shell would normally provide
+            const props = {
+                rhythm,
+                isLoading: false,
+                audioPlayer,
+                audioScheduler,
+                playbackController,
+                // The most important prop: a callback to see the updated rhythm
+                onRhythmUpdate: (newRhythm) => {
+                    harnessLogger.log('onRhythmUpdate received new rhythm from EditingApp');
+                    // In a real app, this would update the master state.
+                    // Here, we just log it and re-render the app with the new data.
+                    props.rhythm = newRhythm;
+                    editingApp.render();
+                }
+            };
+
+            // 4. Instantiate and render the EditingApp directly
+            const editingApp = new EditingApp(mainContainer, props);
+            editingApp.render();
+        }
+        
+        manualSetup();
+    </script>
+</body>
+</html>

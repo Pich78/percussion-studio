@@ -1,4 +1,4 @@
-// file: src/App.js (Corrected for Test Failures)
+// file: src/App.js
 import { DataAccessLayer } from './dal/DataAccessLayer.js';
 import { AudioPlayer } from './audio/AudioPlayer.js';
 import { AudioScheduler } from './audio/AudioScheduler.js';
@@ -49,7 +49,7 @@ export class App {
 
     createRealControllers() {
         const audioPlayer = new AudioPlayer();
-        const audioScheduler = new AudioScheduler(audioPlayer); // Simplified constructor
+        const audioScheduler = new AudioScheduler(audioPlayer);
         const playbackController = new PlaybackController(audioScheduler, audioPlayer);
         const projectController = new ProjectController(DataAccessLayer, audioPlayer, audioScheduler);
         return { audioPlayer, audioScheduler, playbackController, projectController, dal: DataAccessLayer };
@@ -59,20 +59,19 @@ export class App {
         const oldAppView = this.state.appView;
         this.state = { ...this.state, ...newState };
 
-        // Render global views that depend on the state
         if (this.appMenuView) {
             this.appMenuView.render(this.state);
         }
         this.errorModalView.render(this.state);
         this.confirmationDialogView.render(this.state);
         
-        // Propagate isLoading state change to the active sub-app
         if (this.activeSubApp) {
             this.activeSubApp.props.isLoading = this.state.isLoading;
+            // Pass the updated rhythm to the active sub-app immediately
+            this.activeSubApp.props.rhythm = this.state.currentRhythm;
             this.activeSubApp.render();
         }
 
-        // If the view has changed, trigger the re-routing.
         if (oldAppView !== this.state.appView) {
             this.renderApp();
         }
@@ -80,7 +79,6 @@ export class App {
 
     toggleView() {
         const newView = this.state.appView === 'playing' ? 'editing' : 'playing';
-        // Only set the state. The setState method will handle the rerender.
         this.setState({ appView: newView });
     }
 
@@ -88,7 +86,6 @@ export class App {
         this.setState({ isLoading: true });
         try {
             const rhythm = await this.projectController.loadRhythm(id);
-            // After loading, set the state AND explicitly render the app
             this.setState({ currentRhythm: rhythm, isLoading: false });
             this.renderApp();
         } catch (error) {
@@ -96,14 +93,18 @@ export class App {
         }
     }
 
+    handleRhythmUpdate(newRhythm) {
+        this.setState({ currentRhythm: newRhythm });
+        this.audioScheduler.setRhythm(newRhythm);
+    }
+
     renderApp() {
         if (this.activeSubApp && typeof this.activeSubApp.destroy === 'function') {
             this.activeSubApp.destroy();
         }
 
-        // Do not render a sub-app if there is no rhythm data
         if (!this.state.currentRhythm) {
-            this.container.innerHTML = '<div>Loading Rhythm...</div>'; // Or some placeholder
+            this.container.innerHTML = '<div>Loading Rhythm...</div>';
             return;
         }
 
@@ -113,6 +114,7 @@ export class App {
             audioPlayer: this.audioPlayer,
             audioScheduler: this.audioScheduler,
             playbackController: this.playbackController,
+            onRhythmUpdate: this.handleRhythmUpdate.bind(this),
         };
 
         if (this.state.appView === 'playing') {
