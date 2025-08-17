@@ -6,9 +6,11 @@
     appearance: none;
     width: 100%;
     height: 8px;
-    background: #e2e8f0; /* Tachyons 'slate-200' */
+    /* NEW: Prominent track color */
+    background: #cbd5e1; /* Tachyons 'slate-300' */
     border-radius: 9999px;
     outline: none;
+    transition: background-color 0.15s ease-in-out;
 }
 
 .volume-slider::-webkit-slider-thumb {
@@ -29,7 +31,7 @@
     border-radius: 9999px;
 }
 
-/* NEW: Style for the instrument header when its track is muted */
+/* Style for the instrument header when its track is muted */
 .instrument-header.is-muted {
     background-color: #94a3b8; /* Tachyons 'slate-400' */
     color: #e2e8f0; /* Tachyons 'slate-200' */

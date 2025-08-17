@@ -11,7 +11,6 @@ export class InstrumentMixerView {
         loadCSS('/percussion-studio/src/components/InstrumentMixerView/InstrumentMixerView.css');
         logEvent('info', 'InstrumentMixerView', 'constructor', 'Lifecycle', 'Component created.');
         
-        // Use a single listener for all interactions
         this.container.addEventListener('click', this.handleClick.bind(this));
         this.container.addEventListener('input', this.handleInput.bind(this));
     }
@@ -36,8 +35,10 @@ export class InstrumentMixerView {
             const instDef = instrumentDefsBySymbol[symbol];
             const instrumentName = instDef?.name || symbol;
 
-            const mutedClass = trackState.muted ? 'is-muted' : '';
-            const headerBg = trackState.muted ? '' : 'bg-green'; // Green when active
+            // Determine muted state from either the muted flag OR volume being zero
+            const isEffectivelyMuted = trackState.muted || trackState.volume === 0;
+            const mutedClass = isEffectivelyMuted ? 'is-muted' : '';
+            const headerBg = isEffectivelyMuted ? '' : 'bg-green';
 
             const trackElement = document.createElement('div');
             trackElement.className = 'mixer-track flex flex-column gap2 pa2 br2 bg-light-gray';
@@ -45,7 +46,7 @@ export class InstrumentMixerView {
 
             trackElement.innerHTML = `
                 <div data-action="toggle-mute" class="instrument-header f6 b pv1 ph2 br2 tc pointer ${headerBg} ${mutedClass} white truncate" title="${instrumentName}">${instrumentName}</div>
-                <input type="range" class="volume-slider w-100" min="0" max="1" step="0.01" value="${trackState.volume}" title="Volume">
+                <input type="range" class="volume-slider w-100" min="0" max="1" step="0.01" value="${isEffectivelyMuted ? 0 : trackState.volume}" title="Volume">
             `;
             mixerContainer.appendChild(trackElement);
         }
@@ -60,11 +61,10 @@ export class InstrumentMixerView {
         if (header) {
             const instrumentId = header.closest('.mixer-track')?.dataset.instrumentId;
             if (instrumentId) {
-                // We find the current state from the DOM to determine the new state
-                const isCurrentlyMuted = header.classList.contains('is-muted');
-                const isMuted = !isCurrentlyMuted;
-                logEvent('debug', 'InstrumentMixerView', 'handleClick', 'Events', `Mute toggle for ${instrumentId}: ${isMuted}`);
-                this.callbacks.onToggleMute?.(instrumentId, isMuted);
+                logEvent('debug', 'InstrumentMixerView', 'handleClick', 'Events', `Mute toggle requested for ${instrumentId}`);
+                // The component simply reports the user's intent.
+                // The parent app is responsible for the complex logic.
+                this.callbacks.onToggleMute?.(instrumentId);
             }
         }
     }
