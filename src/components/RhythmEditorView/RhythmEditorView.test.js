@@ -3,6 +3,7 @@
 import { TestRunner } from '/percussion-studio/lib/TestRunner.js';
 import { MockLogger } from '/percussion-studio/lib/MockLogger.js';
 import { logEvent } from '/percussion-studio/lib/Logger.js';
+// --- FIX: Correct the import path to the component in the same directory ---
 import { RhythmEditorView } from './RhythmEditorView.js';
 
 export async function run() {
@@ -57,15 +58,41 @@ export async function run() {
 export function manualTest() {
     logEvent('info', 'Harness', 'manualTest', 'Setup', 'Setting up stateful manual test.');
 
-    let currentState = { /* ... full state object ... */ };
+    let currentState = {
+        rhythm: {
+            playback_flow: [{ pattern: 'verse', repetitions: 4 }, { pattern: 'chorus', repetitions: 2 }],
+            patterns: { 
+                verse: { metadata: { resolution: 8 }, pattern_data: [{ KCK: 'o-o-o-o-' }] },
+                chorus: { metadata: { resolution: 8 }, pattern_data: [{ KCK: 'o-o--o-o' }] }
+            },
+            instrumentDefsBySymbol: { KCK: { name: 'Kick', sounds: [{ letter: 'o', name: 'Hit' }, { letter: 'p', name: 'Soft' }] } }
+        },
+        currentEditingPatternId: 'verse',
+        isFlowPinned: false, isPalettePinned: false,
+        selectedInstrumentSymbol: 'KCK', selectedNoteLetter: 'o'
+    };
 
     const container = document.getElementById('view-container');
-    const rerender = () => { /* ... */ };
+    const stateDisplay = document.getElementById('current-state-display');
+
+    const rerender = () => {
+        logEvent('info', 'Harness', 'rerender', 'State', 'Rerendering with new state:', currentState);
+        view.render(currentState);
+        stateDisplay.textContent = `Current State: ${JSON.stringify(currentState, null, 2)}`;
+    };
 
     const view = new RhythmEditorView(container, {
-        onPinFlowPanel: (isPinned) => { currentState.isFlowPinned = isPinned; rerender(); },
-        onPinPalettePanel: (isPinned) => { currentState.isPalettePinned = isPinned; rerender(); },
-        // ... other callbacks
+        onPinFlowPanel: (isPinned) => {
+            logEvent('info', 'Harness', 'onPinFlowPanel', 'Callback', `isPinned: ${isPinned}`);
+            currentState.isFlowPinned = isPinned;
+            rerender();
+        },
+        onPinPalettePanel: (isPinned) => {
+            logEvent('info', 'Harness', 'onPinPalettePanel', 'Callback', `isPinned: ${isPinned}`);
+            currentState.isPalettePinned = isPinned;
+            rerender();
+        },
+        onPatternSelect: (id) => { currentState.currentEditingPatternId = id; rerender(); },
     });
 
     rerender();

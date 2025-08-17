@@ -24,8 +24,7 @@ The application's state is now separated by concern:
 *   **`PlaybackApp` State:** Manages all state related to the playback experience.
     *   `{ isPlaying: boolean, loopPlayback: boolean, masterVolume: number, currentMeasureIndex: number, currentTickIndex: number }`
 *   **`EditingApp` State:** Manages all state related to the editing experience.
-    *   `{ isDirty: boolean, isUntitled: boolean, selectedPatternId: string, activeNoteSymbol: string }`
-
+    *   `{ isDirty: boolean, isUntitled: boolean, selectedPatternId: string, activeNoteSymbol: string, isFlowPinned: boolean, isPalettePinned: boolean }`
 > **Architectural Rationale:** The previous monolithic `App` class was responsible for all state, which would become difficult to manage as editing features grew. The Application Shell model provides a clear separation of concerns. The Shell handles *what* to display (Playback or Editing), while the Sub-Apps handle the *how* for their specific domain. This makes the overall system more modular and maintainable.
 
 ## 3. Core Modules & Components

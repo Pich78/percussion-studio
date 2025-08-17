@@ -32,6 +32,7 @@
     <div id="test-sandbox" style="position: absolute; visibility: hidden;"></div>
 
     <script type="module">
+        // --- FIX: Correct relative path to the test file ---
         import { run, manualTest } from './RhythmEditorView.test.js';
         import { Logger, logEvent } from '/percussion-studio/lib/Logger.js';
         
@@ -40,47 +41,7 @@
 
         document.getElementById('run-tests-btn').addEventListener('click', run);
 
-        // This harness now perfectly simulates the parent EditingApp
-        let currentState = {
-            rhythm: {
-                playback_flow: [{ pattern: 'verse', repetitions: 4 }, { pattern: 'chorus', repetitions: 2 }],
-                patterns: { 
-                    verse: { metadata: { resolution: 8 }, pattern_data: [{ KCK: 'o-o-o-o-' }] },
-                    chorus: { metadata: { resolution: 8 }, pattern_data: [{ KCK: 'o-o--o-o' }] }
-                },
-                instrumentDefsBySymbol: { KCK: { sounds: [{ letter: 'o', name: 'Hit' }, { letter: 'p', name: 'Soft' }] } }
-            },
-            currentEditingPatternId: 'verse',
-            isFlowPinned: false,
-            isPalettePinned: false,
-            selectedInstrumentSymbol: 'KCK',
-            selectedNoteLetter: 'o'
-        };
-
-        const container = document.getElementById('view-container');
-        const stateDisplay = document.getElementById('current-state-display');
-
-        const rerender = () => {
-            logEvent('info', 'Harness', 'rerender', 'State', 'Rerendering with new state:', currentState);
-            view.render(currentState);
-            stateDisplay.textContent = `Current State: ${JSON.stringify(currentState, null, 2)}`;
-        };
-
-        const view = new RhythmEditorView(container, {
-            onPinFlowPanel: (isPinned) => {
-                logEvent('info', 'Harness', 'onPinFlowPanel', 'Callback', `isPinned: ${isPinned}`);
-                currentState.isFlowPinned = isPinned;
-                rerender();
-            },
-            onPinPalettePanel: (isPinned) => {
-                logEvent('info', 'Harness', 'onPinPalettePanel', 'Callback', `isPinned: ${isPinned}`);
-                currentState.isPalettePinned = isPinned;
-                rerender();
-            },
-            onPatternSelect: (id) => { currentState.currentEditingPatternId = id; rerender(); },
-        });
-
-        rerender();
+        manualTest();
     </script>
 </body>
 </html>
