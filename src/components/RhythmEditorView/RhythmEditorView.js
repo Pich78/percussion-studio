@@ -62,7 +62,7 @@ export class RhythmEditorView {
         }).join('');
 
         return `
-            <div id="flow-panel" data-action="pin-flow" class="editor-panel absolute top-0 left-0 h-100 bg-near-white shadow-2 pa3 ${isExpanded ? 'is-expanded' : ''}">
+            <div id="flow-panel" class="editor-panel absolute top-0 left-0 h-100 bg-near-white shadow-2 pa3 ${isExpanded ? 'is-expanded' : ''}">
                 <h3 class="f4 b absolute top-2 left-2 vertical-text">Rhythm Flow</h3>
                 <div class="panel-content w-100">
                     <h3 class="f4 b mt0">Rhythm Flow</h3>
@@ -73,40 +73,92 @@ export class RhythmEditorView {
     }
 
     _renderGridPanel(state) {
-        // ... unchanged ...
-        return `<!-- Grid HTML -->`;
+        const { rhythm, currentEditingPatternId } = state;
+        if (!currentEditingPatternId || !rhythm.patterns[currentEditingPatternId]) {
+            return '<p class="f5 gray i tc pa4">Select a pattern from the Rhythm Flow to edit, or add a new one.</p>';
+        }
+
+        const pattern = rhythm.patterns[currentEditingPatternId];
+        const measure = pattern.pattern_data[0] || {};
+        const resolution = pattern.metadata.resolution;
+        const instruments = Object.keys(measure).sort();
+
+        let gridHtml = '';
+        instruments.forEach(symbol => {
+            const noteString = (measure[symbol] || '').replace(/\|/g, '');
+            gridHtml += `<div class="instrument-header">${symbol}</div>`;
+            for (let i = 0; i < resolution; i++) {
+                // This part would be enhanced to render SVG icons in a real implementation
+                const noteChar = noteString[i] || '-';
+                gridHtml += `<div class="grid-cell" data-action="edit-note" data-symbol="${symbol}" data-tick="${i}">${noteChar}</div>`;
+            }
+        });
+
+        return `
+            <div class="flex items-center justify-between mb3">
+                <h2 class="f3 b mv0">Editing: ${currentEditingPatternId}</h2>
+                <div class="playback-controls">
+                    <button data-action="play-pattern" class="pv2 ph3 bn br2 bg-green white pointer hover-bg-dark-green mr2">Play Pattern</button>
+                    <button data-action="play-rhythm" class="pv2 ph3 bn br2 bg-blue white pointer hover-bg-dark-blue">Play Rhythm</button>
+                </div>
+            </div>
+            <div class="grid" style="grid-template-columns: 100px repeat(${resolution}, 1fr);">${gridHtml}</div>`;
     }
 
     _renderPalettePanel(state) {
-        // ... logic restored ...
-        const { isPalettePinned } = state;
+        const { rhythm, isPalettePinned, selectedInstrumentSymbol, selectedNoteLetter } = state;
         const isExpanded = isPalettePinned || this.isPaletteHovered;
+
+        let paletteContent = '<p class="f7 gray i">Select an instrument from the grid to see its notes.</p>';
+        if (selectedInstrumentSymbol && rhythm.instrumentDefsBySymbol[selectedInstrumentSymbol]) {
+            const instDef = rhythm.instrumentDefsBySymbol[selectedInstrumentSymbol];
+            paletteContent = (instDef.sounds || []).map(sound => {
+                const selectedClass = sound.letter === selectedNoteLetter ? 'bg-washed-blue' : '';
+                return `<div data-action="select-note" data-note-letter="${sound.letter}" class="pointer pa2 br1 hover-bg-light-gray ${selectedClass}">${sound.name} (${sound.letter})</div>`;
+            }).join('');
+        }
+
         return `
-            <div id="palette-panel" data-action="pin-palette" class="editor-panel absolute top-0 right-0 h-100 bg-near-white shadow-2 pa3 ${isExpanded ? 'is-expanded' : ''}">
+            <div id="palette-panel" class="editor-panel absolute top-0 right-0 h-100 bg-near-white shadow-2 pa3 ${isExpanded ? 'is-expanded' : ''}">
                 <h3 class="f4 b absolute top-2 right-2 vertical-text">Palette</h3>
                 <div class="panel-content w-100">
                     <h3 class="f4 b mt0">Palette</h3>
-                    <!-- Palette content -->
+                    ${paletteContent}
                 </div>
             </div>`;
     }
 
     handleClick(event) {
-        const target = event.target.closest('[data-action]');
-        if (!target) return;
-        const action = target.dataset.action;
-        logEvent('debug', 'RhythmEditorView', 'handleClick', 'Events', `Action: ${action}`);
+        const flowPanel = event.target.closest('#flow-panel');
+        if (flowPanel) {
+            this.callbacks.onPinFlowPanel?.(!this.state.isFlowPinned);
+            return;
+        }
 
-        switch(action) {
-            case 'pin-flow': this.callbacks.onPinFlowPanel?.(!this.state.isFlowPinned); break;
-            case 'pin-palette': this.callbacks.onPinPalettePanel?.(!this.state.isPalettePinned); break;
-            case 'select-pattern': this.callbacks.onPatternSelect?.(target.dataset.patternId); break;
-            case 'add-pattern': this.callbacks.onAddPattern?.(); break;
-            case 'delete-flow-item':
+        const palettePanel = event.target.closest('#palette-panel');
+        if (palettePanel) {
+            this.callbacks.onPinPalettePanel?.(!this.state.isPalettePinned);
+            return;
+        }
+        
+        const gridPanel = event.target.closest('[data-action-scope="grid-panel"]');
+        if (gridPanel) {
+            this.callbacks.onPinFlowPanel?.(false);
+            this.callbacks.onPinPalettePanel?.(false);
+        }
+        
+        const actionTarget = event.target.closest('[data-action]');
+        if (actionTarget) {
+            const action = actionTarget.dataset.action;
+            logEvent('debug', 'RhythmEditorView', 'handleClick', 'Events', `Action: ${action}`);
+
+            if (action === 'select-pattern') this.callbacks.onPatternSelect?.(actionTarget.dataset.patternId);
+            if (action === 'add-pattern') this.callbacks.onAddPattern?.();
+            if (action === 'delete-flow-item') {
                 if (window.confirm('Remove this pattern from the flow?')) {
-                    this.callbacks.onDeleteFlowItem?.(parseInt(target.dataset.index, 10));
+                    this.callbacks.onDeleteFlowItem?.(parseInt(actionTarget.dataset.index, 10));
                 }
-                break;
+            }
         }
     }
     
@@ -118,6 +170,7 @@ export class RhythmEditorView {
             this.isPaletteHovered = true; this.render(this.state);
         }
     }
+
     handleMouseOut(event) {
         if (event.target.closest('#flow-panel') && this.isFlowHovered) {
             this.isFlowHovered = false; this.render(this.state);
@@ -129,9 +182,16 @@ export class RhythmEditorView {
 
     handleDragStart(event) {
         const item = event.target.closest('.flow-item');
-        if (item) this.draggedIndex = parseInt(item.dataset.index, 10);
+        if (item) {
+            this.draggedIndex = parseInt(item.dataset.index, 10);
+            event.dataTransfer.effectAllowed = 'move';
+        }
     }
-    handleDragOver(event) { event.preventDefault(); }
+
+    handleDragOver(event) {
+        event.preventDefault();
+    }
+
     handleDrop(event) {
         event.preventDefault();
         const dropTarget = event.target.closest('.flow-item');

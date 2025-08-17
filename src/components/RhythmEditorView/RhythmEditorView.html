@@ -17,7 +17,7 @@
             <div id="test-results"></div>
             <hr class="mv4"/>
             <h1 class="f2 b mb3 bb pb2">Live View Workbench</h1>
-            <p class="f6 gray mb3">Hover to expand, click to pin. The flow panel below has enough items to test scrolling.</p>
+            <p class="f6 gray mb3">Hover to expand. Click a panel (anywhere inside it) to pin it. Clicking another panel pins it without unpinning the first. Clicking the center grid unpins both.</p>
             <div id="view-container" class="bg-white shadow-2 w-100 relative" style="height: 60vh;"></div>
             <div id="current-state-display" class="f6 code pa2 bg-washed-yellow mt3"></div>
         </div>
@@ -41,41 +41,35 @@
 
         document.getElementById('run-tests-btn').addEventListener('click', run);
 
-        // A long list of patterns to test scrolling
-        const longFlow = Array.from({length: 15}, (_, i) => ({ pattern: `pattern_${i+1}`, repetitions: 4 }));
-        const patterns = longFlow.reduce((acc, item) => {
-            acc[item.pattern] = { metadata: { resolution: 8 }, pattern_data: [{}] };
-            return acc;
-        }, {});
-
         let currentState = {
-            rhythm: { playback_flow: longFlow, patterns: patterns },
-            currentEditingPatternId: 'pattern_1',
-            isFlowPinned: false, isPalettePinned: false,
+            rhythm: {
+                playback_flow: Array.from({length: 15}, (_, i) => ({ pattern: `p${i+1}`})),
+                patterns: {},
+            },
+            currentEditingPatternId: 'p1', isFlowPinned: false, isPalettePinned: false,
         };
 
         const container = document.getElementById('view-container');
         const stateDisplay = document.getElementById('current-state-display');
 
         const rerender = () => {
-            logEvent('info', 'Harness', 'rerender', 'State', 'Rerendering with new state:', currentState);
+            logEvent('info', 'Harness', 'rerender', 'State', 'Rerendering...', currentState);
             view.render(currentState);
             stateDisplay.textContent = `Current State: ${JSON.stringify(currentState, null, 2)}`;
         };
 
         const view = new RhythmEditorView(container, {
-            onPinFlowPanel: (isPinned) => { currentState.isFlowPinned = isPinned; rerender(); },
-            onPinPalettePanel: (isPinned) => { currentState.isPalettePinned = isPinned; rerender(); },
+            onPinFlowPanel: (isPinned) => {
+                logEvent('info', 'Harness', 'onPinFlowPanel', 'Callback', `isPinned: ${isPinned}`);
+                currentState.isFlowPinned = isPinned;
+                rerender();
+            },
+            onPinPalettePanel: (isPinned) => {
+                logEvent('info', 'Harness', 'onPinPalettePanel', 'Callback', `isPinned: ${isPinned}`);
+                currentState.isPalettePinned = isPinned;
+                rerender();
+            },
             onPatternSelect: (id) => { currentState.currentEditingPatternId = id; rerender(); },
-            onDeleteFlowItem: (index) => {
-                currentState.rhythm.playback_flow.splice(index, 1);
-                rerender();
-            },
-            onReorderFlow: (oldIndex, newIndex) => {
-                const [item] = currentState.rhythm.playback_flow.splice(oldIndex, 1);
-                currentState.rhythm.playback_flow.splice(newIndex, 0, item);
-                rerender();
-            },
         });
 
         rerender();

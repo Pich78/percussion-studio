@@ -14,35 +14,59 @@ export async function run() {
 
     const getMockState = (overrides = {}) => ({
         rhythm: {
-            playback_flow: [{ pattern: 'verse', repetitions: 4 }, { pattern: 'chorus', repetitions: 2 }],
-            patterns: { verse: {}, chorus: {} },
+            playback_flow: [{ pattern: 'verse', repetitions: 4 }],
+            patterns: { verse: { metadata: { resolution: 8 }, pattern_data: [{}] } },
         },
         currentEditingPatternId: 'verse', isFlowPinned: false, isPalettePinned: false,
         ...overrides
     });
 
-    runner.describe('RhythmEditorView: Flow Panel', () => {
-        runner.it('should fire onPinFlowPanel with a toggled value when clicked', () => {
+    runner.describe('RhythmEditorView Pinning Logic', () => {
+        runner.it('should fire onPinFlowPanel(true) when any part of the flow panel is clicked', () => {
             testContainer.innerHTML = '';
             const callbackLog = new MockLogger('Callbacks');
             const view = new RhythmEditorView(testContainer, { 
                 onPinFlowPanel: (isPinned) => callbackLog.log('onPinFlowPanel', { isPinned }) 
             });
-            // Initial state is NOT pinned
-            view.render(getMockState({ isFlowPinned: false }));
+            view.render(getMockState());
+            
+            // Clicking the panel itself should pin it
             testContainer.querySelector('#flow-panel').click();
-            // Should be called with TRUE
             callbackLog.wasCalledWith('onPinFlowPanel', { isPinned: true });
         });
 
-        runner.it('should fire onAddPattern when the add button is clicked', () => {
+        runner.it('should fire unpin callbacks when the center grid panel is clicked', () => {
             testContainer.innerHTML = '';
             const callbackLog = new MockLogger('Callbacks');
-            const view = new RhythmEditorView(testContainer, { onAddPattern: () => callbackLog.log('onAddPattern') });
-            view.render(getMockState({ isFlowPinned: true })); // Render expanded
+            const view = new RhythmEditorView(testContainer, { 
+                onPinFlowPanel: (isPinned) => callbackLog.log('onPinFlowPanel', { isPinned }),
+                onPinPalettePanel: (isPinned) => callbackLog.log('onPinPalettePanel', { isPinned }) 
+            });
+            // Start with one panel pinned
+            view.render(getMockState({ isFlowPinned: true }));
             
-            testContainer.querySelector('[data-action="add-pattern"]').click();
-            callbackLog.wasCalledWith('onAddPattern');
+            testContainer.querySelector('[data-action-scope="grid-panel"]').click();
+            callbackLog.wasCalledWith('onPinFlowPanel', { isPinned: false });
+            callbackLog.wasCalledWith('onPinPalettePanel', { isPinned: false });
+        });
+
+        runner.it('should not unpin an already pinned panel when the other is clicked', () => {
+            testContainer.innerHTML = '';
+            const callbackLog = new MockLogger('Callbacks');
+            const view = new RhythmEditorView(testContainer, { 
+                onPinFlowPanel: (isPinned) => callbackLog.log('onPinFlowPanel', { isPinned }),
+                onPinPalettePanel: (isPinned) => callbackLog.log('onPinPalettePanel', { isPinned }) 
+            });
+            // Start with the flow panel already pinned
+            view.render(getMockState({ isFlowPinned: true }));
+            
+            // Now click the palette panel
+            testContainer.querySelector('#palette-panel').click();
+            
+            // It should pin the palette panel...
+            callbackLog.wasCalledWith('onPinPalettePanel', { isPinned: true });
+            // ...but it should NOT fire a callback to unpin the flow panel.
+            runner.expect(callbackLog.calls.some(c => c.methodName === 'onPinFlowPanel')).toBe(false);
         });
     });
 
