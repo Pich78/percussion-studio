@@ -7,6 +7,7 @@ export class InstrumentMixerView {
     constructor(container, callbacks) {
         this.container = container;
         this.callbacks = callbacks || {};
+        this.isRendered = false; // Track if the initial render has happened
 
         loadCSS('/percussion-studio/src/components/InstrumentMixerView/InstrumentMixerView.css');
         logEvent('info', 'InstrumentMixerView', 'constructor', 'Lifecycle', 'Component created.');
@@ -16,7 +17,21 @@ export class InstrumentMixerView {
     }
 
     render(state) {
-        logEvent('debug', 'InstrumentMixerView', 'render', 'State', 'Rendering with state:', state);
+        logEvent('debug', 'InstrumentMixerView', 'render', 'State', 'Render called with state:', state);
+        
+        // If the number of instruments has changed, we need a full rebuild.
+        const soundKitSize = Object.keys(state.rhythm?.sound_kit || {}).length;
+        const currentTrackCount = this.container.querySelectorAll('.mixer-track').length;
+
+        if (!this.isRendered || soundKitSize !== currentTrackCount) {
+            this._initialRender(state);
+        } else {
+            this._updateDOM(state);
+        }
+    }
+
+    _initialRender(state) {
+        logEvent('debug', 'InstrumentMixerView', '_initialRender', 'DOM', 'Performing full initial render.');
         const { rhythm } = state;
         
         if (!rhythm?.sound_kit || !rhythm?.instrumentDefsBySymbol) {
@@ -34,8 +49,6 @@ export class InstrumentMixerView {
             const trackState = mixer?.[instrumentId] || { volume: 1.0, muted: false };
             const instDef = instrumentDefsBySymbol[symbol];
             const instrumentName = instDef?.name || symbol;
-
-            // Determine muted state from either the muted flag OR volume being zero
             const isEffectivelyMuted = trackState.muted || trackState.volume === 0;
             const mutedClass = isEffectivelyMuted ? 'is-muted' : '';
             const headerBg = isEffectivelyMuted ? '' : 'bg-green';
@@ -54,6 +67,33 @@ export class InstrumentMixerView {
         fragment.appendChild(mixerContainer);
         this.container.innerHTML = '';
         this.container.appendChild(fragment);
+        this.isRendered = true;
+    }
+
+    _updateDOM(state) {
+        logEvent('debug', 'InstrumentMixerView', '_updateDOM', 'DOM', 'Performing targeted DOM update.');
+        const { rhythm } = state;
+        if (!rhythm?.sound_kit) return;
+
+        for (const [symbol, instrumentId] of Object.entries(rhythm.sound_kit)) {
+            const trackElement = this.container.querySelector(`[data-instrument-id="${instrumentId}"]`);
+            if (!trackElement) continue;
+
+            const trackState = rhythm.mixer?.[instrumentId] || { volume: 1.0, muted: false };
+            const isEffectivelyMuted = trackState.muted || trackState.volume === 0;
+
+            // Update header styles
+            const header = trackElement.querySelector('.instrument-header');
+            header.classList.toggle('is-muted', isEffectivelyMuted);
+            header.classList.toggle('bg-green', !isEffectivelyMuted);
+
+            // Update slider value
+            const slider = trackElement.querySelector('.volume-slider');
+            const sliderValue = isEffectivelyMuted ? '0' : String(trackState.volume);
+            if (slider.value !== sliderValue) {
+                slider.value = sliderValue;
+            }
+        }
     }
 
     handleClick(event) {
@@ -62,8 +102,6 @@ export class InstrumentMixerView {
             const instrumentId = header.closest('.mixer-track')?.dataset.instrumentId;
             if (instrumentId) {
                 logEvent('debug', 'InstrumentMixerView', 'handleClick', 'Events', `Mute toggle requested for ${instrumentId}`);
-                // The component simply reports the user's intent.
-                // The parent app is responsible for the complex logic.
                 this.callbacks.onToggleMute?.(instrumentId);
             }
         }
