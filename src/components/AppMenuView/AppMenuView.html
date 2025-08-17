@@ -46,21 +46,41 @@
 
         document.getElementById('run-tests-btn').addEventListener('click', run);
 
+        // --- MODIFICATION: Create a stateful harness ---
+        let currentState = {
+            isDirty: false,
+            appView: 'playing'
+        };
+
         const container = document.getElementById('view-container');
+        
+        const rerender = () => {
+            logEvent('info', 'Harness', 'rerender', 'State', 'Rerendering component with new state:', currentState);
+            view.render(currentState);
+        };
+
         const view = new AppMenuView(container, {
             onNewProject: () => logEvent('info', 'Harness', 'onNewProject', 'Callback', 'New Project button clicked.'),
             onLoadProject: () => logEvent('info', 'Harness', 'onLoadProject', 'Callback', 'Load Project button clicked.'),
             onSaveProject: () => logEvent('info', 'Harness', 'onSaveProject', 'Callback', 'Save Project button clicked.'),
-            onToggleView: () => logEvent('info', 'Harness', 'onToggleView', 'Callback', 'Toggle View button clicked.'),
+            onToggleView: () => {
+                logEvent('info', 'Harness', 'onToggleView', 'Callback', 'Toggle View button clicked.');
+                // Simulate the parent app changing the state and re-rendering
+                currentState.appView = currentState.appView === 'playing' ? 'editing' : 'playing';
+                rerender();
+            },
         });
 
-        view.render({ isDirty: false, appView: 'playing' });
+        // Initial render
+        rerender();
 
         document.getElementById('render-clean-btn').addEventListener('click', () => {
-            view.render({ isDirty: false, appView: 'playing' });
+            currentState.isDirty = false;
+            rerender();
         });
         document.getElementById('render-dirty-btn').addEventListener('click', () => {
-            view.render({ isDirty: true, appView: 'editing' });
+            currentState.isDirty = true;
+            rerender();
         });
     </script>
 </body>

@@ -26,8 +26,8 @@ export class AppMenuView {
         const btnSave = "bg-blue hover-bg-dark-blue white";
         const disabledState = !isDirty ? 'o-50' : '';
 
-        // --- MODIFICATION: Updated button text to be lowercase as requested ---
-        const toggleViewText = appView === 'editing' ? 'go to playing' : 'go to editing';
+        // --- MODIFICATION: Updated button text to "Playback" and "Editor" ---
+        const toggleViewText = appView === 'editing' ? 'Playback' : 'Editor';
 
         const html = `
             <div class="flex items-center justify-between w-100">

@@ -27,22 +27,22 @@ export async function run() {
             runner.expect(saveButton.disabled).toBe(false);
         });
 
-        runner.it('should show "go to editing" when in playing view', () => {
+        runner.it('should show "Editor" when in playing view', () => {
             const testContainer = document.createElement('div');
             const view = new AppMenuView(testContainer, {});
             view.render({ isDirty: false, appView: 'playing' });
             const toggleButton = testContainer.querySelector('#toggle-view-btn');
-            // --- MODIFICATION: Expect the new lowercase text ---
-            runner.expect(toggleButton.textContent).toBe('go to editing');
+            // --- MODIFICATION: Expect the new text ---
+            runner.expect(toggleButton.textContent).toBe('Editor');
         });
 
-        runner.it('should show "go to playing" when in editing view', () => {
+        runner.it('should show "Playback" when in editing view', () => {
             const testContainer = document.createElement('div');
             const view = new AppMenuView(testContainer, {});
             view.render({ isDirty: false, appView: 'editing' });
             const toggleButton = testContainer.querySelector('#toggle-view-btn');
-            // --- MODIFICATION: Expect the new lowercase text ---
-            runner.expect(toggleButton.textContent).toBe('go to playing');
+            // --- MODIFICATION: Expect the new text ---
+            runner.expect(toggleButton.textContent).toBe('Playback');
         });
     });
 
@@ -54,10 +54,7 @@ export async function run() {
             const callbacks = { [callbackName]: () => logger.log(callbackName) };
             const view = new AppMenuView(testContainer, callbacks);
             view.render({ isDirty: true, appView: 'playing' });
-            
-            logEvent('debug', 'TestRunner', 'it', 'Simulation', `Simulating click on #${buttonId}.`);
             testContainer.querySelector(`#${buttonId}`).click();
-            
             logger.wasCalledWith(callbackName);
         };
 
