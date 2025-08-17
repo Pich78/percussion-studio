@@ -41,15 +41,11 @@
         import { AppMenuView } from './AppMenuView.js';
         import { Logger, logEvent } from '/percussion-studio/lib/Logger.js';
         
-        // --- Harness Configuration ---
-        // 1. Force verbose logging for the test harness environment
         Logger.init({ level: 'debug' });
-        // 2. Set the log output to our DOM element
         Logger.setTarget('log-output');
 
         document.getElementById('run-tests-btn').addEventListener('click', run);
 
-        // --- Manual/Live View Setup ---
         const container = document.getElementById('view-container');
         const view = new AppMenuView(container, {
             onNewProject: () => logEvent('info', 'Harness', 'onNewProject', 'Callback', 'New Project button clicked.'),
@@ -58,7 +54,6 @@
             onToggleView: () => logEvent('info', 'Harness', 'onToggleView', 'Callback', 'Toggle View button clicked.'),
         });
 
-        // Initial render
         view.render({ isDirty: false, appView: 'playing' });
 
         document.getElementById('render-clean-btn').addEventListener('click', () => {

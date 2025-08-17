@@ -21,13 +21,13 @@ export class AppMenuView {
 
         const { isDirty, appView } = state;
         
-        // Tachyons CSS classes
         const btnBase = "pv2 ph3 br2 f6 fw5 bn pointer";
         const btnPrimary = "bg-light-gray hover-bg-moon-gray dark-gray";
         const btnSave = "bg-blue hover-bg-dark-blue white";
         const disabledState = !isDirty ? 'o-50' : '';
 
-        const toggleViewText = appView === 'editing' ? 'Go to Playing' : 'Go to Editing';
+        // --- MODIFICATION: Updated button text to be lowercase as requested ---
+        const toggleViewText = appView === 'editing' ? 'go to playing' : 'go to editing';
 
         const html = `
             <div class="flex items-center justify-between w-100">

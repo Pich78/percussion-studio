@@ -27,20 +27,22 @@ export async function run() {
             runner.expect(saveButton.disabled).toBe(false);
         });
 
-        runner.it('should show "Go to Editing" when in playing view', () => {
+        runner.it('should show "go to editing" when in playing view', () => {
             const testContainer = document.createElement('div');
             const view = new AppMenuView(testContainer, {});
             view.render({ isDirty: false, appView: 'playing' });
             const toggleButton = testContainer.querySelector('#toggle-view-btn');
-            runner.expect(toggleButton.textContent).toBe('Go to Editing');
+            // --- MODIFICATION: Expect the new lowercase text ---
+            runner.expect(toggleButton.textContent).toBe('go to editing');
         });
 
-        runner.it('should show "Go to Playing" when in editing view', () => {
+        runner.it('should show "go to playing" when in editing view', () => {
             const testContainer = document.createElement('div');
             const view = new AppMenuView(testContainer, {});
             view.render({ isDirty: false, appView: 'editing' });
             const toggleButton = testContainer.querySelector('#toggle-view-btn');
-            runner.expect(toggleButton.textContent).toBe('Go to Playing');
+            // --- MODIFICATION: Expect the new lowercase text ---
+            runner.expect(toggleButton.textContent).toBe('go to playing');
         });
     });
 
