@@ -6,6 +6,7 @@
     <title>Test Harness: AppMenuView</title>
     <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
     <link rel="stylesheet" href="/percussion-studio/css/global.css">
+    <link rel="stylesheet" href="./AppMenuView.css"> <!-- Link to the component's own CSS -->
     <style> body { font-family: sans-serif; } </style>
 </head>
 <body class="bg-light-gray pa4">
@@ -19,12 +20,14 @@
             <hr class="mv4"/>
 
             <h1 class="f2 b mb3 bb pb2">Live View Workbench</h1>
-            <div id="view-container" class="bg-white shadow-2 h3 flex items-center pa3 mb3">
+            <p class="f6 gray mb3">Click the hamburger menu to test its behavior. Use the controls below to re-render the component in different states.</p>
+            <header id="view-container" class="bg-white shadow-2 h3 flex items-center pa3 mb3">
                 <!-- AppMenuView will be rendered here -->
-            </div>
+            </header>
             <div class="controls">
-                <button id="render-clean-btn" class="pv2 ph3 bn br2 bg-blue white pointer hover-bg-dark-blue mr2">Render (Clean State)</button>
-                <button id="render-dirty-btn" class="pv2 ph3 bn br2 bg-green white pointer hover-bg-dark-green">Render (Dirty State)</button>
+                <button id="render-playing-btn" class="pv2 ph3 bn br2 bg-blue white pointer hover-bg-dark-blue mr2">Render (Playing View)</button>
+                <button id="render-editing-clean-btn" class="pv2 ph3 bn br2 bg-green white pointer hover-bg-dark-green mr2">Render (Editing, Clean)</button>
+                <button id="render-editing-dirty-btn" class="pv2 ph3 bn br2 bg-dark-red white pointer hover-bg-red">Render (Editing, Dirty)</button>
             </div>
         </div>
 
@@ -46,41 +49,25 @@
 
         document.getElementById('run-tests-btn').addEventListener('click', run);
 
-        // --- MODIFICATION: Create a stateful harness ---
-        let currentState = {
-            isDirty: false,
-            appView: 'playing'
-        };
-
         const container = document.getElementById('view-container');
-        
-        const rerender = () => {
-            logEvent('info', 'Harness', 'rerender', 'State', 'Rerendering component with new state:', currentState);
-            view.render(currentState);
-        };
-
         const view = new AppMenuView(container, {
-            onNewProject: () => logEvent('info', 'Harness', 'onNewProject', 'Callback', 'New Project button clicked.'),
-            onLoadProject: () => logEvent('info', 'Harness', 'onLoadProject', 'Callback', 'Load Project button clicked.'),
-            onSaveProject: () => logEvent('info', 'Harness', 'onSaveProject', 'Callback', 'Save Project button clicked.'),
-            onToggleView: () => {
-                logEvent('info', 'Harness', 'onToggleView', 'Callback', 'Toggle View button clicked.');
-                // Simulate the parent app changing the state and re-rendering
-                currentState.appView = currentState.appView === 'playing' ? 'editing' : 'playing';
-                rerender();
-            },
+            onNewProject: () => logEvent('info', 'Harness', 'onNewProject', 'Callback', 'New Rhythm clicked.'),
+            onLoadProject: () => logEvent('info', 'Harness', 'onLoadProject', 'Callback', 'Load Rhythm clicked.'),
+            onSaveProject: () => logEvent('info', 'Harness', 'onSaveProject', 'Callback', 'Save Rhythm clicked.'),
+            onToggleView: () => logEvent('info', 'Harness', 'onToggleView', 'Callback', 'Mode Change clicked.'),
         });
 
         // Initial render
-        rerender();
+        view.render({ isDirty: false, appView: 'playing' });
 
-        document.getElementById('render-clean-btn').addEventListener('click', () => {
-            currentState.isDirty = false;
-            rerender();
+        document.getElementById('render-playing-btn').addEventListener('click', () => {
+            view.render({ isDirty: false, appView: 'playing' });
         });
-        document.getElementById('render-dirty-btn').addEventListener('click', () => {
-            currentState.isDirty = true;
-            rerender();
+        document.getElementById('render-editing-clean-btn').addEventListener('click', () => {
+            view.render({ isDirty: false, appView: 'editing' });
+        });
+        document.getElementById('render-editing-dirty-btn').addEventListener('click', () => {
+            view.render({ isDirty: true, appView: 'editing' });
         });
     </script>
 </body>

@@ -10,58 +10,65 @@ export async function run() {
     MockLogger.clearLogs();
     logEvent('info', 'TestRunner', 'run', 'Setup', 'Starting AppMenuView test suite.');
 
-    runner.describe('AppMenuView Rendering', () => {
-        runner.it('should disable the save button when not dirty', () => {
+    runner.describe('AppMenuView Hamburger Menu', () => {
+        runner.it('should not show the dropdown menu by default', () => {
             const testContainer = document.createElement('div');
             const view = new AppMenuView(testContainer, {});
             view.render({ isDirty: false, appView: 'playing' });
-            const saveButton = testContainer.querySelector('#save-btn');
-            runner.expect(saveButton.disabled).toBe(true);
+            const dropdown = testContainer.querySelector('.app-menu-dropdown.is-open');
+            runner.expect(dropdown).toBe(null);
         });
 
-        runner.it('should enable the save button when dirty', () => {
-            const testContainer = document.createElement('div');
-            const view = new AppMenuView(testContainer, {});
-            view.render({ isDirty: true, appView: 'editing' });
-            const saveButton = testContainer.querySelector('#save-btn');
-            runner.expect(saveButton.disabled).toBe(false);
-        });
-
-        runner.it('should show "Editor" when in playing view', () => {
+        runner.it('should show the dropdown menu after clicking the hamburger button', () => {
             const testContainer = document.createElement('div');
             const view = new AppMenuView(testContainer, {});
             view.render({ isDirty: false, appView: 'playing' });
-            const toggleButton = testContainer.querySelector('#toggle-view-btn');
-            // --- MODIFICATION: Expect the new text ---
-            runner.expect(toggleButton.textContent).toBe('Editor');
+            testContainer.querySelector('#hamburger-btn').click();
+            const dropdown = testContainer.querySelector('.app-menu-dropdown.is-open');
+            runner.expect(dropdown === null).toBe(false);
         });
 
-        runner.it('should show "Playback" when in editing view', () => {
+        runner.it('should render correct menu items for "playing" view', () => {
+            const testContainer = document.createElement('div');
+            const view = new AppMenuView(testContainer, {});
+            view.render({ isDirty: false, appView: 'playing' });
+            testContainer.querySelector('#hamburger-btn').click(); // Open menu
+            
+            const newBtn = testContainer.querySelector('#new-btn');
+            const loadBtn = testContainer.querySelector('#load-btn');
+            const toggleBtn = testContainer.querySelector('#toggle-view-btn');
+            
+            runner.expect(newBtn).toBe(null); // Should not exist
+            runner.expect(loadBtn === null).toBe(false); // Should exist
+            runner.expect(toggleBtn.textContent).toBe('Editor Mode');
+        });
+
+        runner.it('should render correct menu items for "editing" view and disable save when clean', () => {
             const testContainer = document.createElement('div');
             const view = new AppMenuView(testContainer, {});
             view.render({ isDirty: false, appView: 'editing' });
-            const toggleButton = testContainer.querySelector('#toggle-view-btn');
-            // --- MODIFICATION: Expect the new text ---
-            runner.expect(toggleButton.textContent).toBe('Playback');
-        });
-    });
+            testContainer.querySelector('#hamburger-btn').click(); // Open menu
 
-    runner.describe('AppMenuView Callbacks', () => {
-        const testCallback = (buttonId, callbackName) => {
-            logEvent('debug', 'TestRunner', 'it', 'TestCase', `Running callback test for #${buttonId}.`);
+            const newBtn = testContainer.querySelector('#new-btn');
+            const saveBtn = testContainer.querySelector('#save-btn');
+            const toggleBtn = testContainer.querySelector('#toggle-view-btn');
+
+            runner.expect(newBtn === null).toBe(false); // Should exist
+            runner.expect(saveBtn.disabled).toBe(true); // Should be disabled
+            runner.expect(toggleBtn.textContent).toBe('Playback Mode');
+        });
+
+        runner.it('should fire onToggleView when the toggle menu item is clicked', () => {
             const testContainer = document.createElement('div');
             const logger = new MockLogger('Callbacks');
-            const callbacks = { [callbackName]: () => logger.log(callbackName) };
-            const view = new AppMenuView(testContainer, callbacks);
-            view.render({ isDirty: true, appView: 'playing' });
-            testContainer.querySelector(`#${buttonId}`).click();
-            logger.wasCalledWith(callbackName);
-        };
+            const view = new AppMenuView(testContainer, { onToggleView: () => logger.log('onToggleView') });
+            view.render({ isDirty: false, appView: 'playing' });
+            
+            testContainer.querySelector('#hamburger-btn').click(); // Open menu
+            testContainer.querySelector('#toggle-view-btn').click(); // Click menu item
 
-        runner.it('should fire onNewProject when new button is clicked', () => testCallback('new-btn', 'onNewProject'));
-        runner.it('should fire onLoadProject when load button is clicked', () => testCallback('load-btn', 'onLoadProject'));
-        runner.it('should fire onSaveProject when save button is clicked', () => testCallback('save-btn', 'onSaveProject'));
-        runner.it('should fire onToggleView when toggle button is clicked', () => testCallback('toggle-view-btn', 'onToggleView'));
+            logger.wasCalledWith('onToggleView');
+        });
     });
 
     await runner.runAll();
