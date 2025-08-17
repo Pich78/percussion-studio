@@ -1,0 +1,19 @@
+/* file: src/components/ConfirmationDialogView/ConfirmationDialogView.css */
+
+/*
+  Custom styles for the modal overlay and dialog. While Tachyons can handle
+  most styling, overlays and fixed positioning are often cleaner in a dedicated
+  stylesheet.
+*/
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  z-index: 1000;
+  
+  /* Flexbox centering from Tachyons is applied in the JS render method,
+     but this is the fundamental positioning. */
+}

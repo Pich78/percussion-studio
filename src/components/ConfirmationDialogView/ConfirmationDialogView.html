@@ -1,0 +1,49 @@
+<!-- file: src/components/ConfirmationDialogView/ConfirmationDialogView.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Harness: ConfirmationDialogView</title>
+    <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
+    <link rel="stylesheet" href="/percussion-studio/css/global.css">
+    <!-- The component will load its own CSS -->
+    <style> body { font-family: sans-serif; } </style>
+</head>
+<body class="bg-light-gray pa4">
+    <div class="flex">
+        <div class="w-70 pr3">
+            <h1 class="f2 b mb3 bb pb2">Automated Tests</h1>
+            <button id="run-tests-btn" class="pv2 ph3 bn br2 bg-blue white pointer hover-bg-dark-blue mb3">Run All Tests</button>
+            <div id="test-results"></div>
+            <hr class="mv4"/>
+            <h1 class="f2 b mb3 bb pb2">Live View Workbench</h1>
+            <button id="show-dialog-btn" class="pv2 ph3 bn br2 bg-green white pointer hover-bg-dark-green">Show Confirmation Dialog</button>
+        </div>
+        <div class="w-30 pl3">
+            <div class="bg-near-black near-white pa3 br2 h-100">
+                <h2 class="f4 b bb pb2 mb2">Execution Log</h2>
+                <div id="log-output" class="f7 lh-copy" style="white-space: pre-wrap; height: 80vh; overflow-y: auto;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- This is where the unit tests will render the component invisibly -->
+    <div id="test-sandbox" style="position: absolute; visibility: hidden;"></div>
+
+    <script type="module">
+        import { run, manualTest } from './ConfirmationDialogView.test.js';
+        import { Logger, logEvent } from '/percussion-studio/lib/Logger.js';
+        
+        // --- Harness Configuration ---
+        Logger.init({ level: 'debug' });
+        Logger.setTarget('log-output');
+
+        document.getElementById('run-tests-btn').addEventListener('click', () => {
+            logEvent('info', 'Harness', 'runTests', 'Setup', 'Running automated tests...');
+            run();
+        });
+
+        manualTest();
+    </script>
+</body>
+</html>
