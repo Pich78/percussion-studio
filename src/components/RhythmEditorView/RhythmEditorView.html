@@ -89,6 +89,15 @@
                     rerender();
                 }
             },
+            onReorderFlow: (fromIndex, toIndex) => {
+                if (fromIndex >= 0 && fromIndex < currentState.rhythm.playback_flow.length && 
+                    toIndex >= 0 && toIndex < currentState.rhythm.playback_flow.length) {
+                    const movedItem = currentState.rhythm.playback_flow.splice(fromIndex, 1)[0];
+                    currentState.rhythm.playback_flow.splice(toIndex, 0, movedItem);
+                    logEvent('info', 'Harness', 'onReorderFlow', 'Callback', `Moved pattern ${movedItem.pattern} from index ${fromIndex} to ${toIndex}`);
+                    rerender();
+                }
+            },
         });
 
         rerender();

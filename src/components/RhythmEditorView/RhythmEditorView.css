@@ -27,6 +27,12 @@
     scrollbar-color: rgba(0, 0, 0, 0.3) transparent;
 }
 
+/* Show scrollbar only when scrolling is needed */
+.editor-panel .panel-content .flow-list {
+    overflow-y: auto;
+    scrollbar-width: auto; /* Show scrollbar only when needed in Firefox */
+}
+
 /* Webkit browsers (Chrome, Safari, Edge) scrollbar styling */
 .editor-panel .panel-content .flow-list::-webkit-scrollbar {
     width: 8px;
@@ -46,13 +52,47 @@
     background-color: rgba(0, 0, 0, 0.5);
 }
 
-/* Add some spacing between flow items */
+/* Flow item styling */
 .flow-item {
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.25rem;
+    transition: all 0.2s ease;
 }
 
 .flow-item:last-child {
     margin-bottom: 0;
+}
+
+/* Drag and drop styling */
+.flow-item.dragging {
+    opacity: 0.5;
+    transform: rotate(2deg);
+}
+
+.drop-zone {
+    height: 2px;
+    transition: height 0.2s ease;
+    position: relative;
+}
+
+.drop-indicator {
+    height: 3px;
+    background-color: #357edd;
+    border-radius: 2px;
+    margin: 4px 0;
+    animation: pulse 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes pulse {
+    from { opacity: 0.6; }
+    to { opacity: 1; }
+}
+
+.flow-item.drop-spacing-before {
+    margin-top: 1rem;
+}
+
+.flow-item.drop-spacing-after {
+    margin-bottom: 1rem;
 }
 
 .editor-panel.is-expanded {

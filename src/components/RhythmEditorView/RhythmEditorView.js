@@ -21,6 +21,8 @@ export class RhythmEditorView {
         this.container.addEventListener('dragstart', this.handleDragStart.bind(this));
         this.container.addEventListener('dragover', this.handleDragOver.bind(this));
         this.container.addEventListener('drop', this.handleDrop.bind(this));
+        this.container.addEventListener('dragenter', this.handleDragEnter.bind(this));
+        this.container.addEventListener('dragleave', this.handleDragLeave.bind(this));
     }
 
     render(state) {
@@ -54,19 +56,20 @@ export class RhythmEditorView {
         const flowItems = rhythm.playback_flow.map((item, index) => {
             const selectedClass = item.pattern === currentEditingPatternId ? 'bg-washed-blue b--blue' : 'bg-white';
             return `
+                <div data-drop-zone="before" data-drop-index="${index}" class="drop-zone"></div>
                 <div data-action="select-pattern" data-pattern-id="${item.pattern}" data-index="${index}" class="flow-item flex items-center justify-between pa2 br1 ba b--black-10 pointer ${selectedClass}" draggable="true">
                     <span class="truncate">${item.pattern}</span>
                     <button data-action="delete-flow-item" data-index="${index}" class="delete-btn pa1 bn bg-transparent f4 red pointer" title="Remove Item">×</button>
                 </div>
             `;
-        }).join('');
+        }).join('') + `<div data-drop-zone="after" data-drop-index="${rhythm.playback_flow.length}" class="drop-zone"></div>`;
 
         return `
             <div id="flow-panel" class="editor-panel absolute top-0 left-0 h-100 bg-near-white shadow-2 pa3 ${isExpanded ? 'is-expanded' : ''}">
                 <h3 class="f4 b absolute top-2 left-2 vertical-text">Rhythm Flow</h3>
                 <div class="panel-content w-100">
                     <h3 class="f4 b mt0">Rhythm Flow</h3>
-                    <div class="flow-list flex flex-column gap2 mt3">${flowItems}</div>
+                    <div class="flow-list flex flex-column mt3">${flowItems}</div>
                     <button data-action="add-pattern" class="w-100 mt3 pv2 ph3 bn br2 bg-blue white pointer hover-bg-dark-blue f3">+</button>
                 </div>
             </div>`;
@@ -135,14 +138,6 @@ export class RhythmEditorView {
             const action = actionTarget.dataset.action;
             logEvent('debug', 'RhythmEditorView', 'handleClick', 'Events', `Action: ${action}`);
 
-            if (action === 'select-pattern') {
-                this.callbacks.onPatternSelect?.(actionTarget.dataset.patternId);
-                return; // Don't pin/unpin when selecting a pattern
-            }
-            if (action === 'add-pattern') {
-                this.callbacks.onAddPattern?.();
-                return; // Don't pin/unpin when adding a pattern
-            }
             if (action === 'delete-flow-item') {
                 event.stopPropagation(); // Prevent panel pinning when deleting
                 if (window.confirm('Remove this pattern from the flow?')) {
@@ -150,10 +145,17 @@ export class RhythmEditorView {
                 }
                 return; // Exit early to prevent panel pinning logic
             }
-            // For other actions, we still want the panel pinning logic to work
+            if (action === 'add-pattern') {
+                this.callbacks.onAddPattern?.();
+                // Don't return here - we want clicking + to pin the panel if it's not pinned
+            }
+            if (action === 'select-pattern') {
+                this.callbacks.onPatternSelect?.(actionTarget.dataset.patternId);
+                // Don't return here - we want clicking a pattern to pin the panel if it's not pinned
+            }
         }
 
-        // Now handle panel pinning logic
+        // Now handle panel pinning logic - ANY click within a panel should pin it
         const flowPanel = event.target.closest('#flow-panel');
         if (flowPanel) {
             this.callbacks.onPinFlowPanel?.(!this.state.isFlowPinned);
@@ -223,22 +225,71 @@ export class RhythmEditorView {
         if (item) {
             this.draggedIndex = parseInt(item.dataset.index, 10);
             event.dataTransfer.effectAllowed = 'move';
+            event.dataTransfer.setData('text/plain', ''); // Required for some browsers
+            item.classList.add('dragging');
         }
     }
 
     handleDragOver(event) {
         event.preventDefault();
+        event.dataTransfer.dropEffect = 'move';
+    }
+
+    handleDragEnter(event) {
+        const dropZone = event.target.closest('[data-drop-zone]');
+        if (dropZone && this.draggedIndex !== null) {
+            // Remove previous drop indicators
+            this.container.querySelectorAll('.drop-indicator').forEach(el => el.remove());
+            
+            // Add drop indicator
+            const indicator = document.createElement('div');
+            indicator.className = 'drop-indicator';
+            dropZone.appendChild(indicator);
+            
+            // Add spacing to adjacent items
+            const dropIndex = parseInt(dropZone.dataset.dropIndex, 10);
+            const items = this.container.querySelectorAll('.flow-item');
+            items.forEach((item, index) => {
+                item.classList.remove('drop-spacing-before', 'drop-spacing-after');
+                if (index === dropIndex - 1) item.classList.add('drop-spacing-after');
+                if (index === dropIndex) item.classList.add('drop-spacing-before');
+            });
+        }
+    }
+
+    handleDragLeave(event) {
+        // Only remove indicators when leaving the entire flow panel
+        if (!event.target.closest('#flow-panel')) {
+            this.container.querySelectorAll('.drop-indicator').forEach(el => el.remove());
+            this.container.querySelectorAll('.flow-item').forEach(item => {
+                item.classList.remove('drop-spacing-before', 'drop-spacing-after');
+            });
+        }
     }
 
     handleDrop(event) {
         event.preventDefault();
-        const dropTarget = event.target.closest('.flow-item');
-        if (dropTarget && this.draggedIndex !== null) {
-            const dropIndex = parseInt(dropTarget.dataset.index, 10);
-            if (this.draggedIndex !== dropIndex) {
-                this.callbacks.onReorderFlow?.(this.draggedIndex, dropIndex);
+        const dropZone = event.target.closest('[data-drop-zone]');
+        
+        if (dropZone && this.draggedIndex !== null) {
+            const dropIndex = parseInt(dropZone.dataset.dropIndex, 10);
+            
+            // Calculate the new position considering the item being moved
+            let newIndex = dropIndex;
+            if (this.draggedIndex < dropIndex) {
+                newIndex = dropIndex - 1;
+            }
+            
+            if (this.draggedIndex !== newIndex) {
+                this.callbacks.onReorderFlow?.(this.draggedIndex, newIndex);
             }
         }
+        
+        // Clean up
+        this.container.querySelectorAll('.drop-indicator').forEach(el => el.remove());
+        this.container.querySelectorAll('.flow-item').forEach(item => {
+            item.classList.remove('dragging', 'drop-spacing-before', 'drop-spacing-after');
+        });
         this.draggedIndex = null;
     }
 }
