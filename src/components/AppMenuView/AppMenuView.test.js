@@ -22,20 +22,28 @@ export async function run() {
         });
 
         runner.it('should fire onToggleMenu(false) when clicking outside the component', () => {
+            // --- FIX: Create a realistic DOM structure for event bubbling ---
             const wrapper = document.createElement('div');
             const testContainer = document.createElement('div');
-            wrapper.appendChild(testContainer); // Place the component inside a wrapper
+            wrapper.appendChild(testContainer);
+            document.body.appendChild(wrapper); // Attach to the actual document
 
             const logger = new MockLogger('Callbacks');
             const view = new AppMenuView(testContainer, { onToggleMenu: (force) => logger.log('onToggleMenu', force) });
             
-            // Render with the menu open to attach the global listener
-            view.render({ isMenuOpen: true });
+            try {
+                // Render with the menu open to attach the global listener
+                view.render({ isMenuOpen: true });
 
-            // Simulate a click on the wrapper, which is "outside" the component's container
-            wrapper.click();
-            
-            logger.wasCalledWith('onToggleMenu', false);
+                // Simulate a click on the wrapper, which is "outside" the component
+                wrapper.click();
+                
+                // Assert that the callback was fired to close the menu
+                logger.wasCalledWith('onToggleMenu', false);
+            } finally {
+                // IMPORTANT: Clean up the DOM after the test
+                document.body.removeChild(wrapper);
+            }
         });
 
         runner.it('should render correct menu items for "playing" view', () => {
