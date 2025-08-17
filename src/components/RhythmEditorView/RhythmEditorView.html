@@ -43,10 +43,12 @@
 
         let currentState = {
             rhythm: {
-                playback_flow: Array.from({length: 15}, (_, i) => ({ pattern: `p${i+1}`})),
+                playback_flow: Array.from({length: 6}, (_, i) => ({ pattern: `p${i+1}`})),
                 patterns: {},
             },
-            currentEditingPatternId: 'p1', isFlowPinned: false, isPalettePinned: false,
+            currentEditingPatternId: 'p1', 
+            isFlowPinned: false, 
+            isPalettePinned: false,
         };
 
         const container = document.getElementById('view-container');
@@ -69,7 +71,24 @@
                 currentState.isPalettePinned = isPinned;
                 rerender();
             },
-            onPatternSelect: (id) => { currentState.currentEditingPatternId = id; rerender(); },
+            onPatternSelect: (id) => { 
+                currentState.currentEditingPatternId = id; 
+                rerender(); 
+            },
+            onAddPattern: () => {
+                const newIndex = currentState.rhythm.playback_flow.length + 1;
+                currentState.rhythm.playback_flow.push({ pattern: `p${newIndex}` });
+                logEvent('info', 'Harness', 'onAddPattern', 'Callback', `Added pattern p${newIndex}`);
+                rerender();
+            },
+            onDeleteFlowItem: (index) => {
+                if (index >= 0 && index < currentState.rhythm.playback_flow.length) {
+                    const removedPattern = currentState.rhythm.playback_flow[index];
+                    currentState.rhythm.playback_flow.splice(index, 1);
+                    logEvent('info', 'Harness', 'onDeleteFlowItem', 'Callback', `Removed pattern ${removedPattern.pattern} at index ${index}`);
+                    rerender();
+                }
+            },
         });
 
         rerender();

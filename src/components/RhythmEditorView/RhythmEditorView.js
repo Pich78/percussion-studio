@@ -135,8 +135,14 @@ export class RhythmEditorView {
             const action = actionTarget.dataset.action;
             logEvent('debug', 'RhythmEditorView', 'handleClick', 'Events', `Action: ${action}`);
 
-            if (action === 'select-pattern') this.callbacks.onPatternSelect?.(actionTarget.dataset.patternId);
-            if (action === 'add-pattern') this.callbacks.onAddPattern?.();
+            if (action === 'select-pattern') {
+                this.callbacks.onPatternSelect?.(actionTarget.dataset.patternId);
+                return; // Don't pin/unpin when selecting a pattern
+            }
+            if (action === 'add-pattern') {
+                this.callbacks.onAddPattern?.();
+                return; // Don't pin/unpin when adding a pattern
+            }
             if (action === 'delete-flow-item') {
                 event.stopPropagation(); // Prevent panel pinning when deleting
                 if (window.confirm('Remove this pattern from the flow?')) {
