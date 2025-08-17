@@ -17,7 +17,7 @@
             <div id="test-results"></div>
             <hr class="mv4"/>
             <h1 class="f2 b mb3 bb pb2">Live View Workbench</h1>
-            <p class="f6 gray mb3">Hover over the side panels to see them expand. Click a panel to "pin" it open. Click the center grid to unpin.</p>
+            <p class="f6 gray mb3">Hover over side panels to expand. Click a panel to pin it open. Click the center grid to unpin both.</p>
             <div id="view-container" class="bg-white shadow-2 w-100 relative" style="height: 60vh;"></div>
             <div id="current-state-display" class="f6 code pa2 bg-washed-yellow mt3"></div>
         </div>
@@ -32,8 +32,8 @@
     <div id="test-sandbox" style="position: absolute; visibility: hidden;"></div>
 
     <script type="module">
-        // --- FIX: Correct relative path to the test file ---
-        import { run, manualTest } from './RhythmEditorView.test.js';
+        import { run } from './RhythmEditorView.test.js';
+        import { RhythmEditorView } from './RhythmEditorView.js';
         import { Logger, logEvent } from '/percussion-studio/lib/Logger.js';
         
         Logger.init({ level: 'debug' });
@@ -41,7 +41,38 @@
 
         document.getElementById('run-tests-btn').addEventListener('click', run);
 
-        manualTest();
+        let currentState = {
+            rhythm: {
+                playback_flow: [{ pattern: 'verse', repetitions: 4 }],
+                patterns: { verse: { metadata: { resolution: 8 }, pattern_data: [{ KCK: 'o-o-o-o-' }] } },
+                instrumentDefsBySymbol: { KCK: { sounds: [] } }
+            },
+            currentEditingPatternId: 'verse',
+            isFlowPinned: false,
+            isPalettePinned: false,
+        };
+
+        const container = document.getElementById('view-container');
+        const stateDisplay = document.getElementById('current-state-display');
+
+        const rerender = () => {
+            logEvent('info', 'Harness', 'rerender', 'State', 'Rerendering with new state:', currentState);
+            view.render(currentState);
+            stateDisplay.textContent = `Current State: ${JSON.stringify(currentState, null, 2)}`;
+        };
+
+        const view = new RhythmEditorView(container, {
+            onPinFlowPanel: (isPinned) => {
+                currentState.isFlowPinned = isPinned;
+                rerender();
+            },
+            onPinPalettePanel: (isPinned) => {
+                currentState.isPalettePinned = isPinned;
+                rerender();
+            },
+        });
+
+        rerender();
     </script>
 </body>
 </html>

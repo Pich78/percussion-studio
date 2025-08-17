@@ -5,30 +5,31 @@
 */
 .editor-panel {
   transition: width 0.2s ease-in-out;
-  z-index: 20; /* Ensure panels are on top of the grid content */
+  z-index: 20;
+  width: 2rem; /* NEW: Smaller collapsed width */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/*
-  The panel's content should fade in and out with the expansion.
-  It's hidden by default.
-*/
+/* The panel's content should fade in and out with the expansion. */
 .editor-panel .panel-content {
   transition: opacity 0.15s ease-in-out;
   opacity: 0;
   visibility: hidden;
+  display: none; /* Ensure it doesn't take up space when collapsed */
 }
 
-/*
-  The .is-expanded class is the single source of truth for the expanded state,
-  whether it's caused by hovering or pinning.
-*/
+/* The .is-expanded class is the key to the expanded state. */
 .editor-panel.is-expanded {
-  width: 16rem; /* w-64 in Tachyons */
+  width: 16rem; /* Expanded width */
+  align-items: flex-start; /* Align content to the top when expanded */
 }
 
 .editor-panel.is-expanded .panel-content {
   opacity: 1;
   visibility: visible;
+  display: block;
 }
 
 /* The vertical title is visible by default... */
@@ -40,11 +41,10 @@
 /* ...and fades out when the panel expands. */
 .editor-panel.is-expanded .vertical-text {
   opacity: 0;
+  display: none;
 }
 
-/*
-  Custom style for the central grid panel's margin transitions.
-*/
+/* Custom style for the central grid panel's margin transitions. */
 .grid-panel {
     transition: margin-left 0.2s ease-in-out, margin-right 0.2s ease-in-out;
 }
