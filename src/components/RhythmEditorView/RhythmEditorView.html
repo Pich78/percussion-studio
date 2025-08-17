@@ -17,7 +17,7 @@
             <div id="test-results"></div>
             <hr class="mv4"/>
             <h1 class="f2 b mb3 bb pb2">Live View Workbench</h1>
-            <p class="f6 gray mb3">Hover over side panels to expand. Click a panel to pin it open. Click the center grid to unpin both.</p>
+            <p class="f6 gray mb3">Interact with the flow panel: click to select, drag to reorder, click '+' to add, or 'x' to delete.</p>
             <div id="view-container" class="bg-white shadow-2 w-100 relative" style="height: 60vh;"></div>
             <div id="current-state-display" class="f6 code pa2 bg-washed-yellow mt3"></div>
         </div>
@@ -43,13 +43,10 @@
 
         let currentState = {
             rhythm: {
-                playback_flow: [{ pattern: 'verse', repetitions: 4 }],
-                patterns: { verse: { metadata: { resolution: 8 }, pattern_data: [{ KCK: 'o-o-o-o-' }] } },
-                instrumentDefsBySymbol: { KCK: { sounds: [] } }
+                playback_flow: [{ pattern: 'verse', repetitions: 4 }, { pattern: 'chorus', repetitions: 2 }],
+                patterns: { verse: { metadata: { resolution: 8 }, pattern_data: [{ KCK: 'o-o-o-o-' }] }, chorus: { metadata: { resolution: 8 }, pattern_data: [{ SNR: 'o-o--o-o' }] } },
             },
-            currentEditingPatternId: 'verse',
-            isFlowPinned: false,
-            isPalettePinned: false,
+            currentEditingPatternId: null, isFlowPinned: true, isPalettePinned: false,
         };
 
         const container = document.getElementById('view-container');
@@ -62,12 +59,24 @@
         };
 
         const view = new RhythmEditorView(container, {
-            onPinFlowPanel: (isPinned) => {
-                currentState.isFlowPinned = isPinned;
+            onPatternSelect: (id) => { currentState.currentEditingPatternId = id; rerender(); },
+            onAddPattern: () => {
+                logEvent('info', 'Harness', 'onAddPattern', 'Callback', 'Add Pattern clicked.');
+                const newId = `pattern_${Object.keys(currentState.rhythm.patterns).length + 1}`;
+                currentState.rhythm.patterns[newId] = { metadata: { resolution: 8 }, pattern_data: [{}] };
+                currentState.rhythm.playback_flow.push({ pattern: newId, repetitions: 1 });
+                currentState.currentEditingPatternId = newId;
                 rerender();
             },
-            onPinPalettePanel: (isPinned) => {
-                currentState.isPalettePinned = isPinned;
+            onDeleteFlowItem: (index) => {
+                logEvent('info', 'Harness', 'onDeleteFlowItem', 'Callback', `Delete item at index: ${index}`);
+                currentState.rhythm.playback_flow.splice(index, 1);
+                rerender();
+            },
+            onReorderFlow: (oldIndex, newIndex) => {
+                logEvent('info', 'Harness', 'onReorderFlow', 'Callback', `Reordering from ${oldIndex} to ${newIndex}`);
+                const [item] = currentState.rhythm.playback_flow.splice(oldIndex, 1);
+                currentState.rhythm.playback_flow.splice(newIndex, 0, item);
                 rerender();
             },
         });
