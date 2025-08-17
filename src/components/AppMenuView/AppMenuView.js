@@ -7,26 +7,25 @@ export class AppMenuView {
     constructor(container, callbacks) {
         this.container = container;
         this.callbacks = callbacks || {};
-        this.isMenuOpen = false; // Internal UI state for the dropdown
-        this.state = {}; // A copy of the app's state for re-rendering
+        this.isMenuOpen = false;
+        this.state = {};
 
         loadCSS('/percussion-studio/src/components/AppMenuView/AppMenuView.css');
         logEvent('info', 'AppMenuView', 'constructor', 'Lifecycle', 'Component created.');
         
-        // Bind methods to ensure 'this' is correct
         this.handleOutsideClick = this.handleOutsideClick.bind(this);
     }
 
     render(state) {
-        this.state = state; // Cache the latest state
+        this.state = state;
         logEvent('debug', 'AppMenuView', 'render', 'State', 'Rendering with state:', state);
         
-        const { appView } = state;
-
         const html = `
             <div class="flex items-center justify-between w-100 relative">
-                <h1 class="f3 b dark-gray">Percussion Studio</h1>
-                <button id="hamburger-btn" class="pv2 ph3 br2 bn bg-transparent hover-bg-light-gray pointer f4">☰</button>
+                <div class="flex items-center">
+                    <button id="hamburger-btn" class="pv2 ph3 br2 bn bg-transparent hover-bg-light-gray pointer f4 mr3">☰</button>
+                    <h1 class="f3 b dark-gray">Percussion Studio</h1>
+                </div>
                 ${this._renderMenu(state)}
             </div>
         `;
@@ -37,7 +36,6 @@ export class AppMenuView {
     _renderMenu(state) {
         const { isDirty, appView } = state;
         const menuStateClass = this.isMenuOpen ? 'is-open' : 'is-closed';
-
         const btnBase = "w-100 tl pa2 bn bg-transparent hover-bg-light-gray pointer f6";
         const btnDisabled = "o-50 not-allowed";
 
@@ -56,59 +54,57 @@ export class AppMenuView {
             `;
         }
 
-        return `
-            <div class="app-menu-dropdown ${menuStateClass} bg-white br2 w5 mt2">
-                <div class="pa2">
-                    ${menuItems}
-                </div>
-            </div>
-        `;
+        return `<div class="app-menu-dropdown ${menuStateClass} bg-white br2 w5 mt2">${menuItems}</div>`;
+    }
+    
+    openMenu() {
+        if (this.isMenuOpen) return;
+        this.isMenuOpen = true;
+        this.render(this.state);
+        document.addEventListener('click', this.handleOutsideClick, true);
     }
 
-    toggleMenu() {
-        this.isMenuOpen = !this.isMenuOpen;
-        logEvent('debug', 'AppMenuView', 'toggleMenu', 'UI', `Menu toggled. New state: ${this.isMenuOpen ? 'Open' : 'Closed'}`);
-        this.render(this.state); // Re-render to show/hide the menu
-
-        // Add or remove the global "click outside" listener
-        if (this.isMenuOpen) {
-            document.addEventListener('click', this.handleOutsideClick, true);
-        } else {
-            document.removeEventListener('click', this.handleOutsideClick, true);
-        }
+    closeMenu() {
+        if (!this.isMenuOpen) return;
+        this.isMenuOpen = false;
+        this.render(this.state);
+        document.removeEventListener('click', this.handleOutsideClick, true);
     }
 
     handleOutsideClick(event) {
-        // If the click is outside the main container of this component, close the menu
         if (!this.container.contains(event.target)) {
-            logEvent('debug', 'AppMenuView', 'handleOutsideClick', 'UI', 'Clicked outside, closing menu.');
-            this.toggleMenu();
+            this.closeMenu();
         }
     }
 
     attachEventListeners() {
-        logEvent('debug', 'AppMenuView', 'attachEventListeners', 'Events', 'Attaching event listeners.');
-        
-        // Use event delegation on the container for menu items
         this.container.addEventListener('click', (event) => {
             const button = event.target.closest('button');
             if (!button) return;
 
+            const closeAfterAction = () => {
+                if (button.id !== 'hamburger-btn') this.closeMenu();
+            };
+
             switch (button.id) {
                 case 'hamburger-btn':
-                    this.toggleMenu();
+                    this.isMenuOpen ? this.closeMenu() : this.openMenu();
                     break;
                 case 'new-btn':
                     this.callbacks.onNewProject?.();
+                    closeAfterAction();
                     break;
                 case 'load-btn':
                     this.callbacks.onLoadProject?.();
+                    closeAfterAction();
                     break;
                 case 'save-btn':
                     this.callbacks.onSaveProject?.();
+                    closeAfterAction();
                     break;
                 case 'toggle-view-btn':
                     this.callbacks.onToggleView?.();
+                    closeAfterAction();
                     break;
             }
         });

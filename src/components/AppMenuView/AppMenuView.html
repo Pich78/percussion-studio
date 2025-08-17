@@ -6,7 +6,7 @@
     <title>Test Harness: AppMenuView</title>
     <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
     <link rel="stylesheet" href="/percussion-studio/css/global.css">
-    <link rel="stylesheet" href="./AppMenuView.css"> <!-- Link to the component's own CSS -->
+    <link rel="stylesheet" href="./AppMenuView.css">
     <style> body { font-family: sans-serif; } </style>
 </head>
 <body class="bg-light-gray pa4">
@@ -14,23 +14,18 @@
     <div class="flex">
         <div class="w-70 pr3">
             <h1 class="f2 b mb3 bb pb2">Automated Tests for <code>AppMenuView</code></h1>
-            <button id="run-tests-btn" class="pv2 ph3 bn br2 bg-indigo white pointer hover-bg-dark-blue mb3">Run Automated Tests</button>
+            <button id="run-tests-btn" class="pv2 ph3 bn br2 bg-indigo white pointer hover-bg-dark-blue mb3">Run Tests</button>
             <div id="test-results"></div>
-
             <hr class="mv4"/>
-
             <h1 class="f2 b mb3 bb pb2">Live View Workbench</h1>
-            <p class="f6 gray mb3">Click the hamburger menu to test its behavior. Use the controls below to re-render the component in different states.</p>
-            <header id="view-container" class="bg-white shadow-2 h3 flex items-center pa3 mb3">
-                <!-- AppMenuView will be rendered here -->
-            </header>
+            <header id="view-container" class="bg-white shadow-2 h3 flex items-center pa3 mb3"></header>
             <div class="controls">
-                <button id="render-playing-btn" class="pv2 ph3 bn br2 bg-blue white pointer hover-bg-dark-blue mr2">Render (Playing View)</button>
-                <button id="render-editing-clean-btn" class="pv2 ph3 bn br2 bg-green white pointer hover-bg-dark-green mr2">Render (Editing, Clean)</button>
-                <button id="render-editing-dirty-btn" class="pv2 ph3 bn br2 bg-dark-red white pointer hover-bg-red">Render (Editing, Dirty)</button>
+                <p class="f6 gray mb2">Use these buttons to simulate the parent app changing the state.</p>
+                <button id="render-playing-btn" class="pv2 ph3 bn br2 bg-blue white pointer hover-bg-dark-blue mr2">Set State: Playing</button>
+                <button id="render-editing-clean-btn" class="pv2 ph3 bn br2 bg-green white pointer hover-bg-dark-green mr2">Set State: Editing (Clean)</button>
+                <button id="render-editing-dirty-btn" class="pv2 ph3 bn br2 bg-dark-red white pointer hover-bg-red">Set State: Editing (Dirty)</button>
             </div>
         </div>
-
         <div class="w-30 pl3">
             <div class="bg-near-black near-white pa3 br2 h-100">
                 <h2 class="f4 b bb pb2 mb2">Execution Log</h2>
@@ -49,25 +44,38 @@
 
         document.getElementById('run-tests-btn').addEventListener('click', run);
 
+        let currentState = { isDirty: false, appView: 'playing' };
         const container = document.getElementById('view-container');
+        
+        const rerender = () => {
+            logEvent('info', 'Harness', 'rerender', 'State', 'Rerendering component with new state:', currentState);
+            view.render(currentState);
+        };
+
         const view = new AppMenuView(container, {
             onNewProject: () => logEvent('info', 'Harness', 'onNewProject', 'Callback', 'New Rhythm clicked.'),
             onLoadProject: () => logEvent('info', 'Harness', 'onLoadProject', 'Callback', 'Load Rhythm clicked.'),
             onSaveProject: () => logEvent('info', 'Harness', 'onSaveProject', 'Callback', 'Save Rhythm clicked.'),
-            onToggleView: () => logEvent('info', 'Harness', 'onToggleView', 'Callback', 'Mode Change clicked.'),
+            onToggleView: () => {
+                logEvent('info', 'Harness', 'onToggleView', 'Callback', 'Mode Change clicked.');
+                currentState.appView = currentState.appView === 'playing' ? 'editing' : 'playing';
+                rerender();
+            },
         });
 
-        // Initial render
-        view.render({ isDirty: false, appView: 'playing' });
+        rerender(); // Initial render
 
         document.getElementById('render-playing-btn').addEventListener('click', () => {
-            view.render({ isDirty: false, appView: 'playing' });
+            currentState = { isDirty: false, appView: 'playing' };
+            rerender();
         });
         document.getElementById('render-editing-clean-btn').addEventListener('click', () => {
-            view.render({ isDirty: false, appView: 'editing' });
+            currentState = { isDirty: false, appView: 'editing' };
+            rerender();
         });
         document.getElementById('render-editing-dirty-btn').addEventListener('click', () => {
-            view.render({ isDirty: true, appView: 'editing' });
+            currentState = { isDirty: true, appView: 'editing' };
+            rerender();
         });
     </script>
 </body>
