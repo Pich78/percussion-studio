@@ -7,6 +7,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden; /* Ensure text stays within panel bounds */
 }
 
 .editor-panel .panel-content {
@@ -118,18 +119,26 @@
   transform: translate(-50%, -50%);
   pointer-events: none;
   white-space: nowrap;
+  font-size: 0.75rem; /* Smaller font to fit better */
+  max-width: 1.5rem; /* Ensure text fits within collapsed panel */
+  text-align: center;
+  line-height: 1;
 }
 
 /* Specific styling for flow panel text (bottom to top) */
 #flow-panel .vertical-text {
   writing-mode: vertical-rl;
   transform: translate(-50%, -50%) rotate(180deg);
+  /* Adjust positioning to keep text within the 2rem panel width */
+  max-height: calc(100% - 2rem); /* Leave some margin */
 }
 
 /* Specific styling for palette panel text (top to bottom) */
 #palette-panel .vertical-text {
   writing-mode: vertical-rl;
   transform: translate(-50%, -50%);
+  /* Adjust positioning to keep text within the 2rem panel width */
+  max-height: calc(100% - 2rem); /* Leave some margin */
 }
 
 .editor-panel.is-expanded .vertical-text {
