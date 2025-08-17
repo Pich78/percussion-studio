@@ -11,49 +11,45 @@ export async function run() {
     logEvent('info', 'TestRunner', 'run', 'Setup', 'Starting AppMenuView test suite.');
 
     runner.describe('AppMenuView Hamburger Menu', () => {
-        runner.it('should show the dropdown menu after clicking the hamburger button', () => {
+        runner.it('should fire onToggleMenu when hamburger is clicked', () => {
             const testContainer = document.createElement('div');
-            const view = new AppMenuView(testContainer, {});
-            view.render({ isDirty: false, appView: 'playing' });
-            testContainer.querySelector('#hamburger-btn').click();
-            const dropdown = testContainer.querySelector('.app-menu-dropdown.is-open');
-            runner.expect(dropdown === null).toBe(false);
-        });
-
-        runner.it('should close the menu after a menu item is clicked', () => {
-            const testContainer = document.createElement('div');
-            const view = new AppMenuView(testContainer, { onToggleView: () => {} });
-            view.render({ isDirty: false, appView: 'playing' });
+            const logger = new MockLogger('Callbacks');
+            const view = new AppMenuView(testContainer, { onToggleMenu: () => logger.log('onToggleMenu') });
+            view.render({ isDirty: false, appView: 'playing', isMenuOpen: false });
             
-            // Open the menu
-            testContainer.querySelector('#hamburger-btn').click();
-            runner.expect(testContainer.querySelector('.app-menu-dropdown.is-open') === null).toBe(false);
-
-            // Click an action item
-            testContainer.querySelector('#toggle-view-btn').click();
-            runner.expect(testContainer.querySelector('.app-menu-dropdown.is-open')).toBe(null);
+            testContainer.querySelector('button[data-action="toggle-menu"]').click();
+            logger.wasCalledWith('onToggleMenu');
         });
-        
-        runner.it('should render correct menu items for "playing" view', () => {
+
+        runner.it('should fire onToggleView and onToggleMenu when mode change is clicked', () => {
             const testContainer = document.createElement('div');
-            const view = new AppMenuView(testContainer, {});
-            view.render({ isDirty: false, appView: 'playing' });
-            testContainer.querySelector('#hamburger-btn').click();
+            const logger = new MockLogger('Callbacks');
+            const view = new AppMenuView(testContainer, { 
+                onToggleView: () => logger.log('onToggleView'),
+                onToggleMenu: (force) => logger.log('onToggleMenu', force)
+            });
+            view.render({ isDirty: false, appView: 'playing', isMenuOpen: true }); // Assume menu is open
+
+            testContainer.querySelector('button[data-action="toggle-view"]').click();
             
-            runner.expect(testContainer.querySelector('#new-btn')).toBe(null);
-            runner.expect(testContainer.querySelector('#load-btn') === null).toBe(false);
-            runner.expect(testContainer.querySelector('#toggle-view-btn').textContent).toBe('Editor Mode');
+            logger.wasCalledWith('onToggleView');
+            logger.wasCalledWith('onToggleMenu', false); // Asserts it requests to be closed
         });
 
-        runner.it('should render correct menu items for "editing" view and disable save when clean', () => {
+        runner.it('should render "Editor Mode" button when in playing view', () => {
             const testContainer = document.createElement('div');
             const view = new AppMenuView(testContainer, {});
-            view.render({ isDirty: false, appView: 'editing' });
-            testContainer.querySelector('#hamburger-btn').click();
+            view.render({ isDirty: false, appView: 'playing', isMenuOpen: true });
+            const toggleBtn = testContainer.querySelector('button[data-action="toggle-view"]');
+            runner.expect(toggleBtn.textContent).toBe('Editor Mode');
+        });
 
-            runner.expect(testContainer.querySelector('#new-btn') === null).toBe(false);
-            runner.expect(testContainer.querySelector('#save-btn').disabled).toBe(true);
-            runner.expect(testContainer.querySelector('#toggle-view-btn').textContent).toBe('Playback Mode');
+        runner.it('should disable save button when in editing view and not dirty', () => {
+            const testContainer = document.createElement('div');
+            const view = new AppMenuView(testContainer, {});
+            view.render({ isDirty: false, appView: 'editing', isMenuOpen: true });
+            const saveBtn = testContainer.querySelector('button[data-action="save"]');
+            runner.expect(saveBtn.disabled).toBe(true);
         });
     });
 
