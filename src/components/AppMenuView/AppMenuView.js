@@ -9,33 +9,34 @@ export class AppMenuView {
         this.container = container;
         this.callbacks = callbacks || {};
         
-        // Load component-specific styles
         loadCSS('/percussion-studio/src/components/AppMenuView/AppMenuView.css');
         console.log(`[${getTime()}][AppMenuView][constructor][Initialization] Component created and styles loaded.`);
     }
 
     render(state) {
-        console.log(`[${getTime()}][AppMenuView][render][Rendering] Rendering with state:`, state);
+        console.log(`[${getTime()}][AppMenuView][render][Rendering] Rendering with Tachyons. State:`, state);
         if (!this.container) {
-            console.error(`[${getTime()}][AppMenuView][render][Error] Container element is null. Cannot render.`);
+            console.error(`[${getTime()}][AppMenuView][render][Error] Container element is null.`);
             return;
         }
 
         const { isDirty, appView } = state;
         
-        const btnBase = "px-4 py-2 rounded-md text-sm font-medium transition-colors duration-150";
-        const btnPrimary = "bg-slate-100 hover:bg-slate-200 text-slate-700";
-        const btnSave = "bg-blue-500 hover:bg-blue-600 text-white disabled:bg-slate-400";
+        // Tachyons CSS classes
+        const btnBase = "pv2 ph3 br2 f6 fw5 bn pointer";
+        const btnPrimary = "bg-light-gray hover-bg-moon-gray dark-gray";
+        const btnSave = "bg-blue hover-bg-dark-blue white";
+        const disabledState = !isDirty ? 'o-50' : '';
 
         const toggleViewText = appView === 'editing' ? 'Go to Playing' : 'Go to Editing';
 
         const html = `
-            <div class="flex items-center justify-between gap-4 w-full">
-                <div class="flex items-center gap-4">
-                    <h1 class="text-xl font-bold text-slate-700 mr-4">Percussion Studio</h1>
-                    <button id="new-btn" class="${btnBase} ${btnPrimary}">New</button>
-                    <button id="load-btn" class="${btnBase} ${btnPrimary}">Load</button>
-                    <button id="save-btn" class="${btnBase} ${btnSave}" ${!isDirty ? 'disabled' : ''}>Save</button>
+            <div class="flex items-center justify-between w-100">
+                <div class="flex items-center">
+                    <h1 class="f3 b dark-gray mr3">Percussion Studio</h1>
+                    <button id="new-btn" class="${btnBase} ${btnPrimary} mr2">New</button>
+                    <button id="load-btn" class="${btnBase} ${btnPrimary} mr2">Load</button>
+                    <button id="save-btn" class="${btnBase} ${btnSave} ${disabledState}" ${!isDirty ? 'disabled' : ''}>Save</button>
                 </div>
                 <button id="toggle-view-btn" class="${btnBase} ${btnPrimary}">${toggleViewText}</button>
             </div>

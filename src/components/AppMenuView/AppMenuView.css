@@ -1,12 +1,17 @@
 /* file: src/components/AppMenuView/AppMenuView.css */
 
 /*
-    This file is intentionally left blank.
-
-    All current styling for the AppMenuView component is handled directly
-    within AppMenuView.js using Tailwind CSS utility classes.
-
-    This file exists to conform to the component architecture and to provide
-    a dedicated place for any future, more complex styles that cannot be
-    easily achieved with utility classes alone.
+  A custom shadow class, as Tachyons does not provide these by default.
+  This follows the Material Design shadow principle.
 */
+.shadow-2 {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+/*
+  Tachyons uses opacity for the disabled state. We can add a cursor
+  style for better user feedback.
+*/
+button:disabled {
+  cursor: not-allowed;
+}

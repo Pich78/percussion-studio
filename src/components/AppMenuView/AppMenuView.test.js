@@ -48,16 +48,12 @@ export async function run() {
 
     runner.describe('AppMenuView Callbacks', () => {
         const testCallback = (buttonId, callbackName) => {
-            console.log(`[${getTime()}][TestRunner][it][TestCase] Running callback test for #${buttonId}.`);
             const testContainer = document.createElement('div');
             const logger = new MockLogger('Callbacks');
             const callbacks = { [callbackName]: () => logger.log(callbackName) };
             const view = new AppMenuView(testContainer, callbacks);
-            view.render({ isDirty: true, appView: 'playing' }); // isDirty: true to enable save button
-            
-            console.log(`[${getTime()}][TestRunner][it][Simulation] Simulating click on #${buttonId}.`);
+            view.render({ isDirty: true, appView: 'playing' });
             testContainer.querySelector(`#${buttonId}`).click();
-            
             logger.wasCalledWith(callbackName);
         };
 
