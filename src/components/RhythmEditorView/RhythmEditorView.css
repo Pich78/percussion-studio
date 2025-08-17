@@ -1,0 +1,33 @@
+/* file: src/components/RhythmEditorView/RhythmEditorView.css */
+
+/*
+  Custom styles for the editor's interactive side panels.
+*/
+.editor-panel {
+  transition: width 0.2s ease-in-out;
+  z-index: 20; /* Ensure panels are on top of the grid content */
+}
+
+.editor-panel .panel-content {
+  transition: opacity 0.2s ease-in-out;
+  opacity: 0;
+  display: none;
+}
+
+/*
+  When a panel is expanded (either by hover or by being pinned),
+  make its content visible.
+*/
+.editor-panel.is-expanded {
+  width: 16rem; /* w-64 in Tailwind */
+}
+
+.editor-panel.is-expanded .panel-content {
+  opacity: 1;
+  display: block;
+}
+
+/* Hide the vertical title when the panel is expanded */
+.editor-panel.is-expanded .vertical-text {
+  display: none;
+}
