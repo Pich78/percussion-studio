@@ -13,14 +13,21 @@
 
     <div class="flex">
         <div class="w-70 pr3">
-            <h1 class="f2 b mb3 bb pb2">Automated Tests</h1>
-            <button id="run-tests-btn" class="pv2 ph3 bn br2 bg-indigo white pointer hover-bg-dark-blue mb3">Run Tests</button>
+            <h1 class="f2 b mb3 bb pb2">Automated Tests for <code>AppMenuView</code></h1>
+            <!-- MODIFICATION: Changed bg-indigo to bg-blue for better contrast -->
+            <button id="run-tests-btn" class="pv2 ph3 bn br2 bg-blue white pointer hover-bg-dark-blue mb3">Run Automated Tests</button>
             <div id="test-results"></div>
+
             <hr class="mv4"/>
+
             <h1 class="f2 b mb3 bb pb2">Live View Workbench</h1>
             <header id="view-container" class="bg-white shadow-2 h3 flex items-center pa3 mb3"></header>
-            <p class="f6 gray mb2">Click the hamburger or the buttons below to see how the component responds to state changes.</p>
-            <div id="current-state-display" class="f6 code pa2 bg-washed-yellow mb3"></div>
+            <div class="controls">
+                <p class="f6 gray mb2">Use these buttons to simulate the parent app changing the state.</p>
+                <button id="render-playing-btn" class="pv2 ph3 bn br2 bg-blue white pointer hover-bg-dark-blue mr2">Set State: Playing</button>
+                <button id="render-editing-clean-btn" class="pv2 ph3 bn br2 bg-green white pointer hover-bg-dark-green mr2">Set State: Editing (Clean)</button>
+                <button id="render-editing-dirty-btn" class="pv2 ph3 bn br2 bg-dark-red white pointer hover-bg-red">Set State: Editing (Dirty)</button>
+            </div>
         </div>
         <div class="w-30 pl3">
             <div class="bg-near-black near-white pa3 br2 h-100">
@@ -40,20 +47,12 @@
 
         document.getElementById('run-tests-btn').addEventListener('click', run);
 
-        // --- The Harness now acts as a mini-controller, owning all the state ---
-        let currentState = {
-            isDirty: false,
-            appView: 'playing',
-            isMenuOpen: false
-        };
-
+        let currentState = { isDirty: false, appView: 'playing', isMenuOpen: false };
         const container = document.getElementById('view-container');
-        const stateDisplay = document.getElementById('current-state-display');
-
+        
         const rerender = () => {
             logEvent('info', 'Harness', 'rerender', 'State', 'Rerendering component with new state:', currentState);
             view.render(currentState);
-            stateDisplay.textContent = `Current State: ${JSON.stringify(currentState)}`;
         };
 
         const view = new AppMenuView(container, {
@@ -61,7 +60,6 @@
             onLoadProject: () => logEvent('info', 'Harness', 'onLoadProject', 'Callback', 'Load Rhythm clicked.'),
             onSaveProject: () => logEvent('info', 'Harness', 'onSaveProject', 'Callback', 'Save Rhythm clicked.'),
             onToggleMenu: (forceState) => {
-                logEvent('info', 'Harness', 'onToggleMenu', 'Callback', `Menu toggle requested. Force state: ${forceState}`);
                 if (typeof forceState === 'boolean') {
                     currentState.isMenuOpen = forceState;
                 } else {
@@ -70,15 +68,26 @@
                 rerender();
             },
             onToggleView: () => {
-                logEvent('info', 'Harness', 'onToggleView', 'Callback', 'Mode Change clicked.');
                 currentState.appView = currentState.appView === 'playing' ? 'editing' : 'playing';
-                // When view mode changes, the app is no longer "dirty"
                 currentState.isDirty = false;
                 rerender();
             },
         });
 
         rerender(); // Initial render
+
+        document.getElementById('render-playing-btn').addEventListener('click', () => {
+            currentState = { isDirty: false, appView: 'playing', isMenuOpen: false };
+            rerender();
+        });
+        document.getElementById('render-editing-clean-btn').addEventListener('click', () => {
+            currentState = { isDirty: false, appView: 'editing', isMenuOpen: false };
+            rerender();
+        });
+        document.getElementById('render-editing-dirty-btn').addEventListener('click', () => {
+            currentState = { isDirty: true, appView: 'editing', isMenuOpen: false };
+            rerender();
+        });
     </script>
 </body>
 </html>
