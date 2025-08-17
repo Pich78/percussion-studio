@@ -1,8 +1,7 @@
 // file: src/components/AppMenuView/AppMenuView.js
 
 import { loadCSS } from '/percussion-studio/lib/dom.js';
-
-const getTime = () => new Date().toISOString();
+import { logEvent } from '/percussion-studio/lib/Logger.js';
 
 export class AppMenuView {
     constructor(container, callbacks) {
@@ -10,13 +9,13 @@ export class AppMenuView {
         this.callbacks = callbacks || {};
         
         loadCSS('/percussion-studio/src/components/AppMenuView/AppMenuView.css');
-        console.log(`[${getTime()}][AppMenuView][constructor][Initialization] Component created and styles loaded.`);
+        logEvent('info', 'AppMenuView', 'constructor', 'Lifecycle', 'Component created.');
     }
 
     render(state) {
-        console.log(`[${getTime()}][AppMenuView][render][Rendering] Rendering with Tachyons. State:`, state);
+        logEvent('debug', 'AppMenuView', 'render', 'State', 'Rendering with state:', state);
         if (!this.container) {
-            console.error(`[${getTime()}][AppMenuView][render][Error] Container element is null.`);
+            logEvent('error', 'AppMenuView', 'render', 'Error', 'Container element is null. Cannot render.');
             return;
         }
 
@@ -46,7 +45,7 @@ export class AppMenuView {
     }
 
     attachEventListeners() {
-        console.log(`[${getTime()}][AppMenuView][attachEventListeners][Events] Attaching event listeners.`);
+        logEvent('debug', 'AppMenuView', 'attachEventListeners', 'Events', 'Attaching event listeners.');
         this.container.querySelector('#new-btn')?.addEventListener('click', () => this.callbacks.onNewProject?.());
         this.container.querySelector('#load-btn')?.addEventListener('click', () => this.callbacks.onLoadProject?.());
         this.container.querySelector('#save-btn')?.addEventListener('click', () => this.callbacks.onSaveProject?.());

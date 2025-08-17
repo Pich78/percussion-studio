@@ -4,14 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <title>Test Harness: AppMenuView</title>
-    <!-- 1. Use Tachyons CSS via CDN -->
     <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
-    <!-- 2. Link to the global custom stylesheet -->
     <link rel="stylesheet" href="/percussion-studio/css/global.css">
-    <style>
-        /* Add some basic layout for the harness itself */
-        body { font-family: sans-serif; }
-    </style>
+    <style> body { font-family: sans-serif; } </style>
 </head>
 <body class="bg-light-gray pa4">
 
@@ -36,7 +31,7 @@
         <div class="w-30 pl3">
             <div class="bg-near-black near-white pa3 br2 h-100">
                 <h2 class="f4 b bb pb2 mb2">Execution Log</h2>
-                <pre id="log-output" class="f7 lh-copy" style="white-space: pre-wrap;"></pre>
+                <div id="log-output" class="f7 lh-copy" style="white-space: pre-wrap; height: 80vh; overflow-y: auto;"></div>
             </div>
         </div>
     </div>
@@ -44,23 +39,26 @@
     <script type="module">
         import { run } from './AppMenuView.test.js';
         import { AppMenuView } from './AppMenuView.js';
-        import { MockLogger } from '/percussion-studio/lib/MockLogger.js';
+        import { Logger, logEvent } from '/percussion-studio/lib/Logger.js';
         
-        MockLogger.setLogTarget('log-output');
+        // --- Harness Configuration ---
+        // 1. Force verbose logging for the test harness environment
+        Logger.init({ level: 'debug' });
+        // 2. Set the log output to our DOM element
+        Logger.setTarget('log-output');
 
-        document.getElementById('run-tests-btn').addEventListener('click', () => {
-            document.getElementById('test-results').innerHTML = '<h2 class="f3">Running tests...</h2>';
-            run();
-        });
+        document.getElementById('run-tests-btn').addEventListener('click', run);
 
+        // --- Manual/Live View Setup ---
         const container = document.getElementById('view-container');
         const view = new AppMenuView(container, {
-            onNewProject: () => console.log('Callback: onNewProject fired'),
-            onLoadProject: () => console.log('Callback: onLoadProject fired'),
-            onSaveProject: () => console.log('Callback: onSaveProject fired'),
-            onToggleView: () => console.log('Callback: onToggleView fired'),
+            onNewProject: () => logEvent('info', 'Harness', 'onNewProject', 'Callback', 'New Project button clicked.'),
+            onLoadProject: () => logEvent('info', 'Harness', 'onLoadProject', 'Callback', 'Load Project button clicked.'),
+            onSaveProject: () => logEvent('info', 'Harness', 'onSaveProject', 'Callback', 'Save Project button clicked.'),
+            onToggleView: () => logEvent('info', 'Harness', 'onToggleView', 'Callback', 'Toggle View button clicked.'),
         });
 
+        // Initial render
         view.render({ isDirty: false, appView: 'playing' });
 
         document.getElementById('render-clean-btn').addEventListener('click', () => {

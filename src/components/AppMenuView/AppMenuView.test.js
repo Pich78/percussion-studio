@@ -2,15 +2,13 @@
 
 import { TestRunner } from '/percussion-studio/lib/TestRunner.js';
 import { MockLogger } from '/percussion-studio/lib/MockLogger.js';
+import { logEvent } from '/percussion-studio/lib/Logger.js';
 import { AppMenuView } from './AppMenuView.js';
-
-const getTime = () => new Date().toISOString();
 
 export async function run() {
     const runner = new TestRunner();
     MockLogger.clearLogs();
-    MockLogger.setLogTarget('log-output');
-    console.log(`[${getTime()}][TestRunner][run][Setup] Starting AppMenuView test suite.`);
+    logEvent('info', 'TestRunner', 'run', 'Setup', 'Starting AppMenuView test suite.');
 
     runner.describe('AppMenuView Rendering', () => {
         runner.it('should disable the save button when not dirty', () => {
@@ -48,12 +46,16 @@ export async function run() {
 
     runner.describe('AppMenuView Callbacks', () => {
         const testCallback = (buttonId, callbackName) => {
+            logEvent('debug', 'TestRunner', 'it', 'TestCase', `Running callback test for #${buttonId}.`);
             const testContainer = document.createElement('div');
             const logger = new MockLogger('Callbacks');
             const callbacks = { [callbackName]: () => logger.log(callbackName) };
             const view = new AppMenuView(testContainer, callbacks);
             view.render({ isDirty: true, appView: 'playing' });
+            
+            logEvent('debug', 'TestRunner', 'it', 'Simulation', `Simulating click on #${buttonId}.`);
             testContainer.querySelector(`#${buttonId}`).click();
+            
             logger.wasCalledWith(callbackName);
         };
 
@@ -65,5 +67,5 @@ export async function run() {
 
     await runner.runAll();
     runner.renderResults('test-results');
-    console.log(`[${getTime()}][TestRunner][run][Teardown] AppMenuView test suite finished.`);
+    logEvent('info', 'TestRunner', 'run', 'Teardown', 'AppMenuView test suite finished.');
 }
