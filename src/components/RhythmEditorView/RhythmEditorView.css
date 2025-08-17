@@ -4,6 +4,7 @@
   transition: width 0.2s ease-in-out;
   z-index: 20;
   width: 2rem;
+  /* MODIFICATION: Make the panel a flex container to center its content */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -99,6 +100,8 @@
 .editor-panel.is-expanded {
   width: 16rem;
   align-items: flex-start;
+  /* MODIFICATION: Unset justify-content when expanded so content flows normally */
+  justify-content: flex-start;
 }
 
 .editor-panel.is-expanded .panel-content {
@@ -112,10 +115,7 @@
   opacity: 1;
   writing-mode: vertical-rl;
   text-orientation: mixed;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  /* REMOVED absolute positioning and transforms */
   pointer-events: none;
   white-space: nowrap;
 }
@@ -123,13 +123,15 @@
 /* Specific styling for flow panel text (bottom to top) */
 #flow-panel .vertical-text {
   writing-mode: vertical-rl;
-  transform: translate(-50%, -50%) rotate(180deg);
+  /* MODIFICATION: Only the rotation is needed now */
+  transform: rotate(180deg);
 }
 
 /* Specific styling for palette panel text (top to bottom) */
 #palette-panel .vertical-text {
   writing-mode: vertical-rl;
-  transform: translate(-50%, -50%);
+  /* MODIFICATION: No transform is needed anymore */
+  transform: none;
 }
 
 .editor-panel.is-expanded .vertical-text {
