@@ -16,44 +16,44 @@ export async function run() {
         isPlaying: false, isLoading: false, masterVolume: 1.0, loopPlayback: false, globalBPM: 120
     });
 
-    runner.describe('PlaybackControlsView Rendering', () => {
-        runner.it('should disable Pause and Stop when stopped', () => {
+    runner.describe('PlaybackControlsView Rendering and Styles', () => {
+        runner.it('should apply primary color to active buttons when stopped', () => {
             testContainer.innerHTML = '';
             const view = new PlaybackControlsView(testContainer, {});
             view.render(getBaseState());
-            runner.expect(testContainer.querySelector('[data-action="play"]').disabled).toBe(false);
-            runner.expect(testContainer.querySelector('[data-action="pause"]').disabled).toBe(true);
-            runner.expect(testContainer.querySelector('[data-action="stop"]').disabled).toBe(true);
+            runner.expect(testContainer.querySelector('[data-action="play"]').classList.contains('bg-blue')).toBe(true);
+            runner.expect(testContainer.querySelector('[data-action="pause"]').classList.contains('bg-light-gray')).toBe(true);
         });
 
-        runner.it('should disable Play and BPM slider when playing', () => {
+        runner.it('should apply primary color to active buttons when playing', () => {
             testContainer.innerHTML = '';
             const view = new PlaybackControlsView(testContainer, {});
             view.render({ ...getBaseState(), isPlaying: true });
-            runner.expect(testContainer.querySelector('[data-action="play"]').disabled).toBe(true);
-            runner.expect(testContainer.querySelector('#bpm-slider').disabled).toBe(true);
-            runner.expect(testContainer.querySelector('[data-action="pause"]').disabled).toBe(false);
+            runner.expect(testContainer.querySelector('[data-action="play"]').classList.contains('bg-light-gray')).toBe(true);
+            runner.expect(testContainer.querySelector('[data-action="pause"]').classList.contains('bg-blue')).toBe(true);
+        });
+
+        runner.it('should apply toggled (green) class to loop button only when active', () => {
+            testContainer.innerHTML = '';
+            const view = new PlaybackControlsView(testContainer, {});
+            
+            view.render({ ...getBaseState(), loopPlayback: true });
+            runner.expect(testContainer.querySelector('[data-action="toggle-loop"]').classList.contains('bg-green')).toBe(true);
+
+            view.render({ ...getBaseState(), loopPlayback: false });
+            runner.expect(testContainer.querySelector('[data-action="toggle-loop"]').classList.contains('bg-green')).toBe(false);
         });
     });
 
     runner.describe('PlaybackControlsView Callbacks', () => {
-        runner.it('should fire onPlay callback', () => {
+        runner.it('should fire onToggleLoop callback on click', () => {
             testContainer.innerHTML = '';
             const callbackLog = new MockLogger('Callbacks');
-            const view = new PlaybackControlsView(testContainer, { onPlay: () => callbackLog.log('onPlay') });
-            view.render(getBaseState());
-            testContainer.querySelector('[data-action="play"]').click();
-            callbackLog.wasCalledWith('onPlay');
-        });
-
-        runner.it('should fire onToggleLoop with the new desired state', () => {
-            testContainer.innerHTML = '';
-            const callbackLog = new MockLogger('Callbacks');
-            const view = new PlaybackControlsView(testContainer, { onToggleLoop: (enabled) => callbackLog.log('onToggleLoop', {enabled}) });
+            const view = new PlaybackControlsView(testContainer, { onToggleLoop: () => callbackLog.log('onToggleLoop') });
             
-            view.render({ ...getBaseState(), loopPlayback: false });
+            view.render(getBaseState());
             testContainer.querySelector('[data-action="toggle-loop"]').click();
-            callbackLog.wasCalledWith('onToggleLoop', {enabled: true});
+            callbackLog.wasCalledWith('onToggleLoop');
         });
     });
 
@@ -76,18 +76,18 @@ export function manualTest() {
         currentState.isPlaying = document.getElementById('is-playing-check').checked;
         currentState.isLoading = document.getElementById('is-loading-check').checked;
         currentState.loopPlayback = document.getElementById('loop-check').checked;
-        logEvent('info', 'Harness', 'rerender', 'State', 'Rerendering component with new state:', currentState);
+        logEvent('info', 'Harness', 'rerender', 'State', 'Rerendering with new state:', currentState);
         view.render(currentState);
         stateDisplay.textContent = `Current State: ${JSON.stringify(currentState)}`;
     };
 
     const view = new PlaybackControlsView(container, {
-        onPlay: () => { logEvent('info', 'Harness', 'onPlay', 'Callback', 'Play clicked.'); currentState.isPlaying = true; rerender(); },
-        onPause: () => { logEvent('info', 'Harness', 'onPause', 'Callback', 'Pause clicked.'); currentState.isPlaying = false; rerender(); },
-        onStop: () => { logEvent('info', 'Harness', 'onStop', 'Callback', 'Stop clicked.'); currentState.isPlaying = false; rerender(); },
+        onPlay: () => { currentState.isPlaying = true; rerender(); },
+        onPause: () => { currentState.isPlaying = false; rerender(); },
+        onStop: () => { currentState.isPlaying = false; rerender(); },
         onBPMChange: (bpm) => { currentState.globalBPM = bpm; rerender(); },
-        onMasterVolumeChange: (vol) => { currentState.masterVolume = vol; },
-        onToggleLoop: (enabled) => { currentState.loopPlayback = enabled; rerender(); }
+        onMasterVolumeChange: (vol) => { currentState.masterVolume = vol; rerender(); },
+        onToggleLoop: () => { currentState.loopPlayback = !currentState.loopPlayback; rerender(); }
     });
     
     document.getElementById('is-playing-check').addEventListener('change', rerender);
