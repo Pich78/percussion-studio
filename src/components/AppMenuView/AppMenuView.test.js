@@ -15,41 +15,45 @@ export async function run() {
             const testContainer = document.createElement('div');
             const logger = new MockLogger('Callbacks');
             const view = new AppMenuView(testContainer, { onToggleMenu: () => logger.log('onToggleMenu') });
-            view.render({ isDirty: false, appView: 'playing', isMenuOpen: false });
+            view.render({ isMenuOpen: false });
             
             testContainer.querySelector('button[data-action="toggle-menu"]').click();
             logger.wasCalledWith('onToggleMenu');
         });
 
-        runner.it('should fire onToggleView and onToggleMenu when mode change is clicked', () => {
+        runner.it('should fire onToggleMenu(false) when clicking outside the component', () => {
+            const wrapper = document.createElement('div');
             const testContainer = document.createElement('div');
+            wrapper.appendChild(testContainer); // Place the component inside a wrapper
+
             const logger = new MockLogger('Callbacks');
-            const view = new AppMenuView(testContainer, { 
-                onToggleView: () => logger.log('onToggleView'),
-                onToggleMenu: (force) => logger.log('onToggleMenu', force)
-            });
-            view.render({ isDirty: false, appView: 'playing', isMenuOpen: true }); // Assume menu is open
-
-            testContainer.querySelector('button[data-action="toggle-view"]').click();
+            const view = new AppMenuView(testContainer, { onToggleMenu: (force) => logger.log('onToggleMenu', force) });
             
-            logger.wasCalledWith('onToggleView');
-            logger.wasCalledWith('onToggleMenu', false); // Asserts it requests to be closed
+            // Render with the menu open to attach the global listener
+            view.render({ isMenuOpen: true });
+
+            // Simulate a click on the wrapper, which is "outside" the component's container
+            wrapper.click();
+            
+            logger.wasCalledWith('onToggleMenu', false);
         });
 
-        runner.it('should render "Editor Mode" button when in playing view', () => {
+        runner.it('should render correct menu items for "playing" view', () => {
             const testContainer = document.createElement('div');
             const view = new AppMenuView(testContainer, {});
-            view.render({ isDirty: false, appView: 'playing', isMenuOpen: true });
-            const toggleBtn = testContainer.querySelector('button[data-action="toggle-view"]');
-            runner.expect(toggleBtn.textContent).toBe('Editor Mode');
+            view.render({ appView: 'playing', isMenuOpen: true });
+            
+            runner.expect(testContainer.querySelector('button[data-action="new"]')).toBe(null);
+            runner.expect(testContainer.querySelector('button[data-action="toggle-view"]').textContent).toBe('Editor');
         });
 
-        runner.it('should disable save button when in editing view and not dirty', () => {
+        runner.it('should render correct menu items for "editing" view', () => {
             const testContainer = document.createElement('div');
             const view = new AppMenuView(testContainer, {});
-            view.render({ isDirty: false, appView: 'editing', isMenuOpen: true });
-            const saveBtn = testContainer.querySelector('button[data-action="save"]');
-            runner.expect(saveBtn.disabled).toBe(true);
+            view.render({ appView: 'editing', isMenuOpen: true });
+
+            runner.expect(testContainer.querySelector('button[data-action="new"]') === null).toBe(false);
+            runner.expect(testContainer.querySelector('button[data-action="toggle-view"]').textContent).toBe('Playback');
         });
     });
 

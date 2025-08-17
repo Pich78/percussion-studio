@@ -11,19 +11,21 @@ export class AppMenuView {
         loadCSS('/percussion-studio/src/components/AppMenuView/AppMenuView.css');
         logEvent('info', 'AppMenuView', 'constructor', 'Lifecycle', 'Component created.');
         
-        // Attach ONE permanent event listener for the component's entire lifecycle.
+        this.handleOutsideClick = this.handleOutsideClick.bind(this);
         this.container.addEventListener('click', this.handleClick.bind(this));
     }
 
     render(state) {
         logEvent('debug', 'AppMenuView', 'render', 'State', 'Rendering with state:', state);
-        if (!this.container) {
-            logEvent('error', 'AppMenuView', 'render', 'Error', 'Container element is null.');
-            return;
+        const { isDirty, appView, isMenuOpen } = state;
+
+        // --- NEW LOGIC: Manage the global "click outside" listener ---
+        if (isMenuOpen) {
+            document.addEventListener('click', this.handleOutsideClick, true);
+        } else {
+            document.removeEventListener('click', this.handleOutsideClick, true);
         }
 
-        const { isDirty, appView, isMenuOpen } = state;
-        
         const menuStateClass = isMenuOpen ? 'is-open' : 'is-closed';
         const btnBase = "w-100 tl pa2 bn bg-transparent hover-bg-light-gray pointer f6";
         const btnDisabled = "o-50 not-allowed";
@@ -32,14 +34,14 @@ export class AppMenuView {
         if (appView === 'playing') {
             menuItems = `
                 <button data-action="load" class="${btnBase}">Load Rhythm</button>
-                <button data-action="toggle-view" class="${btnBase}">Editor Mode</button>
+                <button data-action="toggle-view" class="${btnBase}">Editor</button>
             `;
-        } else { // 'editing' view
+        } else {
             menuItems = `
                 <button data-action="new" class="${btnBase}">New Rhythm</button>
                 <button data-action="load" class="${btnBase}">Load Rhythm</button>
                 <button data-action="save" class="${btnBase} ${!isDirty ? btnDisabled : ''}" ${!isDirty ? 'disabled' : ''}>Save Rhythm and Patterns</button>
-                <button data-action="toggle-view" class="${btnBase}">Playback Mode</button>
+                <button data-action="toggle-view" class="${btnBase}">Playback</button>
             `;
         }
 
@@ -49,9 +51,7 @@ export class AppMenuView {
                     <button data-action="toggle-menu" class="pv2 ph3 br2 bn bg-transparent hover-bg-light-gray pointer f4 mr3">☰</button>
                     <h1 class="f3 b dark-gray">Percussion Studio</h1>
                 </div>
-                <div class="app-menu-dropdown ${menuStateClass} bg-white br2 w5 mt2">
-                    ${menuItems}
-                </div>
+                <div class="app-menu-dropdown ${menuStateClass} bg-white br2 w5 mt2">${menuItems}</div>
             </div>
         `;
         this.container.innerHTML = html;
@@ -64,26 +64,27 @@ export class AppMenuView {
         const action = button.dataset.action;
         logEvent('debug', 'AppMenuView', 'handleClick', 'Events', `Button clicked with action: ${action}`);
 
-        switch (action) {
-            case 'toggle-menu':
-                this.callbacks.onToggleMenu?.();
-                break;
-            case 'new':
-                this.callbacks.onNewProject?.();
-                this.callbacks.onToggleMenu?.(false); // Request to close menu
-                break;
-            case 'load':
-                this.callbacks.onLoadProject?.();
-                this.callbacks.onToggleMenu?.(false); // Request to close menu
-                break;
-            case 'save':
-                this.callbacks.onSaveProject?.();
-                this.callbacks.onToggleMenu?.(false); // Request to close menu
-                break;
-            case 'toggle-view':
-                this.callbacks.onToggleView?.();
-                this.callbacks.onToggleMenu?.(false); // Request to close menu
-                break;
+        const actions = {
+            'toggle-menu': () => this.callbacks.onToggleMenu?.(),
+            'new': () => this.callbacks.onNewProject?.(),
+            'load': () => this.callbacks.onLoadProject?.(),
+            'save': () => this.callbacks.onSaveProject?.(),
+            'toggle-view': () => this.callbacks.onToggleView?.(),
+        };
+
+        if (actions[action]) {
+            actions[action]();
+            // Automatically request to close the menu on any action except toggling it
+            if (action !== 'toggle-menu') {
+                this.callbacks.onToggleMenu?.(false); // Force close
+            }
+        }
+    }
+
+    handleOutsideClick(event) {
+        if (!this.container.contains(event.target)) {
+            logEvent('debug', 'AppMenuView', 'handleOutsideClick', 'UI', 'Clicked outside component, requesting menu close.');
+            this.callbacks.onToggleMenu?.(false); // Force close
         }
     }
 }
