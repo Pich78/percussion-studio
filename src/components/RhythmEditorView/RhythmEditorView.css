@@ -117,6 +117,19 @@
   left: 50%;
   transform: translate(-50%, -50%);
   pointer-events: none;
+  white-space: nowrap;
+}
+
+/* Specific styling for flow panel text (bottom to top) */
+#flow-panel .vertical-text {
+  writing-mode: vertical-rl;
+  transform: translate(-50%, -50%) rotate(180deg);
+}
+
+/* Specific styling for palette panel text (top to bottom) */
+#palette-panel .vertical-text {
+  writing-mode: vertical-rl;
+  transform: translate(-50%, -50%);
 }
 
 .editor-panel.is-expanded .vertical-text {
