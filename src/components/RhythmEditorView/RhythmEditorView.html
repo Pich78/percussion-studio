@@ -6,20 +6,20 @@
     <title>Test Harness: RhythmEditorView</title>
     <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
     <link rel="stylesheet" href="/percussion-studio/css/global.css">
-    <!-- The component will load its own CSS -->
+    <link rel="stylesheet" href="./RhythmEditorView.css">
     <style> body { font-family: sans-serif; } </style>
 </head>
 <body class="bg-light-gray pa4">
     <div class="flex">
         <div class="w-70 pr3">
             <h1 class="f2 b mb3 bb pb2">Automated Tests</h1>
-            <button id="run-tests-btn" class="pv2 ph3 bn br2 bg-blue white pointer hover-bg-dark-blue mb3">Run Automated Tests</button>
+            <button id="run-tests-btn" class="pv2 ph3 bn br2 bg-blue white pointer hover-bg-dark-blue mb3">Run Tests</button>
             <div id="test-results"></div>
             <hr class="mv4"/>
             <h1 class="f2 b mb3 bb pb2">Live View Workbench</h1>
-            <div id="view-container" class="bg-white shadow-2 w-100" style="height: 60vh;">
-                <!-- RhythmEditorView will render here -->
-            </div>
+            <p class="f6 gray mb3">Hover over the side panels to see them expand. Click a panel to "pin" it open. Click the center grid to unpin.</p>
+            <div id="view-container" class="bg-white shadow-2 w-100 relative" style="height: 60vh;"></div>
+            <div id="current-state-display" class="f6 code pa2 bg-washed-yellow mt3"></div>
         </div>
         <div class="w-30 pl3">
             <div class="bg-near-black near-white pa3 br2 h-100">
@@ -38,12 +38,49 @@
         Logger.init({ level: 'debug' });
         Logger.setTarget('log-output');
 
-        document.getElementById('run-tests-btn').addEventListener('click', () => {
-            logEvent('info', 'Harness', 'runTests', 'Setup', 'Running automated tests...');
-            run();
+        document.getElementById('run-tests-btn').addEventListener('click', run);
+
+        // This harness now perfectly simulates the parent EditingApp
+        let currentState = {
+            rhythm: {
+                playback_flow: [{ pattern: 'verse', repetitions: 4 }, { pattern: 'chorus', repetitions: 2 }],
+                patterns: { 
+                    verse: { metadata: { resolution: 8 }, pattern_data: [{ KCK: 'o-o-o-o-' }] },
+                    chorus: { metadata: { resolution: 8 }, pattern_data: [{ KCK: 'o-o--o-o' }] }
+                },
+                instrumentDefsBySymbol: { KCK: { sounds: [{ letter: 'o', name: 'Hit' }, { letter: 'p', name: 'Soft' }] } }
+            },
+            currentEditingPatternId: 'verse',
+            isFlowPinned: false,
+            isPalettePinned: false,
+            selectedInstrumentSymbol: 'KCK',
+            selectedNoteLetter: 'o'
+        };
+
+        const container = document.getElementById('view-container');
+        const stateDisplay = document.getElementById('current-state-display');
+
+        const rerender = () => {
+            logEvent('info', 'Harness', 'rerender', 'State', 'Rerendering with new state:', currentState);
+            view.render(currentState);
+            stateDisplay.textContent = `Current State: ${JSON.stringify(currentState, null, 2)}`;
+        };
+
+        const view = new RhythmEditorView(container, {
+            onPinFlowPanel: (isPinned) => {
+                logEvent('info', 'Harness', 'onPinFlowPanel', 'Callback', `isPinned: ${isPinned}`);
+                currentState.isFlowPinned = isPinned;
+                rerender();
+            },
+            onPinPalettePanel: (isPinned) => {
+                logEvent('info', 'Harness', 'onPinPalettePanel', 'Callback', `isPinned: ${isPinned}`);
+                currentState.isPalettePinned = isPinned;
+                rerender();
+            },
+            onPatternSelect: (id) => { currentState.currentEditingPatternId = id; rerender(); },
         });
 
-        manualTest();
+        rerender();
     </script>
 </body>
 </html>
