@@ -7,47 +7,81 @@ export class PlaybackControlsView {
     constructor(container, callbacks) {
         this.container = container;
         this.callbacks = callbacks || {};
+        this.isRendered = false; // Track if the initial render has happened
 
         loadCSS('/percussion-studio/src/components/PlaybackControlsView/PlaybackControlsView.css');
         logEvent('info', 'PlaybackControlsView', 'constructor', 'Lifecycle', 'Component created.');
         
-        // Use a single, delegated listener for all click events
         this.container.addEventListener('click', this.handleClick.bind(this));
         this.container.addEventListener('input', this.handleInput.bind(this));
     }
 
     render(state) {
-        logEvent('debug', 'PlaybackControlsView', 'render', 'State', 'Rendering with state:', state);
-        const { isPlaying, isLoading, masterVolume, loopPlayback, globalBPM } = state;
+        logEvent('debug', 'PlaybackControlsView', 'render', 'State', 'Render called with state:', state);
+        if (!this.isRendered) {
+            this._initialRender(state);
+        } else {
+            this._updateDOM(state);
+        }
+    }
 
+    _initialRender(state) {
+        logEvent('debug', 'PlaybackControlsView', '_initialRender', 'DOM', 'Performing full initial render.');
         const btnBase = "pv2 ph3 br2 f6 fw5 bn pointer";
         const btnPrimary = "bg-blue hover-bg-dark-blue white";
         const btnSecondary = "bg-light-silver hover-bg-silver dark-gray";
-        const btnToggled = "bg-dark-blue"; // Class for the active loop button
-        const disabledState = "o-50 not-allowed";
-
+        
         const html = `
             <div class="playback-controls flex items-center justify-between gap4 h-100">
                 <div class="button-group flex items-center gap2">
-                    <button data-action="play" class="${btnBase} ${btnPrimary} ${isPlaying || isLoading ? disabledState : ''}" ${isPlaying || isLoading ? 'disabled' : ''}>Play</button>
-                    <button data-action="pause" class="${btnBase} ${btnSecondary} ${!isPlaying || isLoading ? disabledState : ''}" ${!isPlaying || isLoading ? 'disabled' : ''}>Pause</button>
-                    <button data-action="stop" class="${btnBase} ${btnSecondary} ${!isPlaying || isLoading ? disabledState : ''}" ${!isPlaying || isLoading ? 'disabled' : ''}>Stop</button>
+                    <button data-action="play" class="${btnBase} ${btnPrimary}">Play</button>
+                    <button data-action="pause" class="${btnBase} ${btnSecondary}">Pause</button>
+                    <button data-action="stop" class="${btnBase} ${btnSecondary}">Stop</button>
                 </div>
                 <div class="slider-group flex items-center gap3 flex-auto mh4">
                     <label for="bpm-slider" class="f6 b dark-gray">BPM</label>
-                    <input type="range" id="bpm-slider" data-action="bpm-change" min="20" max="200" step="1" value="${globalBPM}" class="control-slider flex-auto" ${isPlaying || isLoading ? 'disabled' : ''}>
-                    <span id="bpm-value" class="f4 b w3 tc">${globalBPM}</span>
+                    <input type="range" id="bpm-slider" data-action="bpm-change" min="20" max="200" step="1" class="control-slider flex-auto">
+                    <span id="bpm-value" class="f4 b w3 tc"></span>
                 </div>
                 <div class="misc-controls flex items-center gap4">
-                    <button data-action="toggle-loop" class="${btnBase} ${btnSecondary} ${loopPlayback ? btnToggled : ''}">Loop</button>
+                    <button data-action="toggle-loop" class="${btnBase} ${btnSecondary}">Loop</button>
                     <div class="flex items-center gap2">
                          <label for="master-volume" class="f6 b dark-gray">Volume</label>
-                         <input type="range" id="master-volume" data-action="volume-change" min="0" max="1" step="0.01" value="${masterVolume}" class="control-slider w4">
+                         <input type="range" id="master-volume" data-action="volume-change" min="0" max="1" step="0.01" class="control-slider w4">
                     </div>
                 </div>
             </div>
         `;
         this.container.innerHTML = html;
+        this.isRendered = true;
+        this._updateDOM(state); // Call update to set initial values
+    }
+
+    _updateDOM(state) {
+        logEvent('debug', 'PlaybackControlsView', '_updateDOM', 'DOM', 'Performing targeted DOM update.');
+        const { isPlaying, isLoading, masterVolume, loopPlayback, globalBPM } = state;
+
+        // Update button states
+        this.container.querySelector('[data-action="play"]').disabled = isPlaying || isLoading;
+        this.container.querySelector('[data-action="pause"]').disabled = !isPlaying || isLoading;
+        this.container.querySelector('[data-action="stop"]').disabled = !isPlaying || isLoading;
+        
+        // Update BPM slider
+        const bpmSlider = this.container.querySelector('#bpm-slider');
+        bpmSlider.disabled = isPlaying || isLoading;
+        if (bpmSlider.value != globalBPM) { // Use != to handle string/number comparison
+            bpmSlider.value = globalBPM;
+        }
+        this.container.querySelector('#bpm-value').textContent = globalBPM;
+        
+        // Update loop button
+        this.container.querySelector('[data-action="toggle-loop"]').classList.toggle('bg-dark-blue', loopPlayback);
+
+        // Update volume slider
+        const volumeSlider = this.container.querySelector('#master-volume');
+        if (volumeSlider.value != masterVolume) {
+            volumeSlider.value = masterVolume;
+        }
     }
 
     handleClick(event) {
@@ -62,7 +96,6 @@ export class PlaybackControlsView {
             case 'pause': this.callbacks.onPause?.(); break;
             case 'stop': this.callbacks.onStop?.(); break;
             case 'toggle-loop':
-                // The new state is the opposite of the current visual state
                 const isCurrentlyLooping = button.classList.contains('bg-dark-blue');
                 this.callbacks.onToggleLoop?.(!isCurrentlyLooping);
                 break;
@@ -75,7 +108,7 @@ export class PlaybackControlsView {
         const action = event.target.dataset.action;
         if (action === 'bpm-change') {
             const newBPM = parseInt(event.target.value, 10);
-            this.container.querySelector('#bpm-value').textContent = newBPM; // Update UI immediately
+            this.container.querySelector('#bpm-value').textContent = newBPM;
             this.callbacks.onBPMChange?.(newBPM);
         } else if (action === 'volume-change') {
             this.callbacks.onMasterVolumeChange?.(parseFloat(event.target.value));
