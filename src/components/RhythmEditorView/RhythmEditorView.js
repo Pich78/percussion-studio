@@ -48,6 +48,17 @@ export class RhythmEditorView {
             </div>
         `;
         this.container.innerHTML = html;
+
+        // Auto-scroll to the last item if it was just added
+        if (state.scrollToLastItem) {
+            setTimeout(() => {
+                const flowList = this.container.querySelector('.flow-list');
+                const lastItem = this.container.querySelector('.flow-item:last-child');
+                if (flowList && lastItem) {
+                    lastItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            }, 50); // Small delay to ensure DOM is updated
+        }
     }
     
     _renderFlowPanel(state) {
@@ -66,7 +77,7 @@ export class RhythmEditorView {
 
         return `
             <div id="flow-panel" class="editor-panel absolute top-0 left-0 h-100 bg-near-white shadow-2 pa3 ${isExpanded ? 'is-expanded' : ''}">
-                <h3 class="f4 b absolute top-2 left-2 vertical-text">Rhythm Flow</h3>
+                <h3 class="f4 b vertical-text">Rhythm Flow</h3>
                 <div class="panel-content w-100">
                     <h3 class="f4 b mt0">Rhythm Flow</h3>
                     <div class="flow-list flex flex-column mt3">${flowItems}</div>
@@ -123,7 +134,7 @@ export class RhythmEditorView {
 
         return `
             <div id="palette-panel" class="editor-panel absolute top-0 right-0 h-100 bg-near-white shadow-2 pa3 ${isExpanded ? 'is-expanded' : ''}">
-                <h3 class="f4 b absolute top-2 right-2 vertical-text">Palette</h3>
+                <h3 class="f4 b vertical-text">Palette</h3>
                 <div class="panel-content w-100">
                     <h3 class="f4 b mt0">Palette</h3>
                     ${paletteContent}
@@ -197,8 +208,8 @@ export class RhythmEditorView {
     }
 
     handleMouseLeave(event) {
-        // Don't handle mouse events while dragging or if the drag started in this panel
-        if (this.isDragging || this.dragStartedInPanel) return;
+        // Don't handle mouse events while dragging
+        if (this.isDragging) return;
         
         // Check if we're actually leaving the panel (not just moving to a child element)
         if (event.target.id === 'flow-panel') {

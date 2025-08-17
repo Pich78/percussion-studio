@@ -57,6 +57,8 @@
         const rerender = () => {
             logEvent('info', 'Harness', 'rerender', 'State', 'Rerendering...', currentState);
             view.render(currentState);
+            // Clear the scroll flag after rendering
+            currentState.scrollToLastItem = false;
             stateDisplay.textContent = `Current State: ${JSON.stringify(currentState, null, 2)}`;
         };
 
@@ -78,6 +80,7 @@
             onAddPattern: () => {
                 const newIndex = currentState.rhythm.playback_flow.length + 1;
                 currentState.rhythm.playback_flow.push({ pattern: `p${newIndex}` });
+                currentState.scrollToLastItem = true; // Flag to scroll to new item
                 logEvent('info', 'Harness', 'onAddPattern', 'Callback', `Added pattern p${newIndex}`);
                 rerender();
             },

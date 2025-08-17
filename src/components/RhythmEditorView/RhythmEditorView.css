@@ -27,12 +27,6 @@
     scrollbar-color: rgba(0, 0, 0, 0.3) transparent;
 }
 
-/* Show scrollbar only when scrolling is needed */
-.editor-panel .panel-content .flow-list {
-    overflow-y: auto;
-    scrollbar-width: auto; /* Show scrollbar only when needed in Firefox */
-}
-
 /* Webkit browsers (Chrome, Safari, Edge) scrollbar styling */
 .editor-panel .panel-content .flow-list::-webkit-scrollbar {
     width: 8px;
@@ -116,6 +110,13 @@
 .editor-panel .vertical-text {
   transition: opacity 0.15s ease-in-out;
   opacity: 1;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
 }
 
 .editor-panel.is-expanded .vertical-text {
