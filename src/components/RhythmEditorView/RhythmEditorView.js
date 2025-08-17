@@ -11,6 +11,8 @@ export class RhythmEditorView {
         this.isFlowHovered = false;
         this.isPaletteHovered = false;
         this.draggedIndex = null;
+        this.isDragging = false;
+        this.dragStartedInPanel = false;
 
         loadCSS('/percussion-studio/src/components/RhythmEditorView/RhythmEditorView.css');
         logEvent('info', 'RhythmEditorView', 'constructor', 'Lifecycle', 'Component created.');
@@ -21,8 +23,7 @@ export class RhythmEditorView {
         this.container.addEventListener('dragstart', this.handleDragStart.bind(this));
         this.container.addEventListener('dragover', this.handleDragOver.bind(this));
         this.container.addEventListener('drop', this.handleDrop.bind(this));
-        this.container.addEventListener('dragenter', this.handleDragEnter.bind(this));
-        this.container.addEventListener('dragleave', this.handleDragLeave.bind(this));
+        this.container.addEventListener('dragend', this.handleDragEnd.bind(this));
     }
 
     render(state) {
@@ -56,13 +57,12 @@ export class RhythmEditorView {
         const flowItems = rhythm.playback_flow.map((item, index) => {
             const selectedClass = item.pattern === currentEditingPatternId ? 'bg-washed-blue b--blue' : 'bg-white';
             return `
-                <div data-drop-zone="before" data-drop-index="${index}" class="drop-zone"></div>
                 <div data-action="select-pattern" data-pattern-id="${item.pattern}" data-index="${index}" class="flow-item flex items-center justify-between pa2 br1 ba b--black-10 pointer ${selectedClass}" draggable="true">
                     <span class="truncate">${item.pattern}</span>
                     <button data-action="delete-flow-item" data-index="${index}" class="delete-btn pa1 bn bg-transparent f4 red pointer" title="Remove Item">×</button>
                 </div>
             `;
-        }).join('') + `<div data-drop-zone="after" data-drop-index="${rhythm.playback_flow.length}" class="drop-zone"></div>`;
+        }).join('');
 
         return `
             <div id="flow-panel" class="editor-panel absolute top-0 left-0 h-100 bg-near-white shadow-2 pa3 ${isExpanded ? 'is-expanded' : ''}">
@@ -177,6 +177,9 @@ export class RhythmEditorView {
     }
     
     handleMouseEnter(event) {
+        // Don't handle mouse events while dragging
+        if (this.isDragging) return;
+        
         // Only handle mouse enter for the panel elements themselves
         if (event.target.id === 'flow-panel' || event.target.closest('#flow-panel') === document.getElementById('flow-panel')) {
             if (!this.state.isFlowPinned && !this.isFlowHovered) {
@@ -194,6 +197,9 @@ export class RhythmEditorView {
     }
 
     handleMouseLeave(event) {
+        // Don't handle mouse events while dragging or if the drag started in this panel
+        if (this.isDragging || this.dragStartedInPanel) return;
+        
         // Check if we're actually leaving the panel (not just moving to a child element)
         if (event.target.id === 'flow-panel') {
             if (!this.state.isFlowPinned && this.isFlowHovered) {
@@ -224,72 +230,125 @@ export class RhythmEditorView {
         const item = event.target.closest('.flow-item');
         if (item) {
             this.draggedIndex = parseInt(item.dataset.index, 10);
+            this.isDragging = true;
+            this.dragStartedInPanel = event.target.closest('#flow-panel') !== null;
+            
             event.dataTransfer.effectAllowed = 'move';
             event.dataTransfer.setData('text/plain', ''); // Required for some browsers
+            
             item.classList.add('dragging');
+            logEvent('debug', 'RhythmEditorView', 'handleDragStart', 'Drag', `Started dragging item at index ${this.draggedIndex}`);
         }
     }
 
     handleDragOver(event) {
+        if (this.draggedIndex === null) return;
+        
         event.preventDefault();
         event.dataTransfer.dropEffect = 'move';
-    }
-
-    handleDragEnter(event) {
-        const dropZone = event.target.closest('[data-drop-zone]');
-        if (dropZone && this.draggedIndex !== null) {
-            // Remove previous drop indicators
-            this.container.querySelectorAll('.drop-indicator').forEach(el => el.remove());
+        
+        const flowList = event.target.closest('.flow-list');
+        if (!flowList) return;
+        
+        // Clear previous indicators
+        flowList.querySelectorAll('.drop-indicator').forEach(el => el.remove());
+        flowList.querySelectorAll('.flow-item').forEach(item => {
+            item.classList.remove('drop-target-before', 'drop-target-after');
+        });
+        
+        const flowItems = Array.from(flowList.querySelectorAll('.flow-item'));
+        if (flowItems.length === 0) return;
+        
+        const mouseY = event.clientY;
+        let insertIndex = flowItems.length; // Default to end
+        
+        // Find the insertion point
+        for (let i = 0; i < flowItems.length; i++) {
+            const rect = flowItems[i].getBoundingClientRect();
+            const itemMiddle = rect.top + rect.height / 2;
             
-            // Add drop indicator
-            const indicator = document.createElement('div');
-            indicator.className = 'drop-indicator';
-            dropZone.appendChild(indicator);
-            
-            // Add spacing to adjacent items
-            const dropIndex = parseInt(dropZone.dataset.dropIndex, 10);
-            const items = this.container.querySelectorAll('.flow-item');
-            items.forEach((item, index) => {
-                item.classList.remove('drop-spacing-before', 'drop-spacing-after');
-                if (index === dropIndex - 1) item.classList.add('drop-spacing-after');
-                if (index === dropIndex) item.classList.add('drop-spacing-before');
-            });
+            if (mouseY < itemMiddle) {
+                insertIndex = i;
+                break;
+            }
         }
-    }
-
-    handleDragLeave(event) {
-        // Only remove indicators when leaving the entire flow panel
-        if (!event.target.closest('#flow-panel')) {
-            this.container.querySelectorAll('.drop-indicator').forEach(el => el.remove());
-            this.container.querySelectorAll('.flow-item').forEach(item => {
-                item.classList.remove('drop-spacing-before', 'drop-spacing-after');
-            });
+        
+        // Don't show indicator if trying to drop in the same position
+        if (insertIndex === this.draggedIndex || insertIndex === this.draggedIndex + 1) {
+            return;
+        }
+        
+        // Show visual indicator
+        const indicator = document.createElement('div');
+        indicator.className = 'drop-indicator';
+        
+        if (insertIndex < flowItems.length) {
+            // Insert before an item
+            flowItems[insertIndex].classList.add('drop-target-before');
+            flowItems[insertIndex].parentNode.insertBefore(indicator, flowItems[insertIndex]);
+        } else {
+            // Insert at the end
+            if (flowItems.length > 0) {
+                flowItems[flowItems.length - 1].classList.add('drop-target-after');
+                flowItems[flowItems.length - 1].parentNode.appendChild(indicator);
+            }
         }
     }
 
     handleDrop(event) {
-        event.preventDefault();
-        const dropZone = event.target.closest('[data-drop-zone]');
+        if (this.draggedIndex === null) return;
         
-        if (dropZone && this.draggedIndex !== null) {
-            const dropIndex = parseInt(dropZone.dataset.dropIndex, 10);
+        event.preventDefault();
+        
+        const flowList = event.target.closest('.flow-list');
+        if (!flowList) return;
+        
+        const flowItems = Array.from(flowList.querySelectorAll('.flow-item'));
+        const mouseY = event.clientY;
+        let insertIndex = flowItems.length; // Default to end
+        
+        // Calculate insertion point
+        for (let i = 0; i < flowItems.length; i++) {
+            const rect = flowItems[i].getBoundingClientRect();
+            const itemMiddle = rect.top + rect.height / 2;
             
-            // Calculate the new position considering the item being moved
-            let newIndex = dropIndex;
-            if (this.draggedIndex < dropIndex) {
-                newIndex = dropIndex - 1;
-            }
-            
-            if (this.draggedIndex !== newIndex) {
-                this.callbacks.onReorderFlow?.(this.draggedIndex, newIndex);
+            if (mouseY < itemMiddle) {
+                insertIndex = i;
+                break;
             }
         }
         
-        // Clean up
-        this.container.querySelectorAll('.drop-indicator').forEach(el => el.remove());
-        this.container.querySelectorAll('.flow-item').forEach(item => {
-            item.classList.remove('dragging', 'drop-spacing-before', 'drop-spacing-after');
-        });
+        // Adjust for the fact that we're removing the dragged item first
+        let finalIndex = insertIndex;
+        if (this.draggedIndex < insertIndex) {
+            finalIndex = insertIndex - 1;
+        }
+        
+        // Only reorder if the position actually changed
+        if (finalIndex !== this.draggedIndex) {
+            logEvent('debug', 'RhythmEditorView', 'handleDrop', 'Drag', `Moving item from ${this.draggedIndex} to ${finalIndex}`);
+            this.callbacks.onReorderFlow?.(this.draggedIndex, finalIndex);
+        }
+    }
+
+    handleDragEnd(event) {
+        logEvent('debug', 'RhythmEditorView', 'handleDragEnd', 'Drag', 'Drag ended');
+        
+        // Clean up visual indicators
+        if (this.container) {
+            this.container.querySelectorAll('.drop-indicator').forEach(el => el.remove());
+            this.container.querySelectorAll('.flow-item').forEach(item => {
+                item.classList.remove('dragging', 'drop-target-before', 'drop-target-after');
+            });
+        }
+        
+        // Reset drag state
         this.draggedIndex = null;
+        this.isDragging = false;
+        
+        // Reset panel behavior after drag ends
+        setTimeout(() => {
+            this.dragStartedInPanel = false;
+        }, 100); // Small delay to prevent immediate collapse
     }
 }

@@ -65,34 +65,41 @@
 /* Drag and drop styling */
 .flow-item.dragging {
     opacity: 0.5;
-    transform: rotate(2deg);
-}
-
-.drop-zone {
-    height: 2px;
-    transition: height 0.2s ease;
-    position: relative;
+    transform: rotate(2deg) scale(1.05);
+    z-index: 1000;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .drop-indicator {
     height: 3px;
-    background-color: #357edd;
+    background: linear-gradient(90deg, #357edd, #96ccff);
     border-radius: 2px;
-    margin: 4px 0;
-    animation: pulse 0.8s ease-in-out infinite alternate;
+    margin: 2px 0;
+    animation: pulse 0.6s ease-in-out infinite alternate;
+    box-shadow: 0 0 4px #357edd;
 }
 
 @keyframes pulse {
-    from { opacity: 0.6; }
-    to { opacity: 1; }
+    from { 
+        opacity: 0.7; 
+        transform: scaleY(0.8);
+    }
+    to { 
+        opacity: 1; 
+        transform: scaleY(1);
+    }
 }
 
-.flow-item.drop-spacing-before {
-    margin-top: 1rem;
+.flow-item.drop-target-before {
+    margin-top: 8px;
+    transform: translateY(2px);
+    transition: all 0.15s ease;
 }
 
-.flow-item.drop-spacing-after {
-    margin-bottom: 1rem;
+.flow-item.drop-target-after {
+    margin-bottom: 8px;
+    transform: translateY(-2px);
+    transition: all 0.15s ease;
 }
 
 .editor-panel.is-expanded {
