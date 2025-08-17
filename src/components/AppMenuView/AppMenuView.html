@@ -18,15 +18,11 @@
             <div id="test-results"></div>
             <hr class="mv4"/>
             <h1 class="f2 b mb3 bb pb2">Live View Workbench</h1>
-            <p class="f6 gray mb3">Click the hamburger or the body to test menu logic. Use the controls below to simulate state changes from the parent app.</p>
+            <p class="f6 gray mb3">Interact with the component directly. Use the checkbox below to test the "Save" button's enabled/disabled state.</p>
             <header id="view-container" class="bg-white shadow-2 h3 flex items-center pa3 mb3"></header>
             <div class="controls ba b--black-10 pa3 br2 bg-white">
-                <div class="flex items-center mb2">
+                <div class="flex items-center">
                     <input type="checkbox" id="is-dirty-check" class="mr2"><label for="is-dirty-check" class="fw5">Simulate Dirty State</label>
-                </div>
-                <div>
-                    <button id="set-playing-btn" class="pv2 ph3 bn br2 bg-blue white pointer hover-bg-dark-blue mr2">Set View: Playback</button>
-                    <button id="set-editing-btn" class="pv2 ph3 bn br2 bg-green white pointer hover-bg-dark-green">Set View: Editor</button>
                 </div>
             </div>
             <div id="current-state-display" class="f6 code pa2 bg-washed-yellow mt3"></div>
@@ -64,7 +60,7 @@
         const view = new AppMenuView(container, {
             onNewProject: () => {
                 logEvent('info', 'Harness', 'onNewProject', 'Callback', 'New Rhythm clicked. Simulating dirty state.');
-                dirtyCheck.checked = true; // NEW: New Rhythm makes the state dirty
+                dirtyCheck.checked = true;
                 rerender();
             },
             onLoadProject: () => logEvent('info', 'Harness', 'onLoadProject', 'Callback', 'Load Rhythm clicked.'),
@@ -79,7 +75,7 @@
             },
             onToggleView: () => {
                 currentState.appView = currentState.appView === 'playing' ? 'editing' : 'playing';
-                dirtyCheck.checked = false; // View changes reset dirty state
+                dirtyCheck.checked = false;
                 rerender();
             },
         });
@@ -87,14 +83,6 @@
         rerender(); // Initial render
 
         dirtyCheck.addEventListener('change', rerender);
-        document.getElementById('set-playing-btn').addEventListener('click', () => {
-            currentState.appView = 'playing';
-            rerender();
-        });
-        document.getElementById('set-editing-btn').addEventListener('click', () => {
-            currentState.appView = 'editing';
-            rerender();
-        });
     </script>
 </body>
 </html>
