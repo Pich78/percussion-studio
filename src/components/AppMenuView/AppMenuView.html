@@ -1,0 +1,71 @@
+<!-- file: src/components/AppMenuView/AppMenuView.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Harness: AppMenuView</title>
+    <!-- 1. Add Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 2. Link to the global custom stylesheet -->
+    <link rel="stylesheet" href="/percussion-studio/css/global.css">
+    <style>
+        body { display: flex; gap: 2rem; }
+        .test-panel { flex: 2; }
+        .log-panel { flex: 1; max-height: 90vh; overflow-y: auto; }
+    </style>
+</head>
+<body class="bg-slate-100 p-8">
+
+    <div class="test-panel">
+        <h1 class="text-2xl font-bold mb-4 border-b pb-2">Automated Tests for <code>AppMenuView</code></h1>
+        <button id="run-tests-btn" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 mb-4">Run Automated Tests</button>
+        <div id="test-results"></div>
+
+        <hr class="my-8">
+
+        <h1 class="text-2xl font-bold mb-4 border-b pb-2">Live View Workbench</h1>
+        <div id="view-container" class="bg-white shadow-md z-20 h-16 flex items-center px-4 mb-4">
+            <!-- AppMenuView will be rendered here -->
+        </div>
+        <div class="controls space-x-2">
+            <button id="render-clean-btn" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Render (Clean State)</button>
+            <button id="render-dirty-btn" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">Render (Dirty State)</button>
+        </div>
+    </div>
+
+    <div class="log-panel bg-slate-800 text-slate-200 p-4 rounded-lg">
+        <h2 class="text-lg font-semibold border-b border-slate-600 pb-2 mb-2">Execution Log</h2>
+        <pre id="log-output" class="text-xs whitespace-pre-wrap"></pre>
+    </div>
+
+    <script type="module">
+        import { run } from './AppMenuView.test.js';
+        import { AppMenuView } from './AppMenuView.js';
+        import { MockLogger } from '/percussion-studio/lib/MockLogger.js';
+        
+        MockLogger.setLogTarget('log-output');
+
+        document.getElementById('run-tests-btn').addEventListener('click', () => {
+            document.getElementById('test-results').innerHTML = '<h2 class="text-xl">Running tests...</h2>';
+            run();
+        });
+
+        const container = document.getElementById('view-container');
+        const view = new AppMenuView(container, {
+            onNewProject: () => console.log('Callback: onNewProject fired'),
+            onLoadProject: () => console.log('Callback: onLoadProject fired'),
+            onSaveProject: () => console.log('Callback: onSaveProject fired'),
+            onToggleView: () => console.log('Callback: onToggleView fired'),
+        });
+
+        view.render({ isDirty: false, appView: 'playing' });
+
+        document.getElementById('render-clean-btn').addEventListener('click', () => {
+            view.render({ isDirty: false, appView: 'playing' });
+        });
+        document.getElementById('render-dirty-btn').addEventListener('click', () => {
+            view.render({ isDirty: true, appView: 'editing' });
+        });
+    </script>
+</body>
+</html>

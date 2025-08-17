@@ -1,0 +1,12 @@
+/* file: src/components/AppMenuView/AppMenuView.css */
+
+/*
+    This file is intentionally left blank.
+
+    All current styling for the AppMenuView component is handled directly
+    within AppMenuView.js using Tailwind CSS utility classes.
+
+    This file exists to conform to the component architecture and to provide
+    a dedicated place for any future, more complex styles that cannot be
+    easily achieved with utility classes alone.
+*/
