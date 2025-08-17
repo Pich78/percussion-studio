@@ -16,8 +16,8 @@ export class RhythmEditorView {
         logEvent('info', 'RhythmEditorView', 'constructor', 'Lifecycle', 'Component created.');
         
         this.container.addEventListener('click', this.handleClick.bind(this));
-        this.container.addEventListener('mouseover', this.handleMouseOver.bind(this));
-        this.container.addEventListener('mouseout', this.handleMouseOut.bind(this));
+        this.container.addEventListener('mouseenter', this.handleMouseEnter.bind(this), true);
+        this.container.addEventListener('mouseleave', this.handleMouseLeave.bind(this), true);
         this.container.addEventListener('dragstart', this.handleDragStart.bind(this));
         this.container.addEventListener('dragover', this.handleDragOver.bind(this));
         this.container.addEventListener('drop', this.handleDrop.bind(this));
@@ -129,6 +129,25 @@ export class RhythmEditorView {
     }
 
     handleClick(event) {
+        // First check if we're clicking on a specific action element
+        const actionTarget = event.target.closest('[data-action]');
+        if (actionTarget) {
+            const action = actionTarget.dataset.action;
+            logEvent('debug', 'RhythmEditorView', 'handleClick', 'Events', `Action: ${action}`);
+
+            if (action === 'select-pattern') this.callbacks.onPatternSelect?.(actionTarget.dataset.patternId);
+            if (action === 'add-pattern') this.callbacks.onAddPattern?.();
+            if (action === 'delete-flow-item') {
+                event.stopPropagation(); // Prevent panel pinning when deleting
+                if (window.confirm('Remove this pattern from the flow?')) {
+                    this.callbacks.onDeleteFlowItem?.(parseInt(actionTarget.dataset.index, 10));
+                }
+                return; // Exit early to prevent panel pinning logic
+            }
+            // For other actions, we still want the panel pinning logic to work
+        }
+
+        // Now handle panel pinning logic
         const flowPanel = event.target.closest('#flow-panel');
         if (flowPanel) {
             this.callbacks.onPinFlowPanel?.(!this.state.isFlowPinned);
@@ -141,42 +160,55 @@ export class RhythmEditorView {
             return;
         }
         
+        // If clicking on the grid panel (not on sidebars), unpin both panels
         const gridPanel = event.target.closest('[data-action-scope="grid-panel"]');
         if (gridPanel) {
             this.callbacks.onPinFlowPanel?.(false);
             this.callbacks.onPinPalettePanel?.(false);
         }
+    }
+    
+    handleMouseEnter(event) {
+        // Only handle mouse enter for the panel elements themselves
+        if (event.target.id === 'flow-panel' || event.target.closest('#flow-panel') === document.getElementById('flow-panel')) {
+            if (!this.state.isFlowPinned && !this.isFlowHovered) {
+                this.isFlowHovered = true;
+                this.render(this.state);
+            }
+        }
         
-        const actionTarget = event.target.closest('[data-action]');
-        if (actionTarget) {
-            const action = actionTarget.dataset.action;
-            logEvent('debug', 'RhythmEditorView', 'handleClick', 'Events', `Action: ${action}`);
-
-            if (action === 'select-pattern') this.callbacks.onPatternSelect?.(actionTarget.dataset.patternId);
-            if (action === 'add-pattern') this.callbacks.onAddPattern?.();
-            if (action === 'delete-flow-item') {
-                if (window.confirm('Remove this pattern from the flow?')) {
-                    this.callbacks.onDeleteFlowItem?.(parseInt(actionTarget.dataset.index, 10));
-                }
+        if (event.target.id === 'palette-panel' || event.target.closest('#palette-panel') === document.getElementById('palette-panel')) {
+            if (!this.state.isPalettePinned && !this.isPaletteHovered) {
+                this.isPaletteHovered = true;
+                this.render(this.state);
             }
         }
     }
-    
-    handleMouseOver(event) {
-        if (event.target.closest('#flow-panel') && !this.isFlowHovered) {
-            this.isFlowHovered = true; this.render(this.state);
-        }
-        if (event.target.closest('#palette-panel') && !this.isPaletteHovered) {
-            this.isPaletteHovered = true; this.render(this.state);
-        }
-    }
 
-    handleMouseOut(event) {
-        if (event.target.closest('#flow-panel') && this.isFlowHovered) {
-            this.isFlowHovered = false; this.render(this.state);
+    handleMouseLeave(event) {
+        // Check if we're actually leaving the panel (not just moving to a child element)
+        if (event.target.id === 'flow-panel') {
+            if (!this.state.isFlowPinned && this.isFlowHovered) {
+                // Make sure we're actually leaving the panel area
+                const rect = event.target.getBoundingClientRect();
+                const { clientX, clientY } = event;
+                if (clientX < rect.left || clientX > rect.right || clientY < rect.top || clientY > rect.bottom) {
+                    this.isFlowHovered = false;
+                    this.render(this.state);
+                }
+            }
         }
-        if (event.target.closest('#palette-panel') && this.isPaletteHovered) {
-            this.isPaletteHovered = false; this.render(this.state);
+        
+        if (event.target.id === 'palette-panel') {
+            if (!this.state.isPalettePinned && this.isPaletteHovered) {
+                // Make sure we're actually leaving the panel area
+                const rect = event.target.getBoundingClientRect();
+                const { clientX, clientY } = event;
+                if (clientX < rect.left || clientX > rect.right || clientY < rect.top || clientY > rect.bottom) {
+                    this.isPaletteHovered = false;
+                    this.render(this.state);
+                }
+            }
         }
     }
 
