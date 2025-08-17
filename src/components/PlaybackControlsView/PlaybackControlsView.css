@@ -1,0 +1,30 @@
+/* file: src/components/PlaybackControlsView/PlaybackControlsView.css */
+
+/* Custom styles for the range sliders to ensure a consistent, modern look */
+.control-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 8px;
+    background: #e2e8f0; /* Tachyons 'slate-200' */
+    border-radius: 9999px;
+    outline: none;
+}
+
+.control-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    background: #3b82f6; /* Tachyons 'blue-500' */
+    cursor: pointer;
+    border-radius: 9999px;
+}
+
+.control-slider::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    background: #3b82f6; /* Tachyons 'blue-500' */
+    cursor: pointer;
+    border-radius: 9999px;
+}
