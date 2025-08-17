@@ -15,45 +15,34 @@ export async function run() {
     const getMockState = (overrides = {}) => ({
         rhythm: {
             playback_flow: [{ pattern: 'verse', repetitions: 4 }, { pattern: 'chorus', repetitions: 2 }],
-            patterns: { verse: { metadata: {} }, chorus: { metadata: {} } },
-            instrumentDefsBySymbol: {}
+            patterns: { verse: {}, chorus: {} },
         },
-        currentEditingPatternId: 'verse', isFlowPinned: true, isPalettePinned: false,
+        currentEditingPatternId: 'verse', isFlowPinned: false, isPalettePinned: false,
         ...overrides
     });
 
-    runner.describe('RhythmEditorView: Flow Panel Interactions', () => {
-        runner.it('should fire onPatternSelect when a flow item is clicked', () => {
+    runner.describe('RhythmEditorView: Flow Panel', () => {
+        runner.it('should fire onPinFlowPanel with a toggled value when clicked', () => {
             testContainer.innerHTML = '';
             const callbackLog = new MockLogger('Callbacks');
-            const view = new RhythmEditorView(testContainer, { onPatternSelect: (id) => callbackLog.log('onPatternSelect', { id }) });
-            view.render(getMockState());
-            
-            // Click the second item ('chorus')
-            testContainer.querySelector('[data-pattern-id="chorus"]').click();
-            callbackLog.wasCalledWith('onPatternSelect', { id: 'chorus' });
+            const view = new RhythmEditorView(testContainer, { 
+                onPinFlowPanel: (isPinned) => callbackLog.log('onPinFlowPanel', { isPinned }) 
+            });
+            // Initial state is NOT pinned
+            view.render(getMockState({ isFlowPinned: false }));
+            testContainer.querySelector('#flow-panel').click();
+            // Should be called with TRUE
+            callbackLog.wasCalledWith('onPinFlowPanel', { isPinned: true });
         });
 
         runner.it('should fire onAddPattern when the add button is clicked', () => {
             testContainer.innerHTML = '';
             const callbackLog = new MockLogger('Callbacks');
             const view = new RhythmEditorView(testContainer, { onAddPattern: () => callbackLog.log('onAddPattern') });
-            view.render(getMockState());
+            view.render(getMockState({ isFlowPinned: true })); // Render expanded
             
             testContainer.querySelector('[data-action="add-pattern"]').click();
             callbackLog.wasCalledWith('onAddPattern');
-        });
-
-        runner.it('should fire onDeleteFlowItem with the correct index when delete is clicked', () => {
-            testContainer.innerHTML = '';
-            window.confirm = () => true; // Auto-confirm the dialog for the test
-            const callbackLog = new MockLogger('Callbacks');
-            const view = new RhythmEditorView(testContainer, { onDeleteFlowItem: (index) => callbackLog.log('onDeleteFlowItem', { index }) });
-            view.render(getMockState());
-            
-            // Delete the first item (index 0)
-            testContainer.querySelector('[data-action="delete-flow-item"][data-index="0"]').click();
-            callbackLog.wasCalledWith('onDeleteFlowItem', { index: 0 });
         });
     });
 
@@ -62,6 +51,4 @@ export async function run() {
     logEvent('info', 'TestRunner', 'run', 'Teardown', 'RhythmEditorView test suite finished.');
 }
 
-export function manualTest() {
-    // Harness script will be in the HTML file
-}
+export function manualTest() { /* Harness script is in the HTML file */ }

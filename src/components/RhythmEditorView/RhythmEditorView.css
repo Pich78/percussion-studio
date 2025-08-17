@@ -14,6 +14,14 @@
   opacity: 0;
   visibility: hidden;
   display: none;
+  height: 100%; /* Ensure content area can scroll */
+  display: flex;
+  flex-direction: column;
+}
+
+.editor-panel .panel-content .flow-list {
+    flex-grow: 1;
+    overflow-y: auto; /* NEW: Enable scrolling for the list */
 }
 
 .editor-panel.is-expanded {
@@ -24,7 +32,7 @@
 .editor-panel.is-expanded .panel-content {
   opacity: 1;
   visibility: visible;
-  display: block;
+  display: flex; /* Changed from block */
 }
 
 .editor-panel .vertical-text {
@@ -41,18 +49,17 @@
     transition: margin-left 0.2s ease-in-out, margin-right 0.2s ease-in-out;
 }
 
-/* --- NEW STYLES for Flow Panel --- */
 .flow-item .delete-btn {
-    visibility: hidden; /* Hide by default */
+    visibility: hidden;
     opacity: 0;
     transition: opacity 0.15s ease-in-out;
 }
 
 .flow-item:hover .delete-btn {
-    visibility: visible; /* Show on hover of the parent item */
+    visibility: visible;
     opacity: 0.5;
 }
 
 .flow-item .delete-btn:hover {
-    opacity: 1; /* Fully visible when hovering the button itself */
+    opacity: 1;
 }
