@@ -1,16 +1,5 @@
 /* file: src/components/InstrumentMixerView/InstrumentMixerView.css */
 
-/* Custom style for the mute button's label for a better toggle feel */
-.mute-label {
-    transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out;
-}
-
-/* When the invisible checkbox is checked, style its adjacent sibling label */
-.mute-checkbox:checked + .mute-label {
-    background-color: #ff4136; /* Tachyons 'red' */
-    color: #ffffff; /* Tachyons 'white' */
-}
-
 /* Custom styles for the range slider to ensure cross-browser consistency */
 .volume-slider {
     -webkit-appearance: none;
@@ -38,4 +27,10 @@
     background: #3b82f6; /* Tachyons 'blue-500' */
     cursor: pointer;
     border-radius: 9999px;
+}
+
+/* NEW: Style for the instrument header when its track is muted */
+.instrument-header.is-muted {
+    background-color: #94a3b8; /* Tachyons 'slate-400' */
+    color: #e2e8f0; /* Tachyons 'slate-200' */
 }

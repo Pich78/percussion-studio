@@ -17,7 +17,7 @@
             <div id="test-results"></div>
             <hr class="mv4"/>
             <h1 class="f2 b mb3 bb pb2">Live View Workbench</h1>
-            <div id="view-container" class="bg-white shadow-2 pa3 br2">
+            <div id="view-container" class="bg-white shadow-2 pa3 br2 w-100" style="max-width: 300px;">
                 <!-- The InstrumentMixerView will render itself here -->
             </div>
         </div>
@@ -29,14 +29,12 @@
         </div>
     </div>
 
-    <!-- This is where the unit tests will render the component invisibly -->
     <div id="test-sandbox" style="position: absolute; visibility: hidden;"></div>
 
     <script type="module">
         import { run, manualTest } from './InstrumentMixerView.test.js';
         import { Logger, logEvent } from '/percussion-studio/lib/Logger.js';
         
-        // --- Harness Configuration ---
         Logger.init({ level: 'debug' });
         Logger.setTarget('log-output');
 

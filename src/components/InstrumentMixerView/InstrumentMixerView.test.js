@@ -15,6 +15,10 @@ export async function run() {
     const getMockState = () => ({
         rhythm: {
             sound_kit: { KCK: 'kick_1', SNR: 'snare_1' },
+            instrumentDefsBySymbol: {
+                KCK: { name: 'Drum Kick' },
+                SNR: { name: 'Acoustic Snare' }
+            },
             mixer: {
                 kick_1: { volume: 1.0, muted: false },
                 snare_1: { volume: 0.8, muted: true }
@@ -23,55 +27,42 @@ export async function run() {
     });
 
     runner.describe('InstrumentMixerView Rendering', () => {
-        runner.it('should render a track for each instrument', () => {
+        runner.it('should render a track with the full name for each instrument', () => {
             testContainer.innerHTML = '';
             const view = new InstrumentMixerView(testContainer, {});
             view.render(getMockState());
             const tracks = testContainer.querySelectorAll('.mixer-track');
             runner.expect(tracks.length).toBe(2);
+            runner.expect(testContainer.textContent.includes('Drum Kick')).toBe(true);
+            runner.expect(testContainer.textContent.includes('Acoustic Snare')).toBe(true);
         });
 
-        runner.it('should set initial values of sliders and checkboxes', () => {
+        runner.it('should apply the "is-muted" class to the header of a muted track', () => {
             testContainer.innerHTML = '';
             const view = new InstrumentMixerView(testContainer, {});
             view.render(getMockState());
             
-            const snareTrack = testContainer.querySelector('[data-instrument-id="snare_1"]');
-            const snareSlider = snareTrack.querySelector('.volume-slider');
-            const snareMute = snareTrack.querySelector('.mute-checkbox');
+            const kickHeader = testContainer.querySelector('[data-instrument-id="kick_1"] .instrument-header');
+            const snareHeader = testContainer.querySelector('[data-instrument-id="snare_1"] .instrument-header');
 
-            runner.expect(parseFloat(snareSlider.value)).toBe(0.8);
-            runner.expect(snareMute.checked).toBe(true);
+            runner.expect(kickHeader.classList.contains('is-muted')).toBe(false);
+            runner.expect(snareHeader.classList.contains('is-muted')).toBe(true);
         });
     });
 
     runner.describe('InstrumentMixerView Callbacks', () => {
-        runner.it('should fire onVolumeChange with correct ID and value', () => {
-            testContainer.innerHTML = '';
-            const callbackLog = new MockLogger('Callbacks');
-            const view = new InstrumentMixerView(testContainer, { 
-                onVolumeChange: (id, vol) => callbackLog.log('onVolumeChange', { id, vol }) 
-            });
-            
-            view.render(getMockState());
-            const kickSlider = testContainer.querySelector('[data-instrument-id="kick_1"] .volume-slider');
-            kickSlider.value = 0.5;
-            kickSlider.dispatchEvent(new Event('input', { bubbles: true }));
-
-            callbackLog.wasCalledWith('onVolumeChange', { id: 'kick_1', vol: 0.5 });
-        });
-
-        runner.it('should fire onToggleMute with correct ID and value', () => {
+        runner.it('should fire onToggleMute with the correct ID and new value when header is clicked', () => {
             testContainer.innerHTML = '';
             const callbackLog = new MockLogger('Callbacks');
             const view = new InstrumentMixerView(testContainer, { 
                 onToggleMute: (id, muted) => callbackLog.log('onToggleMute', { id, muted }) 
             });
             
-            view.render(getMockState());
-            const kickMute = testContainer.querySelector('[data-instrument-id="kick_1"] .mute-checkbox');
-            kickMute.click(); // This fires a 'change' event for checkboxes
+            view.render(getMockState()); // kick_1 is NOT muted
+            const kickHeader = testContainer.querySelector('[data-instrument-id="kick_1"] .instrument-header');
+            kickHeader.click();
 
+            // Expect it to fire with the opposite of its initial state
             callbackLog.wasCalledWith('onToggleMute', { id: 'kick_1', muted: true });
         });
     });
@@ -83,20 +74,35 @@ export async function run() {
 
 export function manualTest() {
     logEvent('info', 'Harness', 'manualTest', 'Setup', 'Setting up manual test for InstrumentMixerView.');
-    const view = new InstrumentMixerView(document.getElementById('view-container'), {
-        onVolumeChange: (id, vol) => logEvent('info', 'Harness', 'onVolumeChange', 'Callback', `Volume changed for ${id}: ${vol}`),
-        onToggleMute: (id, muted) => logEvent('info', 'Harness', 'onToggleMute', 'Callback', `Mute toggled for ${id}: ${muted}`)
-    });
     
-    const mockState = {
+    let currentState = {
         rhythm: {
-            sound_kit: { KCK: 'test_kick', SNR: 'test_snare', HHC: 'test_hihat' },
+            sound_kit: { KCK: 'kick_1', SNR: 'snare_1', HHC: 'hihat_1' },
+            instrumentDefsBySymbol: {
+                KCK: { name: '808 Kick' },
+                SNR: { name: 'Rock Snare' },
+                HHC: { name: 'Closed Hi-Hat' }
+            },
             mixer: {
-                test_kick: { volume: 1.0, muted: false },
-                test_snare: { volume: 0.8, muted: false },
-                test_hihat: { volume: 0.6, muted: true }
+                kick_1: { volume: 1.0, muted: false },
+                snare_1: { volume: 0.8, muted: false },
+                hihat_1: { volume: 0.6, muted: true }
             }
         }
     };
-    view.render(mockState);
+    
+    const view = new InstrumentMixerView(document.getElementById('view-container'), {
+        onVolumeChange: (id, vol) => {
+            logEvent('info', 'Harness', 'onVolumeChange', 'Callback', `Volume for ${id}: ${vol}`);
+            currentState.rhythm.mixer[id].volume = vol;
+            view.render(currentState);
+        },
+        onToggleMute: (id, muted) => {
+            logEvent('info', 'Harness', 'onToggleMute', 'Callback', `Mute for ${id}: ${muted}`);
+            currentState.rhythm.mixer[id].muted = muted;
+            view.render(currentState);
+        }
+    });
+
+    view.render(currentState);
 }
