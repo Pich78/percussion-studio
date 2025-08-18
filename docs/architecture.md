@@ -109,13 +109,23 @@ This layer is responsible for all DOM manipulation. The Sub-Apps are now respons
     *   **`InstrumentMixerView`:** Renders individual instrument controls (volume sliders, mute buttons).
 
 *   **Editing View Components (Managed by `EditingApp`):**
-    *   **`RhythmEditorView`:** Acts as the primary container for the entire editing interface. It is responsible for rendering the main three-panel layout (Rhythm Flow, Pattern Grid, Instrument Palette). Crucially, this view also includes its **two dedicated playback controls**:
-        *   A **"Play Pattern"** button, which instructs the `PlaybackController` to loop only the currently selected pattern.
-        *   A **"Play Rhythm"** button, which instructs the `PlaybackController` to play the entire sequence from the `playback_flow`.
+    *   **`RhythmEditorView` (Container Component):** Acts as the primary container for the editing interface. Its main responsibilities are:
+        *   Rendering the top-level layout that holds the `FlowPanel`, the central grid, and the `InstrumentPalettePanel`.
+        *   Instantiating its sub-components (`FlowPanel`, `InstrumentPalettePanel`) and the `TubsGridView`.
+        *   Passing the relevant parts of the `EditingApp`'s state and callbacks down to each of its child components.
 
-    *   **`TubsGridView` (in Editing Mode):** The central "Pattern Grid" panel within the `RhythmEditorView` will be implemented by reusing and enhancing the existing `TubsGridView` component.
-        *   **Architectural Decision:** Instead of creating a separate grid component, `TubsGridView` will be designed to operate in one of two modes: a read-only `view` mode (for the `PlaybackApp`) and an `edit` mode (for the `EditingApp`), configured via a property passed during its instantiation.
-        *   **In `edit` mode, `TubsGridView` will be responsible for:**
+    *   **`FlowPanel` (Sub-Component):** A self-contained component, managed by `RhythmEditorView`.
+        *   **Responsibilities:** Renders the `playback_flow` list. Manages all of its own complex UI logic, including hover-to-expand, click-to-pin, and drag-and-drop for reordering.
+        *   **Callbacks:** Fires callbacks like `onPatternSelect`, `onAddPattern`, `onDeleteFlowItem`, and `onReorderFlow` up to the `EditingApp`.
+
+    *   **`InstrumentPalettePanel` (Sub-Component):** A self-contained component, managed by `RhythmEditorView`.
+        *   **Responsibilities:** Renders the list of available notes for a selected instrument. Manages its own hover-to-expand and click-to-pin UI logic.
+        *   **Callbacks:** Fires callbacks like `onNoteSelect` when a user chooses a note for editing.
+
+    *   **`TubsGridView` (in Editing Mode):** The central "Pattern Grid" panel within the `RhythmEditorView` will be an instance of the reusable `TubsGridView` component.
+        *   **Configuration:** It will be configured by `RhythmEditorView` to operate in `edit` mode.
+        *   **Responsibilities (in `edit` mode):** Handles note addition/removal clicks and fires an `onNoteEdit` callback up to the `EditingApp`.
+            *   **In `edit` mode, `TubsGridView` will be responsible for:**
             1.  Attaching click event listeners to grid cells to handle note addition/removal.
             2.  Firing a callback (e.g., `onNoteEdit`) with the relevant coordinates (instrument symbol, tick index) when a cell is clicked, allowing the `EditingApp` to handle the state logic.
             3.  Providing visual feedback for editing, such as a hover effect that shows which note symbol will be placed.
