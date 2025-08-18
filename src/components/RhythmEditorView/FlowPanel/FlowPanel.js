@@ -46,9 +46,46 @@ export class FlowPanel {
             </div>
         `;
 
+        const flowList = this.container.querySelector('.flow-list');
+        if (flowList) {
+            // Enable native scrolling but hide the native scrollbar
+            flowList.style.overflowY = 'auto';
+            flowList.style.scrollbarWidth = 'none';
+            flowList.style.msOverflowStyle = 'none';
+            
+            // Add scroll event listener for custom scrollbar
+            flowList.addEventListener('scroll', () => this.updateCustomScrollbar());
+            
+            // Initial scrollbar update
+            setTimeout(() => this.updateCustomScrollbar(), 0);
+        }
+
         if (scrollToLast) {
             setTimeout(() => this.container.querySelector('.flow-list')?.scrollTo({ top: 9999, behavior: 'smooth' }), 50);
         }
+    }
+    
+    updateCustomScrollbar() {
+        const flowList = this.container.querySelector('.flow-list');
+        if (!flowList) return;
+        
+        const scrollHeight = flowList.scrollHeight;
+        const clientHeight = flowList.clientHeight;
+        const scrollTop = flowList.scrollTop;
+        
+        // Calculate scrollbar thumb position and size
+        const scrollRatio = clientHeight / scrollHeight;
+        const thumbHeight = Math.max(20, clientHeight * scrollRatio);
+        const maxThumbTop = clientHeight - thumbHeight;
+        const thumbTop = (scrollTop / (scrollHeight - clientHeight)) * maxThumbTop;
+        
+        // Update CSS custom properties for the scrollbar
+        flowList.style.setProperty('--scrollbar-thumb-height', `${thumbHeight}px`);
+        flowList.style.setProperty('--scrollbar-thumb-top', `${thumbTop}px`);
+        
+        // Show/hide scrollbar based on content
+        const needsScrollbar = scrollHeight > clientHeight;
+        flowList.style.setProperty('--scrollbar-opacity', needsScrollbar ? '1' : '0.3');
     }
 
     // --- MODIFICATION: Replaced handleClick and handleDocumentClick with this single method ---
