@@ -97,7 +97,7 @@ percussion-studio/
 │   │   │   │   ├── InstrumentPalettePanel.html
 │   │   │   │   ├── InstrumentPalettePanel.js
 │   │   │   │   └── InstrumentPalettePanel.test.js
-│   │   │   │
+│   │   │   │── RhythmEditorView.integration.html
 │   │   │   ├── RhythmEditorView.css
 │   │   │   ├── RhythmEditorView.html
 │   │   │   ├── RhythmEditorView.js
