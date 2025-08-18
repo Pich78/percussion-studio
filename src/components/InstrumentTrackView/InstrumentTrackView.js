@@ -122,8 +122,9 @@ export class InstrumentTrackView {
         if (isWithinComponentGrid && !this.isDragging) {
             this._updateCustomCursor();
             if (this.customCursorEl) {
-                this.customCursorEl.style.left = `${event.clientX + 10}px`;
-                this.customCursorEl.style.top = `${event.clientY + 10}px`;
+                // Center the custom cursor on the mouse pointer
+                this.customCursorEl.style.left = `${event.clientX - 12}px`; // -12 to center 24px cursor
+                this.customCursorEl.style.top = `${event.clientY - 12}px`;
             }
         } else if (!isWithinComponentGrid && !this.isDragging) {
             // Hide if the mouse is anywhere else (this instance's responsibility)
@@ -132,8 +133,8 @@ export class InstrumentTrackView {
 
         // Update cursor position during dragging too
         if (this.customCursorEl && this.customCursorEl.style.display === 'block') {
-            this.customCursorEl.style.left = `${event.clientX + 10}px`;
-            this.customCursorEl.style.top = `${event.clientY + 10}px`;
+            this.customCursorEl.style.left = `${event.clientX - 12}px`;
+            this.customCursorEl.style.top = `${event.clientY - 12}px`;
         }
 
         // --- Handle highlighting during drag ---
@@ -200,11 +201,15 @@ export class InstrumentTrackView {
         
         const menu = document.createElement('div');
         menu.className = 'radial-menu';
+        // Center the menu exactly on the cursor position
         menu.style.left = `${x}px`;
         menu.style.top = `${y}px`;
+        menu.style.transform = 'translate(-50%, -50%)'; // This centers the menu on the cursor
 
         const background = document.createElement('div');
         background.className = 'radial-background';
+        // Remove the transform from background since menu is already centered
+        background.style.transform = 'none';
         menu.appendChild(background);
 
         let soundsToRender = instrument.sounds;
@@ -230,6 +235,7 @@ export class InstrumentTrackView {
             const angle = angles[index];
             const itemX = radius * Math.cos(angle);
             const itemY = radius * Math.sin(angle);
+            // Position items relative to the menu center (which is now centered on cursor)
             item.style.transform = `translate(-50%, -50%) translate(${itemX}px, ${itemY}px)`;
             menu.appendChild(item);
         });
