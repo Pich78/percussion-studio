@@ -45,49 +45,78 @@
 }
 
 .flow-list {
-    /* --- UPDATED FIX --- */
+    /* --- FORCE ALWAYS VISIBLE SCROLLBAR --- */
     /* Use the shorthand 'flex: 1' to allow the list to grow and shrink. */
     /* 'min-height: 0' is the key to allowing the container to shrink smaller than its content, */
     /* which forces the content to overflow and trigger the scrollbar. */
     flex: 1 1 0;
     min-height: 0;
     
-    /* Always show scrollbar when content overflows */
-    overflow-y: scroll;
+    /* Force scrollbar to always be visible - aggressive approach */
+    overflow-y: scroll !important;
+    scrollbar-gutter: stable;
+    -webkit-overflow-scrolling: touch;
     
-    /* Custom scrollbar styling */
-    scrollbar-width: thin;
-    scrollbar-color: rgba(0, 0, 0, 0.3) rgba(0, 0, 0, 0.1);
+    /* Disable auto-hiding on macOS/iOS */
+    -webkit-scrollbar-style: legacy;
+    
+    /* Firefox - force scrollbar to always show */
+    scrollbar-width: auto; /* Changed from thin to auto for more visibility */
+    scrollbar-color: rgba(0, 0, 0, 0.6) rgba(0, 0, 0, 0.15);
 }
 
-/* WebKit scrollbar styling for always visible scrollbar */
+/* WebKit/Chrome/Safari - force scrollbar to NEVER hide */
 .flow-list::-webkit-scrollbar { 
-    width: 8px; 
-    background: rgba(0, 0, 0, 0.05);
+    width: 14px !important;
+    background: rgba(0, 0, 0, 0.1) !important;
+    /* Prevent auto-hiding */
+    -webkit-appearance: none;
+    appearance: none;
 }
 
 .flow-list::-webkit-scrollbar-track { 
-    background: rgba(0, 0, 0, 0.05);
-    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.1) !important;
+    border-radius: 7px;
+    /* Force track to always be visible */
+    box-shadow: inset 0 0 1px rgba(0, 0, 0, 0.2);
 }
 
 .flow-list::-webkit-scrollbar-thumb { 
-    background-color: rgba(0, 0, 0, 0.3); 
-    border-radius: 4px;
-    min-height: 20px;
+    background-color: rgba(0, 0, 0, 0.4) !important;
+    border-radius: 7px;
+    min-height: 40px;
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    /* Force thumb to always be visible */
+    box-shadow: inset 0 0 2px rgba(255, 255, 255, 0.3);
+    -webkit-appearance: none;
+    appearance: none;
 }
 
 .flow-list::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.6) !important;
 }
 
-/* When content doesn't overflow, make scrollbar less prominent but still visible */
-.flow-list::-webkit-scrollbar-thumb {
-    background-color: rgba(0, 0, 0, 0.2);
+/* Additional Safari-specific rules to prevent auto-hiding */
+.flow-list::-webkit-scrollbar-thumb:vertical {
+    background-color: rgba(0, 0, 0, 0.4) !important;
 }
 
-.flow-list:hover::-webkit-scrollbar-thumb {
-    background-color: rgba(0, 0, 0, 0.4);
+/* Force scrollbar corner to be visible */
+.flow-list::-webkit-scrollbar-corner {
+    background: rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Alternative approach: Add a permanent visual indicator */
+.flow-list::after {
+    content: '';
+    position: absolute;
+    right: 2px;
+    top: 0;
+    bottom: 0;
+    width: 10px;
+    background: linear-gradient(to right, transparent, rgba(0, 0, 0, 0.05));
+    pointer-events: none;
+    z-index: 1;
 }
 
 .flow-item { transition: all 0.2s ease; }
