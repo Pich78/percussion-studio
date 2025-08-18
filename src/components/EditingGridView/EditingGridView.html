@@ -7,11 +7,7 @@
     <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
     <link rel="stylesheet" href="/percussion-studio/css/global.css">
     <link rel="stylesheet" href="/percussion-studio/lib/TubsGridRenderer/TubsGridRenderer.css">
-    <!-- Component CSS is loaded by its JS -->
-    <style> 
-        body { font-family: sans-serif; cursor: default; } 
-        /* FIX 1: The broad cursor:none rule is removed from here */
-    </style>
+    <style> body { font-family: sans-serif; cursor: default; } </style>
 </head>
 <body class="bg-light-gray pa4">
 
@@ -23,7 +19,7 @@
             <hr class="mv4"/>
             <h1 class="f2 b mb3 bb pb2">Live View Workbench</h1>
             <p class="f6 gray mb3">
-                Full structural editing is now enabled. Try adding/removing measures and instruments.
+                Measure headers are now editable. Change a value and an "Apply" button will appear.
             </p>
             <div id="view-container" class="bg-white shadow-2 pa3 mb3"></div>
             <div id="callback-log" class="f7 code pa2 bg-washed-yellow mt3 h4 overflow-y-auto">Callbacks will appear here.</div>
@@ -54,7 +50,7 @@
         let mockState = {
             currentPattern: {
                 metadata: { metric: '4/4', resolution: 16 },
-                pattern_data: [] // Start in zero state
+                pattern_data: [] 
             },
             resolvedInstruments: {
                 KCK: { symbol: 'KCK', name: 'Kick', sounds: [{ letter: 'o', name: 'Open', svg: openSvg }] },
@@ -87,10 +83,7 @@
             onMeasureAdd: () => {
                 logCallback('onMeasureAdd');
                 const newMeasure = {};
-                // Add all existing instruments to the new measure
-                const existingSymbols = (mockState.currentPattern.pattern_data.length > 0) 
-                    ? Object.keys(mockState.currentPattern.pattern_data[0])
-                    : [];
+                const existingSymbols = (mockState.currentPattern.pattern_data.length > 0) ? Object.keys(mockState.currentPattern.pattern_data[0]) : Object.keys(mockState.resolvedInstruments);
                 existingSymbols.forEach(symbol => { newMeasure[symbol] = '||----------------||' });
                 mockState.currentPattern.pattern_data.push(newMeasure);
                 rerender();
@@ -100,29 +93,25 @@
                 mockState.currentPattern.pattern_data.splice(measureIndex, 1);
                 rerender();
             },
+            onMeasureUpdate: ({ measureIndex, metric, resolution }) => {
+                logCallback('onMeasureUpdate', { measureIndex, metric, resolution });
+                alert(`This would regenerate the grid for measure ${measureIndex + 1} with metric: ${metric}, resolution: ${resolution}. Rerendering for now.`);
+                mockState.currentPattern.metadata = { metric, resolution }; // Update for all measures for simplicity in harness
+                rerender();
+            },
             onInstrumentAdd: () => {
                 logCallback('onInstrumentAdd');
-                alert("This would open the InstrumentSelectionModalView. For this harness, we'll add a mock 'Hi-Hat' instrument.");
-                // Simulate adding a new instrument to the state
-                mockState.resolvedInstruments['HHC'] = { symbol: 'HHC', name: 'Hi-Hat', sounds: [{ letter: 'c', svg: slapSvg }] };
-                mockState.currentPattern.pattern_data.forEach(measure => {
-                    measure['HHC'] = '||----------------||';
-                });
-                rerender();
+                alert("This would open the InstrumentSelectionModalView.");
             },
             onInstrumentRemove: ({ symbol }) => {
                 logCallback('onInstrumentRemove', { symbol });
-                mockState.currentPattern.pattern_data.forEach(measure => {
-                    delete measure[symbol];
-                });
-                // In a real app, you might not delete from resolvedInstruments unless it's no longer used anywhere.
-                // delete mockState.resolvedInstruments[symbol];
+                mockState.currentPattern.pattern_data.forEach(measure => { delete measure[symbol]; });
                 rerender();
             }
         });
 
         const rerender = () => view.render(mockState);
-        rerender(); // Initial render
+        rerender();
     </script>
 </body>
 </html>
