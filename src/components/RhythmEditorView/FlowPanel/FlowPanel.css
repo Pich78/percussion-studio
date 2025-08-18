@@ -47,6 +47,10 @@
 .flow-list {
     flex-grow: 1;
     overflow-y: auto;
+    /* --- THE FIX IS HERE --- */
+    /* Override the default flexbox behavior that prevents the container from shrinking below its content size. */
+    /* This allows the overflow property to work correctly. */
+    min-height: 0;
     scrollbar-width: thin;
     scrollbar-color: rgba(0, 0, 0, 0.3) transparent;
 }
@@ -61,7 +65,6 @@
 .flow-item .delete-btn:hover { opacity: 1; }
 .flow-item.dragging { opacity: 0.5; }
 
-/* --- THE FIX IS HERE --- */
 /* Apply the selected style if the panel is hovered OR if it is pinned. */
 .editor-panel:hover .flow-item.is-selected,
 .editor-panel.is-pinned .flow-item.is-selected {
