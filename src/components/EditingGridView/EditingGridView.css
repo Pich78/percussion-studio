@@ -57,6 +57,7 @@
 /* Remove Buttons (Hover-to-reveal) */
 .measure-header, .instrument-header {
     position: relative;
+    cursor: default; /* Ensure default cursor over headers */
 }
 .remove-btn {
     position: absolute;
@@ -65,15 +66,19 @@
     transform: translateY(-50%);
     width: 20px;
     height: 20px;
+    padding: 0; /* Remove default padding */
     border-radius: 50%;
     border: none;
     background-color: #e2e8f0;
     color: #94a3b8;
     font-size: 16px;
-    line-height: 18px;
     cursor: pointer;
     opacity: 0;
     transition: opacity 0.2s ease, background-color 0.2s ease;
+    /* FIX 2: Use Flexbox for perfect centering */
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 .measure-header:hover .remove-btn,
 .instrument-header:hover .remove-btn {
@@ -95,6 +100,12 @@
     display: none;
     opacity: 0.8;
 }
+
+/* FIX 1: Apply cursor:none only to the interactive grid cells */
+.grid-cell {
+    cursor: none;
+}
+
 
 /* Radial Menu */
 .radial-menu {

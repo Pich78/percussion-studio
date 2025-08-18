@@ -10,7 +10,7 @@
     <!-- Component CSS is loaded by its JS -->
     <style> 
         body { font-family: sans-serif; cursor: default; } 
-        #view-container { cursor: none; } /* Hide default cursor over the grid */
+        /* FIX 1: The broad cursor:none rule is removed from here */
     </style>
 </head>
 <body class="bg-light-gray pa4">
@@ -88,7 +88,9 @@
                 logCallback('onMeasureAdd');
                 const newMeasure = {};
                 // Add all existing instruments to the new measure
-                const existingSymbols = Object.keys(mockState.currentPattern.pattern_data[0] || mockState.resolvedInstruments);
+                const existingSymbols = (mockState.currentPattern.pattern_data.length > 0) 
+                    ? Object.keys(mockState.currentPattern.pattern_data[0])
+                    : [];
                 existingSymbols.forEach(symbol => { newMeasure[symbol] = '||----------------||' });
                 mockState.currentPattern.pattern_data.push(newMeasure);
                 rerender();
