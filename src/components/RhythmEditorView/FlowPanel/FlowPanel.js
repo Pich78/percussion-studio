@@ -13,15 +13,14 @@ export class FlowPanel {
         loadCSS('/percussion-studio/src/components/RhythmEditorView/FlowPanel/FlowPanel.css');
         logEvent('info', 'FlowPanel', 'constructor', 'Lifecycle', 'Component created.');
         
-        this.container.addEventListener('click', this.handleClick.bind(this));
+        // --- MODIFICATION: Use a single global click handler ---
+        this.handleGlobalClick = this.handleGlobalClick.bind(this);
+        document.addEventListener('click', this.handleGlobalClick);
+
         this.container.addEventListener('dragstart', this.handleDragStart.bind(this));
         this.container.addEventListener('dragover', (e) => e.preventDefault());
         this.container.addEventListener('drop', this.handleDrop.bind(this));
         this.container.addEventListener('dragend', this.handleDragEnd.bind(this));
-        
-        // --- MODIFICATION: Listen for clicks on the whole document ---
-        this.handleDocumentClick = this.handleDocumentClick.bind(this);
-        document.addEventListener('click', this.handleDocumentClick);
     }
 
     render(state) {
@@ -52,44 +51,45 @@ export class FlowPanel {
         }
     }
 
-    // --- MODIFICATION: New method to handle clicks outside the panel ---
-    handleDocumentClick(event) {
-        // If the panel is pinned and the click is outside the container, unpin it.
-        if (this.state.isPinned && !this.container.contains(event.target)) {
-            logEvent('debug', 'FlowPanel', 'handleDocumentClick', 'Events', 'Outside click detected. Unpinning.');
-            this.callbacks.onPin?.(false);
-        }
-    }
+    // --- MODIFICATION: Replaced handleClick and handleDocumentClick with this single method ---
+    handleGlobalClick(event) {
+        const isClickInside = this.container.contains(event.target);
 
-    // --- MODIFICATION: Changed logic to pin the panel on any internal click ---
-    handleClick(event) {
-        // Pin the panel on any click inside it, if it's not already pinned.
-        if (!this.state.isPinned) {
-            this.callbacks.onPin?.(true);
-        }
+        if (isClickInside) {
+            // --- This is a click INSIDE the panel ---
+            // Pin the panel if it's not already pinned.
+            if (!this.state.isPinned) {
+                this.callbacks.onPin?.(true);
+            }
 
-        const target = event.target.closest('[data-action]');
-        if (!target) {
-            // This was a click on the panel background, which we now use only for pinning.
-            return;
-        }
+            // Now, handle the specific action if an actionable element was clicked.
+            const target = event.target.closest('[data-action]');
+            if (!target) return; // Click was on panel background, pinning is enough.
 
-        const action = target.dataset.action;
-        logEvent('debug', 'FlowPanel', 'handleClick', 'Events', `Action: ${action}`);
+            const action = target.dataset.action;
+            logEvent('debug', 'FlowPanel', 'handleGlobalClick', 'Events', `Action: ${action}`);
 
-        switch(action) {
-            case 'select-pattern':
-                this.callbacks.onPatternSelect?.(target.dataset.patternId);
-                break;
-            case 'add-pattern':
-                this.callbacks.onAddPattern?.();
-                break;
-            case 'delete-flow-item':
-                event.stopPropagation();
-                if (window.confirm('Remove this pattern from the flow?')) {
-                    this.callbacks.onDeleteFlowItem?.(parseInt(target.dataset.index, 10));
-                }
-                break;
+            switch(action) {
+                case 'select-pattern':
+                    this.callbacks.onPatternSelect?.(target.dataset.patternId);
+                    break;
+                case 'add-pattern':
+                    this.callbacks.onAddPattern?.();
+                    break;
+                case 'delete-flow-item':
+                    event.stopPropagation();
+                    if (window.confirm('Remove this pattern from the flow?')) {
+                        this.callbacks.onDeleteFlowItem?.(parseInt(target.dataset.index, 10));
+                    }
+                    break;
+            }
+        } else {
+            // --- This is a click OUTSIDE the panel ---
+            // Unpin the panel if it's currently pinned.
+            if (this.state.isPinned) {
+                logEvent('debug', 'FlowPanel', 'handleGlobalClick', 'Events', 'Outside click detected. Unpinning.');
+                this.callbacks.onPin?.(false);
+            }
         }
     }
 
@@ -120,4 +120,9 @@ export class FlowPanel {
             this.draggedIndex = null;
         }
     }
-}
+}```
+
+This new implementation ensures that:
+1.  Any click inside the panel will "pin" it, causing it to stay open.
+2.  Any subsequent click outside the panel will "unpin" it, allowing it to collapse when the mouse leaves.
+3.  The specific actions for buttons and items inside the panel still work as expected.
