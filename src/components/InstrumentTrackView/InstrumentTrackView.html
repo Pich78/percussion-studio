@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
     <link rel="stylesheet" href="/percussion-studio/css/global.css">
     <link rel="stylesheet" href="/percussion-studio/lib/TubsGridRenderer/TubsGridRenderer.css">
-    <!-- Component CSS is loaded by its JS -->
     <style> body { font-family: sans-serif; cursor: default; } </style>
 </head>
 <body class="bg-light-gray pa4">
@@ -20,7 +19,7 @@
             <hr class="mv4"/>
             <h1 class="f2 b mb3 bb pb2">Live View Workbench</h1>
             <p class="f6 gray mb3">
-                This harness tests four independent instances of the `InstrumentTrackView`. Interact with each row to test note editing and the radial menu.
+                <b>New Interaction:</b> Press and hold on a cell, drag your mouse over a symbol in the palette, then release to select it. The note will be set and your "paintbrush" (cursor) will be updated.
             </p>
             <div class="bg-white shadow-2 pa3 mb3">
                 <div id="track-1-container" class="instrument-track-container"></div>
@@ -74,7 +73,7 @@
         };
 
         const callbackLogEl = document.getElementById('callback-log');
-        const componentInstances = new Map(); // Use a Map to store instances by symbol
+        const componentInstances = new Map();
 
         const logCallback = (instSymbol, name, data = {}) => {
             logEvent('info', 'Harness', name, 'Callback', `[${instSymbol}] Fired with:`, data);
@@ -95,7 +94,6 @@
             }
         };
 
-        // --- Setup and Initial Render ---
         mockState.instruments.forEach((inst, index) => {
             const container = document.getElementById(`track-${index + 1}-container`);
             const instance = new InstrumentTrackView(container, {
@@ -119,7 +117,7 @@
             componentInstances.set(inst.symbol, instance);
         });
         
-        rerender(); // Initial render
+        rerender();
         logEvent('info', 'Harness', 'setup', 'Lifecycle', 'Workbench setup complete.');
 
     </script>

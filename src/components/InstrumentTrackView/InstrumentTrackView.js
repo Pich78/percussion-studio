@@ -4,7 +4,7 @@ import { loadCSS } from '/percussion-studio/lib/dom.js';
 import { logEvent } from '/percussion-studio/lib/Logger.js';
 import { TubsGridRenderer } from '/percussion-studio/lib/TubsGridRenderer/TubsGridRenderer.js';
 
-const HOLD_DURATION_MS = 250;
+const HOLD_DURATION_MS = 200; // A shorter delay feels more responsive for a drag gesture
 
 export class InstrumentTrackView {
     constructor(container, callbacks) {
@@ -13,7 +13,8 @@ export class InstrumentTrackView {
         
         this.state = {};
         this.holdTimeout = null;
-        this.isHolding = false;
+        this.isDragging = false; // NEW: Tracks the drag gesture state
+        this.highlightedSound = null; // NEW: Tracks the sound hovered during drag
         this.mouseDownInfo = null;
         this.customCursorEl = null;
 
@@ -25,32 +26,26 @@ export class InstrumentTrackView {
         this._handleMouseLeave = this._handleMouseLeave.bind(this);
         this._handleMouseMove = this._handleMouseMove.bind(this);
         this.container.addEventListener('mousedown', this._handleMouseDown);
-        this.container.addEventListener('mouseup', this._handleMouseUp);
-        this.container.addEventListener('mouseleave', this._handleMouseLeave);
-        this.container.addEventListener('mousemove', this._handleMouseMove);
+        // We listen on `window` for mouseup and mousemove to handle cases where the user drags outside the component
+        window.addEventListener('mouseup', this._handleMouseUp, true);
+        window.addEventListener('mousemove', this._handleMouseMove, true);
         
         logEvent('info', 'InstrumentTrackView', 'constructor', 'Lifecycle', 'Component created.');
     }
 
     render(state) {
         this.state = state;
-        const { instrument, notation, activeSoundLetter } = this.state;
-        
+        const { instrument, notation } = this.state;
         this.container.innerHTML = '';
-
         const rowEl = TubsGridRenderer.createInstrumentRow(instrument.symbol);
-        const headerEl = TubsGridRenderer.createInstrumentHeader(instrument.name);
-        rowEl.appendChild(headerEl);
-
+        rowEl.appendChild(TubsGridRenderer.createInstrumentHeader(instrument.name));
         const notationChars = notation.replace(/\|/g, '');
         for (let i = 0; i < notationChars.length; i++) {
             const cellEl = TubsGridRenderer.createGridCell(i);
             const soundLetter = notationChars.charAt(i);
             if (soundLetter !== '-') {
                 const sound = instrument.sounds.find(s => s.letter === soundLetter);
-                if (sound?.svg) {
-                    cellEl.appendChild(TubsGridRenderer.createNoteElement(sound.svg, sound.letter));
-                }
+                if (sound?.svg) cellEl.appendChild(TubsGridRenderer.createNoteElement(sound.svg, sound.letter));
             }
             rowEl.appendChild(cellEl);
         }
@@ -61,101 +56,136 @@ export class InstrumentTrackView {
     _handleMouseDown(event) {
         const cell = event.target.closest('.grid-cell');
         if (!cell) return;
-        this.isHolding = false;
-        this.mouseDownInfo = { tickIndex: parseInt(cell.dataset.tickIndex, 10), cell };
+        
+        this.mouseDownInfo = { 
+            tickIndex: parseInt(cell.dataset.tickIndex, 10), 
+            cell,
+            clientX: event.clientX,
+            clientY: event.clientY
+        };
+        
         this.holdTimeout = setTimeout(() => {
-            this.isHolding = true;
-            this._showRadialMenu(this.mouseDownInfo.cell);
+            this.isDragging = true;
+            this._showRadialMenu(this.mouseDownInfo.clientX, this.mouseDownInfo.clientY);
         }, HOLD_DURATION_MS);
     }
 
     _handleMouseUp() {
         clearTimeout(this.holdTimeout);
-        if (this.isHolding || !this.mouseDownInfo) return;
         
-        const { tickIndex, cell } = this.mouseDownInfo;
-        const hasNote = cell.querySelector('.note');
-        if (hasNote) {
-            this.callbacks.onNoteEdit?.({ action: 'delete', tickIndex });
-        } else {
-            this.callbacks.onNoteEdit?.({ action: 'add', tickIndex, soundLetter: this.state.activeSoundLetter });
+        if (this.isDragging) {
+            // --- Complete the DRAG-AND-RELEASE gesture ---
+            if (this.highlightedSound) {
+                this.callbacks.onNoteEdit?.({ action: 'set', tickIndex: this.mouseDownInfo.tickIndex, soundLetter: this.highlightedSound });
+                this.callbacks.onActiveSoundChange?.(this.highlightedSound);
+            }
+            this._hideRadialMenu();
+        } else if (this.mouseDownInfo) {
+            // --- Complete the TAP gesture ---
+            const { tickIndex, cell } = this.mouseDownInfo;
+            const hasNote = cell.querySelector('.note');
+            if (hasNote) {
+                this.callbacks.onNoteEdit?.({ action: 'delete', tickIndex });
+            } else {
+                this.callbacks.onNoteEdit?.({ action: 'add', tickIndex, soundLetter: this.state.activeSoundLetter });
+            }
         }
+        
+        // Reset all gesture state
+        this.isDragging = false;
+        this.highlightedSound = null;
         this.mouseDownInfo = null;
     }
 
     _handleMouseLeave() {
-        clearTimeout(this.holdTimeout);
-        this.isHolding = false;
-        this.mouseDownInfo = null;
-        this.customCursorEl.style.display = 'none';
-        this._hideRadialMenu();
+        // Only hide the cursor, don't cancel a drag in progress
+        if (this.customCursorEl) this.customCursorEl.style.display = 'none';
     }
     
     _handleMouseMove(event) {
-        if (!this.customCursorEl) return;
-        const { instrument, activeSoundLetter } = this.state;
-        const sound = instrument.sounds.find(s => s.letter === activeSoundLetter);
-        if (sound?.svg) {
-            this.customCursorEl.innerHTML = sound.svg;
-            this.customCursorEl.style.display = 'block';
+        // --- Handle custom cursor position ---
+        if (this.container.contains(event.target)) {
+            const { instrument, activeSoundLetter } = this.state;
+            const sound = instrument.sounds.find(s => s.letter === activeSoundLetter);
+            if (sound?.svg && this.customCursorEl) {
+                this.customCursorEl.innerHTML = sound.svg;
+                this.customCursorEl.style.display = 'block';
+            }
+            this.customCursorEl.style.left = `${event.clientX + 10}px`;
+            this.customCursorEl.style.top = `${event.clientY + 10}px`;
         } else {
-            this.customCursorEl.style.display = 'none';
+            if (this.customCursorEl) this.customCursorEl.style.display = 'none';
         }
-        this.customCursorEl.style.left = `${event.clientX + 10}px`;
-        this.customCursorEl.style.top = `${event.clientY + 10}px`;
+
+        // --- Handle highlighting during drag ---
+        if (this.isDragging) {
+            const radialItems = document.querySelectorAll('.radial-item');
+            let currentlyHighlighted = null;
+
+            radialItems.forEach(item => {
+                const rect = item.getBoundingClientRect();
+                const isHovered = event.clientX >= rect.left && event.clientX <= rect.right &&
+                                  event.clientY >= rect.top && event.clientY <= rect.bottom;
+                
+                if (isHovered) {
+                    item.classList.add('highlighted');
+                    currentlyHighlighted = item.dataset.soundLetter;
+                } else {
+                    item.classList.remove('highlighted');
+                }
+            });
+            this.highlightedSound = currentlyHighlighted;
+        }
     }
 
     // --- UI Logic ---
     _initCustomCursor() {
-        if (document.getElementById('instrument-track-cursor')) {
-            this.customCursorEl = document.getElementById('instrument-track-cursor');
-        } else {
-            this.customCursorEl = document.createElement('div');
-            this.customCursorEl.id = 'instrument-track-cursor';
-            document.body.appendChild(this.customCursorEl);
-        }
+        this.customCursorEl = document.getElementById('instrument-track-cursor') || document.createElement('div');
+        this.customCursorEl.id = 'instrument-track-cursor';
+        document.body.appendChild(this.customCursorEl);
     }
 
-    _showRadialMenu(targetCell) {
+    _showRadialMenu(x, y) {
         this._hideRadialMenu();
         const { instrument, activeSoundLetter } = this.state;
         if (!instrument || instrument.sounds.length === 0) return;
         
         const menu = document.createElement('div');
         menu.className = 'radial-menu';
-        const rect = targetCell.getBoundingClientRect();
-        menu.style.left = `${rect.left + rect.width / 2}px`;
-        menu.style.top = `${rect.top + rect.height / 2}px`;
+        menu.style.left = `${x}px`; // Center on pointer X
+        menu.style.top = `${y}px`;  // Center on pointer Y
+
+        // Add the circular background
+        const background = document.createElement('div');
+        background.className = 'radial-background';
+        menu.appendChild(background);
 
         let soundsToRender = instrument.sounds;
         let angles = [];
+        const radius = 40; // Closer to the pointer
 
-        // Special case for 2 sounds
         if (soundsToRender.length === 2) {
             const otherSound = soundsToRender.find(s => s.letter !== activeSoundLetter);
             const currentSound = soundsToRender.find(s => s.letter === activeSoundLetter);
-            soundsToRender = [otherSound, currentSound]; // Prioritize the "other" sound
-            angles = [-Math.PI / 2, Math.PI / 2]; // Top and Bottom positions
+            soundsToRender = [otherSound, currentSound];
+            angles = [-Math.PI / 2, Math.PI / 2];
         } else {
             const angleStep = (2 * Math.PI) / soundsToRender.length;
             for(let i = 0; i < soundsToRender.length; i++) angles.push(i * angleStep - Math.PI / 2);
         }
 
-        const radius = 50;
         soundsToRender.forEach((sound, index) => {
-            const item = document.createElement('button');
+            const item = document.createElement('div'); // Not a button anymore
             item.className = 'radial-item';
             item.innerHTML = sound.svg;
             item.title = sound.name;
+            item.dataset.soundLetter = sound.letter;
+
             const angle = angles[index];
-            const x = radius * Math.cos(angle);
-            const y = radius * Math.sin(angle);
-            item.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px)`;
-            item.onclick = () => {
-                this.callbacks.onNoteEdit?.({ action: 'set', tickIndex: this.mouseDownInfo.tickIndex, soundLetter: sound.letter });
-                this.callbacks.onActiveSoundChange?.(sound.letter);
-                this._hideRadialMenu();
-            };
+            const itemX = radius * Math.cos(angle);
+            const itemY = radius * Math.sin(angle);
+            item.style.transform = `translate(-50%, -50%) translate(${itemX}px, ${itemY}px)`;
+            
             menu.appendChild(item);
         });
         document.body.appendChild(menu);

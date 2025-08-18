@@ -1,11 +1,9 @@
 /* file: src/components/InstrumentTrackView/InstrumentTrackView.css */
 
 .instrument-track-container {
-    /* Hide the default cursor over the entire component area */
     cursor: none;
 }
 
-/* Custom Cursor */
 #instrument-track-cursor {
     position: fixed;
     pointer-events: none;
@@ -16,34 +14,45 @@
     opacity: 0.8;
 }
 
-/* Radial Menu */
 .radial-menu {
     position: fixed;
     z-index: 9998;
+    pointer-events: none; /* The menu itself doesn't capture events */
+}
+
+.radial-background {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    width: 110px; /* Sized to contain the items */
+    height: 110px;
+    background-color: rgba(241, 245, 249, 0.85); /* slate-100 */
+    border: 1px solid rgba(148, 163, 184, 0.5); /* slate-400 */
+    border-radius: 50%;
+    backdrop-filter: blur(4px);
 }
 
 .radial-item {
     position: absolute;
-    width: 40px;
-    height: 40px;
+    width: 32px; /* Smaller symbols */
+    height: 32px;
     border-radius: 50%;
-    /* Translucent background with a contour */
     background-color: rgba(255, 255, 255, 0.9);
     border: 1px solid #94a3b8;
-    backdrop-filter: blur(2px); /* Frosted glass effect */
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     display: flex;
     justify-content: center;
     align-items: center;
-    cursor: pointer;
-    transition: transform 0.1s ease-out, box-shadow 0.1s ease-out;
+    transition: transform 0.1s ease-out, border-color 0.1s ease-out;
+    pointer-events: all; /* Items inside the menu CAN be interacted with by mousemove */
 }
-.radial-item:hover {
-    transform: translate(-50%, -50%) scale(1.1) !important;
-    box-shadow: 0 8px 12px rgba(0,0,0,0.15);
-    z-index: 1;
+
+.radial-item.highlighted {
+    transform: translate(-50%, -50%) scale(1.2) !important;
+    border-color: #3b82f6; /* blue-500 */
+    border-width: 2px;
 }
+
 .radial-item svg {
-    width: 24px;
-    height: 24px;
+    width: 20px; /* Smaller symbols */
+    height: 20px;
 }
