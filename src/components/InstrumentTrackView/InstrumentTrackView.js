@@ -78,6 +78,10 @@ export class InstrumentTrackView {
     _handleMouseDown(event) {
         const cell = event.target.closest('.grid-cell');
         if (!cell) return;
+        
+        // Prevent text selection during drag operations
+        event.preventDefault();
+        
         this.mouseDownInfo = { tickIndex: parseInt(cell.dataset.tickIndex, 10), cell, clientX: event.clientX, clientY: event.clientY };
         this.holdTimeout = setTimeout(() => {
             this.isDragging = true;
@@ -107,6 +111,11 @@ export class InstrumentTrackView {
     }
     
     _handleMouseMove(event) {
+        // Prevent text selection during dragging
+        if (this.isDragging) {
+            event.preventDefault();
+        }
+        
         const isWithinComponentGrid = event.target.closest('.grid-cell') && this.container.contains(event.target);
 
         // --- Handle custom cursor visibility and position ---
@@ -196,7 +205,7 @@ export class InstrumentTrackView {
 
         let soundsToRender = instrument.sounds;
         let angles = [];
-        const radius = 35;
+        const radius = 25; // Made even closer to the pointer
 
         if (soundsToRender.length === 2) {
             const otherSound = soundsToRender.find(s => s.letter !== activeSoundLetter);
