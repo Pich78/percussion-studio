@@ -4,7 +4,7 @@ import { loadCSS } from '/percussion-studio/lib/dom.js';
 import { logEvent } from '/percussion-studio/lib/Logger.js';
 import { TubsGridRenderer } from '/percussion-studio/lib/TubsGridRenderer/TubsGridRenderer.js';
 
-const HOLD_DURATION_MS = 200; // A shorter delay feels more responsive for a drag gesture
+const HOLD_DURATION_MS = 200;
 
 export class InstrumentTrackView {
     constructor(container, callbacks) {
@@ -13,8 +13,8 @@ export class InstrumentTrackView {
         
         this.state = {};
         this.holdTimeout = null;
-        this.isDragging = false; // NEW: Tracks the drag gesture state
-        this.highlightedSound = null; // NEW: Tracks the sound hovered during drag
+        this.isDragging = false;
+        this.highlightedSound = null;
         this.mouseDownInfo = null;
         this.customCursorEl = null;
 
@@ -26,7 +26,6 @@ export class InstrumentTrackView {
         this._handleMouseLeave = this._handleMouseLeave.bind(this);
         this._handleMouseMove = this._handleMouseMove.bind(this);
         this.container.addEventListener('mousedown', this._handleMouseDown);
-        // We listen on `window` for mouseup and mousemove to handle cases where the user drags outside the component
         window.addEventListener('mouseup', this._handleMouseUp, true);
         window.addEventListener('mousemove', this._handleMouseMove, true);
         
@@ -52,18 +51,10 @@ export class InstrumentTrackView {
         this.container.appendChild(rowEl);
     }
 
-    // --- Event Handlers ---
     _handleMouseDown(event) {
         const cell = event.target.closest('.grid-cell');
         if (!cell) return;
-        
-        this.mouseDownInfo = { 
-            tickIndex: parseInt(cell.dataset.tickIndex, 10), 
-            cell,
-            clientX: event.clientX,
-            clientY: event.clientY
-        };
-        
+        this.mouseDownInfo = { tickIndex: parseInt(cell.dataset.tickIndex, 10), cell, clientX: event.clientX, clientY: event.clientY };
         this.holdTimeout = setTimeout(() => {
             this.isDragging = true;
             this._showRadialMenu(this.mouseDownInfo.clientX, this.mouseDownInfo.clientY);
@@ -72,39 +63,34 @@ export class InstrumentTrackView {
 
     _handleMouseUp() {
         clearTimeout(this.holdTimeout);
-        
         if (this.isDragging) {
-            // --- Complete the DRAG-AND-RELEASE gesture ---
             if (this.highlightedSound) {
                 this.callbacks.onNoteEdit?.({ action: 'set', tickIndex: this.mouseDownInfo.tickIndex, soundLetter: this.highlightedSound });
                 this.callbacks.onActiveSoundChange?.(this.highlightedSound);
             }
             this._hideRadialMenu();
         } else if (this.mouseDownInfo) {
-            // --- Complete the TAP gesture ---
             const { tickIndex, cell } = this.mouseDownInfo;
-            const hasNote = cell.querySelector('.note');
-            if (hasNote) {
+            if (cell.querySelector('.note')) {
                 this.callbacks.onNoteEdit?.({ action: 'delete', tickIndex });
             } else {
                 this.callbacks.onNoteEdit?.({ action: 'add', tickIndex, soundLetter: this.state.activeSoundLetter });
             }
         }
-        
-        // Reset all gesture state
         this.isDragging = false;
         this.highlightedSound = null;
         this.mouseDownInfo = null;
     }
 
     _handleMouseLeave() {
-        // Only hide the cursor, don't cancel a drag in progress
         if (this.customCursorEl) this.customCursorEl.style.display = 'none';
     }
     
     _handleMouseMove(event) {
-        // --- Handle custom cursor position ---
-        if (this.container.contains(event.target)) {
+        const isWithinComponent = this.container.contains(event.target);
+        
+        // Custom cursor logic
+        if (isWithinComponent && event.target.closest('.grid-cell')) {
             const { instrument, activeSoundLetter } = this.state;
             const sound = instrument.sounds.find(s => s.letter === activeSoundLetter);
             if (sound?.svg && this.customCursorEl) {
@@ -117,16 +103,13 @@ export class InstrumentTrackView {
             if (this.customCursorEl) this.customCursorEl.style.display = 'none';
         }
 
-        // --- Handle highlighting during drag ---
+        // Drag highlighting logic
         if (this.isDragging) {
             const radialItems = document.querySelectorAll('.radial-item');
             let currentlyHighlighted = null;
-
             radialItems.forEach(item => {
                 const rect = item.getBoundingClientRect();
-                const isHovered = event.clientX >= rect.left && event.clientX <= rect.right &&
-                                  event.clientY >= rect.top && event.clientY <= rect.bottom;
-                
+                const isHovered = event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom;
                 if (isHovered) {
                     item.classList.add('highlighted');
                     currentlyHighlighted = item.dataset.soundLetter;
@@ -138,7 +121,6 @@ export class InstrumentTrackView {
         }
     }
 
-    // --- UI Logic ---
     _initCustomCursor() {
         this.customCursorEl = document.getElementById('instrument-track-cursor') || document.createElement('div');
         this.customCursorEl.id = 'instrument-track-cursor';
@@ -152,17 +134,16 @@ export class InstrumentTrackView {
         
         const menu = document.createElement('div');
         menu.className = 'radial-menu';
-        menu.style.left = `${x}px`; // Center on pointer X
-        menu.style.top = `${y}px`;  // Center on pointer Y
+        menu.style.left = `${x}px`;
+        menu.style.top = `${y}px`;
 
-        // Add the circular background
         const background = document.createElement('div');
         background.className = 'radial-background';
         menu.appendChild(background);
 
         let soundsToRender = instrument.sounds;
         let angles = [];
-        const radius = 40; // Closer to the pointer
+        const radius = 35; // FIX: Closer to the pointer
 
         if (soundsToRender.length === 2) {
             const otherSound = soundsToRender.find(s => s.letter !== activeSoundLetter);
@@ -175,17 +156,15 @@ export class InstrumentTrackView {
         }
 
         soundsToRender.forEach((sound, index) => {
-            const item = document.createElement('div'); // Not a button anymore
+            const item = document.createElement('div');
             item.className = 'radial-item';
             item.innerHTML = sound.svg;
             item.title = sound.name;
             item.dataset.soundLetter = sound.letter;
-
             const angle = angles[index];
             const itemX = radius * Math.cos(angle);
             const itemY = radius * Math.sin(angle);
             item.style.transform = `translate(-50%, -50%) translate(${itemX}px, ${itemY}px)`;
-            
             menu.appendChild(item);
         });
         document.body.appendChild(menu);
