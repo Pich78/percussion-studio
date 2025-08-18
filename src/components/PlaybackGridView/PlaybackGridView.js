@@ -100,12 +100,14 @@ export class PlaybackGridView {
         const targetCell = firstRow.querySelector(`.grid-cell[data-tick-index="${position.currentTickIndex}"]`);
         if (!targetCell) return;
 
-        // Calculate position relative to the grid container
+        // Calculate position and size relative to the grid container
         const gridRect = this.gridContainer.getBoundingClientRect();
         const cellRect = targetCell.getBoundingClientRect();
         const left = cellRect.left - gridRect.left;
+        const width = cellRect.width; // Get the dynamic width of the cell
 
         this.playbackIndicatorEl.style.left = `${left}px`;
+        this.playbackIndicatorEl.style.width = `${width}px`; // Set the width dynamically
         this.playbackIndicatorEl.style.display = 'block';
     }
 }

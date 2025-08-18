@@ -10,9 +10,10 @@
     position: absolute;
     top: 0;
     bottom: 0;
-    width: 2px;
-    background-color: rgba(255, 0, 0, 0.7);
-    box-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+    /* Width is now set dynamically via JavaScript */
+    background-color: rgba(255, 193, 7, 0.3); /* A pleasant yellow highlight */
+    border: 2px solid rgba(255, 193, 7, 0.7);
+    box-sizing: border-box;
     z-index: 10;
     transition: left 0.05s linear; /* Smooth movement between ticks */
     display: none; /* Hidden by default */

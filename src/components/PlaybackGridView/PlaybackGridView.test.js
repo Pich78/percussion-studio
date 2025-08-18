@@ -80,6 +80,7 @@ export async function run() {
 
             // Then, stop it
             view.updatePlaybackIndicator({ currentMeasureIndex: 0, currentTickIndex: 0 }, false);
+            // CORRECTED ASSERTION:
             runner.expect(view.playbackIndicatorEl.style.display).toBe('none');
         });
     });
