@@ -1,0 +1,52 @@
+/* file: src/components/RhythmEditorView/FlowPanel/FlowPanel.css */
+
+.flow-list {
+    flex-grow: 1;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.3) transparent;
+}
+
+.flow-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.flow-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.flow-list::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+}
+
+.flow-item {
+    transition: all 0.2s ease;
+}
+
+.flow-item .delete-btn {
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.15s ease-in-out;
+}
+
+.flow-item:hover .delete-btn {
+    visibility: visible;
+    opacity: 0.5;
+}
+
+.flow-item .delete-btn:hover {
+    opacity: 1;
+}
+
+/* Drag and drop styling */
+.flow-item.dragging {
+    opacity: 0.5;
+}
+
+.drop-indicator {
+    height: 3px;
+    background: #357edd; /* Tachyons blue */
+    border-radius: 2px;
+    margin: 2px 0;
+}
