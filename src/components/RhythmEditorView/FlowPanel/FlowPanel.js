@@ -18,6 +18,10 @@ export class FlowPanel {
         this.container.addEventListener('dragover', (e) => e.preventDefault());
         this.container.addEventListener('drop', this.handleDrop.bind(this));
         this.container.addEventListener('dragend', this.handleDragEnd.bind(this));
+        
+        // --- MODIFICATION: Listen for clicks on the whole document ---
+        this.handleDocumentClick = this.handleDocumentClick.bind(this);
+        document.addEventListener('click', this.handleDocumentClick);
     }
 
     render(state) {
@@ -25,7 +29,6 @@ export class FlowPanel {
         const { flow, currentPatternId, isPinned, scrollToLast } = state;
 
         const flowItems = flow.map((item, index) => {
-            // --- MODIFICATION: Use the semantic .is-selected class ---
             const selectedClass = item.pattern === currentPatternId ? 'is-selected' : '';
             return `
                 <div data-action="select-pattern" data-pattern-id="${item.pattern}" data-index="${index}" class="flow-item flex items-center justify-between pa2 br1 ba b--black-10 pointer bg-white hover-bg-light-gray ${selectedClass}" draggable="true">
@@ -49,10 +52,25 @@ export class FlowPanel {
         }
     }
 
+    // --- MODIFICATION: New method to handle clicks outside the panel ---
+    handleDocumentClick(event) {
+        // If the panel is pinned and the click is outside the container, unpin it.
+        if (this.state.isPinned && !this.container.contains(event.target)) {
+            logEvent('debug', 'FlowPanel', 'handleDocumentClick', 'Events', 'Outside click detected. Unpinning.');
+            this.callbacks.onPin?.(false);
+        }
+    }
+
+    // --- MODIFICATION: Changed logic to pin the panel on any internal click ---
     handleClick(event) {
+        // Pin the panel on any click inside it, if it's not already pinned.
+        if (!this.state.isPinned) {
+            this.callbacks.onPin?.(true);
+        }
+
         const target = event.target.closest('[data-action]');
         if (!target) {
-            this.callbacks.onPin?.(!this.state.isPinned);
+            // This was a click on the panel background, which we now use only for pinning.
             return;
         }
 
