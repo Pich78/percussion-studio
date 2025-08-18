@@ -23,9 +23,11 @@ The application's state is now separated by concern:
     *   `{ appView: 'playing' | 'editing', currentRhythm: object | null, isLoading: boolean, error: object | null, confirmation: object | null }`
 *   **`PlaybackApp` State:** Manages all state related to the playback experience.
     *   `{ isPlaying: boolean, loopPlayback: boolean, masterVolume: number, currentMeasureIndex: number, currentTickIndex: number }`
-*   **`EditingApp` State:** Manages all state related to the editing experience.
-    *   `{ isDirty: boolean, isUntitled: boolean, selectedPatternId: string, activeNoteSymbol: string, isFlowPinned: boolean, isPalettePinned: boolean }`
-> **Architectural Rationale:** The previous monolithic `App` class was responsible for all state, which would become difficult to manage as editing features grew. The Application Shell model provides a clear separation of concerns. The Shell handles *what* to display (Playback or Editing), while the Sub-Apps handle the *how* for their specific domain. This makes the overall system more modular and maintainable.
+*   <!-- MODIFIED -->
+    **`EditingApp` State:** Manages all state related to the editing experience.
+    *   `{ isDirty: boolean, isUntitled: boolean, selectedPatternId: string, isFlowPinned: boolean }`
+> <!-- MODIFIED -->
+> **Architectural Rationale:** The previous monolithic `App` class was responsible for all state, which would become difficult to manage as editing features grew. The Application Shell model provides a clear separation of concerns. The Shell handles *what* to display (Playback or Editing), while the Sub-Apps handle the *how* for their specific domain. The removal of a persistent Instrument Palette simplifies the `EditingApp`'s state, as note selection is now managed contextually within the editing grid itself.
 
 ## 3. Core Modules & Components
 
@@ -103,32 +105,41 @@ This layer is responsible for all DOM manipulation. The Sub-Apps are now respons
     *   **`ErrorModalView`:** Displays detailed error messages.
     *   **`ConfirmationDialogView`:** Displays a confirmation prompt to prevent data loss.
 
-*   **Playback View Components (Managed by `PlaybackApp`):**
-    *   **`TubsGridView`:** Renders the main notation grid, including the **`.svg` image** for each note. Its `updatePlaybackIndicator` method will move the bar according to the position passed to it. **On `pause`, the bar remains in place. On `stop`, the bar is moved to position 0.**
+*   <!-- MODIFIED -->
+    **Playback View Components (Managed by `PlaybackApp`):**
+    *   **`PlaybackGridView`:** A lean component dedicated to the "Playing" view. It renders the main notation grid, including the **`.svg` image** for each note. Its sole interactive responsibility is its `updatePlaybackIndicator` method, which moves the bar according to the position passed to it. **On `pause`, the bar remains in place. On `stop`, the bar is moved to position 0.**
     *   **`PlaybackControlsView`:** Renders the main playback controls, including a Play/Pause button, a **distinct Stop button**, and the Loop Playback checkbox. It must **disable the global BPM slider** when playback is active (`isPlaying` is true), and **disable Play/Stop buttons** when the application is loading (`isLoading` is true).
     *   **`InstrumentMixerView`:** Renders individual instrument controls (volume sliders, mute buttons).
 
-*   **Editing View Components (Managed by `EditingApp`):**
+*   <!-- MODIFIED -->
+    **Editing View Components (Managed by `EditingApp`):**
     *   **`RhythmEditorView` (Container Component):** Acts as the primary container for the editing interface. Its main responsibilities are:
-        *   Rendering the top-level layout that holds the `FlowPanel`, the central grid, and the `InstrumentPalettePanel`.
-        *   Instantiating its sub-components (`FlowPanel`, `InstrumentPalettePanel`) and the `TubsGridView`.
+        *   Rendering the top-level layout that holds the `FlowPanel` and the central `EditingGridView`.
+        *   Instantiating its sub-components (`FlowPanel`, `EditingGridView`, and `InstrumentSelectionModalView`).
         *   Passing the relevant parts of the `EditingApp`'s state and callbacks down to each of its child components.
 
     *   **`FlowPanel` (Sub-Component):** A self-contained component, managed by `RhythmEditorView`.
         *   **Responsibilities:** Renders the `playback_flow` list. Manages all of its own complex UI logic, including hover-to-expand, click-to-pin, and drag-and-drop for reordering.
         *   **Callbacks:** Fires callbacks like `onPatternSelect`, `onAddPattern`, `onDeleteFlowItem`, and `onReorderFlow` up to the `EditingApp`.
 
-    *   **`InstrumentPalettePanel` (Sub-Component):** A self-contained component, managed by `RhythmEditorView`.
-        *   **Responsibilities:** Renders the list of available notes for a selected instrument. Manages its own hover-to-expand and click-to-pin UI logic.
-        *   **Callbacks:** Fires callbacks like `onNoteSelect` when a user chooses a note for editing.
+    *   <!-- NEW -->
+        **`EditingGridView` (New Component):** The central "Pattern Editor" panel within the `RhythmEditorView`. This is a sophisticated component dedicated to pattern composition.
+        *   **Responsibilities:**
+            1.  Manages the entire pattern editing canvas, including the UI for adding/removing measures and instrument tracks.
+            2.  Implements the complete note editing workflow: handling a **tap gesture** for adding/deleting notes and a **press-and-hold gesture** to open a **Radial Menu** for sound selection.
+            3.  Manages the "Active Sound" (paintbrush) state for each instrument track.
+            4.  Controls the **custom mouse cursor**, updating its SVG icon to reflect the Active Sound of the hovered track.
+            5.  Fires granular callbacks (e.g., `onNoteEdit`, `onMeasureAdded`) with the relevant data up to the `EditingApp`, which then communicates with the `EditController` to update the main state.
 
-    *   **`TubsGridView` (in Editing Mode):** The central "Pattern Grid" panel within the `RhythmEditorView` will be an instance of the reusable `TubsGridView` component.
-        *   **Configuration:** It will be configured by `RhythmEditorView` to operate in `edit` mode.
-        *   **Responsibilities (in `edit` mode):** Handles note addition/removal clicks and fires an `onNoteEdit` callback up to the `EditingApp`.
-            *   **In `edit` mode, `TubsGridView` will be responsible for:**
-            1.  Attaching click event listeners to grid cells to handle note addition/removal.
-            2.  Firing a callback (e.g., `onNoteEdit`) with the relevant coordinates (instrument symbol, tick index) when a cell is clicked, allowing the `EditingApp` to handle the state logic.
-            3.  Providing visual feedback for editing, such as a hover effect that shows which note symbol will be placed.
+    *   <!-- NEW -->
+        **`InstrumentSelectionModalView` (New Component):** A modal dialog component managed by `RhythmEditorView`.
+        *   **Responsibilities:** Renders a two-column interface for instrument selection, populated with data from the `manifest.json`.
+            *   The left column lists available instrument *types* (e.g., `iya`, `itotele`).
+            *   The right column lists available *sound packs* for the selected instrument type.
+        *   **Callbacks:** When the user confirms a selection, it fires an `onInstrumentSelected` callback containing the chosen instrument definition and sound pack details.
+
+    > <!-- NEW -->
+    > **Architectural Note on View Specialization:** The original single `TubsGridView` has been specialized into `PlaybackGridView` and `EditingGridView`. This decision was made because the interactive requirements of the editor (state management, complex event handling for taps/holds, custom cursors) became too complex to manage within a single, mode-switching component. This separation adheres to the Single Responsibility Principle, making each component simpler, more maintainable, and easier to test.
 
 ### 3.4. The Data Access Layer (DAL)
 
