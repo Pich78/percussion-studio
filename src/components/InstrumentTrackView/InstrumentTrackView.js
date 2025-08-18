@@ -26,6 +26,9 @@ export class InstrumentTrackView {
         this._handleMouseMove = this._handleMouseMove.bind(this);
         
         this.container.addEventListener('mousedown', this._handleMouseDown);
+        this.container.addEventListener('mouseenter', this._handleMouseEnter.bind(this));
+        this.container.addEventListener('mouseleave', this._handleMouseLeave.bind(this));
+        
         // Listen on `window` for mouseup and mousemove to handle dragging outside the component
         window.addEventListener('mouseup', this._handleMouseUp, true);
         window.addEventListener('mousemove', this._handleMouseMove, true);
@@ -50,6 +53,25 @@ export class InstrumentTrackView {
             rowEl.appendChild(cellEl);
         }
         this.container.appendChild(rowEl);
+        
+        // Update cursor if mouse is already over the grid
+        this._updateCustomCursor();
+    }
+
+    _handleMouseEnter(event) {
+        // Show custom cursor when entering any grid cell
+        if (event.target.closest('.grid-cell')) {
+            this._updateCustomCursor();
+        }
+    }
+
+    _handleMouseLeave(event) {
+        // Hide custom cursor when leaving the container
+        if (!this.container.contains(event.relatedTarget)) {
+            if (this.customCursorEl) {
+                this.customCursorEl.style.display = 'none';
+            }
+        }
     }
 
     // --- Event Handlers ---
@@ -88,28 +110,34 @@ export class InstrumentTrackView {
         const isWithinComponentGrid = event.target.closest('.grid-cell') && this.container.contains(event.target);
 
         // --- Handle custom cursor visibility and position ---
-        if (isWithinComponentGrid) {
-            const { instrument, activeSoundLetter } = this.state;
-            const sound = instrument.sounds.find(s => s.letter === activeSoundLetter);
-            if (sound?.svg && this.customCursorEl) {
-                this.customCursorEl.innerHTML = sound.svg;
-                this.customCursorEl.style.display = 'block';
+        if (isWithinComponentGrid && !this.isDragging) {
+            this._updateCustomCursor();
+            if (this.customCursorEl) {
+                this.customCursorEl.style.left = `${event.clientX + 10}px`;
+                this.customCursorEl.style.top = `${event.clientY + 10}px`;
             }
-            this.customCursorEl.style.left = `${event.clientX + 10}px`;
-            this.customCursorEl.style.top = `${event.clientY + 10}px`;
-        } else {
+        } else if (!isWithinComponentGrid && !this.isDragging) {
             // Hide if the mouse is anywhere else (this instance's responsibility)
             if (this.customCursorEl) this.customCursorEl.style.display = 'none';
         }
 
+        // Update cursor position during dragging too
+        if (this.customCursorEl && this.customCursorEl.style.display === 'block') {
+            this.customCursorEl.style.left = `${event.clientX + 10}px`;
+            this.customCursorEl.style.top = `${event.clientY + 10}px`;
+        }
+
         // --- Handle highlighting during drag ---
         if (this.isDragging) {
-            const radialItems = document.querySelectorAll('.radial-item');
+            const radialItems = document.querySelectorAll('.radial-menu .radial-item');
             let currentlyHighlighted = null;
             radialItems.forEach(item => {
                 const rect = item.getBoundingClientRect();
-                const isHovered = event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom;
-                if (isHovered) {
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                const distance = Math.sqrt(Math.pow(event.clientX - centerX, 2) + Math.pow(event.clientY - centerY, 2));
+                
+                if (distance < 20) { // Within 20px of center
                     item.classList.add('highlighted');
                     currentlyHighlighted = item.dataset.soundLetter;
                 } else {
@@ -120,9 +148,35 @@ export class InstrumentTrackView {
         }
     }
 
+    _updateCustomCursor() {
+        if (!this.state.instrument || !this.state.activeSoundLetter) return;
+        
+        const { instrument, activeSoundLetter } = this.state;
+        const sound = instrument.sounds.find(s => s.letter === activeSoundLetter);
+        if (sound?.svg && this.customCursorEl) {
+            this.customCursorEl.innerHTML = sound.svg;
+            this.customCursorEl.style.display = 'block';
+        }
+    }
+
     _initCustomCursor() {
-        this.customCursorEl = document.getElementById('instrument-track-cursor') || document.createElement('div');
-        this.customCursorEl.id = 'instrument-track-cursor';
+        // Create a unique cursor for this instance to avoid conflicts
+        const cursorId = `instrument-track-cursor-${Math.random().toString(36).substr(2, 9)}`;
+        this.customCursorEl = document.createElement('div');
+        this.customCursorEl.id = cursorId;
+        this.customCursorEl.className = 'instrument-track-cursor';
+        
+        // Apply the cursor styles directly
+        Object.assign(this.customCursorEl.style, {
+            position: 'fixed',
+            pointerEvents: 'none',
+            zIndex: '9999',
+            width: '24px',
+            height: '24px',
+            display: 'none',
+            opacity: '0.8'
+        });
+        
         document.body.appendChild(this.customCursorEl);
     }
 
@@ -167,10 +221,36 @@ export class InstrumentTrackView {
             menu.appendChild(item);
         });
         document.body.appendChild(menu);
+        
+        // Hide the custom cursor while the radial menu is open
+        if (this.customCursorEl) {
+            this.customCursorEl.style.display = 'none';
+        }
     }
     
     _hideRadialMenu() {
         const existingMenu = document.querySelector('.radial-menu');
         if (existingMenu) existingMenu.remove();
+        
+        // Show the custom cursor again if we're still over a grid cell
+        const elementUnderMouse = document.elementFromPoint(event?.clientX || 0, event?.clientY || 0);
+        if (elementUnderMouse?.closest('.grid-cell') && this.container.contains(elementUnderMouse)) {
+            this._updateCustomCursor();
+        }
+    }
+
+    destroy() {
+        // Clean up event listeners and cursor element
+        this.container.removeEventListener('mousedown', this._handleMouseDown);
+        this.container.removeEventListener('mouseenter', this._handleMouseEnter);
+        this.container.removeEventListener('mouseleave', this._handleMouseLeave);
+        window.removeEventListener('mouseup', this._handleMouseUp, true);
+        window.removeEventListener('mousemove', this._handleMouseMove, true);
+        
+        if (this.customCursorEl && this.customCursorEl.parentNode) {
+            this.customCursorEl.parentNode.removeChild(this.customCursorEl);
+        }
+        
+        this._hideRadialMenu();
     }
 }
