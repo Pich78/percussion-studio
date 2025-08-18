@@ -1,27 +1,27 @@
-# Software Requirements & Architecture Document
+# Software Requirements Specification
 ### Project: Web-Based Percussion Practice Tool
 
 ---
 
 ## 1. High-Level Vision & Scope
 
-This document outlines the requirements for a web-based software application designed for practicing, composing, and editing percussion rhythms. The tool will provide a rich, interactive interface for musicians to load and play pre-existing rhythms, compose new patterns from scratch, and sequence them into full songs. The application is intended to be a powerful practice and composition tool accessible from any modern web browser.
+This document outlines the requirements for a web-based software application designed for practicing, composing, and editing percussion rhythms. The tool will provide a rich, interactive interface for musicians to load and play pre-existing rhythms, compose new patterns from scratch, and sequence them into full musical pieces. The application is intended to be a powerful practice and composition tool accessible from any modern web browser.
 
 ---
 
 ## 2. Core Technical Architecture
 
-*   **Platform:** A responsive web application designed to run in any modern browser on desktop (Windows, macOS, Linux) and mobile (iOS, Android) operating systems. The "Playing" view must be fully responsive, while the "Editing" view is primarily designed for desktop use.
-*   **Core Technology Stack:** The application will be built exclusively with client-side technologies: **HTML, JavaScript, and CSS**. Modern libraries (e.g., React, Vue, or Svelte for UI management) can be used.
+*   **Platform:** A responsive web application built to run in any modern browser on desktop (Windows, macOS, Linux) and mobile (iOS, Android) operating systems. The "Playing" view must be fully responsive for desktop and mobile use. The "Editing" view is primarily designed for the larger screen real estate of desktop environments.
+*   **Core Technology Stack:** The application will be built exclusively with client-side technologies: **HTML, Vanilla JavaScript, and CSS**. No front-end frameworks (like React or Vue) will be used.
 *   **Architecture:** The application must be **"serverless."** All logic, data processing, and rendering are handled on the client-side within the user's browser.
-    *   ***Architectural Note:*** *This serverless constraint is the primary driver for the application's data saving/loading mechanism. Since there is no backend server to process requests, the application cannot "save" data in a traditional sense. This leads directly to the "Export to .zip" feature defined in Section 6.3.*
+    *   ***Architectural Rationale:*** *This serverless constraint is the primary driver for the application's data saving/loading mechanism. Since there is no backend server, the application cannot "save" data in a traditional sense. This leads directly to the "Export to .zip" feature defined in Section 6.3.*
 *   **Hosting:** The entire application (HTML, JS, CSS, and all data assets) will be hosted on **GitHub Pages**.
 
 ---
 
 ## 3. Data Management & Structure
 
-The application's data is organized into a strict, decoupled structure that separates instrument definitions from their sounds. This is managed via a central manifest file. The file naming conventions are critical to how the application resolves and links data.
+The application's data is organized into a strict, decoupled structure that separates instrument definitions from their sounds and patterns. This is managed via a central manifest file. File naming conventions are critical to how the application resolves and links data automatically.
 
 ### 3.1. File Naming Conventions & Directory Structure
 
@@ -35,11 +35,10 @@ To enable automated data resolution, all data files use a specific compound exte
 *   **Rhythms:** `*.rthm.yaml` (e.g., `my_song.rthm.yaml`)
 
 These files are stored in the following directory structure:
-
-*   **/instruments/:** Contains all Instrument Definition files (`.instdef.yaml`) and their associated SVG assets. This folder defines "what an instrument is".
-*   **/sounds/:** Contains subdirectories for each unique Sound Pack. The subdirectory name must match the `<pack_name>` from the filename (e.g., `test_kick/`). This subdirectory holds the Sound Pack's definition file (`KCK.test_kick.sndpack.yaml`) and all its sound (`.wav`) assets. This folder defines "what an instrument sounds like".
-*   **/patterns/:** Contains all Pattern definition files.
-*   **/rhythms/:** Contains all Rhythm definition files.
+*   `/data/instruments/`: Contains all Instrument Definition files (`.instdef.yaml`) and their associated SVG assets. This folder defines "what an instrument is".
+*   `/data/sounds/`: Contains subdirectories for each unique Sound Pack (e.g., `test_kick/`)The subdirectory name must match the `<pack_name>` from the filename (e.g., `test_kick/`). This subdirectory holds the Sound Pack's definition file (`KCK.test_kick.sndpack.yaml`) and all its sound (`.wav`) assets. This folder defines "what an instrument sounds like".
+*   `/data/patterns/`: Contains all Pattern definition files.
+*   `/data/rhythms/`: Contains all Rhythm definition files.
 
 ***Architectural Rationale:*** *This decoupled structure is a powerful design choice. It makes both Instrument Definitions and Sound Packs highly reusable. A single `drum_kick.instdef.yaml` can be used by dozens of different Sound Packs (e.g., `KCK.acoustic.sndpack.yaml`, `KCK.808.sndpack.yaml`). The strict naming convention (`KCK.test_kick...`) allows the application's `ProjectController` to automatically discover and link these files without needing explicit paths written in the data files, which makes the system much more robust and maintainable.*
 
@@ -139,22 +138,39 @@ The primary interface for practicing, active on first load with a default rhythm
     *   A progress display indicates the current position within the overall rhythm's `playback_flow`.
     *   If a pattern is chosen randomly from a list, a small notification informs the user of the selection.
 
-### 5.2. The Editing View (Composition Mode)
+#### **5.2. The Editing View (Composition Mode)**
 
-A separate view for creating and modifying rhythms, accessible from a menu.
+A separate view for creating and modifying rhythms.
 
-*   **Layout:** A three-panel interface.
-    *   **Left Panel ("Rhythm Flow"):** Displays the sequence from the loaded `rhythm.yaml`. Users can edit properties (repetitions, BPM) in-line, re-order patterns via drag-and-drop, and delete entries (via a hover-to-reveal button with confirmation).
-    *   **Center Panel ("Pattern Grid"):** The interactive editing grid for the pattern selected from the left panel.
-    *   **Right Panel ("Instrument Palette"):** Shows available note symbols for instruments in the current rhythm's kit.
-*   **Editing Workflow:**
-    *   **Note Editing:** Add a note by selecting a symbol from the palette and clicking in the grid. Remove a note by clicking on it.
-    *   **Track Management:**
-        *   **Add Track:** A dedicated `+` row at the bottom of the grid opens a list of all available instruments to add a new track. The list prioritizes instruments already in the rhythm's kit. If an instrument outside the kit is chosen, it is automatically added to the kit in memory.
-        *   **Remove Track:** A hover-to-reveal delete button appears on each track header, which removes the track after confirmation.
-    *   **Pattern Management:**
-        *   **Add Pattern:** A `+` button at the bottom of the Rhythm Flow panel opens a dialog to either select an existing pattern from the manifest or create a new one by specifying its name, metric, and resolution.
-*   **Dedicated Playback:** The view contains two distinct play buttons: "Play Pattern" (loops the current pattern) and "Play Rhythm" (plays the entire sequence).
+*   **Layout:** A two-panel interface.
+    *   **Left Panel ("Flow Panel"):** Displays the `playback_flow` from the loaded `rhythm.yaml`. Users can edit properties (repetitions, BPM) in-line, re-order patterns via drag-and-drop, and delete entries (via a hover-to-reveal button with confirmation).
+    *   **Center Panel ("Pattern Editor"):** An interactive canvas for the pattern selected from the Flow Panel.
+
+*   **Initial State When Loading a Rhythm:**
+    *   When an existing rhythm is loaded, the **Flow Panel** is populated with the rhythm's `playback_flow`. The first pattern in the sequence is selected by default.
+    *   The **Pattern Editor** renders the complete grid for this default selected pattern, including all its measures, instrument tracks, and notes as defined in the data files. All editing functionality is immediately available.
+
+*   **Pattern & Measure Management:**
+    *   When creating a *new, empty* pattern, the Center Panel displays an "Add Measure" button (`+`), input fields for metric (e.g., 4/4), and a dropdown for resolution (e.g., 16ths).
+    *   Measures can be added to or removed from any pattern. The metric and resolution of each measure can be edited in-place from its header.
+
+*   **Instrument & Track Management:**
+    *   **Add Track:** A `+ Add Instrument` button below the last track opens a modal dialog.
+        *   This modal lists all instrument types from the manifest (e.g., `conga`) in one column and the available sound packs for the selected type in a second column.
+    *   **Change Track Instrument:** Clicking on an existing instrument's header re-opens the selection modal.
+    *   **Remove Track:** A hover-to-reveal delete button appears on each track header, which removes the track after confirmation.
+
+*   **Note Editing Workflow:** The application employs a powerful and intuitive hybrid model for note entry that is optimized for both touch and mouse input, avoiding reliance on right-clicks or keyboard modifiers.
+    *   **Active Sound ("Paintbrush"):** Each instrument track has an "Active Sound." By default (the default sound is the first sound in its instdef.yaml file), or when a rhythm is first loaded, this is the instrument's primary sound. The mouse cursor will change to display the `.svg` icon of the Active Sound for the track it is currently hovering over, providing constant visual feedback.
+    *   **Adding and Removing Notes (Tap Gesture):**
+        *   A simple **tap** on an *empty* grid cell instantly places the current Active Sound for that track.
+        *   A simple **tap** on a *filled* grid cell instantly deletes the note.
+    *   **Changing Sounds and Selecting a New Tool (Hold Gesture):**
+        *   A **press-and-hold** gesture on any grid cell (empty or filled) will open a circular **Radial Menu** centered on the cursor.
+        *   This menu displays all available sounds for that instrument.
+        *   Dragging to a sound and releasing the mouse button performs two actions simultaneously:
+            1. The note in the target cell is placed or changed to the selected sound.
+            2. The selected sound becomes the new **Active Sound** for the entire track, updating the mouse cursor and the behavior of subsequent taps.
 
 ---
 
@@ -163,7 +179,7 @@ A separate view for creating and modifying rhythms, accessible from a menu.
 ### 6.1. Creating a New Rhythm
 
 *   A "Create New Rhythm" option in the main menu loads a blank Editing View.
-*   The Rhythm Flow shows one "untitled" rhythm entry, and the Pattern Grid shows a default, empty 4/4 pattern, ready for the user to add their first instrument track.
+*   The Flow Panel shows one "untitled" pattern entry. The Pattern Editor is empty, prompting the user to "Add Measure" and then "Add Instrument."
 
 ### 6.2. Loading an Existing Rhythm
 
@@ -172,7 +188,7 @@ A separate view for creating and modifying rhythms, accessible from a menu.
 
 ### 6.3. Saving and Exporting Work
 
-*   **File Handling:** All new or modified files exist only in the browser's memory. The application **does not** write directly to the GitHub repository.
-*   **Export Process:** Clicking "Save/Export" will generate a `.zip` file containing all new and modified files with their correct compound extensions (e.g., `new_song.rthm.yaml`). The user downloads this `.zip` file.
+*   **In-Memory Model:** All new or modified files exist only in the browser's memory. The application **does not** write directly to the GitHub repository.
+*   **Export Process:** Clicking "Save/Export" will generate a `.zip` file containing all new and modified YAML files with their correct names and extensions. The user downloads this `.zip` file to their local machine.
     *   ***Architectural Note:*** *For future enhancement, the **File System Access API** could be explored for a more native "Save As..." experience in supporting browsers. The `.zip` download must remain as the universal fallback.*
 *   **Updating the Repository:** The user must **manually** extract the `.zip` file and use Git to add, commit, and push the new/updated files to their repository. The GitHub Action will then automatically update the manifest upon this push.
