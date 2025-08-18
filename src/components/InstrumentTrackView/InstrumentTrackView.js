@@ -23,9 +23,10 @@ export class InstrumentTrackView {
 
         this._handleMouseDown = this._handleMouseDown.bind(this);
         this._handleMouseUp = this._handleMouseUp.bind(this);
-        this._handleMouseLeave = this._handleMouseLeave.bind(this);
         this._handleMouseMove = this._handleMouseMove.bind(this);
+        
         this.container.addEventListener('mousedown', this._handleMouseDown);
+        // Listen on `window` for mouseup and mousemove to handle dragging outside the component
         window.addEventListener('mouseup', this._handleMouseUp, true);
         window.addEventListener('mousemove', this._handleMouseMove, true);
         
@@ -51,6 +52,7 @@ export class InstrumentTrackView {
         this.container.appendChild(rowEl);
     }
 
+    // --- Event Handlers ---
     _handleMouseDown(event) {
         const cell = event.target.closest('.grid-cell');
         if (!cell) return;
@@ -81,16 +83,12 @@ export class InstrumentTrackView {
         this.highlightedSound = null;
         this.mouseDownInfo = null;
     }
-
-    _handleMouseLeave() {
-        if (this.customCursorEl) this.customCursorEl.style.display = 'none';
-    }
     
     _handleMouseMove(event) {
-        const isWithinComponent = this.container.contains(event.target);
-        
-        // Custom cursor logic
-        if (isWithinComponent && event.target.closest('.grid-cell')) {
+        const isWithinComponentGrid = event.target.closest('.grid-cell') && this.container.contains(event.target);
+
+        // --- Handle custom cursor visibility and position ---
+        if (isWithinComponentGrid) {
             const { instrument, activeSoundLetter } = this.state;
             const sound = instrument.sounds.find(s => s.letter === activeSoundLetter);
             if (sound?.svg && this.customCursorEl) {
@@ -100,10 +98,11 @@ export class InstrumentTrackView {
             this.customCursorEl.style.left = `${event.clientX + 10}px`;
             this.customCursorEl.style.top = `${event.clientY + 10}px`;
         } else {
+            // Hide if the mouse is anywhere else (this instance's responsibility)
             if (this.customCursorEl) this.customCursorEl.style.display = 'none';
         }
 
-        // Drag highlighting logic
+        // --- Handle highlighting during drag ---
         if (this.isDragging) {
             const radialItems = document.querySelectorAll('.radial-item');
             let currentlyHighlighted = null;
@@ -143,7 +142,7 @@ export class InstrumentTrackView {
 
         let soundsToRender = instrument.sounds;
         let angles = [];
-        const radius = 35; // FIX: Closer to the pointer
+        const radius = 35;
 
         if (soundsToRender.length === 2) {
             const otherSound = soundsToRender.find(s => s.letter !== activeSoundLetter);

@@ -21,10 +21,9 @@ export async function run() {
         activeSoundLetter: 'o'
     });
     
-    // Helper to simulate a tap
     const simulateTap = (element) => {
-        element.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
-        element.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+        element.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, clientX: 1, clientY: 1 }));
+        element.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, clientX: 1, clientY: 1 }));
     };
 
     runner.describe('InstrumentTrackView', () => {
@@ -43,15 +42,9 @@ export async function run() {
             const callbackLog = new MockLogger('Callbacks');
             const view = new InstrumentTrackView(testContainer, { onNoteEdit: (data) => callbackLog.log('onNoteEdit', data) });
             view.render(getMockState());
-
             const emptyCell = testContainer.querySelector('.grid-cell[data-tick-index="1"]');
             simulateTap(emptyCell);
-            
-            callbackLog.wasCalledWith('onNoteEdit', { 
-                action: 'add',
-                tickIndex: 1,
-                soundLetter: 'o'
-            });
+            callbackLog.wasCalledWith('onNoteEdit', { action: 'add', tickIndex: 1, soundLetter: 'o' });
         });
 
         runner.it('should fire onNoteEdit with "delete" action on tap in a filled cell', () => {
@@ -59,42 +52,39 @@ export async function run() {
             const callbackLog = new MockLogger('Callbacks');
             const view = new InstrumentTrackView(testContainer, { onNoteEdit: (data) => callbackLog.log('onNoteEdit', data) });
             view.render(getMockState());
-
             const filledCell = testContainer.querySelector('.grid-cell[data-tick-index="0"]');
             simulateTap(filledCell);
-            
-            callbackLog.wasCalledWith('onNoteEdit', { 
-                action: 'delete',
-                tickIndex: 0
-            });
+            callbackLog.wasCalledWith('onNoteEdit', { action: 'delete', tickIndex: 0 });
         });
 
-        runner.it('should fire correct callbacks when a radial menu item is clicked', () => {
+        runner.it('should fire correct callbacks when a radial menu item is selected via drag-release', () => {
             testContainer.innerHTML = '';
             const callbackLog = new MockLogger('Callbacks');
             const view = new InstrumentTrackView(testContainer, { 
                 onNoteEdit: (data) => callbackLog.log('onNoteEdit', data),
-                onActiveSoundChange: (letter) => callbackLog.log('onActiveSoundChange', { letter })
+                onActiveSoundChange: (letter) => callbackLog.log('onActiveSoundChange', letter)
             });
             view.render(getMockState());
 
-            // Manually trigger the radial menu for testing
+            // --- Simulate the full gesture ---
             const targetCell = testContainer.querySelector('.grid-cell[data-tick-index="1"]');
-            view.mouseDownInfo = { tickIndex: 1, cell: targetCell }; // Simulate a mousedown
-            view._showRadialMenu(targetCell);
-
-            // There are 2 sounds, 'o' and 'p'. 'o' is active. The first radial item should be the 'other' sound, 'p'.
-            const radialButton = document.body.querySelector('.radial-item');
-            runner.expect(radialButton).not.toBe(null);
             
-            radialButton.click(); // Click the 'p' sound
+            // 1. Mousedown (starts the process)
+            view._handleMouseDown({ target: targetCell, clientX: 100, clientY: 100 });
+            
+            // 2. Manually trigger the drag state and show the menu
+            view.isDragging = true;
+            view._showRadialMenu(100, 100);
 
-            callbackLog.wasCalledWith('onNoteEdit', {
-                action: 'set',
-                tickIndex: 1,
-                soundLetter: 'p'
-            });
-            callbackLog.wasCalledWith('onActiveSoundChange', { letter: 'p' });
+            // 3. Manually set the highlighted sound (simulating mousemove)
+            view.highlightedSound = 'p'; // The sound we want to select
+
+            // 4. Mouseup (completes the gesture)
+            view._handleMouseUp();
+            
+            // --- Assertions ---
+            callbackLog.wasCalledWith('onNoteEdit', { action: 'set', tickIndex: 1, soundLetter: 'p' });
+            callbackLog.wasCalledWith('onActiveSoundChange', 'p');
             
             view._hideRadialMenu(); // Cleanup
         });
