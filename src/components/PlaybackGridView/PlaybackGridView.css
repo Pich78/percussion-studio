@@ -1,0 +1,20 @@
+/* file: src/components/PlaybackGridView/PlaybackGridView.css */
+
+.playback-grid-view-container {
+    position: relative;
+    overflow-x: auto; /* Allows horizontal scrolling for long patterns */
+    padding: 1px; /* Prevents margin collapse */
+}
+
+.playback-indicator {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background-color: rgba(255, 0, 0, 0.7);
+    box-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+    z-index: 10;
+    transition: left 0.05s linear; /* Smooth movement between ticks */
+    display: none; /* Hidden by default */
+    pointer-events: none; /* Prevents it from interfering with clicks */
+}

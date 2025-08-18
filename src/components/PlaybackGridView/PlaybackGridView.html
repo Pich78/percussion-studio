@@ -1,0 +1,123 @@
+<!-- file: src/components/PlaybackGridView/PlaybackGridView.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Harness: PlaybackGridView</title>
+    <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
+    <link rel="stylesheet" href="/percussion-studio/css/global.css">
+    <link rel="stylesheet" href="/percussion-studio/lib/TubsGridRenderer/TubsGridRenderer.css">
+    <link rel="stylesheet" href="./PlaybackGridView.css">
+    <style> body { font-family: sans-serif; } </style>
+</head>
+<body class="bg-light-gray pa4">
+
+    <div class="flex">
+        <div class="w-70 pr3">
+            <h1 class="f2 b mb3 bb pb2">Automated Tests</h1>
+            <button id="run-tests-btn" class="pv2 ph3 bn br2 bg-blue white pointer hover-bg-dark-blue mb3">Run Automated Tests</button>
+            <div id="test-results"></div>
+            <hr class="mv4"/>
+            <h1 class="f2 b mb3 bb pb2">Live View Workbench</h1>
+            <p class="f6 gray mb3">Simulate playback to see the grid and playback indicator in action.</p>
+            <div id="view-container" class="bg-white shadow-2 pa3 mb3"></div>
+            <div class="controls ba b--black-10 pa3 br2 bg-white">
+                <button id="play-pause-btn" class="pv2 ph3 bn br2 bg-green white pointer hover-bg-dark-green">Play</button>
+                <button id="stop-btn" class="pv2 ph3 bn br2 bg-dark-red white pointer hover-bg-red ml2">Stop</button>
+            </div>
+            <div id="current-state-display" class="f6 code pa2 bg-washed-yellow mt3"></div>
+        </div>
+        <div class="w-30 pl3">
+            <div class="bg-near-black near-white pa3 br2 h-100">
+                <h2 class="f4 b bb pb2 mb2">Execution Log</h2>
+                <div id="log-output" class="f7 lh-copy" style="white-space: pre-wrap; height: 80vh; overflow-y: auto;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { run } from './PlaybackGridView.test.js';
+        import { PlaybackGridView } from './PlaybackGridView.js';
+        import { Logger, logEvent } from '/percussion-studio/lib/Logger.js';
+
+        Logger.init({ level: 'debug' });
+        Logger.setTarget('log-output');
+
+        document.getElementById('run-tests-btn').addEventListener('click', run);
+
+        // --- Mock Data ---
+        const openSvg = '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" stroke="black" stroke-width="8" fill="none"/></svg>';
+        const crossSvg = '<svg viewBox="0 0 100 100"><line x1="10" y1="10" x2="90" y2="90" stroke="black" stroke-width="8"/><line x1="10" y1="90" x2="90" y2="10" stroke="black" stroke-width="8"/></svg>';
+
+        const mockResolvedInstruments = {
+            KCK: { name: 'Kick Drum', sounds: [{ letter: 'o', svg: openSvg }] },
+            SNR: { name: 'Snare Drum', sounds: [{ letter: 'x', svg: crossSvg }] }
+        };
+
+        const mockPattern = {
+            metadata: { name: "Test Pattern", metric: "4/4", resolution: 16 },
+            pattern_data: [{
+                KCK: "||o---o---|o---o---||",
+                SNR: "||----x-------x---||"
+            }]
+        };
+
+        // --- State Management ---
+        let playbackInterval = null;
+        let mockState = {
+            currentPattern: mockPattern,
+            resolvedInstruments: mockResolvedInstruments,
+            playbackPosition: { currentMeasureIndex: 0, currentTickIndex: 0 },
+            isPlaying: false,
+        };
+
+        const container = document.getElementById('view-container');
+        const stateDisplay = document.getElementById('current-state-display');
+        const playPauseBtn = document.getElementById('play-pause-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        const view = new PlaybackGridView(container);
+
+        const rerender = () => {
+            logEvent('info', 'Harness', 'rerender', 'State', 'Rerendering component with new state:', mockState);
+            view.render(mockState);
+            stateDisplay.textContent = `Current State: ${JSON.stringify(mockState.playbackPosition)}, isPlaying: ${mockState.isPlaying}`;
+        };
+
+        const tick = () => {
+            let newTick = mockState.playbackPosition.currentTickIndex + 1;
+            if (newTick >= 16) {
+                newTick = 0; // Loop for simplicity
+            }
+            mockState.playbackPosition.currentTickIndex = newTick;
+            view.updatePlaybackIndicator(mockState.playbackPosition, mockState.isPlaying);
+            stateDisplay.textContent = `Current State: ${JSON.stringify(mockState.playbackPosition)}, isPlaying: ${mockState.isPlaying}`;
+        };
+        
+        playPauseBtn.addEventListener('click', () => {
+            mockState.isPlaying = !mockState.isPlaying;
+            if (mockState.isPlaying) {
+                playPauseBtn.textContent = 'Pause';
+                playPauseBtn.classList.replace('bg-green', 'bg-orange');
+                playbackInterval = setInterval(tick, 200); // Simulate BPM
+                view.updatePlaybackIndicator(mockState.playbackPosition, mockState.isPlaying);
+            } else {
+                playPauseBtn.textContent = 'Play';
+                playPauseBtn.classList.replace('bg-orange', 'bg-green');
+                clearInterval(playbackInterval);
+            }
+        });
+
+        stopBtn.addEventListener('click', () => {
+            mockState.isPlaying = false;
+            mockState.playbackPosition = { currentMeasureIndex: 0, currentTickIndex: 0 };
+            playPauseBtn.textContent = 'Play';
+            playPauseBtn.classList.replace('bg-orange', 'bg-green');
+            clearInterval(playbackInterval);
+            rerender();
+        });
+
+        rerender(); // Initial render
+
+    </script>
+</body>
+</html>
