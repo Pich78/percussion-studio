@@ -1,0 +1,117 @@
+<!-- file: src/components/EditingGridView/EditingGridView.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Harness: EditingGridView</title>
+    <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
+    <link rel="stylesheet" href="/percussion-studio/css/global.css">
+    <link rel="stylesheet" href="/percussion-studio/lib/TubsGridRenderer/TubsGridRenderer.css">
+    <!-- Component CSS is loaded by its JS -->
+    <style> 
+        body { font-family: sans-serif; cursor: default; } 
+        #view-container { cursor: none; } /* Hide default cursor over the grid */
+    </style>
+</head>
+<body class="bg-light-gray pa4">
+
+    <div class="flex">
+        <div class="w-70 pr3">
+            <h1 class="f2 b mb3 bb pb2">Automated Tests</h1>
+            <button id="run-tests-btn" class="pv2 ph3 bn br2 bg-blue white pointer hover-bg-dark-blue mb3">Run Automated Tests</button>
+            <div id="test-results"></div>
+            <hr class="mv4"/>
+            <h1 class="f2 b mb3 bb pb2">Live View Workbench</h1>
+            <p class="f6 gray mb3">
+                Interact with the grid below.
+                <br><b>- Tap an empty cell</b> to add the active note (shown by cursor).
+                <br><b>- Tap a note</b> to delete it.
+                <br><b>- Press and hold</b> to open the radial menu to select a new active sound.
+            </p>
+            <div id="view-container" class="bg-white shadow-2 pa3 mb3"></div>
+            <div id="callback-log" class="f7 code pa2 bg-washed-yellow mt3 h4 overflow-y-auto">Callbacks will appear here.</div>
+        </div>
+        <div class="w-30 pl3">
+            <div class="bg-near-black near-white pa3 br2 h-100">
+                <h2 class="f4 b bb pb2 mb2">Execution Log</h2>
+                <div id="log-output" class="f7 lh-copy" style="white-space: pre-wrap; height: 80vh; overflow-y: auto;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="test-sandbox" style="position: absolute; visibility: hidden;"></div>
+
+    <script type="module">
+        import { run } from './EditingGridView.test.js';
+        import { EditingGridView } from './EditingGridView.js';
+        import { Logger, logEvent } from '/percussion-studio/lib/Logger.js';
+        
+        Logger.init({ level: 'debug' });
+        Logger.setTarget('log-output');
+
+        document.getElementById('run-tests-btn').addEventListener('click', run);
+        
+        // --- Mock Data ---
+        const openSvg = '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" stroke="black" stroke-width="8" fill="none"/></svg>';
+        const slapSvg = '<svg viewBox="0 0 100 100"><line x1="10" y1="10" x2="90" y2="90" stroke="black" stroke-width="8"/><line x1="10" y1="90" x2="90" y2="10" stroke="black" stroke-width="8"/></svg>';
+        
+        let mockState = {
+            currentPattern: {
+                metadata: { metric: '4/4', resolution: 16 },
+                pattern_data: [] // Start in zero state
+            },
+            resolvedInstruments: {
+                KCK: { 
+                    symbol: 'KCK', name: 'Kick Drum', 
+                    sounds: [{ letter: 'o', name: 'Open', svg: openSvg }] 
+                },
+                SNR: { 
+                    symbol: 'SNR', name: 'Snare Drum', 
+                    sounds: [{ letter: 'x', name: 'Hit', svg: slapSvg }, { letter: 'r', name: 'Rimshot', svg: openSvg }]
+                }
+            }
+        };
+
+        const container = document.getElementById('view-container');
+        const callbackLogEl = document.getElementById('callback-log');
+        
+        const logCallback = (name, data) => {
+            logEvent('info', 'Harness', name, 'Callback', `Fired with:`, data);
+            const entry = document.createElement('div');
+            entry.textContent = `[${name}] ${JSON.stringify(data)}`;
+            callbackLogEl.appendChild(entry);
+            callbackLogEl.scrollTop = callbackLogEl.scrollHeight;
+        };
+
+        const view = new EditingGridView(container, {
+            onNoteEdit: (data) => {
+                logCallback('onNoteEdit', data);
+                // --- Simulate state update ---
+                const { action, symbol, tickIndex, measureIndex, soundLetter } = data;
+                const pattern = mockState.currentPattern.pattern_data[measureIndex][symbol];
+                const chars = pattern.replace(/\|/g, '').split('');
+                
+                if (action === 'add' || action === 'set') {
+                    chars[tickIndex] = soundLetter;
+                } else if (action === 'delete') {
+                    chars[tickIndex] = '-';
+                }
+                
+                mockState.currentPattern.pattern_data[measureIndex][symbol] = `||${chars.join('')}||`;
+                rerender();
+            },
+            onMeasureAdd: () => {
+                logCallback('onMeasureAdd', {});
+                mockState.currentPattern.pattern_data.push({
+                    KCK: '||----------------||',
+                    SNR: '||----------------||'
+                });
+                rerender();
+            }
+        });
+
+        const rerender = () => view.render(mockState);
+        rerender(); // Initial render
+    </script>
+</body>
+</html>

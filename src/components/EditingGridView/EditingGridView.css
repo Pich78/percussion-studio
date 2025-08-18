@@ -1,0 +1,73 @@
+/* file: src/components/EditingGridView/EditingGridView.css */
+
+.zero-state-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+    border: 2px dashed #cbd5e1;
+    border-radius: 8px;
+}
+
+.add-measure-btn {
+    display: flex;
+    align-items: center;
+    padding: 12px 24px;
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #475569;
+    background-color: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.add-measure-btn:hover {
+    background-color: #e2e8f0;
+    border-color: #cbd5e1;
+}
+.plus-icon {
+    font-size: 1.5em;
+    margin-right: 12px;
+}
+
+/* Custom Cursor */
+#editing-grid-cursor {
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    width: 24px;
+    height: 24px;
+    display: none;
+    opacity: 0.8;
+}
+
+/* Radial Menu */
+.radial-menu {
+    position: fixed;
+    z-index: 9998;
+}
+
+.radial-item {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: white;
+    border: 1px solid #94a3b8;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.1s ease-out, box-shadow 0.1s ease-out;
+}
+.radial-item:hover {
+    transform: translate(-50%, -50%) scale(1.1) !important;
+    box-shadow: 0 8px 12px rgba(0,0,0,0.15);
+    z-index: 1; /* Bring hovered item to front */
+}
+.radial-item svg {
+    width: 24px;
+    height: 24px;
+}
