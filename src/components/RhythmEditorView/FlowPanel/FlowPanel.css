@@ -62,8 +62,8 @@
 .flow-item.dragging { opacity: 0.5; }
 
 /* --- THE FIX IS HERE --- */
-/* The .is-selected class is always applied in the HTML by the JS,
-   but this CSS rule makes it VISUALLY apparent only when the panel is pinned. */
+/* Apply the selected style if the panel is hovered OR if it is pinned. */
+.editor-panel:hover .flow-item.is-selected,
 .editor-panel.is-pinned .flow-item.is-selected {
     background-color: #e0f2fe; /* Tachyons bg-washed-blue equivalent */
     border-color: #3b82f6; /* Tachyons b--blue equivalent */
