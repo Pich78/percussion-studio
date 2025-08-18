@@ -87,10 +87,22 @@ percussion-studio/
 │   │   │   ├── PlaybackControlsView.js
 │   │   │   └── PlaybackControlsView.test.js
 │   │   ├── RhythmEditorView/
+│   │   │   ├── FlowPanel/
+│   │   │   │   ├── FlowPanel.css
+│   │   │   │   ├── FlowPanel.html
+│   │   │   │   ├── FlowPanel.js
+│   │   │   │   └── FlowPanel.test.js
+│   │   │   ├── InstrumentPalettePanel/
+│   │   │   │   ├── InstrumentPalettePanel.css
+│   │   │   │   ├── InstrumentPalettePanel.html
+│   │   │   │   ├── InstrumentPalettePanel.js
+│   │   │   │   └── InstrumentPalettePanel.test.js
+│   │   │   │
 │   │   │   ├── RhythmEditorView.css
 │   │   │   ├── RhythmEditorView.html
 │   │   │   ├── RhythmEditorView.js
 │   │   │   └── RhythmEditorView.test.js
+│   │   │
 │   │   └── TubsGridView/
 │   │       ├── TubsGridView.css
 │   │       ├── TubsGridView.html
