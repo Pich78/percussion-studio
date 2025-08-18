@@ -8,18 +8,15 @@ export class FlowPanel {
         this.container = container;
         this.callbacks = callbacks || {};
         this.state = {};
-        this.isHovered = false;
         this.draggedIndex = null;
 
         loadCSS('/percussion-studio/src/components/RhythmEditorView/FlowPanel/FlowPanel.css');
         logEvent('info', 'FlowPanel', 'constructor', 'Lifecycle', 'Component created.');
         
-        // Delegated event listeners
+        // Listeners are now simpler
         this.container.addEventListener('click', this.handleClick.bind(this));
-        this.container.addEventListener('mouseover', () => { this.isHovered = true; this.render(this.state); });
-        this.container.addEventListener('mouseout', () => { this.isHovered = false; this.render(this.state); });
         this.container.addEventListener('dragstart', this.handleDragStart.bind(this));
-        this.container.addEventListener('dragover', this.handleDragOver.bind(this));
+        this.container.addEventListener('dragover', (e) => e.preventDefault()); // Simple dragover
         this.container.addEventListener('drop', this.handleDrop.bind(this));
         this.container.addEventListener('dragend', this.handleDragEnd.bind(this));
     }
@@ -27,7 +24,6 @@ export class FlowPanel {
     render(state) {
         this.state = state;
         const { flow, currentPatternId, isPinned, scrollToLast } = state;
-        const isExpanded = isPinned || this.isHovered;
 
         const flowItems = flow.map((item, index) => {
             const selectedClass = item.pattern === currentPatternId ? 'bg-washed-blue b--blue' : 'bg-white';
@@ -38,7 +34,8 @@ export class FlowPanel {
                 </div>`;
         }).join('');
 
-        this.container.className = `editor-panel absolute top-0 left-0 h-100 bg-near-white shadow-2 pa3 ${isExpanded ? 'is-expanded' : ''}`;
+        // The 'is-expanded' class is now replaced with 'is-pinned' for JS-controlled state
+        this.container.className = `editor-panel absolute top-0 left-0 h-100 bg-near-white shadow-2 pa3 ${isPinned ? 'is-pinned' : ''}`;
         this.container.innerHTML = `
             <h3 class="f4 b vertical-text">Rhythm Flow</h3>
             <div class="panel-content w-100">
@@ -56,7 +53,7 @@ export class FlowPanel {
     handleClick(event) {
         const target = event.target.closest('[data-action]');
         if (!target) {
-            // If the click is on the panel but not a button, it's a pin action
+            // Any click on the panel that isn't a specific action is a pin toggle
             this.callbacks.onPin?.(!this.state.isPinned);
             return;
         }
@@ -80,28 +77,13 @@ export class FlowPanel {
         }
     }
 
+    // Drag and Drop handlers remain largely the same, but simplified
     handleDragStart(event) {
         const item = event.target.closest('.flow-item');
         if (item) {
             this.draggedIndex = parseInt(item.dataset.index, 10);
             event.dataTransfer.effectAllowed = 'move';
             setTimeout(() => item.classList.add('dragging'), 0);
-        }
-    }
-
-    handleDragOver(event) {
-        event.preventDefault();
-        const flowList = this.container.querySelector('.flow-list');
-        const draggedItem = flowList.querySelector('.dragging');
-        if (!draggedItem) return;
-
-        const siblings = [...flowList.querySelectorAll('.flow-item:not(.dragging)')];
-        const nextSibling = siblings.find(sibling => event.clientY <= sibling.offsetTop + sibling.offsetHeight / 2);
-
-        if (nextSibling) {
-            flowList.insertBefore(draggedItem, nextSibling);
-        } else {
-            flowList.appendChild(draggedItem);
         }
     }
 
@@ -114,10 +96,13 @@ export class FlowPanel {
                 this.callbacks.onReorderFlow?.(this.draggedIndex, newIndex);
             }
         }
+        this.handleDragEnd(); // Clean up immediately after drop
     }
     
     handleDragEnd() {
-        this.container.querySelector('.dragging')?.classList.remove('dragging');
-        this.draggedIndex = null;
+        if (this.draggedIndex !== null) {
+            this.container.querySelector('.dragging')?.classList.remove('dragging');
+            this.draggedIndex = null;
+        }
     }
 }
