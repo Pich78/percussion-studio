@@ -82,10 +82,21 @@ export class InstrumentTrackView {
         // Prevent text selection during drag operations
         event.preventDefault();
         
-        this.mouseDownInfo = { tickIndex: parseInt(cell.dataset.tickIndex, 10), cell, clientX: event.clientX, clientY: event.clientY };
+        // Store the exact cursor position when mouse down occurs
+        this.mouseDownInfo = { 
+            tickIndex: parseInt(cell.dataset.tickIndex, 10), 
+            cell, 
+            clientX: event.clientX, 
+            clientY: event.clientY,
+            // Store the exact center point where the SVG symbol is displayed
+            centerX: event.clientX,
+            centerY: event.clientY
+        };
+        
         this.holdTimeout = setTimeout(() => {
             this.isDragging = true;
-            this._showRadialMenu(this.mouseDownInfo.clientX, this.mouseDownInfo.clientY);
+            // Use the stored center position for the radial menu
+            this._showRadialMenu(this.mouseDownInfo.centerX, this.mouseDownInfo.centerY);
         }, HOLD_DURATION_MS);
     }
 
@@ -122,7 +133,7 @@ export class InstrumentTrackView {
         if (isWithinComponentGrid && !this.isDragging) {
             this._updateCustomCursor();
             if (this.customCursorEl) {
-                // Center the custom cursor on the mouse pointer
+                // Center the SVG symbol exactly on the mouse cursor tip
                 this.customCursorEl.style.left = `${event.clientX - 12}px`; // -12 to center 24px cursor
                 this.customCursorEl.style.top = `${event.clientY - 12}px`;
             }
@@ -131,23 +142,27 @@ export class InstrumentTrackView {
             if (this.customCursorEl) this.customCursorEl.style.display = 'none';
         }
 
-        // Update cursor position during dragging too
-        if (this.customCursorEl && this.customCursorEl.style.display === 'block') {
-            this.customCursorEl.style.left = `${event.clientX - 12}px`;
-            this.customCursorEl.style.top = `${event.clientY - 12}px`;
-        }
-
         // --- Handle highlighting during drag ---
         if (this.isDragging) {
             const radialItems = document.querySelectorAll('.radial-menu .radial-item');
             let currentlyHighlighted = null;
+            
+            // Calculate distance from the original center point (where timeout expired)
+            const centerX = this.mouseDownInfo.centerX;
+            const centerY = this.mouseDownInfo.centerY;
+            
             radialItems.forEach(item => {
                 const rect = item.getBoundingClientRect();
-                const centerX = rect.left + rect.width / 2;
-                const centerY = rect.top + rect.height / 2;
-                const distance = Math.sqrt(Math.pow(event.clientX - centerX, 2) + Math.pow(event.clientY - centerY, 2));
+                const itemCenterX = rect.left + rect.width / 2;
+                const itemCenterY = rect.top + rect.height / 2;
                 
-                if (distance < 20) { // Within 20px of center
+                // Check if current mouse position is close to this item
+                const distanceFromMouse = Math.sqrt(
+                    Math.pow(event.clientX - itemCenterX, 2) + 
+                    Math.pow(event.clientY - itemCenterY, 2)
+                );
+                
+                if (distanceFromMouse < 20) { // Within 20px of item center
                     item.classList.add('highlighted');
                     currentlyHighlighted = item.dataset.soundLetter;
                 } else {
@@ -194,33 +209,30 @@ export class InstrumentTrackView {
         document.body.appendChild(this.customCursorEl);
     }
 
-    _showRadialMenu(x, y) {
+    _showRadialMenu(centerX, centerY) {
         this._hideRadialMenu();
         const { instrument, activeSoundLetter } = this.state;
         if (!instrument || instrument.sounds.length === 0) return;
         
         const menu = document.createElement('div');
         menu.className = 'radial-menu';
-        // Center the menu exactly on the cursor position
-        menu.style.left = `${x}px`;
-        menu.style.top = `${y}px`;
-        menu.style.transform = 'translate(-50%, -50%)'; // This centers the menu on the cursor
+        // Position the menu container exactly at the center point
+        menu.style.left = `${centerX}px`;
+        menu.style.top = `${centerY}px`;
 
         const background = document.createElement('div');
         background.className = 'radial-background';
-        // Remove the transform from background since menu is already centered
-        background.style.transform = 'none';
         menu.appendChild(background);
 
         let soundsToRender = instrument.sounds;
         let angles = [];
-        const radius = 25; // Made even closer to the pointer
+        const radius = 25; // Distance from center to symbols
 
         if (soundsToRender.length === 2) {
             const otherSound = soundsToRender.find(s => s.letter !== activeSoundLetter);
             const currentSound = soundsToRender.find(s => s.letter === activeSoundLetter);
             soundsToRender = [otherSound, currentSound];
-            angles = [-Math.PI / 2, Math.PI / 2];
+            angles = [-Math.PI / 2, Math.PI / 2]; // Top and bottom
         } else {
             const angleStep = (2 * Math.PI) / soundsToRender.length;
             for(let i = 0; i < soundsToRender.length; i++) angles.push(i * angleStep - Math.PI / 2);
@@ -232,13 +244,19 @@ export class InstrumentTrackView {
             item.innerHTML = sound.svg;
             item.title = sound.name;
             item.dataset.soundLetter = sound.letter;
+            
             const angle = angles[index];
             const itemX = radius * Math.cos(angle);
             const itemY = radius * Math.sin(angle);
-            // Position items relative to the menu center (which is now centered on cursor)
-            item.style.transform = `translate(-50%, -50%) translate(${itemX}px, ${itemY}px)`;
+            
+            // Position items around the center point
+            item.style.left = `${itemX}px`;
+            item.style.top = `${itemY}px`;
+            item.style.transform = `translate(-50%, -50%)`; // Center each item on its position
+            
             menu.appendChild(item);
         });
+        
         document.body.appendChild(menu);
         
         // Hide the custom cursor while the radial menu is open
