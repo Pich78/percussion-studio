@@ -45,21 +45,50 @@
 }
 
 .flow-list {
-    /* --- THE FIX IS HERE --- */
+    /* --- UPDATED FIX --- */
     /* Use the shorthand 'flex: 1' to allow the list to grow and shrink. */
     /* 'min-height: 0' is the key to allowing the container to shrink smaller than its content, */
     /* which forces the content to overflow and trigger the scrollbar. */
     flex: 1 1 0;
     min-height: 0;
-    overflow-y: auto;
     
+    /* Always show scrollbar when content overflows */
+    overflow-y: scroll;
+    
+    /* Custom scrollbar styling */
     scrollbar-width: thin;
-    scrollbar-color: rgba(0, 0, 0, 0.3) transparent;
+    scrollbar-color: rgba(0, 0, 0, 0.3) rgba(0, 0, 0, 0.1);
 }
 
-.flow-list::-webkit-scrollbar { width: 8px; }
-.flow-list::-webkit-scrollbar-track { background: transparent; }
-.flow-list::-webkit-scrollbar-thumb { background-color: rgba(0, 0, 0, 0.3); border-radius: 4px; }
+/* WebKit scrollbar styling for always visible scrollbar */
+.flow-list::-webkit-scrollbar { 
+    width: 8px; 
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.flow-list::-webkit-scrollbar-track { 
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+}
+
+.flow-list::-webkit-scrollbar-thumb { 
+    background-color: rgba(0, 0, 0, 0.3); 
+    border-radius: 4px;
+    min-height: 20px;
+}
+
+.flow-list::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* When content doesn't overflow, make scrollbar less prominent but still visible */
+.flow-list::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+.flow-list:hover::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.4);
+}
 
 .flow-item { transition: all 0.2s ease; }
 .flow-item .delete-btn { visibility: hidden; opacity: 0; transition: opacity 0.15s ease-in-out; }
