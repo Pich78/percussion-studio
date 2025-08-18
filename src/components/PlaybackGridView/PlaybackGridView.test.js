@@ -14,7 +14,7 @@ export async function run() {
     };
     const mockPattern = {
         metadata: { name: "Test", metric: "4/4", resolution: 16 },
-        pattern_data: [{ KCK: "||o---||" }]
+        pattern_data: [{ KCK: "||o---o---o---o---||" }]
     };
 
     runner.describe('PlaybackGridView Rendering', () => {
@@ -43,17 +43,11 @@ export async function run() {
     });
 
     runner.describe('PlaybackGridView Playback Indicator', () => {
-        runner.it('should position the playback indicator correctly', () => {
+        runner.it('should position the playback indicator correctly while playing', () => {
             const testContainer = document.createElement('div');
             document.body.appendChild(testContainer); // Must be in DOM for getBoundingClientRect
             const view = new PlaybackGridView(testContainer);
-            view.render({
-                currentPattern: {
-                    metadata: { metric: '4/4', resolution: 16 },
-                    pattern_data: [{ KCK: "||o---o---o---o---||" }]
-                },
-                resolvedInstruments: mockResolvedInstruments
-            });
+            view.render({ currentPattern: mockPattern, resolvedInstruments: mockResolvedInstruments });
             
             const position = { currentMeasureIndex: 0, currentTickIndex: 4 };
             view.updatePlaybackIndicator(position, true);
@@ -62,11 +56,35 @@ export async function run() {
             const targetCell = testContainer.querySelector('.grid-cell[data-tick-index="4"]');
             
             runner.expect(indicator.style.display).toBe('block');
-            
-            // Using offsetLeft as a reliable proxy in a test environment
             runner.expect(parseInt(indicator.style.left, 10)).toBe(targetCell.offsetLeft);
 
             document.body.removeChild(testContainer); // Clean up
+        });
+
+        // =======================================================
+        // NEW TEST CASE FOR PAUSE BEHAVIOR
+        // =======================================================
+        runner.it('should keep the indicator visible and in place when paused', () => {
+            const testContainer = document.createElement('div');
+            document.body.appendChild(testContainer);
+            const view = new PlaybackGridView(testContainer);
+            view.render({ currentPattern: mockPattern, resolvedInstruments: mockResolvedInstruments });
+            
+            const position = { currentMeasureIndex: 0, currentTickIndex: 8 };
+            const targetCell = testContainer.querySelector('.grid-cell[data-tick-index="8"]');
+            const expectedPosition = targetCell.offsetLeft;
+
+            // 1. Simulate playing at position 8
+            view.updatePlaybackIndicator(position, true);
+
+            // 2. Simulate pausing at the same position
+            view.updatePlaybackIndicator(position, false);
+
+            const indicator = view.playbackIndicatorEl;
+            runner.expect(indicator.style.display).toBe('block'); // Should STILL be visible
+            runner.expect(parseInt(indicator.style.left, 10)).toBe(expectedPosition); // Should NOT have moved
+
+            document.body.removeChild(testContainer);
         });
 
         runner.it('should hide the indicator when playback is stopped', () => {
@@ -74,17 +92,13 @@ export async function run() {
             const view = new PlaybackGridView(testContainer);
             view.render({ currentPattern: mockPattern, resolvedInstruments: mockResolvedInstruments });
 
-            // First, show it
+            // First, show it by simulating play/pause at a non-zero position
             view.updatePlaybackIndicator({ currentMeasureIndex: 0, currentTickIndex: 4 }, true);
             runner.expect(view.playbackIndicatorEl.style.display).toBe('block');
 
-            // Then, stop it
+            // Then, simulate stopping by passing isPlaying: false and a zero position
             view.updatePlaybackIndicator({ currentMeasureIndex: 0, currentTickIndex: 0 }, false);
             
-            // =======================================================
-            // THE CORRECTED ASSERTION
-            // This line now correctly expects 'none'
-            // =======================================================
             runner.expect(view.playbackIndicatorEl.style.display).toBe('none');
         });
     });

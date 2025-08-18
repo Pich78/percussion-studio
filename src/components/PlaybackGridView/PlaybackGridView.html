@@ -19,7 +19,11 @@
             <div id="test-results"></div>
             <hr class="mv4"/>
             <h1 class="f2 b mb3 bb pb2">Live View Workbench</h1>
-            <p class="f6 gray mb3">Simulate playback to see the grid and playback indicator in action.</p>
+            <p class="f6 gray mb3">
+                Simulate playback. The first button toggles between Play and Pause.
+                <br><b>- Pausing</b> will stop the indicator but keep it visible.
+                <br><b>- Stopping</b> will reset the indicator and hide it.
+            </p>
             <div id="view-container" class="bg-white shadow-2 pa3 mb3"></div>
             <div class="controls ba b--black-10 pa3 br2 bg-white">
                 <button id="play-pause-btn" class="pv2 ph3 bn br2 bg-green white pointer hover-bg-dark-green">Play</button>
@@ -77,10 +81,14 @@
         const stopBtn = document.getElementById('stop-btn');
         const view = new PlaybackGridView(container);
 
+        const updateStateDisplay = () => {
+             stateDisplay.textContent = `isPlaying: ${mockState.isPlaying}, Position: ${JSON.stringify(mockState.playbackPosition)}`;
+        }
+
         const rerender = () => {
             logEvent('info', 'Harness', 'rerender', 'State', 'Rerendering component with new state:', mockState);
             view.render(mockState);
-            stateDisplay.textContent = `Current State: ${JSON.stringify(mockState.playbackPosition)}, isPlaying: ${mockState.isPlaying}`;
+            updateStateDisplay();
         };
 
         const tick = () => {
@@ -90,29 +98,39 @@
             }
             mockState.playbackPosition.currentTickIndex = newTick;
             view.updatePlaybackIndicator(mockState.playbackPosition, mockState.isPlaying);
-            stateDisplay.textContent = `Current State: ${JSON.stringify(mockState.playbackPosition)}, isPlaying: ${mockState.isPlaying}`;
+            updateStateDisplay();
         };
         
         playPauseBtn.addEventListener('click', () => {
             mockState.isPlaying = !mockState.isPlaying;
             if (mockState.isPlaying) {
+                // --- BEGAN PLAYING (or RESUMED) ---
+                logEvent('info', 'Harness', 'play', 'UI', 'Simulating PLAY...');
                 playPauseBtn.textContent = 'Pause';
                 playPauseBtn.classList.replace('bg-green', 'bg-orange');
                 playbackInterval = setInterval(tick, 200); // Simulate BPM
                 view.updatePlaybackIndicator(mockState.playbackPosition, mockState.isPlaying);
             } else {
+                // --- PAUSED ---
+                logEvent('info', 'Harness', 'pause', 'UI', 'Simulating PAUSE...');
                 playPauseBtn.textContent = 'Play';
                 playPauseBtn.classList.replace('bg-orange', 'bg-green');
                 clearInterval(playbackInterval);
+                // Call updatePlaybackIndicator to ensure the indicator stays visible
+                view.updatePlaybackIndicator(mockState.playbackPosition, mockState.isPlaying);
             }
+            updateStateDisplay();
         });
 
         stopBtn.addEventListener('click', () => {
+            // --- STOPPED ---
+            logEvent('info', 'Harness', 'stop', 'UI', 'Simulating STOP...');
             mockState.isPlaying = false;
             mockState.playbackPosition = { currentMeasureIndex: 0, currentTickIndex: 0 };
             playPauseBtn.textContent = 'Play';
             playPauseBtn.classList.replace('bg-orange', 'bg-green');
             clearInterval(playbackInterval);
+            // Full rerender to handle the "stop" case logic
             rerender();
         });
 
