@@ -1,0 +1,91 @@
+<!-- file: lib/TubsGridRenderer/TubsGridRenderer.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Harness: TubsGridRenderer</title>
+    <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
+    <link rel="stylesheet" href="/percussion-studio/css/global.css">
+    <link rel="stylesheet" href="./TubsGridRenderer.css">
+    <style> body { font-family: sans-serif; } </style>
+</head>
+<body class="bg-light-gray pa4">
+
+    <div class="flex">
+        <div class="w-70 pr3">
+            <h1 class="f2 b mb3 bb pb2">Automated Tests</h1>
+            <button id="run-tests-btn" class="pv2 ph3 bn br2 bg-blue white pointer hover-bg-dark-blue mb3">Run Automated Tests</button>
+            <div id="test-results"></div>
+            <hr class="mv4"/>
+            <h1 class="f2 b mb3 bb pb2">Live View Workbench</h1>
+            <p class="f6 gray mb3">This view demonstrates the visual output of each function in the TubsGridRenderer. It is not interactive.</p>
+            <div id="view-container" class="bg-white shadow-2 pa3 mb3"></div>
+        </div>
+        <div class="w-30 pl3">
+            <div class="bg-near-black near-white pa3 br2 h-100">
+                <h2 class="f4 b bb pb2 mb2">Execution Log</h2>
+                <div id="log-output" class="f7 lh-copy" style="white-space: pre-wrap; height: 80vh; overflow-y: auto;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { run } from './TubsGridRenderer.test.js';
+        import { TubsGridRenderer } from './TubsGridRenderer.js';
+        import { Logger, logEvent } from '/percussion-studio/lib/Logger.js';
+        
+        Logger.init({ level: 'debug' });
+        Logger.setTarget('log-output');
+
+        document.getElementById('run-tests-btn').addEventListener('click', run);
+
+        // --- Harness Driver Script ---
+        logEvent('info', 'Harness', 'setup', 'Lifecycle', 'Setting up TubsGridRenderer visual harness.');
+        const container = document.getElementById('view-container');
+
+        // This script simulates how a component like EditingGridView would use the renderer.
+        const buildVisualTest = () => {
+            logEvent('debug', 'Harness', 'buildVisualTest', 'Render', 'Building sample grid.');
+            // 1. Create a measure
+            const measureEl = TubsGridRenderer.createMeasureContainer();
+            const measureHeader = TubsGridRenderer.createMeasureHeader({ metric: '4/4', resolution: 16 });
+            measureEl.appendChild(measureHeader);
+
+            // 2. Create instrument rows
+            const kickRow = TubsGridRenderer.createInstrumentRow('KCK');
+            kickRow.appendChild(TubsGridRenderer.createInstrumentHeader('Kick Drum'));
+            
+            const snareRow = TubsGridRenderer.createInstrumentRow('SNR');
+            snareRow.appendChild(TubsGridRenderer.createInstrumentHeader('Snare Drum'));
+
+            // Mock SVG content for testing
+            const openSvg = '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" stroke="black" stroke-width="8" fill="none"/></svg>';
+            const crossSvg = '<svg viewBox="0 0 100 100"><line x1="10" y1="10" x2="90" y2="90" stroke="black" stroke-width="8"/><line x1="10" y1="90" x2="90" y2="10" stroke="black" stroke-width="8"/></svg>';
+
+            // 3. Populate rows with grid cells and some notes
+            for (let i = 0; i < 16; i++) {
+                const kickCell = TubsGridRenderer.createGridCell(i);
+                const snareCell = TubsGridRenderer.createGridCell(i);
+
+                if (i % 4 === 0) {
+                    kickCell.appendChild(TubsGridRenderer.createNoteElement(openSvg, 'o'));
+                }
+                if ((i + 2) % 4 === 0) {
+                    snareCell.appendChild(TubsGridRenderer.createNoteElement(crossSvg, 'x'));
+                }
+
+                kickRow.appendChild(kickCell);
+                snareRow.appendChild(snareCell);
+            }
+
+            measureEl.appendChild(kickRow);
+            measureEl.appendChild(snareRow);
+            container.appendChild(measureEl);
+            logEvent('info', 'Harness', 'buildVisualTest', 'Render', 'Sample grid successfully built.');
+        };
+        
+        buildVisualTest();
+
+    </script>
+</body>
+</html>

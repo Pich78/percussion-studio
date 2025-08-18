@@ -33,6 +33,11 @@ percussion-studio/
 │ └── Requirements.md
 │
 ├── lib/
+├── TubsGridRenderer/
+│   ├── TubsGridRenderer.css
+│   ├── TubsGridRenderer.html
+│   ├── TubsGridRenderer.js
+│   └── TubsGridRenderer.test.js
 │ ├── dom.js
 │ ├── MockLogger.js
 │ ├── TestRunner.js
