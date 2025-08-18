@@ -19,7 +19,7 @@
             <hr class="mv4"/>
             <h1 class="f2 b mb3 bb pb2">Live View Workbench</h1>
             <p class="f6 gray mb3">
-                Measure headers are now editable. Change a value and an "Apply" button will appear.
+                Measure headers are now editable. Change a value to enable the "Apply" button. Applying will regenerate the grid for that measure.
             </p>
             <div id="view-container" class="bg-white shadow-2 pa3 mb3"></div>
             <div id="callback-log" class="f7 code pa2 bg-washed-yellow mt3 h4 overflow-y-auto">Callbacks will appear here.</div>
@@ -95,14 +95,21 @@
             },
             onMeasureUpdate: ({ measureIndex, metric, resolution }) => {
                 logCallback('onMeasureUpdate', { measureIndex, metric, resolution });
-                alert(`This would regenerate the grid for measure ${measureIndex + 1} with metric: ${metric}, resolution: ${resolution}. Rerendering for now.`);
-                mockState.currentPattern.metadata = { metric, resolution }; // Update for all measures for simplicity in harness
+                
+                // --- Simulate grid regeneration ---
+                const [beats, beatType] = metric.split('/').map(Number);
+                const newTickCount = (beats / beatType) * resolution;
+                const newNotation = '||' + '-'.repeat(newTickCount) + '||';
+
+                Object.keys(mockState.currentPattern.pattern_data[measureIndex]).forEach(symbol => {
+                    mockState.currentPattern.pattern_data[measureIndex][symbol] = newNotation;
+                });
+
+                // For simplicity, update the global metadata too
+                mockState.currentPattern.metadata = { metric, resolution };
                 rerender();
             },
-            onInstrumentAdd: () => {
-                logCallback('onInstrumentAdd');
-                alert("This would open the InstrumentSelectionModalView.");
-            },
+            onInstrumentAdd: () => { logCallback('onInstrumentAdd'); alert("This would open the InstrumentSelectionModalView."); },
             onInstrumentRemove: ({ symbol }) => {
                 logCallback('onInstrumentRemove', { symbol });
                 mockState.currentPattern.pattern_data.forEach(measure => { delete measure[symbol]; });

@@ -117,7 +117,7 @@ export class EditingGridView {
 
     _handleClick(event) {
         const button = event.target.closest('button[data-action]');
-        if (!button) return;
+        if (!button || button.disabled) return;
 
         const action = button.dataset.action;
         logEvent('debug', 'EditingGridView', '_handleClick', 'Events', `Action button clicked: ${action}`);
@@ -142,7 +142,7 @@ export class EditingGridView {
                 const beatType = measureHeader.querySelector('[data-prop="beatType"]').value;
                 const resolution = parseInt(measureHeader.querySelector('[data-prop="resolution"]').value, 10);
                 this.callbacks.onMeasureUpdate?.({ measureIndex, metric: `${beats}/${beatType}`, resolution });
-                button.remove(); // Remove apply button after clicking
+                button.disabled = true; // Disable apply button after clicking
                 break;
             }
         }
@@ -152,12 +152,9 @@ export class EditingGridView {
         const target = event.target;
         if (target.matches('.metric-input, .resolution-select')) {
             const measureHeader = target.closest('.measure-header');
-            if (!measureHeader.querySelector('[data-action="apply-metric"]')) {
-                const applyBtn = document.createElement('button');
-                applyBtn.dataset.action = 'apply-metric';
-                applyBtn.className = 'apply-btn';
-                applyBtn.textContent = 'Apply';
-                measureHeader.appendChild(applyBtn);
+            const applyBtn = measureHeader.querySelector('[data-action="apply-metric"]');
+            if (applyBtn) {
+                applyBtn.disabled = false;
             }
         }
     }
