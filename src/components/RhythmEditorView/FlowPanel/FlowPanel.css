@@ -45,12 +45,14 @@
 }
 
 .flow-list {
-    flex-grow: 1;
-    overflow-y: auto;
     /* --- THE FIX IS HERE --- */
-    /* Override the default flexbox behavior that prevents the container from shrinking below its content size. */
-    /* This allows the overflow property to work correctly. */
+    /* Use the shorthand 'flex: 1' to allow the list to grow and shrink. */
+    /* 'min-height: 0' is the key to allowing the container to shrink smaller than its content, */
+    /* which forces the content to overflow and trigger the scrollbar. */
+    flex: 1 1 0;
     min-height: 0;
+    overflow-y: auto;
+    
     scrollbar-width: thin;
     scrollbar-color: rgba(0, 0, 0, 0.3) transparent;
 }
