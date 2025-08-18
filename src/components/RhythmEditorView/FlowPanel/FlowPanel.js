@@ -46,28 +46,63 @@ export class FlowPanel {
             </div>
         `;
 
+        // Set up the custom scrollbar after DOM is ready
         const flowList = this.container.querySelector('.flow-list');
         if (flowList) {
-            // Enable native scrolling but hide the native scrollbar
-            flowList.style.overflowY = 'auto';
-            flowList.style.scrollbarWidth = 'none';
-            flowList.style.msOverflowStyle = 'none';
+            // Create the custom scrollbar elements
+            this.createCustomScrollbar(flowList);
+            
+            // Remove existing scroll listener if it exists
+            if (this.scrollHandler) {
+                flowList.removeEventListener('scroll', this.scrollHandler);
+            }
             
             // Add scroll event listener for custom scrollbar
-            flowList.addEventListener('scroll', () => this.updateCustomScrollbar());
+            this.scrollHandler = () => this.updateCustomScrollbar();
+            flowList.addEventListener('scroll', this.scrollHandler);
             
             // Initial scrollbar update
             setTimeout(() => this.updateCustomScrollbar(), 0);
         }
 
         if (scrollToLast) {
-            setTimeout(() => this.container.querySelector('.flow-list')?.scrollTo({ top: 9999, behavior: 'smooth' }), 50);
+            setTimeout(() => flowList?.scrollTo({ top: 9999, behavior: 'smooth' }), 50);
         }
     }
     
+    createCustomScrollbar(flowList) {
+        // Remove existing custom scrollbar if it exists
+        const existingScrollbar = flowList.querySelector('.custom-scrollbar');
+        if (existingScrollbar) {
+            existingScrollbar.remove();
+        }
+        
+        // Create scrollbar container
+        const scrollbarContainer = document.createElement('div');
+        scrollbarContainer.className = 'custom-scrollbar';
+        
+        // Create scrollbar track
+        const scrollbarTrack = document.createElement('div');
+        scrollbarTrack.className = 'custom-scrollbar-track';
+        
+        // Create scrollbar thumb
+        const scrollbarThumb = document.createElement('div');
+        scrollbarThumb.className = 'custom-scrollbar-thumb';
+        
+        // Assemble the scrollbar
+        scrollbarContainer.appendChild(scrollbarTrack);
+        scrollbarContainer.appendChild(scrollbarThumb);
+        flowList.appendChild(scrollbarContainer);
+        
+        return { container: scrollbarContainer, track: scrollbarTrack, thumb: scrollbarThumb };
+    }
+
     updateCustomScrollbar() {
         const flowList = this.container.querySelector('.flow-list');
         if (!flowList) return;
+        
+        const scrollbarThumb = flowList.querySelector('.custom-scrollbar-thumb');
+        if (!scrollbarThumb) return;
         
         const scrollHeight = flowList.scrollHeight;
         const clientHeight = flowList.clientHeight;
@@ -77,15 +112,15 @@ export class FlowPanel {
         const scrollRatio = clientHeight / scrollHeight;
         const thumbHeight = Math.max(20, clientHeight * scrollRatio);
         const maxThumbTop = clientHeight - thumbHeight;
-        const thumbTop = (scrollTop / (scrollHeight - clientHeight)) * maxThumbTop;
+        const thumbTop = scrollHeight > clientHeight ? (scrollTop / (scrollHeight - clientHeight)) * maxThumbTop : 0;
         
-        // Update CSS custom properties for the scrollbar
-        flowList.style.setProperty('--scrollbar-thumb-height', `${thumbHeight}px`);
-        flowList.style.setProperty('--scrollbar-thumb-top', `${thumbTop}px`);
+        // Update scrollbar thumb
+        scrollbarThumb.style.height = `${thumbHeight}px`;
+        scrollbarThumb.style.top = `${thumbTop}px`;
         
         // Show/hide scrollbar based on content
         const needsScrollbar = scrollHeight > clientHeight;
-        flowList.style.setProperty('--scrollbar-opacity', needsScrollbar ? '1' : '0.3');
+        scrollbarThumb.style.opacity = needsScrollbar ? '1' : '0.3';
     }
 
     // --- MODIFICATION: Replaced handleClick and handleDocumentClick with this single method ---
