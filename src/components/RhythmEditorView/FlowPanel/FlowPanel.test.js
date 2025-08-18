@@ -26,11 +26,12 @@ export async function run() {
             runner.expect(testContainer.querySelectorAll('.flow-item').length).toBe(2);
         });
 
-        runner.it('should apply "is-expanded" class when pinned', () => {
+        runner.it('should apply "is-pinned" class when pinned', () => {
             testContainer.innerHTML = '';
             const view = new FlowPanel(testContainer, {});
+            // --- FIX: Check for the new class name ---
             view.render(getMockState({ isPinned: true }));
-            runner.expect(testContainer.classList.contains('is-expanded')).toBe(true);
+            runner.expect(testContainer.classList.contains('is-pinned')).toBe(true);
         });
     });
 
