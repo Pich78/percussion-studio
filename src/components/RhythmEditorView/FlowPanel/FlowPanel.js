@@ -120,9 +120,4 @@ export class FlowPanel {
             this.draggedIndex = null;
         }
     }
-}```
-
-This new implementation ensures that:
-1.  Any click inside the panel will "pin" it, causing it to stay open.
-2.  Any subsequent click outside the panel will "unpin" it, allowing it to collapse when the mouse leaves.
-3.  The specific actions for buttons and items inside the panel still work as expected.
+}
