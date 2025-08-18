@@ -23,10 +23,7 @@
             <hr class="mv4"/>
             <h1 class="f2 b mb3 bb pb2">Live View Workbench</h1>
             <p class="f6 gray mb3">
-                Interact with the grid below.
-                <br><b>- Tap an empty cell</b> to add the active note (shown by cursor).
-                <br><b>- Tap a note</b> to delete it.
-                <br><b>- Press and hold</b> to open the radial menu to select a new active sound.
+                Full structural editing is now enabled. Try adding/removing measures and instruments.
             </p>
             <div id="view-container" class="bg-white shadow-2 pa3 mb3"></div>
             <div id="callback-log" class="f7 code pa2 bg-washed-yellow mt3 h4 overflow-y-auto">Callbacks will appear here.</div>
@@ -51,7 +48,6 @@
 
         document.getElementById('run-tests-btn').addEventListener('click', run);
         
-        // --- Mock Data ---
         const openSvg = '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" stroke="black" stroke-width="8" fill="none"/></svg>';
         const slapSvg = '<svg viewBox="0 0 100 100"><line x1="10" y1="10" x2="90" y2="90" stroke="black" stroke-width="8"/><line x1="10" y1="90" x2="90" y2="10" stroke="black" stroke-width="8"/></svg>';
         
@@ -61,21 +57,15 @@
                 pattern_data: [] // Start in zero state
             },
             resolvedInstruments: {
-                KCK: { 
-                    symbol: 'KCK', name: 'Kick Drum', 
-                    sounds: [{ letter: 'o', name: 'Open', svg: openSvg }] 
-                },
-                SNR: { 
-                    symbol: 'SNR', name: 'Snare Drum', 
-                    sounds: [{ letter: 'x', name: 'Hit', svg: slapSvg }, { letter: 'r', name: 'Rimshot', svg: openSvg }]
-                }
+                KCK: { symbol: 'KCK', name: 'Kick', sounds: [{ letter: 'o', name: 'Open', svg: openSvg }] },
+                SNR: { symbol: 'SNR', name: 'Snare', sounds: [{ letter: 'x', name: 'Hit', svg: slapSvg }, { letter: 'r', name: 'Rimshot', svg: openSvg }] }
             }
         };
 
         const container = document.getElementById('view-container');
         const callbackLogEl = document.getElementById('callback-log');
         
-        const logCallback = (name, data) => {
+        const logCallback = (name, data = {}) => {
             logEvent('info', 'Harness', name, 'Callback', `Fired with:`, data);
             const entry = document.createElement('div');
             entry.textContent = `[${name}] ${JSON.stringify(data)}`;
@@ -86,26 +76,45 @@
         const view = new EditingGridView(container, {
             onNoteEdit: (data) => {
                 logCallback('onNoteEdit', data);
-                // --- Simulate state update ---
                 const { action, symbol, tickIndex, measureIndex, soundLetter } = data;
                 const pattern = mockState.currentPattern.pattern_data[measureIndex][symbol];
                 const chars = pattern.replace(/\|/g, '').split('');
-                
-                if (action === 'add' || action === 'set') {
-                    chars[tickIndex] = soundLetter;
-                } else if (action === 'delete') {
-                    chars[tickIndex] = '-';
-                }
-                
+                if (action === 'add' || action === 'set') chars[tickIndex] = soundLetter;
+                else if (action === 'delete') chars[tickIndex] = '-';
                 mockState.currentPattern.pattern_data[measureIndex][symbol] = `||${chars.join('')}||`;
                 rerender();
             },
             onMeasureAdd: () => {
-                logCallback('onMeasureAdd', {});
-                mockState.currentPattern.pattern_data.push({
-                    KCK: '||----------------||',
-                    SNR: '||----------------||'
+                logCallback('onMeasureAdd');
+                const newMeasure = {};
+                // Add all existing instruments to the new measure
+                const existingSymbols = Object.keys(mockState.currentPattern.pattern_data[0] || mockState.resolvedInstruments);
+                existingSymbols.forEach(symbol => { newMeasure[symbol] = '||----------------||' });
+                mockState.currentPattern.pattern_data.push(newMeasure);
+                rerender();
+            },
+            onMeasureRemove: ({ measureIndex }) => {
+                logCallback('onMeasureRemove', { measureIndex });
+                mockState.currentPattern.pattern_data.splice(measureIndex, 1);
+                rerender();
+            },
+            onInstrumentAdd: () => {
+                logCallback('onInstrumentAdd');
+                alert("This would open the InstrumentSelectionModalView. For this harness, we'll add a mock 'Hi-Hat' instrument.");
+                // Simulate adding a new instrument to the state
+                mockState.resolvedInstruments['HHC'] = { symbol: 'HHC', name: 'Hi-Hat', sounds: [{ letter: 'c', svg: slapSvg }] };
+                mockState.currentPattern.pattern_data.forEach(measure => {
+                    measure['HHC'] = '||----------------||';
                 });
+                rerender();
+            },
+            onInstrumentRemove: ({ symbol }) => {
+                logCallback('onInstrumentRemove', { symbol });
+                mockState.currentPattern.pattern_data.forEach(measure => {
+                    delete measure[symbol];
+                });
+                // In a real app, you might not delete from resolvedInstruments unless it's no longer used anywhere.
+                // delete mockState.resolvedInstruments[symbol];
                 rerender();
             }
         });

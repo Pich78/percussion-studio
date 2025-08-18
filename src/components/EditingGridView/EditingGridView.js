@@ -22,11 +22,13 @@ export class EditingGridView {
         this._initCustomCursor();
 
         // Bind event handlers
+        this._handleClick = this._handleClick.bind(this);
         this._handleMouseDown = this._handleMouseDown.bind(this);
         this._handleMouseUp = this._handleMouseUp.bind(this);
         this._handleMouseLeave = this._handleMouseLeave.bind(this);
         this._handleMouseMove = this._handleMouseMove.bind(this);
 
+        this.container.addEventListener('click', this._handleClick);
         this.container.addEventListener('mousedown', this._handleMouseDown);
         this.container.addEventListener('mouseup', this._handleMouseUp);
         this.container.addEventListener('mouseleave', this._handleMouseLeave);
@@ -37,26 +39,25 @@ export class EditingGridView {
 
     render(state) {
         logEvent('debug', 'EditingGridView', 'render', 'State', 'Rendering with state:', state);
-        const { currentPattern, resolvedInstruments } = state;
         this.state = state; // Keep a reference to the full state for internal use
 
         this.container.innerHTML = ''; // Clear previous content
 
-        if (!currentPattern || !currentPattern.pattern_data || currentPattern.pattern_data.length === 0) {
+        if (!state.currentPattern || !state.currentPattern.pattern_data || state.currentPattern.pattern_data.length === 0) {
             this._renderZeroState();
             return;
         }
 
         // Initialize active sounds if not already set
-        if (resolvedInstruments) {
-            Object.values(resolvedInstruments).forEach(inst => {
+        if (state.resolvedInstruments) {
+            Object.values(state.resolvedInstruments).forEach(inst => {
                 if (!this.activeSounds[inst.symbol] && inst.sounds.length > 0) {
                     this.activeSounds[inst.symbol] = inst.sounds[0].letter; // Default to first sound
                 }
             });
         }
         
-        const gridFragment = this._buildGrid(currentPattern, resolvedInstruments);
+        const gridFragment = this._buildGrid(state.currentPattern, state.resolvedInstruments);
         this.container.appendChild(gridFragment);
     }
 
@@ -70,24 +71,32 @@ export class EditingGridView {
                 <span class="plus-icon">+</span> Add First Measure
             </button>
         `;
-        zeroStateEl.querySelector('button').onclick = () => this.callbacks.onMeasureAdd?.();
         this.container.appendChild(zeroStateEl);
     }
     
     _buildGrid(pattern, instruments) {
         const fragment = document.createDocumentFragment();
         
+        // Render Measures and Instrument Rows
         pattern.pattern_data.forEach((measureData, measureIndex) => {
             const measureEl = TubsGridRenderer.createMeasureContainer();
             measureEl.dataset.measureIndex = measureIndex;
-            measureEl.appendChild(TubsGridRenderer.createMeasureHeader(pattern.metadata));
+            
+            // Add editable measure header with remove button
+            const measureHeader = TubsGridRenderer.createMeasureHeader(pattern.metadata);
+            measureHeader.innerHTML += `<button class="remove-btn" data-action="remove-measure" title="Remove measure">×</button>`;
+            measureEl.appendChild(measureHeader);
 
             const instrumentSymbols = Object.keys(measureData);
             instrumentSymbols.forEach(symbol => {
                 const instrument = instruments[symbol];
                 const notation = measureData[symbol].replace(/\|/g, '');
                 const rowEl = TubsGridRenderer.createInstrumentRow(symbol);
-                rowEl.appendChild(TubsGridRenderer.createInstrumentHeader(instrument.name));
+                
+                // Add instrument header with remove button
+                const instHeader = TubsGridRenderer.createInstrumentHeader(instrument.name);
+                instHeader.innerHTML += `<button class="remove-btn" data-action="remove-instrument" title="Remove instrument track">×</button>`;
+                rowEl.appendChild(instHeader);
 
                 for (let i = 0; i < notation.length; i++) {
                     const cellEl = TubsGridRenderer.createGridCell(i);
@@ -104,10 +113,51 @@ export class EditingGridView {
             });
             fragment.appendChild(measureEl);
         });
+
+        // Render "Add Instrument" row
+        const addInstrumentRow = document.createElement('div');
+        addInstrumentRow.className = 'add-instrument-row';
+        addInstrumentRow.innerHTML = `<button data-action="add-instrument">+ Add Instrument</button>`;
+        fragment.appendChild(addInstrumentRow);
+        
+        // Render "Add Measure" button at the very bottom
+        const addMeasureBtn = document.createElement('button');
+        addMeasureBtn.className = 'add-measure-btn bottom-btn';
+        addMeasureBtn.dataset.action = 'add-measure';
+        addMeasureBtn.innerHTML = `<span class="plus-icon">+</span> Add Measure`;
+        fragment.appendChild(addMeasureBtn);
+
         return fragment;
     }
 
     // --- Event Handlers ---
+
+    _handleClick(event) {
+        const button = event.target.closest('button[data-action]');
+        if (!button) return;
+
+        const action = button.dataset.action;
+        logEvent('debug', 'EditingGridView', '_handleClick', 'Events', `Action button clicked: ${action}`);
+
+        switch (action) {
+            case 'add-measure':
+                this.callbacks.onMeasureAdd?.();
+                break;
+            case 'add-instrument':
+                this.callbacks.onInstrumentAdd?.();
+                break;
+            case 'remove-measure': {
+                const measureIndex = parseInt(button.closest('.measure-container').dataset.measureIndex, 10);
+                this.callbacks.onMeasureRemove?.({ measureIndex });
+                break;
+            }
+            case 'remove-instrument': {
+                const symbol = button.closest('.instrument-row').dataset.instrument;
+                this.callbacks.onInstrumentRemove?.({ symbol });
+                break;
+            }
+        }
+    }
 
     _handleMouseDown(event) {
         const cell = event.target.closest('.grid-cell');
@@ -130,20 +180,14 @@ export class EditingGridView {
 
     _handleMouseUp(event) {
         clearTimeout(this.holdTimeout);
-        if (this.isHolding || !this.mouseDownInfo) {
-            // If it was a hold, the radial menu handles the action.
-            // If there's no mouseDownInfo, it's an irrelevant mouseup.
-            return;
-        }
+        if (this.isHolding || !this.mouseDownInfo) return;
 
         logEvent('debug', 'EditingGridView', 'tap', 'Events', 'Tap gesture detected.');
         const { cell, symbol, tickIndex, measureIndex } = this.mouseDownInfo;
 
         if (cell.querySelector('.note')) {
-            // Cell has a note -> Delete it
             this.callbacks.onNoteEdit?.({ action: 'delete', symbol, tickIndex, measureIndex });
         } else {
-            // Cell is empty -> Add the active sound
             const soundLetter = this.activeSounds[symbol];
             this.callbacks.onNoteEdit?.({ action: 'add', symbol, tickIndex, measureIndex, soundLetter });
         }
@@ -191,15 +235,13 @@ export class EditingGridView {
     }
 
     _showRadialMenu(targetCell) {
-        this._hideRadialMenu(); // Ensure no duplicates
-        
-        const symbol = targetCell.closest('.instrument-row').dataset.instrument;
+        this._hideRadialMenu();
+        const { symbol, tickIndex, measureIndex } = this.mouseDownInfo;
         const instrument = this.state.resolvedInstruments[symbol];
         if (!instrument || instrument.sounds.length === 0) return;
 
         const menu = document.createElement('div');
         menu.className = 'radial-menu';
-        
         const rect = targetCell.getBoundingClientRect();
         menu.style.left = `${rect.left + rect.width / 2}px`;
         menu.style.top = `${rect.top + rect.height / 2}px`;
@@ -212,8 +254,7 @@ export class EditingGridView {
             item.className = 'radial-item';
             item.innerHTML = sound.svg;
             item.title = sound.name;
-
-            const angle = index * angleStep - (Math.PI / 2); // Start from top
+            const angle = index * angleStep - (Math.PI / 2);
             const x = radius * Math.cos(angle);
             const y = radius * Math.sin(angle);
             item.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px)`;
@@ -221,23 +262,16 @@ export class EditingGridView {
             item.onclick = () => {
                 logEvent('debug', 'EditingGridView', 'radialSelect', 'Events', `Selected sound: ${sound.letter}`);
                 this.activeSounds[symbol] = sound.letter;
-                this.callbacks.onNoteEdit?.({
-                    action: 'set', // 'set' implies add or change
-                    ...this.mouseDownInfo,
-                    soundLetter: sound.letter,
-                });
+                this.callbacks.onNoteEdit?.({ action: 'set', symbol, tickIndex, measureIndex, soundLetter: sound.letter });
                 this._hideRadialMenu();
             };
             menu.appendChild(item);
         });
-
         document.body.appendChild(menu);
     }
     
     _hideRadialMenu() {
         const existingMenu = document.querySelector('.radial-menu');
-        if (existingMenu) {
-            existingMenu.remove();
-        }
+        if (existingMenu) existingMenu.remove();
     }
 }
