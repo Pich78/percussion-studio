@@ -22,8 +22,10 @@ export async function run() {
     });
     
     const simulateTap = (element) => {
-        element.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, clientX: 1, clientY: 1 }));
-        element.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, clientX: 1, clientY: 1 }));
+        const event = new MouseEvent('mousedown', { bubbles: true, clientX: 1, clientY: 1 });
+        element.dispatchEvent(event);
+        const upEvent = new MouseEvent('mouseup', { bubbles: true, clientX: 1, clientY: 1 });
+        window.dispatchEvent(upEvent);
     };
 
     runner.describe('InstrumentTrackView', () => {
@@ -57,7 +59,7 @@ export async function run() {
             callbackLog.wasCalledWith('onNoteEdit', { action: 'delete', tickIndex: 0 });
         });
 
-        runner.it('should fire correct callbacks when a radial menu item is selected via drag-release', () => {
+        runner.it('should fire onActiveSoundChange callback when a radial menu item is selected via drag-release', () => {
             testContainer.innerHTML = '';
             const callbackLog = new MockLogger('Callbacks');
             const view = new InstrumentTrackView(testContainer, { 
@@ -69,8 +71,16 @@ export async function run() {
             // --- Simulate the full gesture ---
             const targetCell = testContainer.querySelector('.grid-cell[data-tick-index="1"]');
             
+            // Create a proper mock event object
+            const mockMouseDownEvent = {
+                target: targetCell,
+                clientX: 100,
+                clientY: 100,
+                preventDefault: () => {} // Add preventDefault method
+            };
+            
             // 1. Mousedown (starts the process)
-            view._handleMouseDown({ target: targetCell, clientX: 100, clientY: 100 });
+            view._handleMouseDown(mockMouseDownEvent);
             
             // 2. Manually trigger the drag state and show the menu
             view.isDragging = true;
@@ -82,8 +92,7 @@ export async function run() {
             // 4. Mouseup (completes the gesture)
             view._handleMouseUp();
             
-            // --- Assertions ---
-            callbackLog.wasCalledWith('onNoteEdit', { action: 'set', tickIndex: 1, soundLetter: 'p' });
+            // --- Assertions - only check for onActiveSoundChange since we removed onNoteEdit from radial selection ---
             callbackLog.wasCalledWith('onActiveSoundChange', 'p');
             
             view._hideRadialMenu(); // Cleanup

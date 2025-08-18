@@ -92,8 +92,8 @@ export class InstrumentTrackView {
     _handleMouseUp() {
         clearTimeout(this.holdTimeout);
         if (this.isDragging) {
+            // Only update the active sound (cursor), but don't place a note automatically
             if (this.highlightedSound) {
-                this.callbacks.onNoteEdit?.({ action: 'set', tickIndex: this.mouseDownInfo.tickIndex, soundLetter: this.highlightedSound });
                 this.callbacks.onActiveSoundChange?.(this.highlightedSound);
             }
             this._hideRadialMenu();
@@ -153,7 +153,11 @@ export class InstrumentTrackView {
                     item.classList.remove('highlighted');
                 }
             });
-            this.highlightedSound = currentlyHighlighted;
+            
+            // Only update highlighted sound if it's different
+            if (this.highlightedSound !== currentlyHighlighted) {
+                this.highlightedSound = currentlyHighlighted;
+            }
         }
     }
 
@@ -242,9 +246,13 @@ export class InstrumentTrackView {
         if (existingMenu) existingMenu.remove();
         
         // Show the custom cursor again if we're still over a grid cell
-        const elementUnderMouse = document.elementFromPoint(event?.clientX || 0, event?.clientY || 0);
-        if (elementUnderMouse?.closest('.grid-cell') && this.container.contains(elementUnderMouse)) {
-            this._updateCustomCursor();
+        try {
+            const elementUnderMouse = document.elementFromPoint(window.event?.clientX || 0, window.event?.clientY || 0);
+            if (elementUnderMouse?.closest('.grid-cell') && this.container.contains(elementUnderMouse)) {
+                this._updateCustomCursor();
+            }
+        } catch (e) {
+            // Fallback if event is not available
         }
     }
 
