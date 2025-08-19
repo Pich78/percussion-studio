@@ -12,6 +12,9 @@
             border: 1px solid #ccc;
             padding: 8px;
             background-color: #f8f8f8;
+            
+            /* --- FINAL FIX: Make the wrapper's width shrink to its content --- */
+            width: fit-content; 
         }
         .rows-inner-container {
             min-width: 100%; 
@@ -32,8 +35,7 @@
             <div class="bg-white shadow-2 pa3 mb3">
                 <h3 class="f4 b mt0">Global Controls</h3>
                 <p class="f6 gray mb3">
-                    Try different metrics. Notice how the cell size automatically adapts. 
-                    Select 32nd or 64th notes to see the softer subdivision lines appear.
+                    The outer container now correctly shrinks to fit the content.
                 </p>
                 <div class="flex items-center">
                     <div class="mr3">
@@ -109,9 +111,8 @@
             rowsContainer.innerHTML = '';
             componentInstances.clear();
             
-            // --- NEW: Calculate density based on the number of cells ---
             const totalCells = (mockState.metrics.beatsPerMeasure / mockState.metrics.beatUnit) * mockState.metrics.subdivision;
-            let densityClass = 'density-medium'; // Default
+            let densityClass = 'density-medium';
             if (totalCells <= 8) {
                 densityClass = 'density-low';
             } else if (totalCells > 20) {
@@ -133,7 +134,7 @@
                     instrument: inst,
                     notation: mockState.pattern[inst.symbol],
                     metrics: mockState.metrics,
-                    densityClass: densityClass // Pass the calculated class as a prop
+                    densityClass: densityClass
                 });
                 componentInstances.set(inst.symbol, view);
             });
