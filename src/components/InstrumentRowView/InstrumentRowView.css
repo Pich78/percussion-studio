@@ -34,13 +34,20 @@
 }
 
 .grid-cell {
-    flex: 1 1 0; /* Distribute space evenly */
-    min-width: 25px; /* Prevent cells from becoming too small */
+    /* --- MODIFIED: Cell Sizing Logic --- */
+    /* 1. Set the desired width from a variable controlled by the zoom slider. */
+    width: var(--cell-width, 40px); /* Default to 40px if variable isn't set */
+    
+    /* 2. Enforce the absolute physical limits. */
+    min-width: 25px;  /* It can never get smaller than this */
+    max-width: 120px; /* It can never get larger than this */
+
     border-left: 1px solid #eee;
     display: flex;
     justify-content: center;
     align-items: center;
     position: relative;
+    flex-shrink: 0; /* Prevent cells from shrinking below their defined width */
 }
 
 .grid-cell .note {
@@ -53,12 +60,11 @@
     height: 100%;
 }
 
-/* Style for the main beat highlights */
 .grid-cell.highlighted-beat {
     border-left: 1px solid #bbb;
     background-color: rgba(0, 0, 0, 0.02);
 }
 
 .grid-cell.highlighted-beat:first-child {
-    border-left: none; /* The row border handles the first line */
+    border-left: none;
 }

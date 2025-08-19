@@ -7,15 +7,13 @@
     <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
     <style> 
         body { font-family: sans-serif; } 
-        /* --- NEW: Styles for the scrollable container --- */
         .rows-wrapper {
-            overflow-x: auto; /* Enable horizontal scrolling */
+            overflow-x: auto;
             border: 1px solid #ccc;
             padding: 8px;
             background-color: #f8f8f8;
         }
         .rows-inner-container {
-            /* This container will grow as wide as needed */
             min-width: 100%; 
             width: fit-content;
         }
@@ -33,30 +31,32 @@
             
             <div class="bg-white shadow-2 pa3 mb3">
                 <h3 class="f4 b mt0">Global Controls</h3>
-                <p class="f6 gray mb3">
-                    Try selecting 4/4 and 64th notes. The grid will become very wide and you will be able to scroll horizontally.
-                </p>
-                <div class="flex items-center">
-                    <div class="mr3">
-                        <label class="f6 b db mb2">Time Signature</label>
-                        <input id="ts-numerator" type="number" value="4" class="w3 tc"> /
-                        <input id="ts-denominator" type="number" value="4" class="w3 tc">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <div class="mr3">
+                            <label class="f6 b db mb2">Time Signature</label>
+                            <input id="ts-numerator" type="number" value="4" class="w3 tc"> /
+                            <input id="ts-denominator" type="number" value="4" class="w3 tc">
+                        </div>
+                        <div>
+                            <label for="subdivision-select" class="f6 b db mb2">Subdivision</label>
+                            <select id="subdivision-select" class="w5">
+                                <option value="4">4th Notes</option>
+                                <option value="8">8th Notes</option>
+                                <option value="16" selected>16th Notes</option>
+                                <option value="32">32nd Notes</option>
+                                <option value="64">64th Notes</option>
+                            </select>
+                        </div>
                     </div>
-                    <div>
-                        <label for="subdivision-select" class="f6 b db mb2">Subdivision</label>
-                        <select id="subdivision-select" class="w4">
-                            <!-- NEW: Added 4th and 64th note options -->
-                            <option value="4">4th Notes</option>
-                            <option value="8">8th Notes</option>
-                            <option value="16" selected>16th Notes</option>
-                            <option value="32">32nd Notes</option>
-                            <option value="64">64th Notes</option>
-                        </select>
+                    <!-- NEW: Zoom Slider Control -->
+                    <div class="w-30">
+                        <label for="zoom-slider" class="f6 b db mb2">Zoom</label>
+                        <input id="zoom-slider" type="range" min="0.5" max="2.5" value="1" step="0.1" class="w-100">
                     </div>
                 </div>
                 <hr class="mv3"/>
-                <!-- NEW: Added a wrapper for scrolling -->
-                <div class="rows-wrapper">
+                <div id="rows-wrapper" class="rows-wrapper">
                     <div id="rows-inner-container" class="rows-inner-container">
                         <!-- InstrumentRowView components will be rendered here -->
                     </div>
@@ -85,23 +85,21 @@
 
         document.getElementById('run-tests-btn').addEventListener('click', run);
 
-        // --- MOCK DATA & STATE ---
-        const svg1 = '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" stroke="black" stroke-width="8" fill="none"/></svg>';
-        const svg2 = '<svg viewBox="0 0 100 100"><line x1="10" y1="10" x2="90" y2="90" stroke="black" stroke-width="8"/><line x1="10" y1="90" x2="90" y2="10" stroke="black" stroke-width="8"/></svg>';
-        
         let mockState = {
             instruments: [
-                { symbol: 'KCK', name: 'Kick Drum', sounds: [{letter: 'o', svg: svg1}, {letter: 'p', svg: svg2}] },
-                { symbol: 'SNR', name: 'Snare Drum', sounds: [{letter: 'x', svg: svg2}, {letter: 'r', svg: svg1}] },
+                { symbol: 'KCK', name: 'Kick Drum', sounds: [{letter: 'o', svg: '<svg>o</svg>'}, {letter: 'p', svg: '<svg>p</svg>'}] },
+                { symbol: 'SNR', name: 'Snare Drum', sounds: [{letter: 'x', svg: '<svg>x</svg>'}, {letter: 'r', svg: '<svg>r</svg>'}] },
             ],
             pattern: {
-                // Extended pattern to handle up to 64 cells
                 KCK: '||o-p-o-p-o-p-o-p-o-p-o-p-o-p-o-p-o-p-o-p-o-p-o-p-o-p-o-p-o-p-o-p-||',
                 SNR: '||----x-------x-------x-------x-------x-------x-------x-------x---||',
             },
-            metrics: {}
+            metrics: {},
+            // NEW: Zoom level state managed by the harness
+            zoomLevel: 1 
         };
 
+        const rowsWrapper = document.getElementById('rows-wrapper'); // Get the scroll container
         const rowsContainer = document.getElementById('rows-inner-container');
         const callbackLogEl = document.getElementById('callback-log');
         const componentInstances = new Map();
@@ -111,14 +109,13 @@
             entry.textContent = `[${name}] Fired with: ${JSON.stringify(data)}`;
             callbackLogEl.appendChild(entry);
             callbackLogEl.scrollTop = callbackLogEl.scrollHeight;
-            logEvent('info', 'Harness', name, 'Callback', data);
         }
 
         function rerender() {
             rowsContainer.innerHTML = '';
             componentInstances.clear();
 
-            mockState.instruments.forEach((inst, index) => {
+            mockState.instruments.forEach((inst) => {
                 const container = document.createElement('div');
                 rowsContainer.appendChild(container);
 
@@ -141,6 +138,16 @@
         const numeratorInput = document.getElementById('ts-numerator');
         const denominatorInput = document.getElementById('ts-denominator');
         const subdivisionSelect = document.getElementById('subdivision-select');
+        // NEW: Get the zoom slider element
+        const zoomSlider = document.getElementById('zoom-slider');
+
+        // NEW: Function to apply dynamic styles based on state
+        function updateStyles() {
+            const baseCellWidth = 40; // The standard width at 1x zoom
+            const newCellWidth = baseCellWidth * mockState.zoomLevel;
+            // Set the CSS variable on the container
+            rowsWrapper.style.setProperty('--cell-width', `${newCellWidth}px`);
+        }
 
         function updateMetrics() {
             const beats = parseInt(numeratorInput.value, 10) || 4;
@@ -158,15 +165,22 @@
                 subdivision: subdivision,
                 grouping: grouping
             };
-            logEvent('info', 'Harness', 'updateMetrics', 'State', 'Metrics changed', mockState.metrics);
             rerender();
         }
+
+        // NEW: Event listener for the zoom slider
+        zoomSlider.addEventListener('input', (event) => {
+            mockState.zoomLevel = parseFloat(event.target.value);
+            // We don't need to re-render the components, just update the style
+            updateStyles();
+        });
 
         [numeratorInput, denominatorInput, subdivisionSelect].forEach(el => {
             el.addEventListener('change', updateMetrics);
         });
         
-        updateMetrics();
+        updateMetrics(); // Initial render
+        updateStyles(); // Initial style application
     </script>
 </body>
 </html>
