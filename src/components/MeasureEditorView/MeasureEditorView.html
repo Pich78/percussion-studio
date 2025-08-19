@@ -9,7 +9,30 @@
     <link rel="stylesheet" href="/percussion-studio/src/components/MeasureEditorView/MeasureEditorView.css">
     <link rel="stylesheet" href="/percussion-studio/src/components/InstrumentRowView/InstrumentRowView.css">
     <link rel="stylesheet" href="/percussion-studio/src/components/InstrumentSelectionModalView/InstrumentSelectionModalView.css">
-    <style> body { font-family: sans-serif; } </style>
+    <!-- NEW: CSS for cursor and radial menu -->
+    <link rel="stylesheet" href="/percussion-studio/src/components/EditorCursor/EditorCursor.css">
+    <link rel="stylesheet" href="/percussion-studio/src/components/RadialSoundSelector/RadialSoundSelector.css">
+    <style>
+        body { font-family: sans-serif; }
+        /* --- NEW: Styles for the active tool display --- */
+        .active-tool {
+            border: 2px solid #3b82f6;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            background-color: #eff6ff;
+        }
+        .active-tool .swatch {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid #94a3b8;
+            background-color: white;
+            margin-right: 12px;
+        }
+    </style>
 </head>
 <body class="bg-light-gray pa4">
 
@@ -17,7 +40,7 @@
         <div class="w-70 pr3">
             <h1 class="f2 b mb3 bb pb2">Live View Workbench: Measure Editor</h1>
             <p class="f6 gray mb3">
-                This is a manual testing environment. Add instruments, change the time signature, and observe the component's behavior. Check the logs for detailed event information.
+                This is a manual testing environment. Click to add/remove notes. Click-and-hold on a note to open the sound selector. Use the controls to change metrics.
             </p>
             <div class="bg-white shadow-2 pa3 mb3">
                 <div id="measure-editor-container">

@@ -47,6 +47,21 @@ export class MeasureEditorView {
         logEvent('info', 'MeasureEditorView', 'constructor', 'Lifecycle', 'Component created.');
     }
 
+    /**
+     * [NEW] Public method to programmatically set the instruments and re-render.
+     * This is essential for a parent controller to update patterns or instrument lists.
+     * @param {Array} instruments - The new array of instrument objects.
+     */
+    setInstruments(instruments) {
+        if (!Array.isArray(instruments)) {
+            logEvent('error', 'MeasureEditorView', 'setInstruments', 'State', 'Invalid data provided. Expected an array.');
+            return;
+        }
+        this.state.instruments = instruments;
+        logEvent('info', 'MeasureEditorView', 'setInstruments', 'State', 'Instrument data updated.', { count: instruments.length });
+        this.render();
+    }
+
     render() {
         this.container.innerHTML = '';
         this.container.className = 'measure-editor-view';
@@ -113,22 +128,26 @@ export class MeasureEditorView {
         const { beatsPerMeasure, beatUnit, subdivision } = this.state.metrics;
 
         header.innerHTML = `
-            <div class="flex items-center">
-                <div class="mr3">
-                    <label class="f6 b db mb2">Time Signature</label>
-                    <input data-metric="numerator" type="number" value="${beatsPerMeasure}" class="w3 tc"> /
-                    <input data-metric="denominator" type="number" value="${beatUnit}" class="w3 tc">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <div class="mr3">
+                        <label class="f6 b db mb2">Time Signature</label>
+                        <input data-metric="numerator" type="number" value="${beatsPerMeasure}" class="w3 tc"> /
+                        <input data-metric="denominator" type="number" value="${beatUnit}" class="w3 tc">
+                    </div>
+                    <div>
+                        <label class="f6 b db mb2">Subdivision</label>
+                        <select data-metric="subdivision" class="w5">
+                            <option value="4" ${subdivision === 4 ? 'selected' : ''}>4th Notes</option>
+                            <option value="8" ${subdivision === 8 ? 'selected' : ''}>8th Notes</option>
+                            <option value="16" ${subdivision === 16 ? 'selected' : ''}>16th Notes</option>
+                            <option value="32" ${subdivision === 32 ? 'selected' : ''}>32nd Notes</option>
+                            <option value="64" ${subdivision === 64 ? 'selected' : ''}>64th Notes</option>
+                        </select>
+                    </div>
                 </div>
-                <div>
-                    <label class="f6 b db mb2">Subdivision</label>
-                    <select data-metric="subdivision" class="w5">
-                        <option value="4" ${subdivision === 4 ? 'selected' : ''}>4th Notes</option>
-                        <option value="8" ${subdivision === 8 ? 'selected' : ''}>8th Notes</option>
-                        <option value="16" ${subdivision === 16 ? 'selected' : ''}>16th Notes</option>
-                        <option value="32" ${subdivision === 32 ? 'selected' : ''}>32nd Notes</option>
-                        <option value="64" ${subdivision === 64 ? 'selected' : ''}>64th Notes</option>
-                    </select>
-                </div>
+                <!-- Placeholder for Active Tool display -->
+                <div id="active-tool-container"></div>
             </div>
         `;
         return header;
