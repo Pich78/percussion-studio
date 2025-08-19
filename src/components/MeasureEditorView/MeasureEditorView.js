@@ -10,10 +10,8 @@ export class MeasureEditorView {
         this.container = container;
         this.callbacks = { onMetricsChange }; 
 
-        // --- STATE MANAGEMENT ---
         this.state = {
             instruments: [],
-            // Default metrics are now part of this component's internal state
             metrics: { beatsPerMeasure: 4, beatUnit: 4, subdivision: 16, grouping: 4 },
             manifest: { instrumentDefs, soundPacks }
         };
@@ -21,9 +19,7 @@ export class MeasureEditorView {
         loadCSS('/percussion-studio/src/components/MeasureEditorView/MeasureEditorView.css');
         
         const modalContainerEl = document.getElementById('modal-container');
-        if (!modalContainerEl) {
-            throw new Error('MeasureEditorView requires a DOM element with id="modal-container" to exist.');
-        }
+        if (!modalContainerEl) throw new Error('MeasureEditorView requires a DOM element with id="modal-container" to exist.');
         
         this.instrumentModal = new InstrumentSelectionModalView(
             modalContainerEl,
@@ -33,7 +29,6 @@ export class MeasureEditorView {
         this._boundHandleClick = this._handleClick.bind(this);
         this.container.addEventListener('click', this._boundHandleClick);
         
-        // --- NEW: Listener for metric control changes ---
         this._boundHandleMetricsChange = this._handleMetricsChange.bind(this);
         this.container.addEventListener('change', this._boundHandleMetricsChange);
 
@@ -45,11 +40,16 @@ export class MeasureEditorView {
         this.container.innerHTML = '';
         this.container.className = 'measure-editor-view';
 
-        // --- NEW: Render the header with metric controls ---
         this.container.appendChild(this._renderHeaderControls());
 
-        // --- Render Instrument Rows ---
-        const rowsContainer = document.createElement('div');
+        // --- NEW: Create the scrolling wrapper structure ---
+        const scrollingWrapper = document.createElement('div');
+        scrollingWrapper.className = 'measure-rows-wrapper';
+
+        const innerContainer = document.createElement('div');
+        innerContainer.className = 'measure-rows-inner-container';
+
+        // --- Render Instrument Rows into the INNER container ---
         this.state.instruments.forEach(instrument => {
             const rowWrapper = document.createElement('div');
             rowWrapper.className = 'measure-instrument-row';
@@ -75,11 +75,14 @@ export class MeasureEditorView {
             
             rowWrapper.appendChild(viewContainer);
             rowWrapper.appendChild(deleteBtn);
-            rowsContainer.appendChild(rowWrapper);
+            innerContainer.appendChild(rowWrapper); // Append to the inner container
         });
-        this.container.appendChild(rowsContainer);
 
-        // --- Render "Add Instrument" Button ---
+        // --- Assemble the scrolling structure ---
+        scrollingWrapper.appendChild(innerContainer);
+        this.container.appendChild(scrollingWrapper);
+
+        // --- Render "Add Instrument" Button (after the wrapper) ---
         const addBtnContainer = document.createElement('div');
         addBtnContainer.className = 'add-instrument-container';
         const addBtn = document.createElement('button');

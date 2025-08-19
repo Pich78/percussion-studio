@@ -4,21 +4,38 @@
     /* Main container for the whole component */
 }
 
-/* NEW: Styles for the header controls */
 .measure-editor-header {
     padding-bottom: 12px;
     margin-bottom: 12px;
     border-bottom: 1px solid #eee;
 }
 
-.measure-instrument-row {
-    display: flex;
-    align-items: center;
-    margin-bottom: 8px;
+/* --- NEW: Styles for the scrolling wrapper --- */
+.measure-rows-wrapper {
+    overflow-x: auto;
+    border: 1px solid #eee;
+    padding: 8px;
+    background-color: #fafafa;
 }
 
+.measure-rows-inner-container {
+    width: fit-content;
+}
+
+
+.measure-instrument-row {
+    display: flex;
+    align-items: center; 
+    margin-bottom: 8px;
+}
+/* Remove margin from the last row inside the container */
+.measure-instrument-row:last-child {
+    margin-bottom: 0;
+}
+
+
 .instrument-row-container {
-    flex-grow: 1; /* Allow the InstrumentRowView to take up most of the space */
+    flex-grow: 1;
 }
 
 .delete-row-btn {
@@ -30,7 +47,7 @@
     border: 1px solid #ccc;
     background-color: #f0f0f0;
     cursor: pointer;
-    color: #888; /* Gray X */
+    color: #888;
     font-size: 20px;
     line-height: 24px;
     display: flex;
@@ -40,14 +57,13 @@
 }
 
 .delete-row-btn:hover {
-    color: #fff; /* White X */
-    background-color: #e53935; /* Red background */
+    color: #fff;
+    background-color: #e53935;
     border-color: #d32f2f;
 }
 
 .add-instrument-container {
     padding-top: 8px;
-    border-top: 1px dashed #ccc;
 }
 
 .add-instrument-btn {
@@ -63,7 +79,7 @@
 }
 
 .add-instrument-btn:hover {
-    background-color: #e8f5e9; /* Light green */
-    color: #2e7d32; /* Dark green */
+    background-color: #e8f5e9;
+    color: #2e7d32;
     border-color: #a5d6a7;
 }
