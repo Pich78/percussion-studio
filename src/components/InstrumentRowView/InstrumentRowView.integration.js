@@ -101,10 +101,15 @@ function logCallback(name, data) {
     callbackLogEl.scrollTop = callbackLogEl.scrollHeight;
 }
 
+// --- MODIFIED: Added a line to update the cursor ---
 function setActiveTool(instrumentSymbol, soundLetter) {
     mockState.activeTool = { instrumentSymbol, soundLetter };
     updateActiveToolUI();
     logEvent('info', 'Workbench', 'setActiveTool', 'State', `Active tool changed to ${instrumentSymbol} -> ${soundLetter}`);
+
+    // FIX: Immediately update the visual cursor with the new tool's SVG.
+    // This ensures the cursor reflects the new tool even if the mouse doesn't move.
+    editorCursor.update({ isVisible: true, svg: getActiveSoundSVG() });
 }
 
 function updateActiveToolUI() {
@@ -150,7 +155,6 @@ function rerender() {
                 clearTimeout(holdTimeout);
                 mouseDownInfo = { instrument, tickIndex, hasNote };
 
-                // Only set up a hold timeout if the instrument has multiple sounds to choose from
                 if (instrument.sounds.length > 1) {
                     holdTimeout = setTimeout(() => {
                         logEvent('info', 'Workbench', 'holdAction', 'Events', 'Hold detected, showing radial menu.');
@@ -161,30 +165,24 @@ function rerender() {
                             sounds: instrument.sounds,
                             activeSoundLetter: mockState.activeTool.soundLetter
                         });
-                        mouseDownInfo = null; // Invalidate the click action
+                        mouseDownInfo = null;
                     }, HOLD_DURATION_MS);
                 }
             },
-            // --- MODIFIED: Rewritten to be a simple toggle ---
             onCellMouseUp: (tickIndex, event) => {
                 logCallback('onCellMouseUp', { tickIndex });
                 clearTimeout(holdTimeout);
-
                 if (mouseDownInfo) {
                     logEvent('info', 'Workbench', 'clickAction', 'Events', 'Click detected, performing toggle edit.');
                     const { instrument, hasNote } = mouseDownInfo;
                     const instrumentSymbol = instrument.symbol;
-
                     let patternStr = (mockState.pattern[instrumentSymbol] || '').replace(/\|/g, '');
                     let patternArr = patternStr.split('');
                     
                     if (hasNote) {
-                        // If the cell had a note, clear it.
                         patternArr[tickIndex] = '-';
                         logEvent('debug', 'Workbench', 'toggle', 'State', `Deleting note at ${instrumentSymbol}[${tickIndex}]`);
                     } else {
-                        // If the cell was empty, add a note using the active tool.
-                        // For single-sound instruments, this will be its only sound.
                         const soundLetter = (instrument.sounds.length > 1)
                             ? mockState.activeTool.soundLetter
                             : instrument.sounds[0].letter;
@@ -195,7 +193,7 @@ function rerender() {
                     mockState.pattern[instrumentSymbol] = '||' + patternArr.join('') + '||';
                     rerender();
                 }
-                mouseDownInfo = null; // Reset for the next interaction
+                mouseDownInfo = null;
             },
         });
 
