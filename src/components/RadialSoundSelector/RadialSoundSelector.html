@@ -21,15 +21,24 @@
             
             <div class="bg-white shadow-2 pa3 mb3">
                 <h3 class="f4 b mt0">Controls</h3>
-                <p>Click a button to show the radial menu at a specific location with pre-defined sounds.</p>
+                <p class="f6">1. Click a button below to choose which set of sounds will appear in the menu.</p>
+                <p class="f6">2. Press and <strong>hold the mouse down</strong> on the gray canvas area to open the menu.</p>
                 <div class="mb3">
-                    <button id="btn-show-2" class="pv2 ph3 bn br2 bg-light-blue white pointer mr2 mb2">Show 2-Sound Menu at (300, 300)</button>
-                    <button id="btn-show-3" class="pv2 ph3 bn br2 bg-teal white pointer mr2 mb2">Show 3-Sound Menu at (450, 300)</button>
-                    <button id="btn-show-4" class="pv2 ph3 bn br2 bg-light-purple white pointer mr2 mb2">Show 4-Sound Menu at (600, 350)</button>
-                    <button id="btn-show-5" class="pv2 ph3 bn br2 bg-purple white pointer mb2">Show 5-Sound Menu at (750, 300)</button>
+                    <button id="btn-set-2" class="pv2 ph3 bn br2 bg-blue white pointer mr2">Set 1 (2 Sounds)</button>
+                    <button id="btn-set-3" class="pv2 ph3 bn br2 bg-blue white pointer mr2">Set 2 (3 Sounds)</button>
+                    <button id="btn-set-4" class="pv2 ph3 bn br2 bg-blue white pointer mr2">Set 3 (4 Sounds)</button>
+                    <button id="btn-set-5" class="pv2 ph3 bn br2 bg-blue white pointer">Set 4 (5 Sounds)</button>
+                </div>
+                <div class="mt3">
+                    <p class="f6 code" id="active-sound-display">Active Sound: o</p>
                 </div>
             </div>
             
+            <!-- This is the area where the press-and-hold interaction works -->
+            <div id="interaction-canvas" class="bg-white shadow-2 pa3 mt4 flex items-center justify-center" style="height: 300px; border: 2px dashed #ccc; cursor: crosshair;">
+                <p class="tc gray b">Press and hold here to test the radial menu.</p>
+            </div>
+
             <div id="callback-log" class="f7 code pa2 bg-washed-yellow mt3 h4 overflow-y-auto">Callbacks will appear here.</div>
         </div>
         <div class="w-30 pl3">
@@ -60,12 +69,22 @@
         const svg4 = '<svg viewBox="0 0 100 100"><polygon points="50,10 90,90 10,90" stroke="black" stroke-width="8" fill="none"/></svg>';
         const svg5 = '<svg viewBox="0 0 100 100"><polygon points="50,10 90,50 50,90 10,50" stroke="black" stroke-width="8" fill="none"/></svg>';
 
-        const twoSounds = [{letter: 'o', svg: svg1}, {letter: 'p', svg: svg2}];
-        const threeSounds = [{letter: 'q', svg: svg1}, {letter: 'r', svg: svg2}, {letter: 's', svg: svg3}];
-        const fourSounds = [{letter: 't', svg: svg1}, {letter: 'u', svg: svg2}, {letter: 'v', svg: svg3}, {letter: 'w', svg: svg4}];
-        const fiveSounds = [{letter: 'a', svg: svg1}, {letter: 'b', svg: svg2}, {letter: 'c', svg: svg3}, {letter: 'd', svg: svg4}, {letter: 'e', svg: svg5}];
-        
+        const soundSets = {
+            set2: [{letter: 'o', svg: svg1}, {letter: 'p', svg: svg2}],
+            set3: [{letter: 'q', svg: svg1}, {letter: 'r', svg: svg2}, {letter: 's', svg: svg3}],
+            set4: [{letter: 't', svg: svg1}, {letter: 'u', svg: svg2}, {letter: 'v', svg: svg3}, {letter: 'w', svg: svg4}],
+            set5: [{letter: 'a', svg: svg1}, {letter: 'b', svg: svg2}, {letter: 'c', svg: svg3}, {letter: 'd', svg: svg4}, {letter: 'e', svg: svg5}]
+        };
+
         const callbackLogEl = document.getElementById('callback-log');
+        const activeSoundDisplayEl = document.getElementById('active-sound-display');
+        const canvasEl = document.getElementById('interaction-canvas');
+        const HOLD_DURATION_MS = 200;
+
+        // --- STATE MANAGEMENT ---
+        let activeSoundSet = soundSets.set2;
+        let activeSoundLetter = soundSets.set2[0].letter;
+        let holdTimeout = null;
         
         function logCallback(name, data) {
             const entry = document.createElement('div');
@@ -75,53 +94,72 @@
             logEvent('info', 'Harness', name, 'Callback', data);
         }
 
-        // The harness (parent controller) instantiates the component ONCE
+        function updateActiveSoundDisplay() {
+            activeSoundDisplayEl.textContent = `Active Sound: ${activeSoundLetter}`;
+            logEvent('info', 'Harness', 'updateState', 'StateChange', `Active sound is now '${activeSoundLetter}' from a set of ${activeSoundSet.length}.`);
+        }
+
+        // --- COMPONENT INSTANTIATION ---
         const radialMenu = new RadialSoundSelector({
             onSoundSelected: (selectedLetter) => {
                 logCallback('onSoundSelected', selectedLetter);
-                // The owner is responsible for hiding the menu after a selection
+                // Update the "active" sound, like changing the brush tip
+                activeSoundLetter = selectedLetter;
+                updateActiveSoundDisplay();
+                // The owner is responsible for hiding the menu
                 radialMenu.hide();
             }
         });
 
         // --- EVENT LISTENERS ---
-        document.getElementById('btn-show-2').addEventListener('click', () => {
-            logEvent('info', 'Harness', 'click', 'UserAction', 'Showing 2-sound menu.');
-            radialMenu.show({
-                x: 300, y: 300,
-                sounds: twoSounds,
-                activeSoundLetter: 'o'
-            });
+
+        // Listeners for the buttons to change the active sound set
+        document.getElementById('btn-set-2').addEventListener('click', () => {
+            activeSoundSet = soundSets.set2;
+            activeSoundLetter = activeSoundSet[0].letter;
+            updateActiveSoundDisplay();
+        });
+        document.getElementById('btn-set-3').addEventListener('click', () => {
+            activeSoundSet = soundSets.set3;
+            activeSoundLetter = activeSoundSet[0].letter;
+            updateActiveSoundDisplay();
+        });
+        document.getElementById('btn-set-4').addEventListener('click', () => {
+            activeSoundSet = soundSets.set4;
+            activeSoundLetter = activeSoundSet[0].letter;
+            updateActiveSoundDisplay();
+        });
+        document.getElementById('btn-set-5').addEventListener('click', () => {
+            activeSoundSet = soundSets.set5;
+            activeSoundLetter = activeSoundSet[0].letter;
+            updateActiveSoundDisplay();
         });
 
-        document.getElementById('btn-show-3').addEventListener('click', () => {
-            logEvent('info', 'Harness', 'click', 'UserAction', 'Showing 3-sound menu.');
-            radialMenu.show({
-                x: 450, y: 300,
-                sounds: threeSounds,
-                activeSoundLetter: 'q'
-            });
+        // Listeners for the press-and-hold interaction on the canvas
+        canvasEl.addEventListener('mousedown', (event) => {
+            event.preventDefault(); // Prevents text selection
+            
+            holdTimeout = setTimeout(() => {
+                logEvent('info', 'Harness', 'hold', 'UserAction', 'Hold detected, showing radial menu.');
+                radialMenu.show({
+                    x: event.clientX, y: event.clientY,
+                    sounds: activeSoundSet,
+                    activeSoundLetter: activeSoundLetter
+                });
+                holdTimeout = null; // Clear after running
+            }, HOLD_DURATION_MS);
         });
 
-        document.getElementById('btn-show-4').addEventListener('click', () => {
-            logEvent('info', 'Harness', 'click', 'UserAction', 'Showing 4-sound menu.');
-            radialMenu.show({
-                x: 600, y: 350,
-                sounds: fourSounds,
-                activeSoundLetter: 't'
-            });
-        });
-
-        document.getElementById('btn-show-5').addEventListener('click', () => {
-            logEvent('info', 'Harness', 'click', 'UserAction', 'Showing 5-sound menu.');
-            radialMenu.show({
-                x: 750, y: 300,
-                sounds: fiveSounds,
-                activeSoundLetter: 'a'
-            });
+        // Listen on the window to ensure we always catch the mouseup event
+        window.addEventListener('mouseup', () => {
+            if (holdTimeout) {
+                clearTimeout(holdTimeout);
+                logEvent('debug', 'Harness', 'mouseup', 'UserAction', 'Mouse up occurred before hold threshold.');
+            }
         });
         
         logEvent('info', 'Harness', 'setup', 'Lifecycle', 'Workbench setup complete.');
+        updateActiveSoundDisplay(); // Set initial display
     </script>
 </body>
 </html>
