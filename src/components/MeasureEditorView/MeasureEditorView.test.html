@@ -1,0 +1,34 @@
+<!-- file: src/components/MeasureEditorView/MeasureEditorView.test.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Unit Tests: MeasureEditorView</title>
+    <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
+    <!-- Component-specific CSS that might be needed for tests -->
+    <link rel="stylesheet" href="/percussion-studio/src/components/MeasureEditorView/MeasureEditorView.css">
+    <link rel="stylesheet" href="/percussion-studio/src/components/InstrumentRowView/InstrumentRowView.css">
+    <link rel="stylesheet" href="/percussion-studio/src/components/InstrumentSelectionModalView/InstrumentSelectionModalView.css">
+    <style> body { font-family: sans-serif; } </style>
+</head>
+<body class="bg-light-gray pa4">
+
+    <h1 class="f2 b mb3 bb pb2">MeasureEditorView: Automated Tests</h1>
+    <button id="run-tests-btn" class="pv2 ph3 bn br2 bg-blue white pointer hover-bg-dark-blue mb3">Run Tests</button>
+    <div id="test-results"></div>
+    
+    <!-- Container for the modal, which is required by the component's constructor -->
+    <div id="modal-container"></div>
+    
+    <!-- Sandbox for rendering the component during tests without showing it -->
+    <div id="test-sandbox" style="position: absolute; visibility: hidden;"></div>
+
+    <script type="module">
+        import { run } from './MeasureEditorView.test.js';
+        
+        // Run tests on button click or immediately
+        document.getElementById('run-tests-btn').addEventListener('click', run);
+        run(); // Also run automatically on page load
+    </script>
+</body>
+</html>

@@ -3,8 +3,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Test Harness: MeasureEditorView</title>
+    <title>Workbench: MeasureEditorView</title>
     <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
+    <!-- All component CSS needed for the view -->
+    <link rel="stylesheet" href="/percussion-studio/src/components/MeasureEditorView/MeasureEditorView.css">
     <link rel="stylesheet" href="/percussion-studio/src/components/InstrumentRowView/InstrumentRowView.css">
     <link rel="stylesheet" href="/percussion-studio/src/components/InstrumentSelectionModalView/InstrumentSelectionModalView.css">
     <style> body { font-family: sans-serif; } </style>
@@ -13,13 +15,9 @@
 
     <div class="flex">
         <div class="w-70 pr3">
-            <h1 class="f2 b mb3 bb pb2">Automated Tests</h1>
-            <button id="run-tests-btn" class="pv2 ph3 bn br2 bg-blue white pointer hover-bg-dark-blue mb3">Run Automated Tests</button>
-            <div id="test-results"></div>
-            <hr class="mv4"/>
             <h1 class="f2 b mb3 bb pb2">Live View Workbench: Measure Editor</h1>
             <p class="f6 gray mb3">
-                The component now includes its own metric controls. Add some instruments, then change the time signature to see everything update.
+                This is a manual testing environment. Add instruments, change the time signature, and observe the component's behavior. Check the logs for detailed event information.
             </p>
             <div class="bg-white shadow-2 pa3 mb3">
                 <div id="measure-editor-container">
@@ -36,46 +34,11 @@
         </div>
     </div>
 
+    <!-- Container for the instrument selection modal -->
     <div id="modal-container"></div>
-    <div id="test-sandbox" style="position: absolute; visibility: hidden;"></div>
 
-    <script type="module">
-        import { run } from './MeasureEditorView.test.js';
-        import { MeasureEditorView } from './MeasureEditorView.js';
-        import { Logger, logEvent } from '/percussion-studio/lib/Logger.js';
-        
-        document.addEventListener('DOMContentLoaded', () => {
-            Logger.init({ level: 'debug' });
-            Logger.setTarget('log-output');
+    <!-- The setup logic is now in a dedicated integration file -->
+    <script type="module" src="./MeasureEditorView.integration.js"></script>
 
-            document.getElementById('run-tests-btn').addEventListener('click', run);
-
-            const manifestData = {
-                instrumentDefs: [
-                    { symbol: 'KCK', name: 'Kick Drum' },
-                    { symbol: 'SNR', name: 'Snare Drum' },
-                ],
-                soundPacks: [
-                    { symbol: 'KCK', pack_name: 'acoustic_kick', name: 'Acoustic Kick' },
-                    { symbol: 'SNR', pack_name: 'rock_snare', name: 'Rock Snare' },
-                ]
-            };
-            
-            function logCallback(name, data) {
-                 const logEl = document.getElementById('callback-log');
-                 const entry = document.createElement('div');
-                 entry.textContent = `[${name}] Fired with: ${JSON.stringify(data)}`;
-                 logEl.appendChild(entry);
-            }
-
-            const editorContainer = document.getElementById('measure-editor-container');
-
-            const measureEditor = new MeasureEditorView(editorContainer, {
-                instrumentDefs: manifestData.instrumentDefs,
-                soundPacks: manifestData.soundPacks,
-                onMetricsChange: (newMetrics) => logCallback('onMetricsChange', newMetrics)
-            });
-        });
-    </script>
 </body>
 </html>
