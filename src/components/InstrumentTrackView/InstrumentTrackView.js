@@ -118,9 +118,26 @@ export class InstrumentTrackView {
                 this.callbacks.onNoteEdit?.({ action: 'add', tickIndex, soundLetter: this.state.activeSoundLetter });
             }
         }
+        
+        // Reset state immediately to prevent lag
         this.isDragging = false;
         this.highlightedSound = null;
         this.mouseDownInfo = null;
+        
+        // Immediately update cursor if still over a grid cell
+        setTimeout(() => {
+            try {
+                const mouseEvent = window.event;
+                if (mouseEvent) {
+                    const elementUnderMouse = document.elementFromPoint(mouseEvent.clientX, mouseEvent.clientY);
+                    if (elementUnderMouse?.closest('.grid-cell') && this.container.contains(elementUnderMouse)) {
+                        this._updateCustomCursor();
+                    }
+                }
+            } catch (e) {
+                // Fallback if event not available
+            }
+        }, 0); // Immediate execution on next tick
     }
     
     _handleMouseMove(event) {
@@ -314,17 +331,42 @@ export class InstrumentTrackView {
         const endAngle = selectedAngle + sectorAngle / 2;
         
         // Convert angles to degrees for CSS
-        const startDegrees = (startAngle * 180 / Math.PI) + 90; // +90 to match CSS coordinate system
-        const endDegrees = (endAngle * 180 / Math.PI) + 90;
+        // Note: CSS conic-gradient starts from 0° (east/right), not 90° (north/up)
+        // Our selectedAngle is relative to mathematical coordinates (0 = east, π/2 = north)
+        const startDegrees = (startAngle * 180 / Math.PI);
+        const endDegrees = (endAngle * 180 / Math.PI);
         
-        // Create a conic gradient to highlight the sector
-        const gradient = `conic-gradient(from 0deg, 
-            transparent 0deg, 
-            transparent ${startDegrees}deg, 
-            rgba(59, 130, 246, 0.3) ${startDegrees}deg, 
-            rgba(59, 130, 246, 0.3) ${endDegrees}deg, 
-            transparent ${endDegrees}deg, 
-            transparent 360deg)`;
+        // Normalize angles to 0-360 range
+        const normalizeAngle = (angle) => {
+            while (angle < 0) angle += 360;
+            while (angle >= 360) angle -= 360;
+            return angle;
+        };
+        
+        const normalizedStart = normalizeAngle(startDegrees);
+        const normalizedEnd = normalizeAngle(endDegrees);
+        
+        // Handle angle wrapping (e.g., sector from 350° to 10°)
+        let gradient;
+        if (normalizedStart > normalizedEnd) {
+            // Sector crosses 0°/360° boundary
+            gradient = `conic-gradient(from 0deg, 
+                rgba(59, 130, 246, 0.3) 0deg, 
+                rgba(59, 130, 246, 0.3) ${normalizedEnd}deg, 
+                transparent ${normalizedEnd}deg, 
+                transparent ${normalizedStart}deg, 
+                rgba(59, 130, 246, 0.3) ${normalizedStart}deg, 
+                rgba(59, 130, 246, 0.3) 360deg)`;
+        } else {
+            // Normal sector
+            gradient = `conic-gradient(from 0deg, 
+                transparent 0deg, 
+                transparent ${normalizedStart}deg, 
+                rgba(59, 130, 246, 0.3) ${normalizedStart}deg, 
+                rgba(59, 130, 246, 0.3) ${normalizedEnd}deg, 
+                transparent ${normalizedEnd}deg, 
+                transparent 360deg)`;
+        }
         
         sectorElement.style.background = gradient;
         sectorElement.style.display = 'block';
@@ -337,20 +379,15 @@ export class InstrumentTrackView {
         // Clear any highlighted sounds
         this.highlightedSound = null;
         
-        // Show the custom cursor again if we're still over a grid cell in this component
-        try {
-            const mouseEvent = window.event;
-            if (mouseEvent) {
-                const elementUnderMouse = document.elementFromPoint(mouseEvent.clientX, mouseEvent.clientY);
-                if (elementUnderMouse?.closest('.grid-cell') && this.container.contains(elementUnderMouse)) {
-                    this._updateCustomCursor();
-                }
-            }
-        } catch (e) {
-            // Fallback: just update the cursor if state is available
-            if (this.state.instrument && this.state.activeSoundLetter) {
-                // Don't show cursor unless we're sure we're over this component's grid
-            }
+        // Immediately show the custom cursor again if we're over a grid cell in this component
+        // Use a more immediate approach to reduce lag
+        const currentMouseTarget = document.elementFromPoint(
+            window.event?.clientX || 0, 
+            window.event?.clientY || 0
+        );
+        
+        if (currentMouseTarget?.closest('.grid-cell') && this.container.contains(currentMouseTarget)) {
+            this._updateCustomCursor();
         }
     }
 
