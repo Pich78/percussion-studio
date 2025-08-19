@@ -6,6 +6,8 @@ import { RadialSoundSelector } from '/percussion-studio/src/components/RadialSou
 import { InstrumentSelectionModalView } from '/percussion-studio/src/components/InstrumentSelectionModalView/InstrumentSelectionModalView.js';
 import { logEvent } from '/percussion-studio/lib/Logger.js';
 
+const HOLD_DURATION_MS = 200;
+
 /**
  * Acts as the main controller for the pattern editor.
  * It owns the state and orchestrates all the child components and services.
@@ -15,12 +17,10 @@ export class PatternEditor {
         this.container = container;
         this.modalContainer = modalContainer;
 
-        // --- 1. State Management ---
-        // This is the single source of truth for the entire editor.
+        // 1. State Management
         this.state = this._getInitialState();
 
-        // --- 2. Service Instantiation ---
-        // The editor owns a single instance of each global UI service.
+        // 2. Service Instantiation
         this.cursor = new EditorCursor();
         this.radialMenu = new RadialSoundSelector({
             onSoundSelected: this._handleSoundSelected.bind(this)
@@ -30,11 +30,59 @@ export class PatternEditor {
             onCancel: () => logEvent('info', 'PatternEditor', 'onCancel', 'Events', 'Instrument selection cancelled.')
         });
 
-        // --- 3. Initial Render ---
+        // 3. Interaction State
+        this.holdTimeout = null;
+        this.mouseDownInfo = null;
+        
+        // Global listener to always hide the menu on a final mouseup
+        window.addEventListener('mouseup', () => {
+            if (this.radialMenu.isDragging) {
+                this.radialMenu.hide();
+            }
+        }, true);
+
+        // 4. Initial Render
         this.render();
     }
 
-    // --- 4. Callback Handlers (Events coming UP from children) ---
+    // --- Callback Handlers (Events coming UP from children) ---
+
+    _handleCellMouseDown(tickIndex, event, hasNote, instrument) {
+        this.mouseDownInfo = { tickIndex, hasNote, instrument };
+        
+        this.holdTimeout = setTimeout(() => {
+            logEvent('info', 'PatternEditor', '_handleCellMouseDown', 'Events', `Hold detected at index ${tickIndex}`);
+            this.holdTimeout = null; // Mark as fired
+            this.radialMenu.activeInstrumentSymbol = instrument.symbol;
+            this.radialMenu.show({
+                x: event.clientX,
+                y: event.clientY,
+                sounds: instrument.sounds,
+                activeSoundLetter: this.state.activeSounds[instrument.symbol]
+            });
+        }, HOLD_DURATION_MS);
+    }
+
+    _handleCellMouseUp() {
+        if (this.holdTimeout) {
+            clearTimeout(this.holdTimeout);
+            logEvent('info', 'PatternEditor', '_handleCellMouseUp', 'Events', `Tap detected at index ${this.mouseDownInfo.tickIndex}`);
+            
+            const { tickIndex, hasNote, instrument } = this.mouseDownInfo;
+            const chars = this.state.pattern[instrument.symbol].replace(/\|/g, '').split('');
+
+            if (hasNote) {
+                // Action: Delete the note
+                chars[tickIndex] = '-';
+            } else {
+                // Action: Add a new note
+                chars[tickIndex] = this.state.activeSounds[instrument.symbol];
+            }
+            this.state.pattern[instrument.symbol] = `||${chars.join('')}||`;
+            this.render(); // Re-render the UI to show the note change
+        }
+        // If holdTimeout is null, it means the hold action already fired and the radial menu is active, so do nothing.
+    }
 
     _handleRequestInstrumentChange(symbol) {
         logEvent('info', 'PatternEditor', '_handleRequestInstrumentChange', 'Events', `Request to change instrument for ${symbol}`);
@@ -46,28 +94,16 @@ export class PatternEditor {
 
     _handleInstrumentSelected(selection) {
         logEvent('info', 'PatternEditor', '_handleInstrumentSelected', 'State', 'New instrument confirmed', selection);
-        // In a real app, you would update the state here to load the new instrument.
-        // For this demo, we just log it.
-    }
-
-    _handleCellMouseDown(tickIndex, event, instrument) {
-        logEvent('info', 'PatternEditor', '_handleCellMouseDown', 'Events', `Cell mouse down at index ${tickIndex}`);
-        this.radialMenu.activeInstrumentSymbol = instrument.symbol; // Store context
-        this.radialMenu.show({
-            x: event.clientX,
-            y: event.clientY,
-            sounds: instrument.sounds,
-            activeSoundLetter: this.state.activeSounds[instrument.symbol]
-        });
+        // In a real application, you would update the state here to load the new instrument data.
+        // For this demonstration, we just log the selection.
     }
 
     _handleSoundSelected(selectedLetter) {
         const symbol = this.radialMenu.activeInstrumentSymbol;
         logEvent('info', 'PatternEditor', '_handleSoundSelected', 'State', `New active sound for ${symbol}: ${selectedLetter}`);
         this.state.activeSounds[symbol] = selectedLetter;
-        this.radialMenu.hide();
-        // No full re-render needed, but in a real app you might update the header
-        // to show the newly active sound.
+        // The menu is automatically hidden by the global mouseup listener, so no need to call hide() here.
+        // We could re-render if the header needed to be updated to show the newly active sound.
     }
 
     _handleGridMouseEnter(instrument) {
@@ -80,7 +116,7 @@ export class PatternEditor {
         this.cursor.update({ isVisible: false, svg: null });
     }
 
-    // --- 5. Render Method ---
+    // --- Render Method ---
 
     render() {
         this.container.innerHTML = '';
@@ -91,15 +127,19 @@ export class PatternEditor {
 
             const view = new InstrumentRowView(rowContainer, {
                 onRequestInstrumentChange: (symbol) => this._handleRequestInstrumentChange(symbol),
-                onCellMouseDown: (tickIndex, event) => this._handleCellMouseDown(tickIndex, event, inst),
+                onCellMouseDown: (tickIndex, event, hasNote) => this._handleCellMouseDown(tickIndex, event, hasNote, inst),
+                onCellMouseUp: () => this._handleCellMouseUp(),
                 onGridMouseEnter: (instrument) => this._handleGridMouseEnter(instrument),
                 onGridMouseLeave: () => this._handleGridMouseLeave()
             });
 
             const totalCells = (this.state.metrics.beatsPerMeasure / this.state.metrics.beatUnit) * this.state.metrics.subdivision;
             let densityClass = 'density-medium';
-            if (totalCells <= 8) densityClass = 'density-low';
-            if (totalCells > 20) densityClass = 'density-high';
+            if (totalCells <= 8) {
+                densityClass = 'density-low';
+            } else if (totalCells > 20) {
+                densityClass = 'density-high';
+            }
 
             view.render({
                 instrument: inst,
