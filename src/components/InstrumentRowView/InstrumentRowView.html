@@ -5,8 +5,21 @@
     <meta charset="UTF-8">
     <title>Test Harness: InstrumentRowView</title>
     <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
-    <!-- NOTE: We don't need the CSS for the other components in this simplified harness -->
-    <style> body { font-family: sans-serif; } </style>
+    <style> 
+        body { font-family: sans-serif; } 
+        /* --- NEW: Styles for the scrollable container --- */
+        .rows-wrapper {
+            overflow-x: auto; /* Enable horizontal scrolling */
+            border: 1px solid #ccc;
+            padding: 8px;
+            background-color: #f8f8f8;
+        }
+        .rows-inner-container {
+            /* This container will grow as wide as needed */
+            min-width: 100%; 
+            width: fit-content;
+        }
+    </style>
 </head>
 <body class="bg-light-gray pa4">
 
@@ -21,28 +34,32 @@
             <div class="bg-white shadow-2 pa3 mb3">
                 <h3 class="f4 b mt0">Global Controls</h3>
                 <p class="f6 gray mb3">
-                    Change the metrics to see the component re-render dynamically. 
-                    Click the header or cells and observe the callbacks being fired in the log below.
+                    Try selecting 4/4 and 64th notes. The grid will become very wide and you will be able to scroll horizontally.
                 </p>
                 <div class="flex items-center">
-                    <!-- NEW: Numeric inputs for fully dynamic time signatures -->
                     <div class="mr3">
                         <label class="f6 b db mb2">Time Signature</label>
-                        <input id="ts-numerator" type="number" value="6" class="w3 tc"> /
-                        <input id="ts-denominator" type="number" value="8" class="w3 tc">
+                        <input id="ts-numerator" type="number" value="4" class="w3 tc"> /
+                        <input id="ts-denominator" type="number" value="4" class="w3 tc">
                     </div>
                     <div>
                         <label for="subdivision-select" class="f6 b db mb2">Subdivision</label>
                         <select id="subdivision-select" class="w4">
+                            <!-- NEW: Added 4th and 64th note options -->
+                            <option value="4">4th Notes</option>
                             <option value="8">8th Notes</option>
                             <option value="16" selected>16th Notes</option>
                             <option value="32">32nd Notes</option>
+                            <option value="64">64th Notes</option>
                         </select>
                     </div>
                 </div>
                 <hr class="mv3"/>
-                <div id="rows-container">
-                    <!-- InstrumentRowView components will be rendered here -->
+                <!-- NEW: Added a wrapper for scrolling -->
+                <div class="rows-wrapper">
+                    <div id="rows-inner-container" class="rows-inner-container">
+                        <!-- InstrumentRowView components will be rendered here -->
+                    </div>
                 </div>
             </div>
             
@@ -63,8 +80,6 @@
         import { InstrumentRowView } from './InstrumentRowView.js';
         import { Logger, logEvent } from '/percussion-studio/lib/Logger.js';
 
-        // --- REMOVED: No longer importing EditorCursor or RadialSoundSelector ---
-
         Logger.init({ level: 'debug' });
         Logger.setTarget('log-output');
 
@@ -80,18 +95,16 @@
                 { symbol: 'SNR', name: 'Snare Drum', sounds: [{letter: 'x', svg: svg2}, {letter: 'r', svg: svg1}] },
             ],
             pattern: {
-                // Extended pattern to handle up to 32 cells
-                KCK: '||o-p-o-p-o-p-o-p-o-p-o-p-o-p-o-p-||',
-                SNR: '||----x-------x-------x-------x---||',
+                // Extended pattern to handle up to 64 cells
+                KCK: '||o-p-o-p-o-p-o-p-o-p-o-p-o-p-o-p-o-p-o-p-o-p-o-p-o-p-o-p-o-p-o-p-||',
+                SNR: '||----x-------x-------x-------x-------x-------x-------x-------x---||',
             },
-            metrics: {} // Will be populated by updateMetrics
+            metrics: {}
         };
 
-        const rowsContainer = document.getElementById('rows-container');
+        const rowsContainer = document.getElementById('rows-inner-container');
         const callbackLogEl = document.getElementById('callback-log');
         const componentInstances = new Map();
-
-        // --- SIMPLIFIED HARNESS LOGIC ---
         
         function logCallback(name, data) {
             const entry = document.createElement('div');
@@ -107,11 +120,9 @@
 
             mockState.instruments.forEach((inst, index) => {
                 const container = document.createElement('div');
-                container.id = `row-container-${index}`;
                 rowsContainer.appendChild(container);
 
                 const view = new InstrumentRowView(container, {
-                    // Callbacks now just log the event, proving the component works.
                     onRequestInstrumentChange: (symbol) => logCallback('onRequestInstrumentChange', { symbol }),
                     onCellMouseDown: (tickIndex, event) => logCallback('onCellMouseDown', { tickIndex }),
                     onGridMouseEnter: (instrument) => logCallback('onGridMouseEnter', { symbol: instrument.symbol }),
@@ -127,7 +138,6 @@
             });
         }
 
-        // --- GLOBAL CONTROL HANDLERS ---
         const numeratorInput = document.getElementById('ts-numerator');
         const denominatorInput = document.getElementById('ts-denominator');
         const subdivisionSelect = document.getElementById('subdivision-select');
@@ -137,9 +147,9 @@
             const unit = parseInt(denominatorInput.value, 10) || 4;
             const subdivision = Number(subdivisionSelect.value);
             
-            let grouping = (subdivision / unit); // Simple meter default
+            let grouping = (subdivision / unit);
             if ([6, 9, 12].includes(beats) && unit === 8) {
-                grouping = 3; // Common compound meter grouping
+                grouping = 3;
             }
 
             mockState.metrics = {
@@ -156,7 +166,7 @@
             el.addEventListener('change', updateMetrics);
         });
         
-        updateMetrics(); // Initial render
+        updateMetrics();
     </script>
 </body>
 </html>
