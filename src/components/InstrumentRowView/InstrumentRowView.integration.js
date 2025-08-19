@@ -17,6 +17,10 @@ loadCSS('/percussion-studio/src/components/RadialSoundSelector/RadialSoundSelect
 const HOLD_DURATION_MS = 200;
 let holdTimeout = null;
 let mouseDownInfo = null;
+let nextTrackId = 1;
+
+// --- UTILITY ---
+const generateTrackId = () => `track-${nextTrackId++}`;
 
 // --- 2. MOCK DATA (DATABASE) ---
 const svgs = {
@@ -42,26 +46,33 @@ const mockSoundPacks = [
     { symbol: 'TOM', pack_name: 'floor-tom', name: 'Floor Tom', sounds: [{letter: 'o', name: 'Hit', svg: svgs.hit}, {letter: 's', name: 'Stopped Hit', svg: svgs.stopped}, {letter: 'r', name: 'Rimshot', svg: svgs.rim}, {letter: 'm', name: 'Muted Hit', svg: svgs.muted}, {letter: 'v', name: 'High Velocity', svg: svgs.velocity}] },
 ];
 
-// --- 3. APPLICATION STATE ---
-const initialInstruments = [
-    mockSoundPacks.find(p => p.pack_name === 'studio-kick'),
-    mockSoundPacks.find(p => p.pack_name === 'acoustic-snare'),
-    mockSoundPacks.find(p => p.pack_name === 'standard-hats'),
+// --- 3. APPLICATION STATE (REFACTORED) ---
+const createInitialTrack = (instrument) => {
+    const trackId = generateTrackId();
+    return { trackId, instrument };
+};
+
+const initialTracks = [
+    createInitialTrack(mockSoundPacks.find(p => p.pack_name === 'studio-kick')),
+    createInitialTrack(mockSoundPacks.find(p => p.pack_name === 'acoustic-snare')),
+    createInitialTrack(mockSoundPacks.find(p => p.pack_name === 'standard-hats')),
 ];
 
 let mockState = {
-    instruments: initialInstruments,
+    // instruments is now an array of track objects, each with a unique ID
+    instruments: initialTracks,
+    // patterns and activeSounds are now keyed by trackId, not symbol
     pattern: {
-        KCK: '||o-s-o-s-o-s-o-s-o-s-o-s-o-s-o-s-||',
-        SNR: '||----o-------s-------o-------t---||',
-        HHC: '||o-s-p-z-o-s-p-z-o-s-p-z-o-s-p-z-||'
+        [initialTracks[0].trackId]: '||o-s-o-s-o-s-o-s-o-s-o-s-o-s-o-s-||',
+        [initialTracks[1].trackId]: '||----o-------s-------o-------t---||',
+        [initialTracks[2].trackId]: '||o-s-p-z-o-s-p-z-o-s-p-z-o-s-p-z-||'
     },
     metrics: {},
     activeSounds: Object.fromEntries(
-        initialInstruments.map(inst => [inst.symbol, inst.sounds[0].letter])
+        initialTracks.map(track => [track.trackId, track.instrument.sounds[0].letter])
     ),
 };
-let instrumentSymbolToReplace = null;
+let trackIdToReplace = null;
 
 // --- 4. DOM REFERENCES & COMPONENT INSTANCES ---
 const rowsContainer = document.getElementById('rows-inner-container');
@@ -69,44 +80,31 @@ const callbackLogEl = document.getElementById('callback-log');
 const activeToolSwatchEl = document.getElementById('active-tool-swatch');
 const activeToolNameEl = document.getElementById('active-tool-name');
 const modalContainer = document.getElementById('modal-container');
+const addTrackBtn = document.getElementById('add-track-btn');
 
 const editorCursor = new EditorCursor();
 const radialMenu = new RadialSoundSelector({
     onSoundSelected: (selectedSoundLetter) => {
-        const { instrument } = radialMenu.lastContext || {};
-        if (!instrument) return;
-        mockState.activeSounds[instrument.symbol] = selectedSoundLetter;
-        logEvent('info', 'Workbench', 'setActiveSound', 'State', `Active sound for ${instrument.symbol} changed to -> ${selectedSoundLetter}`);
-        updateActiveTool(instrument);
+        const { track } = radialMenu.lastContext || {};
+        if (!track) return;
+        mockState.activeSounds[track.trackId] = selectedSoundLetter;
+        logEvent('info', 'Workbench', 'setActiveSound', 'State', `Active sound for ${track.trackId} changed to -> ${selectedSoundLetter}`);
+        updateActiveTool(track);
     }
 });
-
-// --- MODIFIED: Implemented the onInstrumentSelected callback ---
 const selectionModal = new InstrumentSelectionModalView(modalContainer, {
     onInstrumentSelected: (selection) => {
         logCallback('onInstrumentSelected', selection);
         const newSoundPack = mockSoundPacks.find(p => p.symbol === selection.symbol && p.pack_name === selection.packName);
-        if (!newSoundPack || !instrumentSymbolToReplace) return;
-
-        const indexToReplace = mockState.instruments.findIndex(inst => inst.symbol === instrumentSymbolToReplace);
-        
-        if (indexToReplace !== -1) {
-            const oldSymbol = instrumentSymbolToReplace;
-            const newSymbol = newSoundPack.symbol;
-
-            mockState.instruments[indexToReplace] = newSoundPack;
-
-            if (oldSymbol !== newSymbol) {
-                delete mockState.pattern[oldSymbol];
-                const totalCells = (mockState.metrics.beatsPerMeasure / mockState.metrics.beatUnit) * mockState.metrics.subdivision;
-                mockState.pattern[newSymbol] = '||' + '-'.repeat(totalCells) + '||';
-                delete mockState.activeSounds[oldSymbol];
-            }
-            
-            mockState.activeSounds[newSymbol] = newSoundPack.sounds[0].letter;
-            
+        if (!newSoundPack || !trackIdToReplace) return;
+        const trackToUpdate = mockState.instruments.find(t => t.trackId === trackIdToReplace);
+        if (trackToUpdate) {
+            trackToUpdate.instrument = newSoundPack;
+            mockState.activeSounds[trackIdToReplace] = newSoundPack.sounds[0].letter;
+            const totalCells = (mockState.metrics.beatsPerMeasure / mockState.metrics.beatUnit) * mockState.metrics.subdivision;
+            mockState.pattern[trackIdToReplace] = '||' + '-'.repeat(totalCells) + '||';
             rerender();
-            updateActiveTool(newSoundPack);
+            updateActiveTool(trackToUpdate);
         }
     },
     onCancel: () => logCallback('ModalCancelled', {})
@@ -121,11 +119,10 @@ function logCallback(name, data) {
     callbackLogEl.scrollTop = callbackLogEl.scrollHeight;
 }
 
-function updateActiveTool(instrument) {
-    const instrumentSymbol = instrument.symbol;
-    const soundLetter = mockState.activeSounds[instrumentSymbol];
+function updateActiveTool(track) {
+    const { trackId, instrument } = track;
+    const soundLetter = mockState.activeSounds[trackId];
     const sound = instrument.sounds.find(s => s.letter === soundLetter);
-
     if (sound) {
         activeToolSwatchEl.innerHTML = sound.svg;
         activeToolNameEl.textContent = `${instrument.name} / ${sound.name}`;
@@ -140,65 +137,52 @@ function rerender() {
     if (totalCells <= 12) densityClass = 'density-low';
     else if (totalCells > 32) densityClass = 'density-high';
 
-    mockState.instruments.forEach((inst) => {
+    mockState.instruments.forEach((track) => {
         const container = document.createElement('div');
         rowsContainer.appendChild(container);
 
         const view = new InstrumentRowView(container, {
-            // --- MODIFIED: Implemented the onRequestInstrumentChange callback ---
-            onRequestInstrumentChange: (symbol) => {
-                logCallback('onRequestInstrumentChange', { symbol });
-                instrumentSymbolToReplace = symbol;
-                selectionModal.show({
-                    instrumentDefs: mockInstrumentDefs,
-                    soundPacks: mockSoundPacks
-                });
+            onRequestInstrumentChange: () => {
+                logCallback('onRequestInstrumentChange', { trackId: track.trackId });
+                trackIdToReplace = track.trackId;
+                selectionModal.show({ instrumentDefs: mockInstrumentDefs, soundPacks: mockSoundPacks });
             },
-            
-            onGridMouseEnter: (instrument) => {
-                updateActiveTool(instrument);
+            onGridMouseEnter: () => {
+                updateActiveTool(track);
             },
             onGridMouseLeave: () => editorCursor.update({ isVisible: false, svg: null }),
-
             onCellMouseDown: (tickIndex, event, hasNote) => {
-                logCallback('onCellMouseDown', { tickIndex, hasNote });
+                logCallback('onCellMouseDown', { trackId: track.trackId, tickIndex, hasNote });
                 event.preventDefault();
-                const instrument = inst;
                 clearTimeout(holdTimeout);
-                mouseDownInfo = { instrument, tickIndex, hasNote };
-
-                if (instrument.sounds.length > 1) {
+                mouseDownInfo = { track, tickIndex, hasNote };
+                if (track.instrument.sounds.length > 1) {
                     holdTimeout = setTimeout(() => {
                         logEvent('info', 'Workbench', 'holdAction', 'Events', 'Hold detected, showing radial menu.');
-                        radialMenu.lastContext = { instrument, tickIndex };
+                        radialMenu.lastContext = { track, tickIndex };
                         radialMenu.show({
                             x: event.clientX,
                             y: event.clientY,
-                            sounds: instrument.sounds,
-                            activeSoundLetter: mockState.activeSounds[instrument.symbol]
+                            sounds: track.instrument.sounds,
+                            activeSoundLetter: mockState.activeSounds[track.trackId]
                         });
                         mouseDownInfo = null;
                     }, HOLD_DURATION_MS);
                 }
             },
-            onCellMouseUp: (tickIndex, event) => {
-                logCallback('onCellMouseUp', { tickIndex });
+            onCellMouseUp: (tickIndex) => {
+                logCallback('onCellMouseUp', { trackId: track.trackId, tickIndex });
                 clearTimeout(holdTimeout);
                 if (mouseDownInfo) {
-                    logEvent('info', 'Workbench', 'clickAction', 'Events', 'Click detected, performing toggle edit.');
-                    const { instrument, hasNote } = mouseDownInfo;
-                    const instrumentSymbol = instrument.symbol;
-                    let patternStr = (mockState.pattern[instrumentSymbol] || '').replace(/\|/g, '');
-                    let patternArr = patternStr.split('');
-                    
+                    const { track: currentTrack, hasNote } = mouseDownInfo;
+                    const trackId = currentTrack.trackId;
+                    let patternArr = (mockState.pattern[trackId] || '').replace(/\|/g, '').split('');
                     if (hasNote) {
                         patternArr[tickIndex] = '-';
                     } else {
-                        const soundLetter = mockState.activeSounds[instrumentSymbol];
-                        patternArr[tickIndex] = soundLetter;
+                        patternArr[tickIndex] = mockState.activeSounds[trackId];
                     }
-                    
-                    mockState.pattern[instrumentSymbol] = '||' + patternArr.join('') + '||';
+                    mockState.pattern[trackId] = '||' + patternArr.join('') + '||';
                     rerender();
                 }
                 mouseDownInfo = null;
@@ -206,8 +190,8 @@ function rerender() {
         });
 
         view.render({
-            instrument: inst,
-            notation: mockState.pattern[inst.symbol],
+            instrument: track.instrument,
+            notation: mockState.pattern[track.trackId],
             metrics: mockState.metrics,
             densityClass: densityClass
         });
@@ -231,8 +215,16 @@ function updateMetrics() {
     rerender();
 }
 
-[numeratorInput, denominatorInput, subdivisionSelect].forEach(el => {
-    el.addEventListener('change', updateMetrics);
+[numeratorInput, denominatorInput, subdivisionSelect].forEach(el => el.addEventListener('change', updateMetrics));
+
+addTrackBtn.addEventListener('click', () => {
+    logEvent('info', 'Workbench', 'addTrack', 'Events', 'Add Track button clicked.');
+    const newTrack = createInitialTrack(mockSoundPacks.find(p => p.pack_name === 'studio-kick'));
+    const totalCells = (mockState.metrics.beatsPerMeasure / mockState.metrics.beatUnit) * mockState.metrics.subdivision;
+    mockState.instruments.push(newTrack);
+    mockState.pattern[newTrack.trackId] = '||' + '-'.repeat(totalCells) + '||';
+    mockState.activeSounds[newTrack.trackId] = newTrack.instrument.sounds[0].letter;
+    rerender();
 });
 
 // --- 7. INITIAL RENDER ---
