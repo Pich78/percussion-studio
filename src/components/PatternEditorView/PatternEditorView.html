@@ -3,19 +3,19 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Test Harness: PatternEditorView</title>
+    <title>Live View Workbench: PatternEditorView</title>
     <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
     <!-- Load CSS for ALL required child components -->
     <link rel="stylesheet" href="/percussion-studio/src/components/InstrumentRowView/InstrumentRowView.css">
     <link rel="stylesheet" href="/percussion-studio/src/components/MeasureEditorView/MeasureEditorView.css">
     <link rel="stylesheet" href="/percussion-studio/src/components/InstrumentSelectionModalView/InstrumentSelectionModalView.css">
+    <link rel="stylesheet" href="./PatternEditorView.css">
     <style> body { font-family: sans-serif; } </style>
 </head>
 <body class="bg-light-gray pa4">
 
     <div class="flex">
         <div class="w-70 pr3">
-            <!-- REMOVED the automated tests section from the live view -->
             <h1 class="f2 b mb3 bb pb2">Live View Workbench: Pattern Editor</h1>
             <p class="f6 gray mb3">
                 Click the '+ Add Measure' button to create new measure editors.
@@ -34,32 +34,7 @@
 
     <!-- The global container for the selection modal, which the component will use -->
     <div id="modal-container"></div>
-    <!-- The test sandbox is not needed in the live harness -->
 
-    <script type="module">
-        // --- MODIFIED: Removed the import and event listener for the tests ---
-        import { PatternEditorView } from './PatternEditorView.js';
-        import { Logger, logEvent } from '/percussion-studio/lib/Logger.js';
-        
-        document.addEventListener('DOMContentLoaded', () => {
-            Logger.init({ level: 'debug' });
-            Logger.setTarget('log-output');
-
-            const manifestData = {
-                instrumentDefs: [
-                    { symbol: 'KCK', name: 'Kick Drum' },
-                    { symbol: 'SNR', name: 'Snare Drum' },
-                ],
-                soundPacks: [
-                    { symbol: 'KCK', pack_name: 'acoustic_kick', name: 'Acoustic Kick' },
-                    { symbol: 'SNR', pack_name: 'rock_snare', name: 'Rock Snare' },
-                ]
-            };
-
-            const editorContainer = document.getElementById('pattern-editor-container');
-
-            const patternEditor = new PatternEditorView(editorContainer, manifestData);
-        });
-    </script>
+    <script type="module" src="./PatternEditorView.integration.js"></script>
 </body>
 </html>
