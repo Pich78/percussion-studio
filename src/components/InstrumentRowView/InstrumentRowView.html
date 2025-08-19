@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Test Harness: InstrumentRowView</title>
+    <title>Workbench: InstrumentRowView</title>
     <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
     <style> 
         body { font-family: sans-serif; } 
@@ -12,8 +12,6 @@
             border: 1px solid #ccc;
             padding: 8px;
             background-color: #f8f8f8;
-            /* --- REMOVED: width: fit-content; --- */
-            /* This is the fix. The wrapper must be constrained by its parent's width. */
         }
         .rows-inner-container {
             /* This inner container is still allowed to grow as wide as needed */
@@ -25,10 +23,6 @@
 
     <div class="flex">
         <div class="w-70 pr3">
-            <h1 class="f2 b mb3 bb pb2">Automated Tests</h1>
-            <button id="run-tests-btn" class="pv2 ph3 bn br2 bg-blue white pointer hover-bg-dark-blue mb3">Run Automated Tests</button>
-            <div id="test-results"></div>
-            <hr class="mv4"/>
             <h1 class="f2 b mb3 bb pb2">Live View Workbench (Adaptive Grid)</h1>
             
             <div class="bg-white shadow-2 pa3 mb3">
@@ -71,17 +65,12 @@
         </div>
     </div>
 
-    <div id="test-sandbox" style="position: absolute; visibility: hidden;"></div>
-
     <script type="module">
-        import { run } from './InstrumentRowView.test.js';
         import { InstrumentRowView } from './InstrumentRowView.js';
         import { Logger, logEvent } from '/percussion-studio/lib/Logger.js';
 
         Logger.init({ level: 'debug' });
         Logger.setTarget('log-output');
-
-        document.getElementById('run-tests-btn').addEventListener('click', run);
 
         let mockState = {
             instruments: [
@@ -110,7 +99,7 @@
             rowsContainer.innerHTML = '';
             componentInstances.clear();
             
-            const totalCells = (mockState.metrics.beatsPerMeasure / mockState.metrics.beatUnit) * mockState.metrics.subdivision;
+            const totalCells = (mockState.metrics.beatsPerMeasure / mock-State.metrics.beatUnit) * mockState.metrics.subdivision;
             let densityClass = 'density-medium';
             if (totalCells <= 8) {
                 densityClass = 'density-low';
@@ -166,6 +155,7 @@
             el.addEventListener('change', updateMetrics);
         });
         
+        // Initial render on page load
         updateMetrics();
     </script>
 </body>
