@@ -15,6 +15,11 @@ export class InstrumentRowView {
     render({ instrument, notation, metrics, densityClass }) {
         logEvent('debug', 'InstrumentRowView', 'render', 'State', `Rendering row for ${instrument.symbol} with density ${densityClass}`);
 
+        // --- FIX: Create a new root element for the component ---
+        // This is the core of the fix. We build everything in this element first.
+        const rowEl = document.createElement('div');
+        rowEl.className = `instrument-row-view ${densityClass}`;
+
         const totalCells = (metrics.beatsPerMeasure / metrics.beatUnit) * metrics.subdivision;
         const notationChars = notation.replace(/\|/g, '');
 
@@ -58,16 +63,21 @@ export class InstrumentRowView {
                 event.preventDefault();
                 this.callbacks.onCellMouseDown?.(i, event, hasNote);
             });
-
-            // --- NEW: Report mouseup events as well ---
+            
             cellEl.addEventListener('mouseup', (event) => {
                 this.callbacks.onCellMouseUp?.(i, event);
             });
+
+            // Append the finished cell to the grid
+            gridEl.appendChild(cellEl);
         }
 
+        // --- FIX: Assemble the component in memory first ---
+        rowEl.appendChild(headerEl);
+        rowEl.appendChild(gridEl);
+
+        // --- FIX: As the final step, safely replace the container's content ---
         this.container.innerHTML = '';
-        this.container.className = `instrument-row-view ${densityClass}`;
-        this.container.appendChild(headerEl);
-        this.container.appendChild(gridEl);
+        this.container.appendChild(rowEl);
     }
 }
