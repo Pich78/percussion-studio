@@ -1,0 +1,58 @@
+/* file: src/components/MeasureEditorView/MeasureEditorView.css */
+
+.measure-instrument-row {
+    display: flex;
+    align-items: center; /* Vertically align the row and the delete button */
+    margin-bottom: 8px;
+}
+
+.instrument-row-container {
+    flex-grow: 1; /* Allow the InstrumentRowView to take up most of the space */
+}
+
+.delete-row-btn {
+    flex-shrink: 0;
+    margin-left: 12px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid #ccc;
+    background-color: #f0f0f0;
+    cursor: pointer;
+    color: #888; /* Gray X */
+    font-size: 20px;
+    line-height: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.2s ease-in-out;
+}
+
+.delete-row-btn:hover {
+    color: #fff; /* White X */
+    background-color: #e53935; /* Red background */
+    border-color: #d32f2f;
+}
+
+.add-instrument-container {
+    padding-top: 8px;
+    border-top: 1px dashed #ccc;
+}
+
+.add-instrument-btn {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    border: 1px dashed #ccc;
+    background-color: transparent;
+    cursor: pointer;
+    font-size: 24px;
+    color: #aaa;
+    transition: all 0.2s ease-in-out;
+}
+
+.add-instrument-btn:hover {
+    background-color: #e8f5e9; /* Light green */
+    color: #2e7d32; /* Dark green */
+    border-color: #a5d6a7;
+}
