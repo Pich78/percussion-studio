@@ -13,7 +13,6 @@ Logger.setTarget('log-output');
 
 loadCSS('/percussion-studio/src/components/EditorCursor/EditorCursor.css');
 loadCSS('/percussion-studio/src/components/RadialSoundSelector/RadialSoundSelector.css');
-// CSS for the modal is loaded by its own component JS
 
 // --- 2. MOCK DATA (DATABASE) ---
 const mockInstrumentDefs = [
@@ -23,36 +22,72 @@ const mockInstrumentDefs = [
     { symbol: 'TOM', name: 'Tom Tom' },
 ];
 
-const mockSoundPacks = [
-    // Kicks
-    { symbol: 'KCK', pack_name: 'studio-kick', name: 'Studio Kick', sounds: [{letter: 'o', name: 'Hit', svg: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="currentColor" /></svg>'}] },
-    { symbol: 'KCK', pack_name: '808-kick', name: '808 Kick', sounds: [{letter: 'o', name: 'Deep Hit', svg: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" stroke="currentColor" stroke-width="8" fill="none" /></svg>'}] },
-    // Snares
-    { symbol: 'SNR', pack_name: 'acoustic-snare', name: 'Acoustic Snare', sounds: [{letter: 'x', name: 'Hit', svg: '<svg viewBox="0 0 100 100"><line x1="15" y1="15" x2="85" y2="85" stroke="currentColor" stroke-width="12"/><line x1="15" y1="85" x2="85" y2="15" stroke="currentColor" stroke-width="12"/></svg>'}, {letter: 'r', name: 'Rim', svg: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" stroke="currentColor" stroke-width="12" fill="none" /></svg>'}] },
-    // Hi-Hats
-    { symbol: 'HHC', pack_name: 'standard-hats', name: 'Standard Hi-Hats', sounds: [{letter: 'c', name: 'Closed', svg: '<svg viewBox="0 0 100 100"><line x1="15" y1="15" x2="85" y2="85" stroke="currentColor" stroke-width="10"/><line x1="15" y1="85" x2="85" y2="15" stroke="currentColor" stroke-width="10"/></svg>'}, {letter: 'o', name: 'Open', svg: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" stroke="currentColor" stroke-width="10" fill="none" stroke-dasharray="15 25"/></svg>'}] },
-    // Toms
-    { symbol: 'TOM', pack_name: 'floor-tom', name: 'Floor Tom', sounds: [{letter: 't', name: 'Hit', svg: '<svg viewBox="0 0 100 100"><path d="M 20 50 A 30 15 0 0 1 80 50" stroke="currentColor" stroke-width="10" fill="none"/></svg>'}] },
-];
+// --- MODIFIED: Redefined mockSoundPacks with new requirements ---
+const svgs = {
+    hit: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="currentColor" /></svg>',
+    stopped: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" stroke="currentColor" stroke-width="12" fill="none" /></svg>',
+    triangle: '<svg viewBox="0 0 100 100"><polygon points="50,15 90,85 10,85" stroke="currentColor" stroke-width="12" fill="none"/></svg>',
+    cross: '<svg viewBox="0 0 100 100"><line x1="15" y1="15" x2="85" y2="85" stroke="currentColor" stroke-width="12"/><line x1="15" y1="85" x2="85" y2="15" stroke="currentColor" stroke-width="12"/></svg>',
+    pedal: '<svg viewBox="0 0 100 100"><line x1="15" y1="85" x2="85" y2="85" stroke="currentColor" stroke-width="12"/><line x1="50" y1="15" x2="50" y2="85" stroke="currentColor" stroke-width="12"/></svg>',
+    sizzle: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" stroke="currentColor" stroke-width="10" fill="none" /><line x1="30" y1="70" x2="70" y2="30" stroke="currentColor" stroke-width="10" /></svg>',
+    rim: '<svg viewBox="0 0 100 100"><path d="M 50 15 A 40 40 0 0 1 50 85" stroke="currentColor" stroke-width="12" fill="none"/></svg>',
+    muted: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="currentColor" /><line x1="25" y1="25" x2="75" y2="75" stroke="white" stroke-width="14" /></svg>',
+    velocity: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="25" fill="currentColor" /><path d="M 50 5 L 50 25 M 50 75 L 50 95 M 5 50 L 25 50 M 75 50 L 95 50" stroke="currentColor" stroke-width="8" fill="none"/></svg>'
+};
 
+const mockSoundPacks = [
+    // --- Kicks ---
+    { symbol: 'KCK', pack_name: 'studio-kick', name: 'Studio Kick', sounds: [
+        {letter: 'o', name: 'Hit', svg: svgs.hit},
+        {letter: 's', name: 'Stopped Hit', svg: svgs.stopped}
+    ]},
+    { symbol: 'KCK', pack_name: '808-kick', name: '808 Kick', sounds: [
+        {letter: 'o', name: 'Hit', svg: svgs.hit},
+        {letter: 's', name: 'Stopped Hit', svg: svgs.stopped}
+    ]},
+    
+    // --- Snares ---
+    { symbol: 'SNR', pack_name: 'acoustic-snare', name: 'Acoustic Snare', sounds: [
+        {letter: 'o', name: 'Hit', svg: svgs.hit},
+        {letter: 's', name: 'Stopped Hit', svg: svgs.stopped},
+        {letter: 't', name: 'Triangle Hit', svg: svgs.triangle}
+    ]},
+
+    // --- Hi-Hats ---
+    { symbol: 'HHC', pack_name: 'standard-hats', name: 'Standard Hi-Hats', sounds: [
+        {letter: 'o', name: 'Hit', svg: svgs.hit},
+        {letter: 's', name: 'Stopped Hit', svg: svgs.stopped},
+        {letter: 'p', name: 'Pedal', svg: svgs.pedal},
+        {letter: 'z', name: 'Sizzle', svg: svgs.sizzle}
+    ]},
+
+    // --- Toms ---
+    { symbol: 'TOM', pack_name: 'floor-tom', name: 'Floor Tom', sounds: [
+        {letter: 'o', name: 'Hit', svg: svgs.hit},
+        {letter: 's', name: 'Stopped Hit', svg: svgs.stopped},
+        {letter: 'r', name: 'Rimshot', svg: svgs.rim},
+        {letter: 'm', name: 'Muted Hit', svg: svgs.muted},
+        {letter: 'v', name: 'High Velocity', svg: svgs.velocity}
+    ]},
+];
 
 // --- 3. APPLICATION STATE ---
 let mockState = {
-    instruments: [ // This is the current "rack"
+    instruments: [
         mockSoundPacks.find(p => p.pack_name === 'studio-kick'),
         mockSoundPacks.find(p => p.pack_name === 'acoustic-snare'),
         mockSoundPacks.find(p => p.pack_name === 'standard-hats'),
     ],
     pattern: {
-        KCK: '||o-------o-------o-------o-------||',
-        SNR: '||----x-------x-------x-------x---||',
-        HHC: '||c-c-c-c-c-c-c-c-c-c-c-c-c-c-c-c-||'
+        KCK: '||o-s-o-s-o-s-o-s-o-s-o-s-o-s-o-s-||',
+        SNR: '||----o-------s-------o-------t---||',
+        HHC: '||o-s-p-z-o-s-p-z-o-s-p-z-o-s-p-z-||'
     },
     metrics: {},
     activeTool: { instrumentSymbol: 'KCK', soundLetter: 'o' }
 };
 
-let instrumentSymbolToReplace = null; // State for tracking modal interaction
+let instrumentSymbolToReplace = null;
 
 // --- 4. DOM REFERENCES & COMPONENT INSTANCES ---
 const rowsContainer = document.getElementById('rows-inner-container');
@@ -80,15 +115,10 @@ const selectionModal = new InstrumentSelectionModalView(modalContainer, {
         const indexToReplace = mockState.instruments.findIndex(inst => inst.symbol === instrumentSymbolToReplace);
         
         if (indexToReplace !== -1) {
-            // Replace instrument in the rack
-            mockState.instruments[indexToReplace] = newSoundPack;
-
-            // Delete old pattern and create a new empty one
             delete mockState.pattern[instrumentSymbolToReplace];
+            mockState.instruments[indexToReplace] = newSoundPack;
             const totalCells = (mockState.metrics.beatsPerMeasure / mockState.metrics.beatUnit) * mockState.metrics.subdivision;
             mockState.pattern[newSoundPack.symbol] = '||' + '-'.repeat(totalCells) + '||';
-
-            // Set the new instrument as the active tool
             setActiveTool(newSoundPack.symbol, newSoundPack.sounds[0].letter);
             rerender();
         }
@@ -157,7 +187,7 @@ function rerender() {
         const view = new InstrumentRowView(container, {
             onRequestInstrumentChange: (symbol) => {
                 logCallback('onRequestInstrumentChange', { symbol });
-                instrumentSymbolToReplace = symbol; // Remember which instrument row was clicked
+                instrumentSymbolToReplace = symbol;
                 selectionModal.show({
                     instrumentDefs: mockInstrumentDefs,
                     soundPacks: mockSoundPacks
