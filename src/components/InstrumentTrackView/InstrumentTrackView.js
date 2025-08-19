@@ -149,28 +149,57 @@ export class InstrumentTrackView {
             const radialItems = document.querySelectorAll('.radial-menu .radial-item');
             let currentlyHighlighted = null;
             
-            // Calculate distance from the original center point (where timeout expired)
+            // Calculate distance and angle from the original center point
             const centerX = this.mouseDownInfo.centerX;
             const centerY = this.mouseDownInfo.centerY;
             
-            radialItems.forEach(item => {
-                const rect = item.getBoundingClientRect();
-                const itemCenterX = rect.left + rect.width / 2;
-                const itemCenterY = rect.top + rect.height / 2;
+            // Calculate mouse position relative to center
+            const mouseX = event.clientX - centerX;
+            const mouseY = event.clientY - centerY;
+            const mouseAngle = Math.atan2(mouseY, mouseX);
+            const mouseDistance = Math.sqrt(mouseX * mouseX + mouseY * mouseY);
+            
+            // Only highlight if mouse is within reasonable distance from center
+            if (mouseDistance > 10 && mouseDistance < 50) {
+                let bestMatch = null;
+                let smallestAngleDiff = Infinity;
                 
-                // Check if current mouse position is close to this item
-                const distanceFromMouse = Math.sqrt(
-                    Math.pow(event.clientX - itemCenterX, 2) + 
-                    Math.pow(event.clientY - itemCenterY, 2)
-                );
-                
-                if (distanceFromMouse < 20) { // Within 20px of item center
-                    item.classList.add('highlighted');
-                    currentlyHighlighted = item.dataset.soundLetter;
-                } else {
+                radialItems.forEach(item => {
+                    // Get the item's angle from its position
+                    const rect = item.getBoundingClientRect();
+                    const itemCenterX = rect.left + rect.width / 2;
+                    const itemCenterY = rect.top + rect.height / 2;
+                    const itemX = itemCenterX - centerX;
+                    const itemY = itemCenterY - centerY;
+                    const itemAngle = Math.atan2(itemY, itemX);
+                    
+                    // Calculate the smallest angle difference (considering wrapping)
+                    let angleDiff = Math.abs(mouseAngle - itemAngle);
+                    if (angleDiff > Math.PI) {
+                        angleDiff = 2 * Math.PI - angleDiff;
+                    }
+                    
+                    // Find the closest item by angle
+                    if (angleDiff < smallestAngleDiff) {
+                        smallestAngleDiff = angleDiff;
+                        bestMatch = item;
+                    }
+                    
+                    // Remove highlight from all items first
                     item.classList.remove('highlighted');
+                });
+                
+                // Highlight only the best match
+                if (bestMatch) {
+                    bestMatch.classList.add('highlighted');
+                    currentlyHighlighted = bestMatch.dataset.soundLetter;
                 }
-            });
+            } else {
+                // Mouse too close to center or too far - remove all highlights
+                radialItems.forEach(item => {
+                    item.classList.remove('highlighted');
+                });
+            }
             
             // Only update highlighted sound if it's different
             if (this.highlightedSound !== currentlyHighlighted) {
