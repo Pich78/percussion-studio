@@ -152,14 +152,12 @@ export class RadialSoundSelector {
     }
 
     _updateSectorHighlight(sectorElement, selectedAngle, totalSectors) {
-        // --- FIX: This logic is simplified to be more robust ---
         const sectorAngleDegrees = 360 / totalSectors;
-        
-        // Calculate the rotation needed to center the start of the sector at the top
         const selectedAngleDegrees = selectedAngle * 180 / Math.PI;
-        const rotation = selectedAngleDegrees - (sectorAngleDegrees / 2);
+        
+        // --- FIX: Add 90 degrees to align the JS math coordinate system (0deg=right) with the CSS coordinate system (0deg=up) ---
+        const rotation = selectedAngleDegrees - (sectorAngleDegrees / 2) + 90;
 
-        // Define a simple gradient for a single sector at the top
         const gradient = `conic-gradient(rgba(59, 130, 246, 0.3) 0deg ${sectorAngleDegrees}deg, transparent ${sectorAngleDegrees}deg 360deg)`;
         
         sectorElement.style.transform = `translate(-50%, -50%) rotate(${rotation}deg)`;
