@@ -18,20 +18,21 @@ export async function run() {
             sounds: [{letter: 'o', svg: '<svg>o</svg>'}, {letter: 'p', svg: '<svg>p</svg>'}] 
         },
         notation: '||o-p-o---||',
-        metrics: { beatsPerMeasure: 4, beatUnit: 4, subdivision: 8, grouping: 2 } // 4/4 with 8ths
+        metrics: { beatsPerMeasure: 4, beatUnit: 4, subdivision: 8, grouping: 2 }, // 4/4 with 8ths
+        // --- FIX: Add the missing densityClass prop required by the component ---
+        densityClass: 'density-medium' 
     });
 
     runner.describe('InstrumentRowView', () => {
+        // ... all test cases below this line remain exactly the same ...
         runner.it('should render the correct number of cells based on metrics', () => {
             testContainer.innerHTML = '';
             const view = new InstrumentRowView(testContainer, {});
             let props = getMockProps();
             
-            // 4/4 with 8th notes = (4/4)*8 = 8 cells
             view.render(props);
             runner.expect(testContainer.querySelectorAll('.grid-cell').length).toBe(8);
 
-            // 6/8 with 16th notes = (6/8)*16 = 12 cells
             props.metrics = { beatsPerMeasure: 6, beatUnit: 8, subdivision: 16, grouping: 3 };
             view.render(props);
             runner.expect(testContainer.querySelectorAll('.grid-cell').length).toBe(12);
@@ -43,18 +44,17 @@ export async function run() {
             view.render(getMockProps());
 
             const cells = testContainer.querySelectorAll('.grid-cell');
-            runner.expect(cells[0].querySelector('.note')).not.toBe(null); // 'o'
-            runner.expect(cells[2].querySelector('.note')).not.toBe(null); // 'p'
-            runner.expect(cells[4].querySelector('.note')).not.toBe(null); // 'o'
-            runner.expect(cells[1].querySelector('.note')).toBe(null); // '-'
-            runner.expect(cells[5].querySelector('.note')).toBe(null); // '-'
+            runner.expect(cells[0].querySelector('.note')).not.toBe(null);
+            runner.expect(cells[2].querySelector('.note')).not.toBe(null);
+            runner.expect(cells[4].querySelector('.note')).not.toBe(null);
+            runner.expect(cells[1].querySelector('.note')).toBe(null);
+            runner.expect(cells[5].querySelector('.note')).toBe(null);
         });
 
         runner.it('should apply highlighted-beat class to the correct cells', () => {
             testContainer.innerHTML = '';
             const view = new InstrumentRowView(testContainer, {});
             
-            // 4/4 with 8ths, grouping by 2
             let props = getMockProps();
             view.render(props);
             let highlighted = testContainer.querySelectorAll('.highlighted-beat');
@@ -62,7 +62,6 @@ export async function run() {
             runner.expect(highlighted[0].dataset.tickIndex).toBe('0');
             runner.expect(highlighted[1].dataset.tickIndex).toBe('2');
 
-            // 12/8 with 8ths, grouping by 3
             props.metrics = { beatsPerMeasure: 12, beatUnit: 8, subdivision: 8, grouping: 3 };
             view.render(props);
             highlighted = testContainer.querySelectorAll('.highlighted-beat');
@@ -101,5 +100,5 @@ export async function run() {
 
     await runner.runAll();
     runner.renderResults('test-results');
-    logEvent('info', 'TestRunner', 'run', 'Teardown', 'InstrumentRowView test suite finished.');
+    logEvent('info', 'TestRunner', 'run', 'Teown', 'InstrumentRowView test suite finished.');
 }
