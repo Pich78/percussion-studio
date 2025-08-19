@@ -14,12 +14,11 @@ Logger.setTarget('log-output');
 loadCSS('/percussion-studio/src/components/EditorCursor/EditorCursor.css');
 loadCSS('/percussion-studio/src/components/RadialSoundSelector/RadialSoundSelector.css');
 
-// --- NEW: Constants and state for click/hold interaction ---
 const HOLD_DURATION_MS = 200;
 let holdTimeout = null;
-let mouseDownInfo = null; // Will store { instrument, tickIndex, hasNote }
+let mouseDownInfo = null;
 
-// --- MOCK DATA (DATABASE) ---
+// --- 2. MOCK DATA (DATABASE) ---
 const svgs = {
     hit: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="currentColor" /></svg>',
     stopped: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" stroke="currentColor" stroke-width="12" fill="none" /></svg>',
@@ -73,11 +72,26 @@ const radialMenu = new RadialSoundSelector({
         const { instrument, tickIndex } = radialMenu.lastContext || {};
         if (!instrument) return;
         setActiveTool(instrument.symbol, selectedSoundLetter);
-        setNote(instrument.symbol, tickIndex, selectedSoundLetter, true);
+        setTimeout(() => {
+            setNote(instrument.symbol, tickIndex, selectedSoundLetter, true);
+        }, 0);
     }
 });
 const selectionModal = new InstrumentSelectionModalView(modalContainer, {
-    onInstrumentSelected: (selection) => { /* ... (unchanged) ... */ },
+    onInstrumentSelected: (selection) => {
+        logCallback('onInstrumentSelected', selection);
+        const newSoundPack = mockSoundPacks.find(p => p.symbol === selection.symbol && p.pack_name === selection.packName);
+        if (!newSoundPack || !instrumentSymbolToReplace) return;
+        const indexToReplace = mockState.instruments.findIndex(inst => inst.symbol === instrumentSymbolToReplace);
+        if (indexToReplace !== -1) {
+            delete mockState.pattern[instrumentSymbolToReplace];
+            mockState.instruments[indexToReplace] = newSoundPack;
+            const totalCells = (mockState.metrics.beatsPerMeasure / mockState.metrics.beatUnit) * mockState.metrics.subdivision;
+            mockState.pattern[newSoundPack.symbol] = '||' + '-'.repeat(totalCells) + '||';
+            setActiveTool(newSoundPack.symbol, newSoundPack.sounds[0].letter);
+            rerender();
+        }
+    },
     onCancel: () => logCallback('ModalCancelled', {})
 });
 
@@ -100,7 +114,6 @@ function updateActiveToolUI() {
     const { instrumentSymbol, soundLetter } = mockState.activeTool;
     const instrument = mockState.instruments.find(i => i.symbol === instrumentSymbol);
     const sound = instrument.sounds.find(s => s.letter === soundLetter);
-    
     if (sound) {
         activeToolSwatchEl.innerHTML = sound.svg;
         activeToolNameEl.textContent = `${instrument.name} / ${sound.name}`;
@@ -117,20 +130,17 @@ function getActiveSoundSVG() {
 function setNote(instrumentSymbol, tickIndex, soundLetter, forceSet = false) {
     let patternStr = (mockState.pattern[instrumentSymbol] || '').replace(/\|/g, '');
     let patternArr = patternStr.split('');
-
     if (patternArr[tickIndex] === soundLetter && !forceSet) {
         patternArr[tickIndex] = '-';
     } else {
         patternArr[tickIndex] = soundLetter;
     }
-    
     mockState.pattern[instrumentSymbol] = '||' + patternArr.join('') + '||';
     rerender();
 }
 
 function rerender() {
     rowsContainer.innerHTML = '';
-    
     const totalCells = (mockState.metrics.beatsPerMeasure / mockState.metrics.beatUnit) * mockState.metrics.subdivision;
     let densityClass = 'density-medium';
     if (totalCells <= 12) densityClass = 'density-low';
@@ -148,47 +158,39 @@ function rerender() {
             },
             onGridMouseEnter: (instrument) => editorCursor.update({ isVisible: true, svg: getActiveSoundSVG() }),
             onGridMouseLeave: () => editorCursor.update({ isVisible: false, svg: null }),
-            
-            // --- MODIFIED: Rewritten mouse handlers for click vs. hold ---
             onCellMouseDown: (tickIndex, event, hasNote) => {
                 logCallback('onCellMouseDown', { tickIndex });
                 event.preventDefault();
-
                 const instrument = inst;
                 clearTimeout(holdTimeout);
                 mouseDownInfo = { instrument, tickIndex, hasNote };
-
                 if (instrument.sounds.length > 1) {
                     holdTimeout = setTimeout(() => {
                         logEvent('info', 'Workbench', 'holdAction', 'Events', 'Hold detected, showing radial menu.');
-                        radialMenu.lastContext = { instrument, tickIndex }; 
+                        radialMenu.lastContext = { instrument, tickIndex };
                         radialMenu.show({
                             x: event.clientX,
                             y: event.clientY,
                             sounds: instrument.sounds,
                             activeSoundLetter: mockState.activeTool.soundLetter
                         });
-                        mouseDownInfo = null; // Invalidate click action
+                        mouseDownInfo = null;
                     }, HOLD_DURATION_MS);
                 }
             },
-
             onCellMouseUp: (tickIndex, event) => {
                 logCallback('onCellMouseUp', { tickIndex });
                 clearTimeout(holdTimeout);
-
                 if (mouseDownInfo) {
                     logEvent('info', 'Workbench', 'clickAction', 'Events', 'Click detected, editing note.');
                     const { instrument } = mouseDownInfo;
-                    
                     if (instrument.sounds.length <= 1) {
                         setNote(instrument.symbol, tickIndex, instrument.sounds[0].letter);
                     } else {
-                        // For multi-sound instruments, a simple click uses the active tool
                         setNote(instrument.symbol, tickIndex, mockState.activeTool.soundLetter);
                     }
                 }
-                mouseDownInfo = null; // Reset for next interaction
+                mouseDownInfo = null;
             },
         });
 
@@ -210,12 +212,10 @@ function updateMetrics() {
     const beats = parseInt(numeratorInput.value, 10) || 4;
     const unit = parseInt(denominatorInput.value, 10) || 4;
     const subdivision = Number(subdivisionSelect.value);
-    
     let grouping = (subdivision / unit);
     if ([6, 9, 12].includes(beats) && unit === 8) {
         grouping = 3;
     }
-
     mockState.metrics = { beatsPerMeasure: beats, beatUnit: unit, subdivision: subdivision, grouping: grouping };
     rerender();
 }
