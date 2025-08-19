@@ -12,10 +12,10 @@ import { InstrumentSelectionModalView } from '/percussion-studio/src/components/
  * InstrumentRowView instances up to a higher-level parent controller.
  */
 export class MeasureEditorView {
-    constructor(container, { instrumentDefs, soundPacks, onMetricsChange, onCellMouseDown, onGridMouseEnter, onGridMouseLeave }) {
+    constructor(container, { instrumentDefs, soundPacks, onMetricsChange, onCellMouseDown, onCellMouseUp, onGridMouseEnter, onGridMouseLeave }) {
         this.container = container;
         // It receives callbacks from its parent to report events
-        this.callbacks = { onMetricsChange, onCellMouseDown, onGridMouseEnter, onGridMouseLeave }; 
+        this.callbacks = { onMetricsChange, onCellMouseDown, onCellMouseUp, onGridMouseEnter, onGridMouseLeave }; 
 
         // STATE MANAGEMENT: It owns the state for this specific measure
         this.state = {
@@ -47,21 +47,6 @@ export class MeasureEditorView {
         logEvent('info', 'MeasureEditorView', 'constructor', 'Lifecycle', 'Component created.');
     }
 
-    /**
-     * [NEW] Public method to programmatically set the instruments and re-render.
-     * This is essential for a parent controller to update patterns or instrument lists.
-     * @param {Array} instruments - The new array of instrument objects.
-     */
-    setInstruments(instruments) {
-        if (!Array.isArray(instruments)) {
-            logEvent('error', 'MeasureEditorView', 'setInstruments', 'State', 'Invalid data provided. Expected an array.');
-            return;
-        }
-        this.state.instruments = instruments;
-        logEvent('info', 'MeasureEditorView', 'setInstruments', 'State', 'Instrument data updated.', { count: instruments.length });
-        this.render();
-    }
-
     render() {
         this.container.innerHTML = '';
         this.container.className = 'measure-editor-view';
@@ -87,6 +72,9 @@ export class MeasureEditorView {
                 // Pass the events up, adding the `instrument` context
                 onCellMouseDown: (tickIndex, event, hasNote) => {
                     this.callbacks.onCellMouseDown?.(instrument, tickIndex, hasNote, event);
+                },
+                onCellMouseUp: (tickIndex, event) => {
+                    this.callbacks.onCellMouseUp?.(instrument, tickIndex, event);
                 },
                 onGridMouseEnter: () => this.callbacks.onGridMouseEnter?.(instrument),
                 onGridMouseLeave: () => this.callbacks.onGridMouseLeave?.()
@@ -128,26 +116,22 @@ export class MeasureEditorView {
         const { beatsPerMeasure, beatUnit, subdivision } = this.state.metrics;
 
         header.innerHTML = `
-            <div class="flex items-center justify-between">
-                <div class="flex items-center">
-                    <div class="mr3">
-                        <label class="f6 b db mb2">Time Signature</label>
-                        <input data-metric="numerator" type="number" value="${beatsPerMeasure}" class="w3 tc"> /
-                        <input data-metric="denominator" type="number" value="${beatUnit}" class="w3 tc">
-                    </div>
-                    <div>
-                        <label class="f6 b db mb2">Subdivision</label>
-                        <select data-metric="subdivision" class="w5">
-                            <option value="4" ${subdivision === 4 ? 'selected' : ''}>4th Notes</option>
-                            <option value="8" ${subdivision === 8 ? 'selected' : ''}>8th Notes</option>
-                            <option value="16" ${subdivision === 16 ? 'selected' : ''}>16th Notes</option>
-                            <option value="32" ${subdivision === 32 ? 'selected' : ''}>32nd Notes</option>
-                            <option value="64" ${subdivision === 64 ? 'selected' : ''}>64th Notes</option>
-                        </select>
-                    </div>
+            <div class="flex items-center">
+                <div class="mr3">
+                    <label class="f6 b db mb2">Time Signature</label>
+                    <input data-metric="numerator" type="number" value="${beatsPerMeasure}" class="w3 tc"> /
+                    <input data-metric="denominator" type="number" value="${beatUnit}" class="w3 tc">
                 </div>
-                <!-- Placeholder for Active Tool display -->
-                <div id="active-tool-container"></div>
+                <div>
+                    <label class="f6 b db mb2">Subdivision</label>
+                    <select data-metric="subdivision" class="w5">
+                        <option value="4" ${subdivision === 4 ? 'selected' : ''}>4th Notes</option>
+                        <option value="8" ${subdivision === 8 ? 'selected' : ''}>8th Notes</option>
+                        <option value="16" ${subdivision === 16 ? 'selected' : ''}>16th Notes</option>
+                        <option value="32" ${subdivision === 32 ? 'selected' : ''}>32nd Notes</option>
+                        <option value="64" ${subdivision === 64 ? 'selected' : ''}>64th Notes</option>
+                    </select>
+                </div>
             </div>
         `;
         return header;
@@ -169,6 +153,12 @@ export class MeasureEditorView {
 
         const newMetrics = { beatsPerMeasure: beats, beatUnit: unit, subdivision, grouping };
         this.state.metrics = newMetrics;
+        
+        // When metrics change, update patterns for all instruments to match the new length
+        const totalCells = (newMetrics.beatsPerMeasure / newMetrics.beatUnit) * newMetrics.subdivision;
+        this.state.instruments.forEach(inst => {
+            inst.pattern = '||' + '-'.repeat(totalCells) + '||';
+        });
 
         logEvent('info', 'MeasureEditorView', '_handleMetricsChange', 'State', 'Metrics changed', newMetrics);
         this.render();
@@ -194,12 +184,19 @@ export class MeasureEditorView {
     _confirmAddInstrument(selection) {
         logEvent('info', 'MeasureEditorView', '_confirmAddInstrument', 'State', 'Adding instrument:', selection);
         
-        const newInstrument = {
-            symbol: selection.symbol,
-            name: this.state.manifest.instrumentDefs.find(def => def.symbol === selection.symbol)?.name || 'New Instrument',
-            sounds: [{ letter: 'x', svg: '<svg viewBox="0 0 100 100"><line x1="10" y1="10" x2="90" y2="90" stroke="black" stroke-width="8"/><line x1="10" y1="90" x2="90" y2="10" stroke="black" stroke-width="8"/></svg>' }],
-            pattern: '||' + '-'.repeat(64) + '||'
-        };
+        const soundPack = this.state.manifest.soundPacks.find(p => p.symbol === selection.symbol && p.pack_name === selection.packName);
+        if (!soundPack) {
+            logEvent('error', 'MeasureEditorView', '_confirmAddInstrument', 'State', 'Could not find selected sound pack:', selection);
+            return;
+        }
+        
+        if (this.state.instruments.some(inst => inst.symbol === selection.symbol)) {
+             window.alert(`The instrument "${soundPack.name}" (${selection.symbol}) is already in this measure.`);
+             return;
+        }
+
+        const totalCells = (this.state.metrics.beatsPerMeasure / this.state.metrics.beatUnit) * this.state.metrics.subdivision;
+        const newInstrument = { ...soundPack, pattern: '||' + '-'.repeat(totalCells) + '||' };
 
         this.state.instruments.push(newInstrument);
         this.render();
@@ -215,6 +212,22 @@ export class MeasureEditorView {
             this.state.instruments = this.state.instruments.filter(inst => inst.symbol !== symbolToDelete);
             this.render();
             logEvent('info', 'MeasureEditorView', '_handleDeleteInstrument', 'State', `Instrument ${symbolToDelete} removed.`);
+        }
+    }
+    
+    /**
+     * Public method to update the pattern for a specific instrument and re-render the view.
+     * @param {string} symbol - The symbol of the instrument to update (e.g., 'KCK').
+     * @param {string} newPattern - The new pattern string (e.g., '||o---o---||').
+     */
+    updateInstrumentPattern(symbol, newPattern) {
+        const instrument = this.state.instruments.find(inst => inst.symbol === symbol);
+        if (instrument) {
+            instrument.pattern = newPattern;
+            this.render();
+            logEvent('info', 'MeasureEditorView', 'updateInstrumentPattern', 'State', `Pattern updated for ${symbol}`);
+        } else {
+            logEvent('warn', 'MeasureEditorView', 'updateInstrumentPattern', 'State', `Could not find instrument with symbol ${symbol} to update.`);
         }
     }
 

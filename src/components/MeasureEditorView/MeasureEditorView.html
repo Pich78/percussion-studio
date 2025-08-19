@@ -9,28 +9,16 @@
     <link rel="stylesheet" href="/percussion-studio/src/components/MeasureEditorView/MeasureEditorView.css">
     <link rel="stylesheet" href="/percussion-studio/src/components/InstrumentRowView/InstrumentRowView.css">
     <link rel="stylesheet" href="/percussion-studio/src/components/InstrumentSelectionModalView/InstrumentSelectionModalView.css">
-    <!-- NEW: CSS for cursor and radial menu -->
+    <!-- CSS for new workbench tools -->
     <link rel="stylesheet" href="/percussion-studio/src/components/EditorCursor/EditorCursor.css">
     <link rel="stylesheet" href="/percussion-studio/src/components/RadialSoundSelector/RadialSoundSelector.css">
-    <style>
+    <style> 
         body { font-family: sans-serif; }
-        /* --- NEW: Styles for the active tool display --- */
         .active-tool {
-            border: 2px solid #3b82f6;
-            padding: 8px;
-            display: flex;
-            align-items: center;
-            background-color: #eff6ff;
+            border: 2px solid #3b82f6; padding: 8px; display: flex; align-items: center; background-color: #eff6ff; min-height: 54px;
         }
         .active-tool .swatch {
-            width: 30px;
-            height: 30px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border: 1px solid #94a3b8;
-            background-color: white;
-            margin-right: 12px;
+            width: 30px; height: 30px; display: flex; justify-content: center; align-items: center; border: 1px solid #94a3b8; background-color: white; margin-right: 12px;
         }
     </style>
 </head>
@@ -40,11 +28,19 @@
         <div class="w-70 pr3">
             <h1 class="f2 b mb3 bb pb2">Live View Workbench: Measure Editor</h1>
             <p class="f6 gray mb3">
-                This is a manual testing environment. Click to add/remove notes. Click-and-hold on a note to open the sound selector. Use the controls to change metrics.
+                This is a manual testing environment. Add instruments, change the time signature, and click on the grid to add/remove notes. Click-and-hold on a note to change the sound articulation.
             </p>
             <div class="bg-white shadow-2 pa3 mb3">
                 <div id="measure-editor-container">
                     <!-- The MeasureEditorView component will render here -->
+                </div>
+            </div>
+             <!-- Active Tool Display -->
+            <div class="mt3">
+                <label class="f6 b db mb2">Active Tool</label>
+                <div id="active-tool-display" class="active-tool">
+                    <div id="active-tool-swatch" class="swatch"></div>
+                    <span id="active-tool-name" class="f6">Hover over an instrument row to activate a tool.</span>
                 </div>
             </div>
             <div id="callback-log" class="f7 code pa2 bg-washed-yellow mt3 h4 overflow-y-auto">Callbacks will appear here.</div>
