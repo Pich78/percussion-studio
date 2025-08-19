@@ -1,14 +1,14 @@
-// file: src/components/InstrumentTrackView/InstrumentTrackView.test.js
+// file: src/components/NoteEditorWidget/NoteEditorWidget.test.js
 
 import { TestRunner } from '/percussion-studio/lib/TestRunner.js';
 import { MockLogger } from '/percussion-studio/lib/MockLogger.js';
 import { logEvent } from '/percussion-studio/lib/Logger.js';
-import { InstrumentTrackView } from './InstrumentTrackView.js';
+import { NoteEditorWidget } from './NoteEditorWidget.js';
 
 export async function run() {
     const runner = new TestRunner();
     MockLogger.clearLogs();
-    logEvent('info', 'TestRunner', 'run', 'Setup', 'Starting InstrumentTrackView test suite.');
+    logEvent('info', 'TestRunner', 'run', 'Setup', 'Starting NoteEditorWidget test suite.');
     
     const testContainer = document.getElementById('test-sandbox');
 
@@ -28,10 +28,10 @@ export async function run() {
         window.dispatchEvent(upEvent);
     };
 
-    runner.describe('InstrumentTrackView', () => {
+    runner.describe('NoteEditorWidget', () => {
         runner.it('should render the correct number of cells and notes', () => {
             testContainer.innerHTML = '';
-            const view = new InstrumentTrackView(testContainer, {});
+            const view = new NoteEditorWidget(testContainer, {});
             view.render(getMockState());
             
             runner.expect(testContainer.querySelectorAll('.grid-cell').length).toBe(4);
@@ -42,7 +42,7 @@ export async function run() {
         runner.it('should fire onNoteEdit with "add" action on tap in an empty cell', () => {
             testContainer.innerHTML = '';
             const callbackLog = new MockLogger('Callbacks');
-            const view = new InstrumentTrackView(testContainer, { onNoteEdit: (data) => callbackLog.log('onNoteEdit', data) });
+            const view = new NoteEditorWidget(testContainer, { onNoteEdit: (data) => callbackLog.log('onNoteEdit', data) });
             view.render(getMockState());
             const emptyCell = testContainer.querySelector('.grid-cell[data-tick-index="1"]');
             simulateTap(emptyCell);
@@ -52,7 +52,7 @@ export async function run() {
         runner.it('should fire onNoteEdit with "delete" action on tap in a filled cell', () => {
             testContainer.innerHTML = '';
             const callbackLog = new MockLogger('Callbacks');
-            const view = new InstrumentTrackView(testContainer, { onNoteEdit: (data) => callbackLog.log('onNoteEdit', data) });
+            const view = new NoteEditorWidget(testContainer, { onNoteEdit: (data) => callbackLog.log('onNoteEdit', data) });
             view.render(getMockState());
             const filledCell = testContainer.querySelector('.grid-cell[data-tick-index="0"]');
             simulateTap(filledCell);
@@ -62,7 +62,7 @@ export async function run() {
         runner.it('should fire onActiveSoundChange callback when a radial menu item is selected via drag-release', () => {
             testContainer.innerHTML = '';
             const callbackLog = new MockLogger('Callbacks');
-            const view = new InstrumentTrackView(testContainer, { 
+            const view = new NoteEditorWidget(testContainer, { 
                 onNoteEdit: (data) => callbackLog.log('onNoteEdit', data),
                 onActiveSoundChange: (letter) => callbackLog.log('onActiveSoundChange', letter)
             });
@@ -101,5 +101,5 @@ export async function run() {
 
     await runner.runAll();
     runner.renderResults('test-results');
-    logEvent('info', 'TestRunner', 'run', 'Teardown', 'InstrumentTrackView test suite finished.');
+    logEvent('info', 'TestRunner', 'run', 'Teardown', 'NoteEditorWidget test suite finished.');
 }

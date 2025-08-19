@@ -1,4 +1,4 @@
-// file: src/components/InstrumentTrackView/InstrumentTrackView.js
+// file: src/components/NoteEditorWidget/NoteEditorWidget.js
 
 import { loadCSS } from '/percussion-studio/lib/dom.js';
 import { logEvent } from '/percussion-studio/lib/Logger.js';
@@ -6,7 +6,7 @@ import { TubsGridRenderer } from '/percussion-studio/lib/TubsGridRenderer/TubsGr
 
 const HOLD_DURATION_MS = 200;
 
-export class InstrumentTrackView {
+export class NoteEditorWidget {
     constructor(container, callbacks) {
         this.container = container;
         this.callbacks = callbacks || {};
@@ -18,7 +18,7 @@ export class InstrumentTrackView {
         this.mouseDownInfo = null;
         this.customCursorEl = null;
 
-        loadCSS('/percussion-studio/src/components/InstrumentTrackView/InstrumentTrackView.css');
+        loadCSS('/percussion-studio/src/components/NoteEditorWidget/NoteEditorWidget.css');
         this._initCustomCursor();
 
         this._handleMouseDown = this._handleMouseDown.bind(this);
@@ -33,7 +33,7 @@ export class InstrumentTrackView {
         window.addEventListener('mouseup', this._handleMouseUp, true);
         window.addEventListener('mousemove', this._handleMouseMove, true);
         
-        logEvent('info', 'InstrumentTrackView', 'constructor', 'Lifecycle', 'Component created.');
+        logEvent('info', 'NoteEditorWidget', 'constructor', 'Lifecycle', 'Component created.');
     }
 
     render(state) {

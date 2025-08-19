@@ -92,6 +92,11 @@ percussion-studio/
 │ │ │ ├── InstrumentMixerView.html
 │ │ │ ├── InstrumentMixerView.js
 │ │ │ └── InstrumentMixerView.test.js
+│ │ ├── NoteEditorWidget/
+│ │ │   ├── NoteEditorWidget.css
+│ │ │   ├── NoteEditorWidget.html
+│ │ │   ├── NoteEditorWidget.js
+│ │ │   └── NoteEditorWidget.test.js
 │ │ ├── InstrumentSelectionModalView/
 │ │ │ ├── InstrumentSelectionModalView.css
 │ │ │ ├── InstrumentSelectionModalView.html
