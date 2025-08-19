@@ -1,12 +1,15 @@
 /* file: src/components/InstrumentRowView/InstrumentRowView.css */
 
 .instrument-row-view {
-    display: flex;
+    /* --- MODIFIED: Changed from 'flex' to 'inline-flex' --- */
+    /* This is the key change. It makes the entire component's width */
+    /* shrink to fit its contents (header + grid). */
+    display: inline-flex;
+    
     align-items: stretch;
     margin-bottom: 4px;
     border: 1px solid #ddd;
     background-color: #fff;
-    /* NEW: Row height is now adaptive */
     height: var(--row-height, 50px);
 }
 
@@ -31,12 +34,13 @@
 
 .instrument-row-grid {
     display: flex;
-    flex-grow: 1;
+    /* --- REMOVED: flex-grow: 1 --- */
+    /* The grid should no longer grow to fill space. Its width will be */
+    /* the natural sum of the widths of all cells inside it. */
     cursor: none;
 }
 
 .grid-cell {
-    /* Cells no longer grow or shrink. Their size is fixed by the parent's density class. */
     flex-grow: 0;
     flex-shrink: 0;
     
@@ -45,19 +49,16 @@
     justify-content: center;
     align-items: center;
     position: relative;
-    height: 100%; /* Make cell height fill the row height */
+    height: 100%;
 }
 
-/* --- NEW: Adaptive Sizing based on Density --- */
-/* Density: Low (e.g., 6/8 with 8ths = 6 cells). Max size. */
+/* Adaptive Sizing based on Density */
 .density-low .grid-cell { width: 60px; }
 .density-low { --row-height: 60px; }
 
-/* Density: Medium (Default, e.g., 4/4 with 16ths = 16 cells) */
 .density-medium .grid-cell { width: 40px; }
 .density-medium { --row-height: 40px; }
 
-/* Density: High (e.g., 12/8 with 16ths = 24 cells). Min size. */
 .density-high .grid-cell { width: 30px; }
 .density-high { --row-height: 30px; }
 
@@ -78,7 +79,7 @@
     background-color: rgba(0, 0, 0, 0.02);
 }
 
-/* --- NEW: Softer visual hint for high subdivisions --- */
+/* Softer visual hint for high subdivisions */
 .grid-cell.sub-beat-line {
     border-left: 1px dotted #ddd;
 }
