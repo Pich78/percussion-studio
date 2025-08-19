@@ -33,13 +33,9 @@ export class InstrumentRowView {
             cellEl.className = 'grid-cell';
             cellEl.dataset.tickIndex = i;
 
-            // Apply main beat highlight
             if ((i % metrics.grouping) === 0) {
                 cellEl.classList.add('highlighted-beat');
-            } 
-            // --- NEW: Add softer visual hints for high subdivisions ---
-            else if (metrics.subdivision >= 32) {
-                // For 32nds, the 16th note positions get a softer line
+            } else if (metrics.subdivision >= 32) {
                 const sixteenthGrouping = metrics.grouping / 2;
                 if ((i % sixteenthGrouping) === 0) {
                     cellEl.classList.add('sub-beat-line');
@@ -47,7 +43,8 @@ export class InstrumentRowView {
             }
 
             const soundLetter = notationChars[i];
-            if (soundLetter && soundLetter !== '-') {
+            const hasNote = soundLetter && soundLetter !== '-';
+            if (hasNote) {
                 const sound = instrument.sounds.find(s => s.letter === soundLetter);
                 if (sound?.svg) {
                     const noteEl = document.createElement('div');
@@ -59,14 +56,16 @@ export class InstrumentRowView {
             
             cellEl.addEventListener('mousedown', (event) => {
                 event.preventDefault();
-                this.callbacks.onCellMouseDown?.(i, event);
+                this.callbacks.onCellMouseDown?.(i, event, hasNote);
             });
 
-            gridEl.appendChild(cellEl);
+            // --- NEW: Report mouseup events as well ---
+            cellEl.addEventListener('mouseup', (event) => {
+                this.callbacks.onCellMouseUp?.(i, event);
+            });
         }
 
         this.container.innerHTML = '';
-        // --- MODIFIED: Apply the density class to the top-level container ---
         this.container.className = `instrument-row-view ${densityClass}`;
         this.container.appendChild(headerEl);
         this.container.appendChild(gridEl);
