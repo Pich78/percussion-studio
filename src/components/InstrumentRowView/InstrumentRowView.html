@@ -8,16 +8,15 @@
     <style> 
         body { font-family: sans-serif; } 
         .rows-wrapper {
-            overflow-x: auto;
+            overflow-x: auto; /* Enable horizontal scrolling */
             border: 1px solid #ccc;
             padding: 8px;
             background-color: #f8f8f8;
-            
-            /* --- FINAL FIX: Make the wrapper's width shrink to its content --- */
-            width: fit-content; 
+            /* --- REMOVED: width: fit-content; --- */
+            /* This is the fix. The wrapper must be constrained by its parent's width. */
         }
         .rows-inner-container {
-            min-width: 100%; 
+            /* This inner container is still allowed to grow as wide as needed */
             width: fit-content;
         }
     </style>
@@ -35,7 +34,7 @@
             <div class="bg-white shadow-2 pa3 mb3">
                 <h3 class="f4 b mt0">Global Controls</h3>
                 <p class="f6 gray mb3">
-                    The outer container now correctly shrinks to fit the content.
+                    The scrollbar is now correctly contained within the component's box.
                 </p>
                 <div class="flex items-center">
                     <div class="mr3">
