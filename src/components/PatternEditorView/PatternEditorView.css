@@ -1,0 +1,60 @@
+/* file: src/components/PatternEditorView/PatternEditorView.css */
+
+.pattern-editor-view {
+    /* Main container for the whole component */
+}
+
+.pattern-measure-wrapper {
+    position: relative;
+    border: 1px solid #ddd;
+    background-color: #fff;
+    padding: 16px;
+    margin-bottom: 16px;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.delete-measure-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: none;
+    background-color: #eee;
+    color: #999;
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.2s ease-in-out;
+}
+
+.delete-measure-btn:hover {
+    background-color: #e53935; /* Red */
+    color: white;
+    transform: scale(1.1);
+}
+
+.add-measure-btn {
+    display: block;
+    width: 100%;
+    padding: 16px;
+    border: 2px dashed #ccc;
+    background-color: transparent;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    color: #aaa;
+    transition: all 0.2s ease-in-out;
+    border-radius: 4px;
+}
+
+.add-measure-btn:hover {
+    background-color: #f0f4c3; /* Light lime */
+    color: #558b2f; /* Dark green */
+    border-color: #cddc39;
+}

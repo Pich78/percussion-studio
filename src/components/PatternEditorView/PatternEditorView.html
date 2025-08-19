@@ -1,0 +1,71 @@
+<!-- file: src/components/PatternEditorView/PatternEditorView.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Harness: PatternEditorView</title>
+    <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
+    <!-- Load CSS for ALL required child components -->
+    <link rel="stylesheet" href="/percussion-studio/src/components/InstrumentRowView/InstrumentRowView.css">
+    <link rel="stylesheet" href="/percussion-studio/src/components/MeasureEditorView/MeasureEditorView.css">
+    <link rel="stylesheet" href="/percussion-studio/src/components/InstrumentSelectionModalView/InstrumentSelectionModalView.css">
+    <style> body { font-family: sans-serif; } </style>
+</head>
+<body class="bg-light-gray pa4">
+
+    <div class="flex">
+        <div class="w-70 pr3">
+            <h1 class="f2 b mb3 bb pb2">Automated Tests</h1>
+            <button id="run-tests-btn" class="pv2 ph3 bn br2 bg-blue white pointer hover-bg-dark-blue mb3">Run Automated Tests</button>
+            <div id="test-results"></div>
+            <hr class="mv4"/>
+            <h1 class="f2 b mb3 bb pb2">Live View Workbench: Pattern Editor</h1>
+            <p class="f6 gray mb3">
+                Click the '+ Add Measure' button to create new measure editors.
+            </p>
+            <div id="pattern-editor-container">
+                <!-- The PatternEditorView component will render here -->
+            </div>
+        </div>
+        <div class="w-30 pl3">
+            <div class="bg-near-black near-white pa3 br2 h-100">
+                <h2 class="f4 b bb pb2 mb2">Execution Log</h2>
+                <div id="log-output" class="f7 lh-copy" style="white-space: pre-wrap; height: 80vh; overflow-y: auto;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- The global container for the selection modal, which the component will use -->
+    <div id="modal-container"></div>
+    <div id="test-sandbox" style="position: absolute; visibility: hidden;"></div>
+
+    <script type="module">
+        import { run } from './PatternEditorView.test.js';
+        import { PatternEditorView } from './PatternEditorView.js';
+        import { Logger, logEvent } from '/percussion-studio/lib/Logger.js';
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            Logger.init({ level: 'debug' });
+            Logger.setTarget('log-output');
+
+            document.getElementById('run-tests-btn').addEventListener('click', run);
+
+            // Mock data that the top-level App would provide
+            const manifestData = {
+                instrumentDefs: [
+                    { symbol: 'KCK', name: 'Kick Drum' },
+                    { symbol: 'SNR', name: 'Snare Drum' },
+                ],
+                soundPacks: [
+                    { symbol: 'KCK', pack_name: 'acoustic_kick', name: 'Acoustic Kick' },
+                    { symbol: 'SNR', pack_name: 'rock_snare', name: 'Rock Snare' },
+                ]
+            };
+
+            const editorContainer = document.getElementById('pattern-editor-container');
+
+            const patternEditor = new PatternEditorView(editorContainer, manifestData);
+        });
+    </script>
+</body>
+</html>
