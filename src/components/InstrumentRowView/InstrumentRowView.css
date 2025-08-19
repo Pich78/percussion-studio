@@ -39,9 +39,6 @@
     /* to fill empty space, preserving the "shrink-to-fit" behavior for the cells. */
     flex-grow: 0;
     cursor: none;
-    /* --- NEW: Prevent browser drag/select behavior --- */
-    user-select: none;
-    -webkit-user-select: none;
 }
 
 .grid-cell {
