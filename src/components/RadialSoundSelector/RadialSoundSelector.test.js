@@ -75,7 +75,8 @@ export async function run() {
             
             menu._handleMouseUp();
             
-            runner.expect(callbackLog.wasCalled('onSoundSelected')).toBe(false);
+            // --- FIX: Use the 'callCount' property to assert the method was never called ---
+            runner.expect(callbackLog.callCount).toBe(0);
         });
     });
 
