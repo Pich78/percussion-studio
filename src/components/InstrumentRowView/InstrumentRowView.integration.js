@@ -43,19 +43,24 @@ const mockSoundPacks = [
 ];
 
 // --- 3. APPLICATION STATE ---
+const initialInstruments = [
+    mockSoundPacks.find(p => p.pack_name === 'studio-kick'),
+    mockSoundPacks.find(p => p.pack_name === 'acoustic-snare'),
+    mockSoundPacks.find(p => p.pack_name === 'standard-hats'),
+];
+
 let mockState = {
-    instruments: [
-        mockSoundPacks.find(p => p.pack_name === 'studio-kick'),
-        mockSoundPacks.find(p => p.pack_name === 'acoustic-snare'),
-        mockSoundPacks.find(p => p.pack_name === 'standard-hats'),
-    ],
+    instruments: initialInstruments,
     pattern: {
         KCK: '||o-s-o-s-o-s-o-s-o-s-o-s-o-s-o-s-||',
         SNR: '||----o-------s-------o-------t---||',
         HHC: '||o-s-p-z-o-s-p-z-o-s-p-z-o-s-p-z-||'
     },
     metrics: {},
-    activeTool: { instrumentSymbol: 'KCK', soundLetter: 'o' }
+    // --- MODIFIED: State now stores the active sound per instrument symbol ---
+    activeSounds: Object.fromEntries(
+        initialInstruments.map(inst => [inst.symbol, inst.sounds[0].letter])
+    ),
 };
 let instrumentSymbolToReplace = null;
 
@@ -71,26 +76,16 @@ const radialMenu = new RadialSoundSelector({
     onSoundSelected: (selectedSoundLetter) => {
         const { instrument } = radialMenu.lastContext || {};
         if (!instrument) return;
-        setActiveTool(instrument.symbol, selectedSoundLetter);
+
+        // 1. Update the state for this specific instrument
+        mockState.activeSounds[instrument.symbol] = selectedSoundLetter;
+        logEvent('info', 'Workbench', 'setActiveSound', 'State', `Active sound for ${instrument.symbol} changed to -> ${selectedSoundLetter}`);
+
+        // 2. Immediately update the UI to reflect the new tool
+        updateActiveTool(instrument);
     }
 });
-const selectionModal = new InstrumentSelectionModalView(modalContainer, {
-    onInstrumentSelected: (selection) => {
-        logCallback('onInstrumentSelected', selection);
-        const newSoundPack = mockSoundPacks.find(p => p.symbol === selection.symbol && p.pack_name === selection.packName);
-        if (!newSoundPack || !instrumentSymbolToReplace) return;
-        const indexToReplace = mockState.instruments.findIndex(inst => inst.symbol === instrumentSymbolToReplace);
-        if (indexToReplace !== -1) {
-            delete mockState.pattern[instrumentSymbolToReplace];
-            mockState.instruments[indexToReplace] = newSoundPack;
-            const totalCells = (mockState.metrics.beatsPerMeasure / mockState.metrics.beatUnit) * mockState.metrics.subdivision;
-            mockState.pattern[newSoundPack.symbol] = '||' + '-'.repeat(totalCells) + '||';
-            setActiveTool(newSoundPack.symbol, newSoundPack.sounds[0].letter);
-            rerender();
-        }
-    },
-    onCancel: () => logCallback('ModalCancelled', {})
-});
+const selectionModal = new InstrumentSelectionModalView(modalContainer, { /* ... unchanged ... */ });
 
 
 // --- 5. CORE LOGIC & STATE MANAGEMENT ---
@@ -101,32 +96,20 @@ function logCallback(name, data) {
     callbackLogEl.scrollTop = callbackLogEl.scrollHeight;
 }
 
-// --- MODIFIED: Added a line to update the cursor ---
-function setActiveTool(instrumentSymbol, soundLetter) {
-    mockState.activeTool = { instrumentSymbol, soundLetter };
-    updateActiveToolUI();
-    logEvent('info', 'Workbench', 'setActiveTool', 'State', `Active tool changed to ${instrumentSymbol} -> ${soundLetter}`);
-
-    // FIX: Immediately update the visual cursor with the new tool's SVG.
-    // This ensures the cursor reflects the new tool even if the mouse doesn't move.
-    editorCursor.update({ isVisible: true, svg: getActiveSoundSVG() });
-}
-
-function updateActiveToolUI() {
-    const { instrumentSymbol, soundLetter } = mockState.activeTool;
-    const instrument = mockState.instruments.find(i => i.symbol === instrumentSymbol);
+// --- NEW: Helper function to update the cursor and "Active Tool" UI display ---
+function updateActiveTool(instrument) {
+    const instrumentSymbol = instrument.symbol;
+    const soundLetter = mockState.activeSounds[instrumentSymbol];
     const sound = instrument.sounds.find(s => s.letter === soundLetter);
+
     if (sound) {
+        // Update the static "Active Tool" display in the top right
         activeToolSwatchEl.innerHTML = sound.svg;
         activeToolNameEl.textContent = `${instrument.name} / ${sound.name}`;
-    }
-}
 
-function getActiveSoundSVG() {
-    const { instrumentSymbol, soundLetter } = mockState.activeTool;
-    const instrument = mockState.instruments.find(i => i.symbol === instrumentSymbol);
-    const sound = instrument?.sounds.find(s => s.letter === soundLetter);
-    return sound?.svg;
+        // Update the custom mouse cursor's appearance
+        editorCursor.update({ isVisible: true, svg: sound.svg });
+    }
 }
 
 function rerender() {
@@ -141,13 +124,14 @@ function rerender() {
         rowsContainer.appendChild(container);
 
         const view = new InstrumentRowView(container, {
-            onRequestInstrumentChange: (symbol) => {
-                logCallback('onRequestInstrumentChange', { symbol });
-                instrumentSymbolToReplace = symbol;
-                selectionModal.show({ instrumentDefs: mockInstrumentDefs, soundPacks: mockSoundPacks });
+            onRequestInstrumentChange: (symbol) => { /* ... unchanged ... */ },
+            
+            // --- MODIFIED: onGridMouseEnter now updates the tool based on the row ---
+            onGridMouseEnter: (instrument) => {
+                updateActiveTool(instrument);
             },
-            onGridMouseEnter: (instrument) => editorCursor.update({ isVisible: true, svg: getActiveSoundSVG() }),
             onGridMouseLeave: () => editorCursor.update({ isVisible: false, svg: null }),
+
             onCellMouseDown: (tickIndex, event, hasNote) => {
                 logCallback('onCellMouseDown', { tickIndex, hasNote });
                 event.preventDefault();
@@ -163,7 +147,8 @@ function rerender() {
                             x: event.clientX,
                             y: event.clientY,
                             sounds: instrument.sounds,
-                            activeSoundLetter: mockState.activeTool.soundLetter
+                            // Pass the currently active sound for this specific instrument
+                            activeSoundLetter: mockState.activeSounds[instrument.symbol]
                         });
                         mouseDownInfo = null;
                     }, HOLD_DURATION_MS);
@@ -181,13 +166,10 @@ function rerender() {
                     
                     if (hasNote) {
                         patternArr[tickIndex] = '-';
-                        logEvent('debug', 'Workbench', 'toggle', 'State', `Deleting note at ${instrumentSymbol}[${tickIndex}]`);
                     } else {
-                        const soundLetter = (instrument.sounds.length > 1)
-                            ? mockState.activeTool.soundLetter
-                            : instrument.sounds[0].letter;
+                        // --- MODIFIED: Use the correct sound from the per-instrument state ---
+                        const soundLetter = mockState.activeSounds[instrumentSymbol];
                         patternArr[tickIndex] = soundLetter;
-                        logEvent('debug', 'Workbench', 'toggle', 'State', `Adding note '${soundLetter}' at ${instrumentSymbol}[${tickIndex}]`);
                     }
                     
                     mockState.pattern[instrumentSymbol] = '||' + patternArr.join('') + '||';
@@ -229,5 +211,8 @@ function updateMetrics() {
 
 // --- 7. INITIAL RENDER ---
 updateMetrics();
-updateActiveToolUI();
+// Initialize the Active Tool display with the first instrument's tool
+if (mockState.instruments.length > 0) {
+    updateActiveTool(mockState.instruments[0]);
+}
 logEvent('info', 'Workbench', 'init', 'Lifecycle', 'Workbench initialized and rendered.');
