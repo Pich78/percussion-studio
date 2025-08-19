@@ -333,8 +333,8 @@ export class InstrumentTrackView {
         // Convert angles to degrees for CSS.
         // FIX: Convert math angle (0deg=right, CCW) to CSS conic-gradient angle
         // (0deg=top, CW) by subtracting 90 degrees.
-        const startDegrees = (startAngle * 180 / Math.PI) - 90;
-        const endDegrees = (endAngle * 180 / Math.PI) - 90;
+        const startDegrees = (startAngle * 180 / Math.PI) + 90;
+        const endDegrees = (endAngle * 180 / Math.PI) + 90;
         
         // Normalize angles to 0-360 range
         const normalizeAngle = (angle) => {
