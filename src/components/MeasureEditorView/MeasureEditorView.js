@@ -20,16 +20,20 @@ export class MeasureEditorView {
 
         loadCSS('/percussion-studio/src/components/MeasureEditorView/MeasureEditorView.css');
         
-        // --- SERVICE INSTANTIATION ---
-        // The MeasureEditor owns the modal it uses to add new instruments.
-        // It's created once and reused.
+        // --- MODIFIED: Ensure we're using the right modal container ---
+        const modalContainerEl = document.getElementById('modal-container');
+        if (!modalContainerEl) {
+            throw new Error('MeasureEditorView requires a DOM element with id="modal-container" to exist.');
+        }
+        
         this.instrumentModal = new InstrumentSelectionModalView(
-            document.getElementById('modal-container'), // Assumes a global modal container
+            modalContainerEl,
             { onInstrumentSelected: this._confirmAddInstrument.bind(this) }
         );
 
-        // Use event delegation for add/delete buttons
-        this.container.addEventListener('click', this._handleClick.bind(this));
+        // --- MODIFIED: Bind the handler for removal ---
+        this._boundHandleClick = this._handleClick.bind(this);
+        this.container.addEventListener('click', this._boundHandleClick);
         
         this.render();
         logEvent('info', 'MeasureEditorView', 'constructor', 'Lifecycle', 'Component created.');
@@ -134,5 +138,13 @@ export class MeasureEditorView {
             this.render(); // Re-render the view without the deleted instrument
             logEvent('info', 'MeasureEditorView', '_handleDeleteInstrument', 'State', `Instrument ${symbolToDelete} removed.`);
         }
+    }
+    /**
+     * --- NEW: Cleanup method to destroy child components and remove listeners ---
+     */
+    destroy() {
+        this.container.removeEventListener('click', this._boundHandleClick);
+        this.instrumentModal.destroy(); // Important: destroy the child modal instance
+        logEvent('info', 'MeasureEditorView', 'destroy', 'Lifecycle', 'Component destroyed.');
     }
 }

@@ -11,10 +11,8 @@ export async function run() {
     logEvent('info', 'TestRunner', 'run', 'Setup', 'Starting MeasureEditorView test suite.');
     
     const testContainer = document.getElementById('test-sandbox');
-    // The modal needs a container in the test environment too
-    const modalContainer = document.createElement('div');
-    modalContainer.id = 'modal-container';
-    document.body.appendChild(modalContainer);
+    // --- MODIFIED: Keep a reference to the modal container for cleanup ---
+    let modalContainer = null;
 
     const getMockManifest = () => ({
         instrumentDefs: [{ symbol: 'KCK', name: 'Kick Drum' }],
@@ -22,56 +20,61 @@ export async function run() {
     });
 
     runner.describe('MeasureEditorView', () => {
+        // --- NEW: Keep a reference to the view instance for cleanup ---
+        let view = null;
+
+        // --- NEW: Use beforeEach and afterEach for proper setup and teardown ---
+        runner.beforeEach(() => {
+            // Create the required modal container for each test
+            modalContainer = document.createElement('div');
+            modalContainer.id = 'modal-container';
+            document.body.appendChild(modalContainer);
+        });
+
+        runner.afterEach(() => {
+            // Guarantee cleanup after each test
+            if (view) {
+                view.destroy();
+                view = null;
+            }
+            if (modalContainer) {
+                modalContainer.remove();
+                modalContainer = null;
+            }
+            testContainer.innerHTML = '';
+        });
+
 
         runner.it('should start with zero instrument rows and an "add" button', () => {
-            testContainer.innerHTML = '';
-            const view = new MeasureEditorView(testContainer, getMockManifest());
-            
+            view = new MeasureEditorView(testContainer, getMockManifest());
             runner.expect(testContainer.querySelectorAll('.instrument-row-container').length).toBe(0);
             runner.expect(testContainer.querySelector('.add-instrument-btn')).not.toBe(null);
         });
 
         runner.it('should open the instrument modal when the "add" button is clicked', () => {
-            testContainer.innerHTML = '';
-            const view = new MeasureEditorView(testContainer, getMockManifest());
-            
-            // We can "spy" on the modal's show method to see if it was called.
+            view = new MeasureEditorView(testContainer, getMockManifest());
             let wasModalShown = false;
             view.instrumentModal.show = () => { wasModalShown = true; };
-
             testContainer.querySelector('.add-instrument-btn').click();
             runner.expect(wasModalShown).toBe(true);
         });
 
         runner.it('should add an instrument row after modal confirmation', () => {
-            testContainer.innerHTML = '';
-            const view = new MeasureEditorView(testContainer, getMockManifest());
-            
-            // Initially 0 rows
+            view = new MeasureEditorView(testContainer, getMockManifest());
             runner.expect(testContainer.querySelectorAll('.instrument-row-container').length).toBe(0);
-
-            // Manually call the confirmation callback, simulating the modal's action
             view._confirmAddInstrument({ symbol: 'KCK', packName: 'kick_1' });
-            
-            // Now there should be 1 row
             runner.expect(testContainer.querySelectorAll('.instrument-row-container').length).toBe(1);
         });
 
         runner.it('should remove an instrument row after user confirmation', () => {
-            testContainer.innerHTML = '';
-            const view = new MeasureEditorView(testContainer, getMockManifest());
+            view = new MeasureEditorView(testContainer, getMockManifest());
             view._confirmAddInstrument({ symbol: 'KCK', packName: 'kick_1' });
             runner.expect(testContainer.querySelectorAll('.instrument-row-container').length).toBe(1);
 
-            // Spy on window.confirm and make it return `true`
             const originalConfirm = window.confirm;
             window.confirm = () => true;
-
             testContainer.querySelector('.delete-row-btn').click();
-
             runner.expect(testContainer.querySelectorAll('.instrument-row-container').length).toBe(0);
-
-            // Restore the original confirm function
             window.confirm = originalConfirm;
         });
     });

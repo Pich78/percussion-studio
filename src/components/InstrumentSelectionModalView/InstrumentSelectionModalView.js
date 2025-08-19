@@ -8,14 +8,17 @@ export class InstrumentSelectionModalView {
         this.container = container;
         this.callbacks = callbacks || {};
         
-        // Internal state for the selection process
         this.instrumentDefs = [];
         this.soundPacks = [];
         this.selectedSymbol = null;
         this.selectedPackName = null;
 
         loadCSS('/percussion-studio/src/components/InstrumentSelectionModalView/InstrumentSelectionModalView.css');
-        this.container.addEventListener('click', this._handleClick.bind(this));
+        
+        // --- MODIFIED: Bind the handler so we can remove it later ---
+        this._boundHandleClick = this._handleClick.bind(this);
+        this.container.addEventListener('click', this._boundHandleClick);
+
         logEvent('info', 'InstrumentSelectionModalView', 'constructor', 'Lifecycle', 'Component created.');
     }
 
@@ -121,4 +124,11 @@ export class InstrumentSelectionModalView {
             this.hide();
         }
     }
+    /**
+     * --- NEW: Cleanup method to remove event listeners ---
+     */
+    destroy() {
+        this.container.removeEventListener('click', this._boundHandleClick);
+        logEvent('info', 'InstrumentSelectionModalView', 'destroy', 'Lifecycle', 'Component destroyed.');
+    }    
 }
