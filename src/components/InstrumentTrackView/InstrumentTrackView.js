@@ -54,19 +54,21 @@ export class InstrumentTrackView {
         }
         this.container.appendChild(rowEl);
         
-        // Update cursor if mouse is already over the grid
-        this._updateCustomCursor();
+        // Ensure cursor is hidden after render to prevent spurious displays
+        if (this.customCursorEl) {
+            this.customCursorEl.style.display = 'none';
+        }
     }
 
     _handleMouseEnter(event) {
-        // Show custom cursor when entering any grid cell
-        if (event.target.closest('.grid-cell')) {
+        // Show custom cursor when entering any grid cell within this component
+        if (event.target.closest('.grid-cell') && this.container.contains(event.target)) {
             this._updateCustomCursor();
         }
     }
 
     _handleMouseLeave(event) {
-        // Hide custom cursor when leaving the container
+        // Hide custom cursor when leaving this component entirely
         if (!this.container.contains(event.relatedTarget)) {
             if (this.customCursorEl) {
                 this.customCursorEl.style.display = 'none';
@@ -137,9 +139,9 @@ export class InstrumentTrackView {
                 this.customCursorEl.style.left = `${event.clientX - 12}px`; // -12 to center 24px cursor
                 this.customCursorEl.style.top = `${event.clientY - 12}px`;
             }
-        } else if (!isWithinComponentGrid && !this.isDragging) {
-            // Hide if the mouse is anywhere else (this instance's responsibility)
-            if (this.customCursorEl) this.customCursorEl.style.display = 'none';
+        } else if (!isWithinComponentGrid && !this.isDragging && this.customCursorEl) {
+            // Hide if the mouse is anywhere else and it's this component's cursor
+            this.customCursorEl.style.display = 'none';
         }
 
         // --- Handle highlighting during drag ---
@@ -190,7 +192,7 @@ export class InstrumentTrackView {
 
     _initCustomCursor() {
         // Create a unique cursor for this instance to avoid conflicts
-        const cursorId = `instrument-track-cursor-${Math.random().toString(36).substr(2, 9)}`;
+        const cursorId = `instrument-track-cursor-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
         this.customCursorEl = document.createElement('div');
         this.customCursorEl.id = cursorId;
         this.customCursorEl.className = 'instrument-track-cursor';
@@ -269,14 +271,23 @@ export class InstrumentTrackView {
         const existingMenu = document.querySelector('.radial-menu');
         if (existingMenu) existingMenu.remove();
         
-        // Show the custom cursor again if we're still over a grid cell
+        // Clear any highlighted sounds
+        this.highlightedSound = null;
+        
+        // Show the custom cursor again if we're still over a grid cell in this component
         try {
-            const elementUnderMouse = document.elementFromPoint(window.event?.clientX || 0, window.event?.clientY || 0);
-            if (elementUnderMouse?.closest('.grid-cell') && this.container.contains(elementUnderMouse)) {
-                this._updateCustomCursor();
+            const mouseEvent = window.event;
+            if (mouseEvent) {
+                const elementUnderMouse = document.elementFromPoint(mouseEvent.clientX, mouseEvent.clientY);
+                if (elementUnderMouse?.closest('.grid-cell') && this.container.contains(elementUnderMouse)) {
+                    this._updateCustomCursor();
+                }
             }
         } catch (e) {
-            // Fallback if event is not available
+            // Fallback: just update the cursor if state is available
+            if (this.state.instrument && this.state.activeSoundLetter) {
+                // Don't show cursor unless we're sure we're over this component's grid
+            }
         }
     }
 
