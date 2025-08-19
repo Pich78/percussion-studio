@@ -1,0 +1,20 @@
+/* file: src/components/EditorCursor/EditorCursor.css */
+
+.editor-cursor {
+    /* Behavior */
+    position: fixed;
+    pointer-events: none; /* Crucial: allows clicks to pass through to elements underneath */
+    z-index: 9999;
+    display: none; /* Hidden by default */
+    
+    /* Appearance */
+    width: 24px;
+    height: 24px;
+    opacity: 0.8;
+
+    /* Prevent text selection artifacts */
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}

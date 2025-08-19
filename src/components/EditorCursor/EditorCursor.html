@@ -1,0 +1,136 @@
+<!-- file: src/components/EditorCursor/EditorCursor.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Harness: EditorCursor</title>
+    <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
+    <!-- Load the component's own CSS -->
+    <link rel="stylesheet" href="/percussion-studio/src/components/EditorCursor/EditorCursor.css">
+    <style>
+        body { font-family: sans-serif; cursor: default; }
+        .active-area {
+            height: 200px;
+            background-color: #f0f0f0;
+            border: 2px dashed #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: #999;
+        }
+    </style>
+</head>
+<body class="bg-light-gray pa4">
+
+    <div class="flex">
+        <div class="w-70 pr3">
+            <h1 class="f2 b mb3 bb pb2">Automated Tests</h1>
+            <button id="run-tests-btn" class="pv2 ph3 bn br2 bg-blue white pointer hover-bg-dark-blue mb3">Run Automated Tests</button>
+            <div id="test-results"></div>
+            <hr class="mv4"/>
+            <h1 class="f2 b mb3 bb pb2">Live View Workbench</h1>
+            
+            <div class="bg-white shadow-2 pa3 mb3">
+                <h3 class="f4 b mt0">Controls</h3>
+                <p>Select a symbol below, then move your mouse over the dashed box to see the custom cursor.</p>
+                <div class="mb3">
+                    <button id="btn-svg1" class="pv2 ph3 bn br2 bg-light-blue white pointer mr2">Select Circle</button>
+                    <button id="btn-svg2" class="pv2 ph3 bn br2 bg-light-purple white pointer mr2">Select Cross</button>
+                    <button id="btn-svg3" class="pv2 ph3 bn br2 bg-light-red white pointer">Select Square</button>
+                </div>
+                <div id="active-area" class="active-area">
+                    MOVE MOUSE HERE
+                </div>
+            </div>
+            
+            <div id="log-display" class="f7 code pa2 bg-washed-yellow mt3 h4 overflow-y-auto">Harness events will appear here.</div>
+        </div>
+        <div class="w-30 pl3">
+            <div class="bg-near-black near-white pa3 br2 h-100">
+                <h2 class="f4 b bb pb2 mb2">Execution Log</h2>
+                <div id="log-output" class="f7 lh-copy" style="white-space: pre-wrap; height: 80vh; overflow-y: auto;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="test-sandbox" style="position: absolute; visibility: hidden;"></div>
+
+    <script type="module">
+        import { run } from './EditorCursor.test.js';
+        import { EditorCursor } from './EditorCursor.js';
+        import { Logger, logEvent } from '/percussion-studio/lib/Logger.js';
+        
+        Logger.init({ level: 'debug' });
+        Logger.setTarget('log-output');
+
+        document.getElementById('run-tests-btn').addEventListener('click', run);
+        logEvent('info', 'Harness', 'setup', 'Lifecycle', 'Setting up workbench for EditorCursor...');
+
+        // --- HARNESS STATE & MOCK DATA ---
+        const svg1 = '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" stroke="black" stroke-width="8" fill="none"/></svg>';
+        const svg2 = '<svg viewBox="0 0 100 100"><line x1="10" y1="10" x2="90" y2="90" stroke="black" stroke-width="8"/><line x1="10" y1="90" x2="90" y2="10" stroke="black" stroke-width="8"/></svg>';
+        const svg3 = '<svg viewBox="0 0 100 100"><rect x="10" y="10" width="80" height="80" stroke="black" stroke-width="8" fill="none"/></svg>';
+        const logDisplay = document.getElementById('log-display');
+
+        // The harness ("parent controller") owns the state
+        let activeSvg = svg1;
+        let isCursorInActiveArea = false;
+
+        // The harness instantiates the EditorCursor service ONCE
+        const editorCursor = new EditorCursor();
+        
+        function logHarnessEvent(message) {
+            const entry = document.createElement('div');
+            entry.textContent = message;
+            logDisplay.appendChild(entry);
+            logDisplay.scrollTop = logDisplay.scrollHeight;
+        }
+
+        // --- COMMAND FUNCTION ---
+        // This single function translates harness state into a command for the cursor service
+        function updateCursorFromState() {
+            logHarnessEvent(`Updating cursor state: isVisible=${isCursorInActiveArea}`);
+            editorCursor.update({
+                isVisible: isCursorInActiveArea,
+                svg: activeSvg
+            });
+        }
+        
+        // --- EVENT LISTENERS ---
+        document.getElementById('btn-svg1').addEventListener('click', () => {
+            logHarnessEvent('State changed: active SVG is now Circle.');
+            activeSvg = svg1;
+            updateCursorFromState(); // Re-evaluate cursor state
+        });
+        
+        document.getElementById('btn-svg2').addEventListener('click', () => {
+            logHarnessEvent('State changed: active SVG is now Cross.');
+            activeSvg = svg2;
+            updateCursorFromState();
+        });
+
+        document.getElementById('btn-svg3').addEventListener('click', () => {
+            logHarnessEvent('State changed: active SVG is now Square.');
+            activeSvg = svg3;
+            updateCursorFromState();
+        });
+
+        const activeArea = document.getElementById('active-area');
+        activeArea.addEventListener('mouseenter', () => {
+            logHarnessEvent('Mouse entered active area.');
+            isCursorInActiveArea = true;
+            updateCursorFromState();
+        });
+        
+        activeArea.addEventListener('mouseleave', () => {
+            logHarnessEvent('Mouse left active area.');
+            isCursorInActiveArea = false;
+            updateCursorFromState();
+        });
+
+        logHarnessEvent('Harness initialized. Default SVG is Circle.');
+        logEvent('info', 'Harness', 'setup', 'Lifecycle', 'Workbench setup complete.');
+    </script>
+</body>
+</html>
