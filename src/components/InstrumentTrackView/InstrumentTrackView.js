@@ -147,6 +147,7 @@ export class InstrumentTrackView {
         // --- Handle highlighting during drag ---
         if (this.isDragging) {
             const radialItems = document.querySelectorAll('.radial-menu .radial-item');
+            const sectorHighlight = document.querySelector('.radial-menu .sector-highlight');
             let currentlyHighlighted = null;
             
             // Calculate distance and angle from the original center point
@@ -162,16 +163,12 @@ export class InstrumentTrackView {
             // Only highlight if mouse is within reasonable distance from center
             if (mouseDistance > 10 && mouseDistance < 50) {
                 let bestMatch = null;
+                let bestAngle = null;
                 let smallestAngleDiff = Infinity;
                 
                 radialItems.forEach(item => {
-                    // Get the item's angle from its position
-                    const rect = item.getBoundingClientRect();
-                    const itemCenterX = rect.left + rect.width / 2;
-                    const itemCenterY = rect.top + rect.height / 2;
-                    const itemX = itemCenterX - centerX;
-                    const itemY = itemCenterY - centerY;
-                    const itemAngle = Math.atan2(itemY, itemX);
+                    // Get the item's stored angle
+                    const itemAngle = parseFloat(item.dataset.angle);
                     
                     // Calculate the smallest angle difference (considering wrapping)
                     let angleDiff = Math.abs(mouseAngle - itemAngle);
@@ -183,6 +180,7 @@ export class InstrumentTrackView {
                     if (angleDiff < smallestAngleDiff) {
                         smallestAngleDiff = angleDiff;
                         bestMatch = item;
+                        bestAngle = itemAngle;
                     }
                     
                     // Remove highlight from all items first
@@ -190,15 +188,21 @@ export class InstrumentTrackView {
                 });
                 
                 // Highlight only the best match
-                if (bestMatch) {
+                if (bestMatch && sectorHighlight) {
                     bestMatch.classList.add('highlighted');
                     currentlyHighlighted = bestMatch.dataset.soundLetter;
+                    
+                    // Update sector highlight
+                    this._updateSectorHighlight(sectorHighlight, bestAngle, radialItems.length);
                 }
             } else {
                 // Mouse too close to center or too far - remove all highlights
                 radialItems.forEach(item => {
                     item.classList.remove('highlighted');
                 });
+                if (sectorHighlight) {
+                    sectorHighlight.style.display = 'none';
+                }
             }
             
             // Only update highlighted sound if it's different
@@ -255,6 +259,12 @@ export class InstrumentTrackView {
         background.className = 'radial-background';
         menu.appendChild(background);
 
+        // Add sector highlight element
+        const sectorHighlight = document.createElement('div');
+        sectorHighlight.className = 'sector-highlight';
+        sectorHighlight.style.display = 'none'; // Initially hidden
+        menu.appendChild(sectorHighlight);
+
         let soundsToRender = instrument.sounds;
         let angles = [];
         const radius = 25; // Distance from center to symbols
@@ -275,6 +285,7 @@ export class InstrumentTrackView {
             item.innerHTML = sound.svg;
             item.title = sound.name;
             item.dataset.soundLetter = sound.letter;
+            item.dataset.angle = angles[index]; // Store angle for sector calculation
             
             const angle = angles[index];
             const itemX = radius * Math.cos(angle);
@@ -296,6 +307,29 @@ export class InstrumentTrackView {
         }
     }
     
+    _updateSectorHighlight(sectorElement, selectedAngle, totalSectors) {
+        // Calculate sector angle span
+        const sectorAngle = (2 * Math.PI) / totalSectors;
+        const startAngle = selectedAngle - sectorAngle / 2;
+        const endAngle = selectedAngle + sectorAngle / 2;
+        
+        // Convert angles to degrees for CSS
+        const startDegrees = (startAngle * 180 / Math.PI) + 90; // +90 to match CSS coordinate system
+        const endDegrees = (endAngle * 180 / Math.PI) + 90;
+        
+        // Create a conic gradient to highlight the sector
+        const gradient = `conic-gradient(from 0deg, 
+            transparent 0deg, 
+            transparent ${startDegrees}deg, 
+            rgba(59, 130, 246, 0.3) ${startDegrees}deg, 
+            rgba(59, 130, 246, 0.3) ${endDegrees}deg, 
+            transparent ${endDegrees}deg, 
+            transparent 360deg)`;
+        
+        sectorElement.style.background = gradient;
+        sectorElement.style.display = 'block';
+    }
+
     _hideRadialMenu() {
         const existingMenu = document.querySelector('.radial-menu');
         if (existingMenu) existingMenu.remove();
