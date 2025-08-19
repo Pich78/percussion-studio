@@ -57,7 +57,6 @@ let mockState = {
         HHC: '||o-s-p-z-o-s-p-z-o-s-p-z-o-s-p-z-||'
     },
     metrics: {},
-    // --- MODIFIED: State now stores the active sound per instrument symbol ---
     activeSounds: Object.fromEntries(
         initialInstruments.map(inst => [inst.symbol, inst.sounds[0].letter])
     ),
@@ -72,20 +71,41 @@ const activeToolNameEl = document.getElementById('active-tool-name');
 const modalContainer = document.getElementById('modal-container');
 
 const editorCursor = new EditorCursor();
-const radialMenu = new RadialSoundSelector({
-    onSoundSelected: (selectedSoundLetter) => {
-        const { instrument } = radialMenu.lastContext || {};
-        if (!instrument) return;
+const radialMenu = new RadialSoundSelector({ /* ... unchanged ... */ });
+const selectionModal = new InstrumentSelectionModalView(modalContainer, {
+    // --- MODIFIED: This logic is now more robust and handles state correctly ---
+    onInstrumentSelected: (selection) => {
+        logCallback('onInstrumentSelected', selection);
+        const newSoundPack = mockSoundPacks.find(p => p.symbol === selection.symbol && p.pack_name === selection.packName);
+        if (!newSoundPack || !instrumentSymbolToReplace) return;
 
-        // 1. Update the state for this specific instrument
-        mockState.activeSounds[instrument.symbol] = selectedSoundLetter;
-        logEvent('info', 'Workbench', 'setActiveSound', 'State', `Active sound for ${instrument.symbol} changed to -> ${selectedSoundLetter}`);
+        const indexToReplace = mockState.instruments.findIndex(inst => inst.symbol === instrumentSymbolToReplace);
+        
+        if (indexToReplace !== -1) {
+            // State Update Part 1: Replace instrument in the main array
+            mockState.instruments[indexToReplace] = newSoundPack;
 
-        // 2. Immediately update the UI to reflect the new tool
-        updateActiveTool(instrument);
-    }
+            // State Update Part 2: Update patterns
+            // Only create a new pattern if the symbol has changed (e.g. Snare -> Tom)
+            if (instrumentSymbolToReplace !== newSoundPack.symbol) {
+                delete mockState.pattern[instrumentSymbolToReplace];
+                const totalCells = (mockState.metrics.beatsPerMeasure / mockState.metrics.beatUnit) * mockState.metrics.subdivision;
+                mockState.pattern[newSoundPack.symbol] = '||' + '-'.repeat(totalCells) + '||';
+            }
+            
+            // State Update Part 3: Update the active sound state
+            delete mockState.activeSounds[instrumentSymbolToReplace];
+            mockState.activeSounds[newSoundPack.symbol] = newSoundPack.sounds[0].letter;
+            
+            // Re-Render
+            rerender();
+
+            // Immediately update the UI to show the new active tool
+            updateActiveTool(newSoundPack);
+        }
+    },
+    onCancel: () => logCallback('ModalCancelled', {})
 });
-const selectionModal = new InstrumentSelectionModalView(modalContainer, { /* ... unchanged ... */ });
 
 
 // --- 5. CORE LOGIC & STATE MANAGEMENT ---
@@ -96,18 +116,14 @@ function logCallback(name, data) {
     callbackLogEl.scrollTop = callbackLogEl.scrollHeight;
 }
 
-// --- NEW: Helper function to update the cursor and "Active Tool" UI display ---
 function updateActiveTool(instrument) {
     const instrumentSymbol = instrument.symbol;
     const soundLetter = mockState.activeSounds[instrumentSymbol];
     const sound = instrument.sounds.find(s => s.letter === soundLetter);
 
     if (sound) {
-        // Update the static "Active Tool" display in the top right
         activeToolSwatchEl.innerHTML = sound.svg;
         activeToolNameEl.textContent = `${instrument.name} / ${sound.name}`;
-
-        // Update the custom mouse cursor's appearance
         editorCursor.update({ isVisible: true, svg: sound.svg });
     }
 }
@@ -124,9 +140,16 @@ function rerender() {
         rowsContainer.appendChild(container);
 
         const view = new InstrumentRowView(container, {
-            onRequestInstrumentChange: (symbol) => { /* ... unchanged ... */ },
+            // This is the entry point for the user flow
+            onRequestInstrumentChange: (symbol) => {
+                logCallback('onRequestInstrumentChange', { symbol });
+                instrumentSymbolToReplace = symbol; // Remember which row to change
+                selectionModal.show({
+                    instrumentDefs: mockInstrumentDefs,
+                    soundPacks: mockSoundPacks
+                });
+            },
             
-            // --- MODIFIED: onGridMouseEnter now updates the tool based on the row ---
             onGridMouseEnter: (instrument) => {
                 updateActiveTool(instrument);
             },
@@ -147,7 +170,6 @@ function rerender() {
                             x: event.clientX,
                             y: event.clientY,
                             sounds: instrument.sounds,
-                            // Pass the currently active sound for this specific instrument
                             activeSoundLetter: mockState.activeSounds[instrument.symbol]
                         });
                         mouseDownInfo = null;
@@ -167,7 +189,6 @@ function rerender() {
                     if (hasNote) {
                         patternArr[tickIndex] = '-';
                     } else {
-                        // --- MODIFIED: Use the correct sound from the per-instrument state ---
                         const soundLetter = mockState.activeSounds[instrumentSymbol];
                         patternArr[tickIndex] = soundLetter;
                     }
@@ -211,7 +232,6 @@ function updateMetrics() {
 
 // --- 7. INITIAL RENDER ---
 updateMetrics();
-// Initialize the Active Tool display with the first instrument's tool
 if (mockState.instruments.length > 0) {
     updateActiveTool(mockState.instruments[0]);
 }
