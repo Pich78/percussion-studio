@@ -1,0 +1,67 @@
+/* file: src/components/RadialSoundSelector/RadialSoundSelector.css */
+
+.radial-menu {
+    position: fixed;
+    z-index: 9998;
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.radial-background {
+    position: absolute;
+    left: 0;
+    top: 0;
+    transform: translate(-50%, -50%);
+    width: 60px;
+    height: 60px;
+    background-color: rgba(241, 245, 249, 0.9);
+    border: 1px solid rgba(148, 163, 184, 0.6);
+    border-radius: 50%;
+    backdrop-filter: blur(6px);
+}
+
+.sector-highlight {
+    position: absolute;
+    left: 0;
+    top: 0;
+    transform: translate(-50%, -50%);
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.radial-item {
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.9);
+    border: 1px solid #94a3b8;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.2s ease-out;
+    pointer-events: all;
+    user-select: none;
+    -webkit-user-select: none;
+    z-index: 2;
+}
+
+.radial-item.highlighted {
+    left: 0 !important;
+    top: 0 !important;
+    transform: translate(-50%, -50%) scale(1.3) !important;
+    border-color: #3b82f6;
+    border-width: 2px;
+    background-color: rgba(59, 130, 246, 0.2);
+    z-index: 10;
+}
+
+.radial-item svg {
+    width: 12px;
+    height: 12px;
+}
