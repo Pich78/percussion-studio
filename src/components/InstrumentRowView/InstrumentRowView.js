@@ -3,11 +3,6 @@
 import { loadCSS } from '/percussion-studio/lib/dom.js';
 import { logEvent } from '/percussion-studio/lib/Logger.js';
 
-/**
- * Renders a single instrument track row, including a header and a dynamic grid of note cells.
- * It is a "dumb" component that is controlled entirely by a parent. It translates props
- * into a DOM structure and reports all user interactions up via callbacks.
- */
 export class InstrumentRowView {
     constructor(container, callbacks) {
         this.container = container;
@@ -17,51 +12,44 @@ export class InstrumentRowView {
         logEvent('debug', 'InstrumentRowView', 'constructor', 'Lifecycle', 'Component created.');
     }
 
-    /**
-     * Renders or updates the row based on the provided data.
-     * @param {object} props - The data required to render the row.
-     * @param {object} props.instrument - The instrument definition ({ name, symbol, sounds }).
-     * @param {string} props.notation - The note pattern string (e.g., "||o-p-||").
-     * @param {object} props.metrics - The time signature and subdivision info.
-     */
-    render({ instrument, notation, metrics }) {
-        logEvent('debug', 'InstrumentRowView', 'render', 'State', `Rendering row for ${instrument.symbol}`);
+    render({ instrument, notation, metrics, densityClass }) {
+        logEvent('debug', 'InstrumentRowView', 'render', 'State', `Rendering row for ${instrument.symbol} with density ${densityClass}`);
 
-        // --- 1. Calculate Layout Parameters ---
         const totalCells = (metrics.beatsPerMeasure / metrics.beatUnit) * metrics.subdivision;
         const notationChars = notation.replace(/\|/g, '');
 
-        // --- 2. Create Header Element ---
         const headerEl = document.createElement('div');
         headerEl.className = 'instrument-row-header';
         headerEl.textContent = instrument.name;
-        headerEl.addEventListener('click', () => {
-            this.callbacks.onRequestInstrumentChange?.(instrument.symbol);
-        });
+        headerEl.addEventListener('click', () => this.callbacks.onRequestInstrumentChange?.(instrument.symbol));
 
-        // --- 3. Create Grid Container ---
         const gridEl = document.createElement('div');
         gridEl.className = 'instrument-row-grid';
         gridEl.addEventListener('mouseenter', () => this.callbacks.onGridMouseEnter?.(instrument));
         gridEl.addEventListener('mouseleave', () => this.callbacks.onGridMouseLeave?.());
 
-        // --- 4. Loop to Create Each Cell ---
         for (let i = 0; i < totalCells; i++) {
             const cellEl = document.createElement('div');
             cellEl.className = 'grid-cell';
             cellEl.dataset.tickIndex = i;
 
-            // Apply highlight style for main beats
+            // Apply main beat highlight
             if ((i % metrics.grouping) === 0) {
                 cellEl.classList.add('highlighted-beat');
+            } 
+            // --- NEW: Add softer visual hints for high subdivisions ---
+            else if (metrics.subdivision >= 32) {
+                // For 32nds, the 16th note positions get a softer line
+                const sixteenthGrouping = metrics.grouping / 2;
+                if ((i % sixteenthGrouping) === 0) {
+                    cellEl.classList.add('sub-beat-line');
+                }
             }
 
-            // Render the note SVG if one exists at this position
             const soundLetter = notationChars[i];
             if (soundLetter && soundLetter !== '-') {
                 const sound = instrument.sounds.find(s => s.letter === soundLetter);
                 if (sound?.svg) {
-                    // Using a dedicated note element is better for styling and querying
                     const noteEl = document.createElement('div');
                     noteEl.className = 'note';
                     noteEl.innerHTML = sound.svg;
@@ -69,18 +57,17 @@ export class InstrumentRowView {
                 }
             }
             
-            // Report mouse down events up to the parent controller
             cellEl.addEventListener('mousedown', (event) => {
-                event.preventDefault(); // Prevent text selection, etc.
+                event.preventDefault();
                 this.callbacks.onCellMouseDown?.(i, event);
             });
 
             gridEl.appendChild(cellEl);
         }
 
-        // --- 5. Assemble the Final Component ---
         this.container.innerHTML = '';
-        this.container.className = 'instrument-row-view';
+        // --- MODIFIED: Apply the density class to the top-level container ---
+        this.container.className = `instrument-row-view ${densityClass}`;
         this.container.appendChild(headerEl);
         this.container.appendChild(gridEl);
     }

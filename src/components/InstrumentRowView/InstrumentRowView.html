@@ -27,36 +27,33 @@
             <button id="run-tests-btn" class="pv2 ph3 bn br2 bg-blue white pointer hover-bg-dark-blue mb3">Run Automated Tests</button>
             <div id="test-results"></div>
             <hr class="mv4"/>
-            <h1 class="f2 b mb3 bb pb2">Live View Workbench (Unit Test)</h1>
+            <h1 class="f2 b mb3 bb pb2">Live View Workbench (Adaptive Grid)</h1>
             
             <div class="bg-white shadow-2 pa3 mb3">
                 <h3 class="f4 b mt0">Global Controls</h3>
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center">
-                        <div class="mr3">
-                            <label class="f6 b db mb2">Time Signature</label>
-                            <input id="ts-numerator" type="number" value="4" class="w3 tc"> /
-                            <input id="ts-denominator" type="number" value="4" class="w3 tc">
-                        </div>
-                        <div>
-                            <label for="subdivision-select" class="f6 b db mb2">Subdivision</label>
-                            <select id="subdivision-select" class="w5">
-                                <option value="4">4th Notes</option>
-                                <option value="8">8th Notes</option>
-                                <option value="16" selected>16th Notes</option>
-                                <option value="32">32nd Notes</option>
-                                <option value="64">64th Notes</option>
-                            </select>
-                        </div>
+                <p class="f6 gray mb3">
+                    Try different metrics. Notice how the cell size automatically adapts. 
+                    Select 32nd or 64th notes to see the softer subdivision lines appear.
+                </p>
+                <div class="flex items-center">
+                    <div class="mr3">
+                        <label class="f6 b db mb2">Time Signature</label>
+                        <input id="ts-numerator" type="number" value="4" class="w3 tc"> /
+                        <input id="ts-denominator" type="number" value="4" class="w3 tc">
                     </div>
-                    <!-- NEW: Zoom Slider Control -->
-                    <div class="w-30">
-                        <label for="zoom-slider" class="f6 b db mb2">Zoom</label>
-                        <input id="zoom-slider" type="range" min="0.5" max="2.5" value="1" step="0.1" class="w-100">
+                    <div>
+                        <label for="subdivision-select" class="f6 b db mb2">Subdivision</label>
+                        <select id="subdivision-select" class="w5">
+                            <option value="4">4th Notes</option>
+                            <option value="8">8th Notes</option>
+                            <option value="16" selected>16th Notes</option>
+                            <option value="32">32nd Notes</option>
+                            <option value="64">64th Notes</option>
+                        </select>
                     </div>
                 </div>
                 <hr class="mv3"/>
-                <div id="rows-wrapper" class="rows-wrapper">
+                <div class="rows-wrapper">
                     <div id="rows-inner-container" class="rows-inner-container">
                         <!-- InstrumentRowView components will be rendered here -->
                     </div>
@@ -94,12 +91,9 @@
                 KCK: '||o-p-o-p-o-p-o-p-o-p-o-p-o-p-o-p-o-p-o-p-o-p-o-p-o-p-o-p-o-p-o-p-||',
                 SNR: '||----x-------x-------x-------x-------x-------x-------x-------x---||',
             },
-            metrics: {},
-            // NEW: Zoom level state managed by the harness
-            zoomLevel: 1 
+            metrics: {}
         };
 
-        const rowsWrapper = document.getElementById('rows-wrapper'); // Get the scroll container
         const rowsContainer = document.getElementById('rows-inner-container');
         const callbackLogEl = document.getElementById('callback-log');
         const componentInstances = new Map();
@@ -114,6 +108,15 @@
         function rerender() {
             rowsContainer.innerHTML = '';
             componentInstances.clear();
+            
+            // --- NEW: Calculate density based on the number of cells ---
+            const totalCells = (mockState.metrics.beatsPerMeasure / mockState.metrics.beatUnit) * mockState.metrics.subdivision;
+            let densityClass = 'density-medium'; // Default
+            if (totalCells <= 8) {
+                densityClass = 'density-low';
+            } else if (totalCells > 20) {
+                densityClass = 'density-high';
+            }
 
             mockState.instruments.forEach((inst) => {
                 const container = document.createElement('div');
@@ -129,7 +132,8 @@
                 view.render({
                     instrument: inst,
                     notation: mockState.pattern[inst.symbol],
-                    metrics: mockState.metrics
+                    metrics: mockState.metrics,
+                    densityClass: densityClass // Pass the calculated class as a prop
                 });
                 componentInstances.set(inst.symbol, view);
             });
@@ -138,16 +142,6 @@
         const numeratorInput = document.getElementById('ts-numerator');
         const denominatorInput = document.getElementById('ts-denominator');
         const subdivisionSelect = document.getElementById('subdivision-select');
-        // NEW: Get the zoom slider element
-        const zoomSlider = document.getElementById('zoom-slider');
-
-        // NEW: Function to apply dynamic styles based on state
-        function updateStyles() {
-            const baseCellWidth = 40; // The standard width at 1x zoom
-            const newCellWidth = baseCellWidth * mockState.zoomLevel;
-            // Set the CSS variable on the container
-            rowsWrapper.style.setProperty('--cell-width', `${newCellWidth}px`);
-        }
 
         function updateMetrics() {
             const beats = parseInt(numeratorInput.value, 10) || 4;
@@ -168,19 +162,11 @@
             rerender();
         }
 
-        // NEW: Event listener for the zoom slider
-        zoomSlider.addEventListener('input', (event) => {
-            mockState.zoomLevel = parseFloat(event.target.value);
-            // We don't need to re-render the components, just update the style
-            updateStyles();
-        });
-
         [numeratorInput, denominatorInput, subdivisionSelect].forEach(el => {
             el.addEventListener('change', updateMetrics);
         });
         
-        updateMetrics(); // Initial render
-        updateStyles(); // Initial style application
+        updateMetrics();
     </script>
 </body>
 </html>
