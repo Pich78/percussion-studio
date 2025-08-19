@@ -89,11 +89,9 @@ export class RadialSoundSelector {
         logEvent('info', 'RadialSoundSelector', 'hide', 'Lifecycle', 'Menu hidden and listeners cleaned up.');
     }
 
-    // --- MODIFIED: Added event parameter and robust handling ---
     _handleMouseUp(event) {
         logEvent('debug', 'RadialSoundSelector', '_handleMouseUp', 'Events', 'MouseUp captured by global listener.');
         
-        // --- FIX: Stop the event immediately to prevent other listeners (like on a grid cell) from firing.
         event.stopPropagation();
         event.preventDefault();
 
@@ -154,23 +152,17 @@ export class RadialSoundSelector {
     }
 
     _updateSectorHighlight(sectorElement, selectedAngle, totalSectors) {
-        const sectorAngle = (2 * Math.PI) / totalSectors;
-        const startAngle = selectedAngle - sectorAngle / 2;
-        const endAngle = selectedAngle + sectorAngle / 2;
-        const startDegrees = (startAngle * 180 / Math.PI) + 90;
-        const endDegrees = (endAngle * 180 / Math.PI) + 90;
-        const normalizeAngle = (angle) => {
-            while (angle < 0) angle += 360;
-            return angle % 360;
-        };
-        const normalizedStart = normalizeAngle(startDegrees);
-        const normalizedEnd = normalizeAngle(endDegrees);
-        let gradient;
-        if (normalizedStart > normalizedEnd) {
-            gradient = `conic-gradient(from 0deg, rgba(59, 130, 246, 0.3) ${normalizedStart}deg, rgba(59, 130, 246, 0.3) 360deg, transparent 360deg, transparent 0deg, rgba(59, 130, 246, 0.3) 0deg, rgba(59, 130, 246, 0.3) ${normalizedEnd}deg, transparent ${normalizedEnd}deg)`;
-        } else {
-            gradient = `conic-gradient(from 0deg, transparent 0deg, transparent ${normalizedStart}deg, rgba(59, 130, 246, 0.3) ${normalizedStart}deg, rgba(59, 130, 246, 0.3) ${normalizedEnd}deg, transparent ${normalizedEnd}deg, transparent 360deg)`;
-        }
+        // --- FIX: This logic is simplified to be more robust ---
+        const sectorAngleDegrees = 360 / totalSectors;
+        
+        // Calculate the rotation needed to center the start of the sector at the top
+        const selectedAngleDegrees = selectedAngle * 180 / Math.PI;
+        const rotation = selectedAngleDegrees - (sectorAngleDegrees / 2);
+
+        // Define a simple gradient for a single sector at the top
+        const gradient = `conic-gradient(rgba(59, 130, 246, 0.3) 0deg ${sectorAngleDegrees}deg, transparent ${sectorAngleDegrees}deg 360deg)`;
+        
+        sectorElement.style.transform = `translate(-50%, -50%) rotate(${rotation}deg)`;
         sectorElement.style.background = gradient;
         sectorElement.style.display = 'block';
     }
