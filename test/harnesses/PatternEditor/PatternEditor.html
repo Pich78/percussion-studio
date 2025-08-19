@@ -1,0 +1,73 @@
+<!-- file: harnesses/PatternEditor/PatternEditor.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Integration Harness: Pattern Editor</title>
+    <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
+    <!-- Load CSS for ALL required components -->
+    <link rel="stylesheet" href="/percussion-studio/src/components/InstrumentRowView/InstrumentRowView.css">
+    <link rel="stylesheet" href="/percussion-studio/src/components/EditorCursor/EditorCursor.css">
+    <link rel="stylesheet" href="/percussion-studio/src/components/RadialSoundSelector/RadialSoundSelector.css">
+    <link rel="stylesheet" href="/percussion-studio/src/components/InstrumentSelectionModalView/InstrumentSelectionModalView.css">
+    <style>
+        body { font-family: sans-serif; }
+        .editor-wrapper {
+            overflow-x: auto;
+            border: 1px solid #ccc;
+            padding: 8px;
+            background-color: #f8f8f8;
+        }
+        .editor-inner-container {
+            width: fit-content;
+        }
+    </style>
+</head>
+<body class="bg-light-gray pa4">
+
+    <div class="flex">
+        <div class="w-70 pr3">
+            <h1 class="f2 b mb3 bb pb2">Integration Workbench: Pattern Editor</h1>
+            <p class="f6 gray mb3">
+                This harness integrates all major components. Click a row header to open the instrument selector.
+                Press and hold on a cell to open the radial sound selector.
+            </p>
+            <div class="bg-white shadow-2 pa3 mb3">
+                <div class="editor-wrapper">
+                    <div id="pattern-editor-container" class="editor-inner-container">
+                        <!-- The PatternEditor controller will render rows here -->
+                    </div>
+                </div>
+            </div>
+            <div id="log-display" class="f7 code pa2 bg-washed-yellow mt3 h4 overflow-y-auto">Controller events will appear here.</div>
+        </div>
+        <div class="w-30 pl3">
+            <div class="bg-near-black near-white pa3 br2 h-100">
+                <h2 class="f4 b bb pb2 mb2">Execution Log</h2>
+                <div id="log-output" class="f7 lh-copy" style="white-space: pre-wrap; height: 80vh; overflow-y: auto;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- A separate container for the modal, which lives outside the main flow -->
+    <div id="modal-container"></div>
+
+    <script type="module">
+        import { PatternEditor } from './PatternEditor.js';
+        import { Logger, logEvent } from '/percussion-studio/lib/Logger.js';
+        
+        Logger.init({ level: 'info' });
+        Logger.setTarget('log-output');
+
+        logEvent('info', 'Harness', 'init', 'Lifecycle', 'Initializing Pattern Editor integration harness...');
+
+        const editorContainer = document.getElementById('pattern-editor-container');
+        const modalContainer = document.getElementById('modal-container');
+
+        // Kick off the entire application by instantiating the main controller
+        const editor = new PatternEditor(editorContainer, modalContainer);
+
+        logEvent('info', 'Harness', 'init', 'Lifecycle', 'Pattern Editor initialized.');
+    </script>
+</body>
+</html>
