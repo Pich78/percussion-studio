@@ -3,15 +3,11 @@ import { logEvent } from '/percussion-studio/lib/Logger.js';
 
 /**
  * A UI widget that displays a radial menu for sound selection.
- * It is instantiated and controlled by a parent component (e.g., PatternEditor).
- * It manages its own temporary interaction state (dragging) and reports the
- * final selection back to its owner via a callback.
  */
 export class RadialSoundSelector {
     constructor(callbacks = {}) {
-        this.callbacks = callbacks; // Expects onSoundSelected
+        this.callbacks = callbacks;
         
-        // Internal state for the drag interaction
         this.isDragging = false;
         this.highlightedSound = null;
         this.mouseDownInfo = null;
@@ -21,24 +17,14 @@ export class RadialSoundSelector {
         this._handleMouseUp = this._handleMouseUp.bind(this);
     }
 
-    /**
-     * Creates and displays the radial menu on the screen.
-     * @param {object} config
-     * @param {number} config.x - The clientX coordinate for the menu's center.
-     * @param {number} config.y - The clientY coordinate for the menu's center.
-     * @param {Array} config.sounds - The array of sound objects to display.
-     * @param {string} config.activeSoundLetter - The letter of the currently active sound.
-     */
     show({ x, y, sounds, activeSoundLetter }) {
         if (this.isDragging || !sounds || sounds.length === 0) {
-            return; // Prevent showing if already active or no sounds
+            return;
         }
 
-        // Set up initial state for the drag interaction
         this.isDragging = true;
         this.mouseDownInfo = { centerX: x, centerY: y };
 
-        // Create the menu DOM structure
         this.menuEl = document.createElement('div');
         this.menuEl.className = 'radial-menu';
         this.menuEl.style.left = `${x}px`;
@@ -49,7 +35,6 @@ export class RadialSoundSelector {
             <div class="sector-highlight" style="display: none;"></div>
         `;
 
-        // --- Sound Item Layout Logic (copied and adapted) ---
         let soundsToRender = sounds;
         let angles = [];
         const radius = 25;
@@ -58,7 +43,7 @@ export class RadialSoundSelector {
             const otherSound = soundsToRender.find(s => s.letter !== activeSoundLetter);
             const currentSound = soundsToRender.find(s => s.letter === activeSoundLetter);
             soundsToRender = [otherSound, currentSound];
-            angles = [-Math.PI / 2, Math.PI / 2]; // Top and bottom
+            angles = [-Math.PI / 2, Math.PI / 2];
         } else {
             const angleStep = (2 * Math.PI) / soundsToRender.length;
             for(let i = 0; i < soundsToRender.length; i++) angles.push(i * angleStep - Math.PI / 2);
@@ -70,51 +55,55 @@ export class RadialSoundSelector {
             item.innerHTML = sound.svg;
             item.dataset.soundLetter = sound.letter;
             item.dataset.angle = angles[index];
-            
             const angle = angles[index];
             const itemX = radius * Math.cos(angle);
             const itemY = radius * Math.sin(angle);
-            
             item.style.left = `${itemX}px`;
             item.style.top = `${itemY}px`;
             item.style.transform = `translate(-50%, -50%)`;
-            
             this.menuEl.appendChild(item);
         });
         
         document.body.appendChild(this.menuEl);
 
-        // Attach global listeners now that we are active
         window.addEventListener('mousemove', this._handleMouseMove, true);
         window.addEventListener('mouseup', this._handleMouseUp, true);
         
         logEvent('info', 'RadialSoundSelector', 'show', 'Lifecycle', 'Menu shown.');
     }
 
-    /**
-     * Hides and removes the radial menu from the DOM.
-     */
     hide() {
+        logEvent('debug', 'RadialSoundSelector', 'hide', 'Lifecycle', 'Entering hide method.');
         if (this.menuEl) {
             this.menuEl.remove();
             this.menuEl = null;
+            logEvent('debug', 'RadialSoundSelector', 'hide', 'Lifecycle', 'Menu element removed from DOM.');
         }
         
-        // Clean up state and listeners
         this.isDragging = false;
         this.highlightedSound = null;
         this.mouseDownInfo = null;
         window.removeEventListener('mousemove', this._handleMouseMove, true);
         window.removeEventListener('mouseup', this._handleMouseUp, true);
         
-        logEvent('info', 'RadialSoundSelector', 'hide', 'Lifecycle', 'Menu hidden.');
+        logEvent('info', 'RadialSoundSelector', 'hide', 'Lifecycle', 'Menu hidden and listeners cleaned up.');
     }
 
-    _handleMouseUp() {
+    // --- MODIFIED: Added event parameter and robust handling ---
+    _handleMouseUp(event) {
+        logEvent('debug', 'RadialSoundSelector', '_handleMouseUp', 'Events', 'MouseUp captured by global listener.');
+        
+        // --- FIX: Stop the event immediately to prevent other listeners (like on a grid cell) from firing.
+        event.stopPropagation();
+        event.preventDefault();
+
         if (this.highlightedSound) {
+            logEvent('debug', 'RadialSoundSelector', '_handleMouseUp', 'Events', `Calling onSoundSelected with: ${this.highlightedSound}`);
             this.callbacks.onSoundSelected?.(this.highlightedSound);
         }
-        // The owner is now responsible for calling hide()
+        
+        logEvent('debug', 'RadialSoundSelector', '_handleMouseUp', 'Events', 'Proceeding to call hide().');
+        this.hide();
     }
 
     _handleMouseMove(event) {
@@ -165,39 +154,29 @@ export class RadialSoundSelector {
     }
 
     _updateSectorHighlight(sectorElement, selectedAngle, totalSectors) {
-        // --- This logic is identical to the corrected version from before ---
         const sectorAngle = (2 * Math.PI) / totalSectors;
         const startAngle = selectedAngle - sectorAngle / 2;
         const endAngle = selectedAngle + sectorAngle / 2;
-        
         const startDegrees = (startAngle * 180 / Math.PI) + 90;
         const endDegrees = (endAngle * 180 / Math.PI) + 90;
-        
         const normalizeAngle = (angle) => {
             while (angle < 0) angle += 360;
             return angle % 360;
         };
-        
         const normalizedStart = normalizeAngle(startDegrees);
         const normalizedEnd = normalizeAngle(endDegrees);
-        
         let gradient;
         if (normalizedStart > normalizedEnd) {
             gradient = `conic-gradient(from 0deg, rgba(59, 130, 246, 0.3) ${normalizedStart}deg, rgba(59, 130, 246, 0.3) 360deg, transparent 360deg, transparent 0deg, rgba(59, 130, 246, 0.3) 0deg, rgba(59, 130, 246, 0.3) ${normalizedEnd}deg, transparent ${normalizedEnd}deg)`;
         } else {
             gradient = `conic-gradient(from 0deg, transparent 0deg, transparent ${normalizedStart}deg, rgba(59, 130, 246, 0.3) ${normalizedStart}deg, rgba(59, 130, 246, 0.3) ${normalizedEnd}deg, transparent ${normalizedEnd}deg, transparent 360deg)`;
         }
-        
         sectorElement.style.background = gradient;
         sectorElement.style.display = 'block';
     }
 
-    /**
-     * Call this to clean up listeners if the parent is destroyed,
-     * just in case the menu was left open.
-     */
     destroy() {
-        this.hide(); // Hide will remove listeners
+        this.hide();
         logEvent('info', 'RadialSoundSelector', 'destroy', 'Lifecycle', 'Component destroyed.');
     }
 }

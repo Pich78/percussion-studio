@@ -56,8 +56,9 @@ export async function run() {
             // Manually simulate the state of a drag-selection
             menu.highlightedSound = 'p';
             
-            // Manually trigger the mouse up handler
-            menu._handleMouseUp();
+            // --- FIX: Pass a mock event object to the handler ---
+            const mockEvent = { stopPropagation: () => {}, preventDefault: () => {} };
+            menu._handleMouseUp(mockEvent);
             
             callbackLog.wasCalledWith('onSoundSelected', 'p');
         });
@@ -73,9 +74,10 @@ export async function run() {
             // Ensure no sound is highlighted
             menu.highlightedSound = null;
             
-            menu._handleMouseUp();
+            // --- FIX: Pass a mock event object to the handler ---
+            const mockEvent = { stopPropagation: () => {}, preventDefault: () => {} };
+            menu._handleMouseUp(mockEvent);
             
-            // --- FIX: Use the 'callCount' property to assert the method was never called ---
             runner.expect(callbackLog.callCount).toBe(0);
         });
     });
