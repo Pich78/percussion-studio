@@ -1,0 +1,181 @@
+<!-- file: src/components/InstrumentRowView/InstrumentRowView.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Harness: InstrumentRowView</title>
+    <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
+    <!-- Load CSS for child/service components -->
+    <link rel="stylesheet" href="/percussion-studio/src/components/EditorCursor/EditorCursor.css">
+    <link rel="stylesheet" href="/percussion-studio/src/components/RadialSoundSelector/RadialSoundSelector.css">
+    <style> body { font-family: sans-serif; } </style>
+</head>
+<body class="bg-light-gray pa4">
+
+    <div class="flex">
+        <div class="w-70 pr3">
+            <h1 class="f2 b mb3 bb pb2">Automated Tests</h1>
+            <button id="run-tests-btn" class="pv2 ph3 bn br2 bg-blue white pointer hover-bg-dark-blue mb3">Run Automated Tests</button>
+            <div id="test-results"></div>
+            <hr class="mv4"/>
+            <h1 class="f2 b mb3 bb pb2">Live View Workbench</h1>
+            
+            <div class="bg-white shadow-2 pa3 mb3">
+                <h3 class="f4 b mt0">Global Controls</h3>
+                <div class="flex items-center">
+                    <div class="mr3">
+                        <label for="time-sig-select" class="f6 b db mb2">Time Signature</label>
+                        <select id="time-sig-select" class="w4">
+                            <option value="4/4">4/4</option>
+                            <option value="6/8" selected>6/8</option>
+                            <option value="12/8">12/8</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="subdivision-select" class="f6 b db mb2">Subdivision</label>
+                        <select id="subdivision-select" class="w4">
+                            <option value="8">8th Notes</option>
+                            <option value="16" selected>16th Notes</option>
+                        </select>
+                    </div>
+                </div>
+                <hr class="mv3"/>
+                <div id="rows-container">
+                    <!-- InstrumentRowView components will be rendered here -->
+                </div>
+            </div>
+            
+            <div id="callback-log" class="f7 code pa2 bg-washed-yellow mt3 h4 overflow-y-auto">Callbacks will appear here.</div>
+        </div>
+        <div class="w-30 pl3">
+            <div class="bg-near-black near-white pa3 br2 h-100">
+                <h2 class="f4 b bb pb2 mb2">Execution Log</h2>
+                <div id="log-output" class="f7 lh-copy" style="white-space: pre-wrap; height: 80vh; overflow-y: auto;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="test-sandbox" style="position: absolute; visibility: hidden;"></div>
+
+    <script type="module">
+        import { run } from './InstrumentRowView.test.js';
+        import { InstrumentRowView } from './InstrumentRowView.js';
+        import { Logger, logEvent } from '/percussion-studio/lib/Logger.js';
+        import { EditorCursor } from '/percussion-studio/src/components/EditorCursor/EditorCursor.js';
+        import { RadialSoundSelector } from '/percussion-studio/src/components/RadialSoundSelector/RadialSoundSelector.js';
+
+        Logger.init({ level: 'debug' });
+        Logger.setTarget('log-output');
+
+        document.getElementById('run-tests-btn').addEventListener('click', run);
+
+        // --- MOCK DATA & STATE ---
+        const svg1 = '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" stroke="black" stroke-width="8" fill="none"/></svg>';
+        const svg2 = '<svg viewBox="0 0 100 100"><line x1="10" y1="10" x2="90" y2="90" stroke="black" stroke-width="8"/><line x1="10" y1="90" x2="90" y2="10" stroke="black" stroke-width="8"/></svg>';
+        
+        let mockState = {
+            instruments: [
+                { symbol: 'KCK', name: 'Kick Drum', sounds: [{letter: 'o', svg: svg1}, {letter: 'p', svg: svg2}] },
+                { symbol: 'SNR', name: 'Snare Drum', sounds: [{letter: 'x', svg: svg2}, {letter: 'r', svg: svg1}] },
+            ],
+            pattern: {
+                KCK: '||o-p-o-p-o-p-o-p-||',
+                SNR: '||----x-------x---||',
+            },
+            activeSounds: { KCK: 'o', SNR: 'x' },
+            metrics: { beatsPerMeasure: 6, beatUnit: 8, subdivision: 16, grouping: 3 }
+        };
+
+        const rowsContainer = document.getElementById('rows-container');
+        const callbackLogEl = document.getElementById('callback-log');
+        const componentInstances = new Map();
+
+        // --- HARNESS AS PARENT CONTROLLER ---
+        // The harness owns the shared UI services
+        const editorCursor = new EditorCursor();
+        const radialMenu = new RadialSoundSelector({
+            onSoundSelected: (selectedLetter) => {
+                const instrumentSymbol = radialMenu.activeInstrumentSymbol;
+                logCallback('onSoundSelected', { instrumentSymbol, selectedLetter });
+                mockState.activeSounds[instrumentSymbol] = selectedLetter;
+                radialMenu.hide();
+                rerender(); // Update UI to reflect new active sound
+            }
+        });
+        
+        function logCallback(name, data) {
+            const entry = document.createElement('div');
+            entry.textContent = `[${name}] Fired with: ${JSON.stringify(data)}`;
+            callbackLogEl.appendChild(entry);
+            callbackLogEl.scrollTop = callbackLogEl.scrollHeight;
+            logEvent('info', 'Harness', name, 'Callback', data);
+        }
+
+        function rerender() {
+            rowsContainer.innerHTML = '';
+            componentInstances.clear();
+
+            mockState.instruments.forEach((inst, index) => {
+                const container = document.createElement('div');
+                container.id = `row-container-${index}`;
+                rowsContainer.appendChild(container);
+
+                const view = new InstrumentRowView(container, {
+                    onRequestInstrumentChange: (symbol) => logCallback('onRequestInstrumentChange', { symbol }),
+                    onCellMouseDown: (tickIndex, event) => {
+                        logCallback('onCellMouseDown', { tickIndex, x: event.clientX, y: event.clientY });
+                        // Command the radial menu to show
+                        radialMenu.activeInstrumentSymbol = inst.symbol; // Temp store context
+                        radialMenu.show({ 
+                            x: event.clientX, y: event.clientY, 
+                            sounds: inst.sounds, 
+                            activeSoundLetter: mockState.activeSounds[inst.symbol] 
+                        });
+                    },
+                    onGridMouseEnter: (instrument) => {
+                        const activeLetter = mockState.activeSounds[instrument.symbol];
+                        const sound = instrument.sounds.find(s => s.letter === activeLetter);
+                        editorCursor.update({ isVisible: true, svg: sound?.svg });
+                    },
+                    onGridMouseLeave: () => editorCursor.update({ isVisible: false, svg: null })
+                });
+
+                view.render({
+                    instrument: inst,
+                    notation: mockState.pattern[inst.symbol],
+                    metrics: mockState.metrics
+                });
+                componentInstances.set(inst.symbol, view);
+            });
+        }
+
+        // --- GLOBAL CONTROL HANDLERS ---
+        const timeSigSelect = document.getElementById('time-sig-select');
+        const subdivisionSelect = document.getElementById('subdivision-select');
+
+        function updateMetrics() {
+            const [beats, unit] = timeSigSelect.value.split('/').map(Number);
+            const subdivision = Number(subdivisionSelect.value);
+            
+            let grouping = (subdivision / unit); // Simple meter default
+            if (beats === 6 || beats === 9 || beats === 12) {
+                grouping = 3; // Compound meter
+            }
+
+            mockState.metrics = {
+                beatsPerMeasure: beats,
+                beatUnit: unit,
+                subdivision: subdivision,
+                grouping: grouping
+            };
+            logEvent('info', 'Harness', 'updateMetrics', 'State', 'Metrics changed', mockState.metrics);
+            rerender();
+        }
+
+        timeSigSelect.addEventListener('change', updateMetrics);
+        subdivisionSelect.addEventListener('change', updateMetrics);
+        
+        updateMetrics(); // Initial render
+    </script>
+</body>
+</html>

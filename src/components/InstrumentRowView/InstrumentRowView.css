@@ -1,0 +1,64 @@
+/* file: src/components/InstrumentRowView/InstrumentRowView.css */
+
+.instrument-row-view {
+    display: flex;
+    align-items: stretch;
+    margin-bottom: 4px;
+    border: 1px solid #ddd;
+    background-color: #fff;
+}
+
+.instrument-row-header {
+    flex-shrink: 0;
+    width: 150px;
+    padding: 8px;
+    background-color: #f7f7f7;
+    border-right: 1px solid #ddd;
+    font-weight: bold;
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.instrument-row-header:hover {
+    background-color: #e0e0e0;
+}
+
+.instrument-row-grid {
+    display: flex;
+    flex-grow: 1;
+    cursor: none; /* Hide OS cursor only over the grid area */
+}
+
+.grid-cell {
+    flex: 1 1 0; /* Distribute space evenly */
+    min-width: 25px; /* Prevent cells from becoming too small */
+    border-left: 1px solid #eee;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.grid-cell .note {
+    width: 80%;
+    height: 80%;
+}
+
+.grid-cell .note svg {
+    width: 100%;
+    height: 100%;
+}
+
+/* Style for the main beat highlights */
+.grid-cell.highlighted-beat {
+    border-left: 1px solid #bbb;
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+.grid-cell.highlighted-beat:first-child {
+    border-left: none; /* The row border handles the first line */
+}
