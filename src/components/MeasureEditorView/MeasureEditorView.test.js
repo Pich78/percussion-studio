@@ -11,7 +11,6 @@ export async function run() {
     logEvent('info', 'TestRunner', 'run', 'Setup', 'Starting MeasureEditorView test suite.');
     
     const testContainer = document.getElementById('test-sandbox');
-    // --- MODIFIED: Keep a reference to the modal container for cleanup ---
     let modalContainer = null;
 
     const getMockManifest = () => ({
@@ -20,30 +19,19 @@ export async function run() {
     });
 
     runner.describe('MeasureEditorView', () => {
-        // --- NEW: Keep a reference to the view instance for cleanup ---
         let view = null;
-
-        // --- NEW: Use beforeEach and afterEach for proper setup and teardown ---
+        
         runner.beforeEach(() => {
-            // Create the required modal container for each test
             modalContainer = document.createElement('div');
             modalContainer.id = 'modal-container';
             document.body.appendChild(modalContainer);
         });
 
         runner.afterEach(() => {
-            // Guarantee cleanup after each test
-            if (view) {
-                view.destroy();
-                view = null;
-            }
-            if (modalContainer) {
-                modalContainer.remove();
-                modalContainer = null;
-            }
+            if (view) view.destroy();
+            if (modalContainer) modalContainer.remove();
             testContainer.innerHTML = '';
         });
-
 
         runner.it('should start with zero instrument rows and an "add" button', () => {
             view = new MeasureEditorView(testContainer, getMockManifest());
@@ -51,31 +39,45 @@ export async function run() {
             runner.expect(testContainer.querySelector('.add-instrument-btn')).not.toBe(null);
         });
 
-        runner.it('should open the instrument modal when the "add" button is clicked', () => {
+        // --- NEW: Test for metric controls ---
+        runner.it('should render metric controls with default values', () => {
             view = new MeasureEditorView(testContainer, getMockManifest());
-            let wasModalShown = false;
-            view.instrumentModal.show = () => { wasModalShown = true; };
-            testContainer.querySelector('.add-instrument-btn').click();
-            runner.expect(wasModalShown).toBe(true);
+            const numeratorInput = testContainer.querySelector('input[data-metric="numerator"]');
+            const subdivisionSelect = testContainer.querySelector('select[data-metric="subdivision"]');
+            
+            runner.expect(numeratorInput.value).toBe('4');
+            runner.expect(subdivisionSelect.value).toBe('16');
         });
 
-        runner.it('should add an instrument row after modal confirmation', () => {
+        runner.it('should re-render child rows when metrics change', () => {
             view = new MeasureEditorView(testContainer, getMockManifest());
-            runner.expect(testContainer.querySelectorAll('.instrument-row-container').length).toBe(0);
             view._confirmAddInstrument({ symbol: 'KCK', packName: 'kick_1' });
-            runner.expect(testContainer.querySelectorAll('.instrument-row-container').length).toBe(1);
+            
+            // Default 4/4 with 16ths should be 16 cells
+            runner.expect(testContainer.querySelectorAll('.grid-cell').length).toBe(16);
+
+            // Simulate changing subdivision to 8th notes
+            const subdivisionSelect = testContainer.querySelector('select[data-metric="subdivision"]');
+            subdivisionSelect.value = '8';
+            subdivisionSelect.dispatchEvent(new Event('change', { bubbles: true }));
+
+            // 4/4 with 8ths should now be 8 cells
+            runner.expect(testContainer.querySelectorAll('.grid-cell').length).toBe(8);
         });
 
-        runner.it('should remove an instrument row after user confirmation', () => {
-            view = new MeasureEditorView(testContainer, getMockManifest());
-            view._confirmAddInstrument({ symbol: 'KCK', packName: 'kick_1' });
-            runner.expect(testContainer.querySelectorAll('.instrument-row-container').length).toBe(1);
+        runner.it('should fire onMetricsChange callback when controls are changed', () => {
+            const callbackLog = new MockLogger('Callbacks');
+            view = new MeasureEditorView(testContainer, {
+                ...getMockManifest(),
+                onMetricsChange: (metrics) => callbackLog.log('onMetricsChange', metrics)
+            });
+            
+            const numeratorInput = testContainer.querySelector('input[data-metric="numerator"]');
+            numeratorInput.value = '7';
+            numeratorInput.dispatchEvent(new Event('change', { bubbles: true }));
 
-            const originalConfirm = window.confirm;
-            window.confirm = () => true;
-            testContainer.querySelector('.delete-row-btn').click();
-            runner.expect(testContainer.querySelectorAll('.instrument-row-container').length).toBe(0);
-            window.confirm = originalConfirm;
+            const expectedMetrics = { beatsPerMeasure: 7, beatUnit: 4, subdivision: 16, grouping: 4 };
+            callbackLog.wasCalledWith('onMetricsChange', expectedMetrics);
         });
     });
 

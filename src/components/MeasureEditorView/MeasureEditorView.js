@@ -6,21 +6,20 @@ import { InstrumentRowView } from '/percussion-studio/src/components/InstrumentR
 import { InstrumentSelectionModalView } from '/percussion-studio/src/components/InstrumentSelectionModalView/InstrumentSelectionModalView.js';
 
 export class MeasureEditorView {
-    constructor(container, { instrumentDefs, soundPacks }) {
+    constructor(container, { instrumentDefs, soundPacks, onMetricsChange }) {
         this.container = container;
-        this.callbacks = {}; // Future use for reporting changes up
+        this.callbacks = { onMetricsChange }; 
 
         // --- STATE MANAGEMENT ---
-        // This component is stateful. It manages the list of instruments in the measure.
         this.state = {
-            instruments: [], // Starts empty
+            instruments: [],
+            // Default metrics are now part of this component's internal state
             metrics: { beatsPerMeasure: 4, beatUnit: 4, subdivision: 16, grouping: 4 },
-            manifest: { instrumentDefs, soundPacks } // Data needed for the modal
+            manifest: { instrumentDefs, soundPacks }
         };
 
         loadCSS('/percussion-studio/src/components/MeasureEditorView/MeasureEditorView.css');
         
-        // --- MODIFIED: Ensure we're using the right modal container ---
         const modalContainerEl = document.getElementById('modal-container');
         if (!modalContainerEl) {
             throw new Error('MeasureEditorView requires a DOM element with id="modal-container" to exist.');
@@ -31,34 +30,37 @@ export class MeasureEditorView {
             { onInstrumentSelected: this._confirmAddInstrument.bind(this) }
         );
 
-        // --- MODIFIED: Bind the handler for removal ---
         this._boundHandleClick = this._handleClick.bind(this);
         this.container.addEventListener('click', this._boundHandleClick);
         
+        // --- NEW: Listener for metric control changes ---
+        this._boundHandleMetricsChange = this._handleMetricsChange.bind(this);
+        this.container.addEventListener('change', this._boundHandleMetricsChange);
+
         this.render();
         logEvent('info', 'MeasureEditorView', 'constructor', 'Lifecycle', 'Component created.');
     }
 
     render() {
-        this.container.innerHTML = ''; // Clear the container
+        this.container.innerHTML = '';
+        this.container.className = 'measure-editor-view';
+
+        // --- NEW: Render the header with metric controls ---
+        this.container.appendChild(this._renderHeaderControls());
 
         // --- Render Instrument Rows ---
+        const rowsContainer = document.createElement('div');
         this.state.instruments.forEach(instrument => {
             const rowWrapper = document.createElement('div');
             rowWrapper.className = 'measure-instrument-row';
-
-            // Container for the InstrumentRowView component
             const viewContainer = document.createElement('div');
             viewContainer.className = 'instrument-row-container';
-            
-            // Delete button for this row
             const deleteBtn = document.createElement('button');
             deleteBtn.className = 'delete-row-btn';
-            deleteBtn.innerHTML = '×'; // Simple X symbol
-            deleteBtn.dataset.symbol = instrument.symbol; // Link button to instrument
+            deleteBtn.innerHTML = '×';
+            deleteBtn.dataset.symbol = instrument.symbol;
 
             const view = new InstrumentRowView(viewContainer, {});
-
             const totalCells = (this.state.metrics.beatsPerMeasure / this.state.metrics.beatUnit) * this.state.metrics.subdivision;
             let densityClass = 'density-medium';
             if (totalCells <= 8) densityClass = 'density-low';
@@ -73,8 +75,9 @@ export class MeasureEditorView {
             
             rowWrapper.appendChild(viewContainer);
             rowWrapper.appendChild(deleteBtn);
-            this.container.appendChild(rowWrapper);
+            rowsContainer.appendChild(rowWrapper);
         });
+        this.container.appendChild(rowsContainer);
 
         // --- Render "Add Instrument" Button ---
         const addBtnContainer = document.createElement('div');
@@ -86,8 +89,56 @@ export class MeasureEditorView {
         this.container.appendChild(addBtnContainer);
     }
 
-    // --- EVENT HANDLING & ACTIONS ---
+    _renderHeaderControls() {
+        const header = document.createElement('div');
+        header.className = 'measure-editor-header';
 
+        const { beatsPerMeasure, beatUnit, subdivision } = this.state.metrics;
+
+        header.innerHTML = `
+            <div class="flex items-center">
+                <div class="mr3">
+                    <label class="f6 b db mb2">Time Signature</label>
+                    <input data-metric="numerator" type="number" value="${beatsPerMeasure}" class="w3 tc"> /
+                    <input data-metric="denominator" type="number" value="${beatUnit}" class="w3 tc">
+                </div>
+                <div>
+                    <label class="f6 b db mb2">Subdivision</label>
+                    <select data-metric="subdivision" class="w5">
+                        <option value="4" ${subdivision === 4 ? 'selected' : ''}>4th Notes</option>
+                        <option value="8" ${subdivision === 8 ? 'selected' : ''}>8th Notes</option>
+                        <option value="16" ${subdivision === 16 ? 'selected' : ''}>16th Notes</option>
+                        <option value="32" ${subdivision === 32 ? 'selected' : ''}>32nd Notes</option>
+                        <option value="64" ${subdivision === 64 ? 'selected' : ''}>64th Notes</option>
+                    </select>
+                </div>
+            </div>
+        `;
+        return header;
+    }
+
+    _handleMetricsChange(event) {
+        const target = event.target;
+        const metricType = target.dataset.metric;
+        if (!metricType) return;
+
+        const beats = metricType === 'numerator' ? parseInt(target.value, 10) : this.state.metrics.beatsPerMeasure;
+        const unit = metricType === 'denominator' ? parseInt(target.value, 10) : this.state.metrics.beatUnit;
+        const subdivision = metricType === 'subdivision' ? parseInt(target.value, 10) : this.state.metrics.subdivision;
+
+        let grouping = (subdivision / unit);
+        if ([6, 9, 12].includes(beats) && unit === 8) {
+            grouping = 3;
+        }
+
+        const newMetrics = { beatsPerMeasure: beats, beatUnit: unit, subdivision, grouping };
+        this.state.metrics = newMetrics;
+
+        logEvent('info', 'MeasureEditorView', '_handleMetricsChange', 'State', 'Metrics changed', newMetrics);
+        this.render(); // Re-render with new metrics
+        this.callbacks.onMetricsChange?.(newMetrics); // Report change to parent
+    }
+    
     _handleClick(event) {
         const addBtn = event.target.closest('.add-instrument-btn');
         const deleteBtn = event.target.closest('.delete-row-btn');

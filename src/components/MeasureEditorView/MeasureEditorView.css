@@ -1,8 +1,19 @@
 /* file: src/components/MeasureEditorView/MeasureEditorView.css */
 
+.measure-editor-view {
+    /* Main container for the whole component */
+}
+
+/* NEW: Styles for the header controls */
+.measure-editor-header {
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid #eee;
+}
+
 .measure-instrument-row {
     display: flex;
-    align-items: center; /* Vertically align the row and the delete button */
+    align-items: center;
     margin-bottom: 8px;
 }
 
