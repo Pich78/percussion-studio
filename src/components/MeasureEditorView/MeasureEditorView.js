@@ -5,11 +5,19 @@ import { logEvent } from '/percussion-studio/lib/Logger.js';
 import { InstrumentRowView } from '/percussion-studio/src/components/InstrumentRowView/InstrumentRowView.js';
 import { InstrumentSelectionModalView } from '/percussion-studio/src/components/InstrumentSelectionModalView/InstrumentSelectionModalView.js';
 
+/**
+ * A stateful "smart" container for a single measure.
+ * It manages the list of instruments and the metric controls for this measure.
+ * It acts as a middle-man, passing user interaction events from its child
+ * InstrumentRowView instances up to a higher-level parent controller.
+ */
 export class MeasureEditorView {
-    constructor(container, { instrumentDefs, soundPacks, onMetricsChange }) {
+    constructor(container, { instrumentDefs, soundPacks, onMetricsChange, onCellMouseDown, onGridMouseEnter, onGridMouseLeave }) {
         this.container = container;
-        this.callbacks = { onMetricsChange }; 
+        // It receives callbacks from its parent to report events
+        this.callbacks = { onMetricsChange, onCellMouseDown, onGridMouseEnter, onGridMouseLeave }; 
 
+        // STATE MANAGEMENT: It owns the state for this specific measure
         this.state = {
             instruments: [],
             metrics: { beatsPerMeasure: 4, beatUnit: 4, subdivision: 16, grouping: 4 },
@@ -19,16 +27,19 @@ export class MeasureEditorView {
         loadCSS('/percussion-studio/src/components/MeasureEditorView/MeasureEditorView.css');
         
         const modalContainerEl = document.getElementById('modal-container');
-        if (!modalContainerEl) throw new Error('MeasureEditorView requires a DOM element with id="modal-container" to exist.');
+        if (!modalContainerEl) {
+            throw new Error('MeasureEditorView requires a DOM element with id="modal-container" to exist.');
+        }
         
+        // It owns the modal used to add instruments TO ITSELF.
         this.instrumentModal = new InstrumentSelectionModalView(
             modalContainerEl,
             { onInstrumentSelected: this._confirmAddInstrument.bind(this) }
         );
 
+        // Bind event handlers for proper removal in destroy()
         this._boundHandleClick = this._handleClick.bind(this);
         this.container.addEventListener('click', this._boundHandleClick);
-        
         this._boundHandleMetricsChange = this._handleMetricsChange.bind(this);
         this.container.addEventListener('change', this._boundHandleMetricsChange);
 
@@ -41,15 +52,12 @@ export class MeasureEditorView {
         this.container.className = 'measure-editor-view';
 
         this.container.appendChild(this._renderHeaderControls());
-
-        // --- NEW: Create the scrolling wrapper structure ---
+        
         const scrollingWrapper = document.createElement('div');
         scrollingWrapper.className = 'measure-rows-wrapper';
-
         const innerContainer = document.createElement('div');
         innerContainer.className = 'measure-rows-inner-container';
 
-        // --- Render Instrument Rows into the INNER container ---
         this.state.instruments.forEach(instrument => {
             const rowWrapper = document.createElement('div');
             rowWrapper.className = 'measure-instrument-row';
@@ -60,7 +68,15 @@ export class MeasureEditorView {
             deleteBtn.innerHTML = '×';
             deleteBtn.dataset.symbol = instrument.symbol;
 
-            const view = new InstrumentRowView(viewContainer, {});
+            const view = new InstrumentRowView(viewContainer, {
+                // Pass the events up, adding the `instrument` context
+                onCellMouseDown: (tickIndex, event, hasNote) => {
+                    this.callbacks.onCellMouseDown?.(instrument, tickIndex, hasNote, event);
+                },
+                onGridMouseEnter: () => this.callbacks.onGridMouseEnter?.(instrument),
+                onGridMouseLeave: () => this.callbacks.onGridMouseLeave?.()
+            });
+
             const totalCells = (this.state.metrics.beatsPerMeasure / this.state.metrics.beatUnit) * this.state.metrics.subdivision;
             let densityClass = 'density-medium';
             if (totalCells <= 8) densityClass = 'density-low';
@@ -75,14 +91,12 @@ export class MeasureEditorView {
             
             rowWrapper.appendChild(viewContainer);
             rowWrapper.appendChild(deleteBtn);
-            innerContainer.appendChild(rowWrapper); // Append to the inner container
+            innerContainer.appendChild(rowWrapper);
         });
 
-        // --- Assemble the scrolling structure ---
         scrollingWrapper.appendChild(innerContainer);
         this.container.appendChild(scrollingWrapper);
 
-        // --- Render "Add Instrument" Button (after the wrapper) ---
         const addBtnContainer = document.createElement('div');
         addBtnContainer.className = 'add-instrument-container';
         const addBtn = document.createElement('button');
@@ -138,23 +152,16 @@ export class MeasureEditorView {
         this.state.metrics = newMetrics;
 
         logEvent('info', 'MeasureEditorView', '_handleMetricsChange', 'State', 'Metrics changed', newMetrics);
-        this.render(); // Re-render with new metrics
-        this.callbacks.onMetricsChange?.(newMetrics); // Report change to parent
+        this.render();
+        this.callbacks.onMetricsChange?.(newMetrics);
     }
-    
+
     _handleClick(event) {
         const addBtn = event.target.closest('.add-instrument-btn');
         const deleteBtn = event.target.closest('.delete-row-btn');
 
-        if (addBtn) {
-            this._handleAddInstrument();
-            return;
-        }
-
-        if (deleteBtn) {
-            this._handleDeleteInstrument(deleteBtn.dataset.symbol);
-            return;
-        }
+        if (addBtn) this._handleAddInstrument();
+        if (deleteBtn) this._handleDeleteInstrument(deleteBtn.dataset.symbol);
     }
 
     _handleAddInstrument() {
@@ -168,17 +175,15 @@ export class MeasureEditorView {
     _confirmAddInstrument(selection) {
         logEvent('info', 'MeasureEditorView', '_confirmAddInstrument', 'State', 'Adding instrument:', selection);
         
-        // In a real app, you would fetch the full instrument data based on the selection.
-        // Here, we'll just create a mock instrument.
         const newInstrument = {
             symbol: selection.symbol,
             name: this.state.manifest.instrumentDefs.find(def => def.symbol === selection.symbol)?.name || 'New Instrument',
             sounds: [{ letter: 'x', svg: '<svg viewBox="0 0 100 100"><line x1="10" y1="10" x2="90" y2="90" stroke="black" stroke-width="8"/><line x1="10" y1="90" x2="90" y2="10" stroke="black" stroke-width="8"/></svg>' }],
-            pattern: '||' + '-'.repeat(32) + '||' // Default empty pattern
+            pattern: '||' + '-'.repeat(64) + '||'
         };
 
         this.state.instruments.push(newInstrument);
-        this.render(); // Re-render the entire view with the new instrument
+        this.render();
     }
 
     _handleDeleteInstrument(symbolToDelete) {
@@ -189,16 +194,15 @@ export class MeasureEditorView {
 
         if (confirmed) {
             this.state.instruments = this.state.instruments.filter(inst => inst.symbol !== symbolToDelete);
-            this.render(); // Re-render the view without the deleted instrument
+            this.render();
             logEvent('info', 'MeasureEditorView', '_handleDeleteInstrument', 'State', `Instrument ${symbolToDelete} removed.`);
         }
     }
-    /**
-     * --- NEW: Cleanup method to destroy child components and remove listeners ---
-     */
+
     destroy() {
         this.container.removeEventListener('click', this._boundHandleClick);
-        this.instrumentModal.destroy(); // Important: destroy the child modal instance
+        this.container.removeEventListener('change', this._boundHandleMetricsChange);
+        this.instrumentModal.destroy();
         logEvent('info', 'MeasureEditorView', 'destroy', 'Lifecycle', 'Component destroyed.');
     }
 }

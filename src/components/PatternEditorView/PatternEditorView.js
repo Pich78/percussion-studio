@@ -3,20 +3,36 @@
 import { loadCSS } from '/percussion-studio/lib/dom.js';
 import { logEvent } from '/percussion-studio/lib/Logger.js';
 import { MeasureEditorView } from '/percussion-studio/src/components/MeasureEditorView/MeasureEditorView.js';
+// --- NEW: Importing the services it will own ---
+import { EditorCursor } from '/percussion-studio/src/components/EditorCursor/EditorCursor.js';
+import { RadialSoundSelector } from '/percussion-studio/src/components/RadialSoundSelector/RadialSoundSelector.js';
+
+const HOLD_DURATION_MS = 200;
 
 export class PatternEditorView {
     constructor(container, { instrumentDefs, soundPacks }) {
         this.container = container;
         
-        // --- STATE MANAGEMENT ---
         this.state = {
-            measures: [], // Starts with an empty list of measures
+            measures: [],
             nextMeasureId: 0,
-            manifest: { instrumentDefs, soundPacks }
+            manifest: { instrumentDefs, soundPacks },
+            // NEW: The top-level editor now owns the active sound state
+            activeSounds: { KCK: 'o', SNR: 'x' } // Default active sounds
         };
 
-        // Keep track of child component instances for proper cleanup
+        // --- NEW: Instantiate and own the global UI services ---
+        this.cursor = new EditorCursor();
+        this.radialMenu = new RadialSoundSelector({
+            onSoundSelected: this._handleSoundSelected.bind(this)
+        });
+
         this.childInstances = new Map();
+        this.holdTimeout = null;
+        this.mouseDownInfo = null;
+        
+        // Global listener to ensure the radial menu always closes
+        window.addEventListener('mouseup', this._handleGlobalMouseUp.bind(this), true);
 
         loadCSS('/percussion-studio/src/components/PatternEditorView/PatternEditorView.css');
         
@@ -28,14 +44,12 @@ export class PatternEditorView {
     }
 
     render() {
-        // Clean up old instances before re-rendering to prevent memory leaks
         this.childInstances.forEach(instance => instance.destroy());
         this.childInstances.clear();
         
         this.container.innerHTML = '';
         this.container.className = 'pattern-editor-view';
 
-        // --- Render Each Measure ---
         this.state.measures.forEach(measure => {
             const wrapper = document.createElement('div');
             wrapper.className = 'pattern-measure-wrapper';
@@ -52,36 +66,83 @@ export class PatternEditorView {
             this.container.appendChild(wrapper);
 
             // Create a new MeasureEditorView for this measure
+            // --- MODIFIED: Pass down callbacks for events ---
             const measureEditor = new MeasureEditorView(measureContainer, {
                 instrumentDefs: this.state.manifest.instrumentDefs,
-                soundPacks: this.state.manifest.soundPacks
+                soundPacks: this.state.manifest.soundPacks,
+                // Pass down callbacks so the PatternEditor can handle interactions
+                onCellMouseDown: this._handleCellMouseDown.bind(this),
+                onGridMouseEnter: this._handleGridMouseEnter.bind(this),
+                onGridMouseLeave: this._handleGridMouseLeave.bind(this)
             });
             
-            // Store the instance so we can clean it up later
             this.childInstances.set(measure.id, measureEditor);
         });
 
-        // --- Render "Add Measure" Button ---
         const addBtn = document.createElement('button');
         addBtn.className = 'add-measure-btn';
         addBtn.textContent = '+ Add Measure';
         this.container.appendChild(addBtn);
     }
     
+    // --- NEW: Centralized Interaction Handlers ---
+
+    _handleCellMouseDown(instrument, tickIndex, hasNote, event) {
+        this.mouseDownInfo = { instrument, tickIndex, hasNote, event };
+
+        this.holdTimeout = setTimeout(() => {
+            this.holdTimeout = null; // Mark as fired
+            this.cursor.update({ isVisible: false, svg: null }); // Hide cursor before showing menu
+            this.radialMenu.activeInstrumentSymbol = instrument.symbol;
+            this.radialMenu.show({
+                x: event.clientX,
+                y: event.clientY,
+                sounds: instrument.sounds,
+                activeSoundLetter: this.state.activeSounds[instrument.symbol]
+            });
+        }, HOLD_DURATION_MS);
+    }
+
+    _handleGlobalMouseUp() {
+        if (this.holdTimeout) {
+            clearTimeout(this.holdTimeout);
+            // This was a tap, not a hold.
+            // In a full app, we would call the EditController here.
+            const { instrument, tickIndex, hasNote } = this.mouseDownInfo;
+            logEvent('info', 'PatternEditorView', 'TapAction', 'Events', `Tapped cell ${tickIndex} for ${instrument.symbol}. HasNote: ${hasNote}`);
+        }
+        
+        // This handles closing the menu after a selection is made or the gesture is cancelled.
+        if (this.radialMenu.isDragging) {
+            this.radialMenu.hide();
+        }
+    }
+
+    _handleSoundSelected(selectedLetter) {
+        const symbol = this.radialMenu.activeInstrumentSymbol;
+        logEvent('info', 'PatternEditorView', '_handleSoundSelected', 'State', `New active sound for ${symbol}: ${selectedLetter}`);
+        this.state.activeSounds[symbol] = selectedLetter;
+    }
+
+    _handleGridMouseEnter(instrument) {
+        const activeLetter = this.state.activeSounds[instrument.symbol];
+        const sound = instrument.sounds.find(s => s.letter === activeLetter);
+        this.cursor.update({ isVisible: true, svg: sound?.svg });
+    }
+
+    _handleGridMouseLeave() {
+        this.cursor.update({ isVisible: false, svg: null });
+    }
+
+
+    // --- Component Lifecycle Handlers ---
+
     _handleClick(event) {
         const addBtn = event.target.closest('.add-measure-btn');
         const deleteBtn = event.target.closest('.delete-measure-btn');
 
-        if (addBtn) {
-            this._addMeasure();
-            return;
-        }
-
-        if (deleteBtn) {
-            const measureId = parseInt(deleteBtn.dataset.measureId, 10);
-            this._deleteMeasure(measureId);
-            return;
-        }
+        if (addBtn) this._addMeasure();
+        if (deleteBtn) this._deleteMeasure(parseInt(deleteBtn.dataset.measureId, 10));
     }
 
     _addMeasure() {
@@ -114,9 +175,12 @@ export class PatternEditorView {
 
     destroy() {
         this.container.removeEventListener('click', this._boundHandleClick);
-        // Destroy all remaining child instances
+        window.removeEventListener('mouseup', this._handleGlobalMouseUp, true);
         this.childInstances.forEach(instance => instance.destroy());
         this.childInstances.clear();
+        // Destroy the owned services
+        this.cursor.destroy();
+        this.radialMenu.destroy();
         logEvent('info', 'PatternEditorView', 'destroy', 'Lifecycle', 'Component destroyed.');
     }
 }
