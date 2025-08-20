@@ -2,30 +2,132 @@
 
 /*
   Component-specific styles for the PatternItemView.
+  NEW: Refined gray theme, compact, with functional fixes.
 */
 
-.flow-item .delete-btn {
-    visibility: hidden; /* Hide by default */
-    opacity: 0;
-    transition: opacity 0.15s ease-in-out;
+/* Wrapper for the component and its external delete button */
+.pattern-item-wrapper {
+    position: relative;
+    max-width: 420px; /* Constrain the component width */
 }
 
-.flow-item:hover .delete-btn {
-    visibility: visible; /* Show on hover of the parent item */
-    opacity: 0.5;
+.flow-item {
+    width: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    border-radius: 6px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.flow-item .delete-btn:hover {
-    opacity: 1; /* Fully visible when hovering the button itself */
+/* Default State */
+.flow-item.default-state {
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb; /* cool-gray-200 */
 }
 
-/* Give a subtle affordance to editable inputs */
-.flow-item input[type="number"] {
-    border-bottom: 1px dashed transparent;
+.flow-item.default-state:hover {
+    border-color: #d1d5db; /* cool-gray-300 */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+}
+
+/* Selected State - NEW GRAY THEME */
+.flow-item.selected-state {
+    background-color: #f3f4f6;     /* cool-gray-100 */
+    border-color: #6b7280;     /* cool-gray-500 */
+    box-shadow: 0 0 0 1px #6b7280;
+}
+
+/* --- Pattern Name --- */
+.pattern-name {
+    font-weight: 500;
+    font-size: 1rem;
+    color: #343a40;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background: transparent;
+    border: none;
+}
+.pattern-name:focus {
+    outline: none;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+}
+
+/* --- Vertical Separator --- */
+.v-separator {
+    border-left: 1px solid #f3f4f6; /* cool-gray-100 */
+}
+.selected-state .v-separator {
+    border-color: #e5e7eb; /* cool-gray-200 */
+}
+
+/* --- Modifiers --- */
+.modifier-item .modifier-label {
+    font-size: 0.75rem; /* 12px */
+    color: #6c757d;   /* Muted gray */
+    font-weight: 500;
+}
+
+.modifier-item .modifier-input {
+    width: 40px; /* Strictly sized for 3 digits */
+    background: transparent;
+    border: none;
+    border-bottom: 1px dotted #ced4da;
+    border-radius: 0;
+    font-size: 0.9rem;
+    color: #212529;
+    text-align: center;
+    padding: 2px 0;
     transition: border-color 0.15s ease-in-out;
+    -moz-appearance: textfield; /* Hide number spinners */
+}
+.modifier-input::-webkit-outer-spin-button,
+.modifier-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
-.flow-item input[type="number"]:hover,
-.flow-item input[type="number"]:focus {
-    border-bottom: 1px dashed #aaa;
+.modifier-item .modifier-input:hover,
+.modifier-item .modifier-input:focus {
+    border-bottom: 1px solid #495057;
+    outline: none;
+}
+.modifier-item .modifier-input::placeholder {
+    color: #adb5bd;
+}
+
+/* --- Delete Button --- */
+.delete-btn {
+    position: absolute;
+    top: 50%;
+    right: -14px; /* Positioned to slightly overlap the wrapper edge */
+    transform: translateY(-50%) scale(0.9);
+    
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    
+    /* Styling for the circular button */
+    background-color: white;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    line-height: 22px; /* Vertically center the 'x' */
+    text-align: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    color: #6b7280;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.pattern-item-wrapper:hover .delete-btn {
+    visibility: visible;
+    opacity: 0.8;
+    transform: translateY(-50%) scale(1);
+}
+
+.delete-btn:hover {
+    opacity: 1;
+    background-color: #e5e7eb;
 }

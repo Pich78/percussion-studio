@@ -7,51 +7,66 @@ export class PatternItemView {
         this.container = container;
         this.callbacks = callbacks || {};
 
+        // Listen on the container, which will wrap the component and its delete button
         this.container.addEventListener('click', this.handleClick.bind(this));
         this.container.addEventListener('blur', this.handleInputBlur.bind(this), true);
+        this.container.addEventListener('change', this.handleSelectChange.bind(this));
     }
 
     render(state) {
         const { item, index, globalBPM, isSelected } = state;
         logEvent('debug', 'PatternItemView', 'render', 'State', `Rendering item at index ${index}`, state);
         
-        // --- NEW: Apply default values ---
         const repsValue = item.repetitions ?? 1;
-        const bpmValue = item.bpm ?? globalBPM ?? 80; // Use item, then global, then fallback
+        const bpmValue = item.bpm ?? globalBPM ?? 80;
         const accelValue = item.bpm_accel_cents ?? 0;
         
-        const selectedClass = isSelected ? 'bg-washed-blue b--blue' : 'bg-white';
-        const bpmClass = item.bpm ? 'dark-gray' : 'moon-gray';
+        const themeClass = isSelected ? 'selected-state' : 'default-state';
+        const bpmClass = item.bpm ? '' : 'o-60';
+
+        // Helper string for input validation to enforce 3-digit max
+        const numberInputValidation = `
+            max="999" 
+            oninput="if(this.value.length > 3) this.value = this.value.slice(0, 3);"
+        `;
 
         this.container.innerHTML = `
-            <div 
-                class="flow-item flex items-center pa2 br1 ba b--black-10 ${selectedClass}" 
-                data-index="${index}" 
-                data-pattern-id="${item.pattern}"
-                draggable="true"
-            >
-                <div class="w-100">
-                    <div class="flex items-center justify-between mb2">
-                        <select data-property="pattern" class="w-60 bn bg-transparent f6 pointer">
+            <div class="pattern-item-wrapper">
+                <div 
+                    class="flow-item flex items-center pa2 ${themeClass}" 
+                    data-index="${index}" 
+                    data-pattern-id="${item.pattern}"
+                    draggable="true"
+                >
+                    <!-- Pattern Name (Left Side) -->
+                    <div class="flex-grow-1 ph2">
+                        <select data-property="pattern" class="pattern-name w-100 pa0 pointer">
                             <option selected>${item.pattern}</option>
                         </select>
-                        <button data-action="delete" class="delete-btn pa1 bn bg-transparent f5 red pointer" title="Remove Item">×</button>
                     </div>
-                    <div class="flex items-center justify-between gap2 f7">
-                        <div class="flex items-center">
-                            <label class="mr1 b">Reps:</label>
-                            <input data-property="repetitions" type="number" class="w3 tc bn pa1" value="${repsValue}">
+
+                    <!-- Vertical Separator -->
+                    <div class="v-separator h2 mh2"></div>
+
+                    <!-- Modifiers (Right Side) -->
+                    <div class="flex items-center">
+                        <div class="modifier-item flex items-center mr2">
+                            <label class="modifier-label mr2">Reps</label>
+                            <input data-property="repetitions" type="number" class="modifier-input" value="${repsValue}" ${numberInputValidation}>
                         </div>
-                        <div class="flex items-center">
-                            <label class="mr1 b">BPM:</label>
-                            <input data-property="bpm" type="number" class="w3 tc bn pa1 ${bpmClass}" value="${bpmValue}" placeholder="${globalBPM}">
+                        <div class="modifier-item flex items-center mr2">
+                            <label class="modifier-label mr2">BPM</label>
+                            <input data-property="bpm" type="number" class="modifier-input ${bpmClass}" value="${bpmValue}" placeholder="${globalBPM}" ${numberInputValidation}>
                         </div>
-                        <div class="flex items-center">
-                            <label class="mr1 b">Accel:</label>
-                            <input data-property="bpm_accel_cents" type="number" class="w3 tc bn pa1" value="${accelValue}">
+                        <div class="modifier-item flex items-center">
+                            <label class="modifier-label mr2">Accel</label>
+                            <input data-property="bpm_accel_cents" type="number" class="modifier-input" value="${accelValue}" ${numberInputValidation}>
                         </div>
                     </div>
                 </div>
+                
+                <!-- Delete Button (Positioned by CSS relative to wrapper) -->
+                <button data-action="delete" class="delete-btn pa0 bn pointer" title="Remove Item">×</button>
             </div>
         `;
     }
@@ -65,11 +80,21 @@ export class PatternItemView {
     }
     
     handleInputBlur(event) {
-        const input = event.target.closest('input[type="number"], select');
+        const input = event.target.closest('input[type="number"]');
         if (input) {
             const property = input.dataset.property;
-            const value = property === 'pattern' ? input.value : Number(input.value);
+            const value = Number(input.value);
             logEvent('debug', 'PatternItemView', 'handleInputBlur', 'Events', `Input blur for ${property}: ${value}`);
+            this.callbacks.onPropertyChange?.(property, value);
+        }
+    }
+    
+    handleSelectChange(event) {
+        const select = event.target.closest('select');
+        if (select) {
+            const property = select.dataset.property;
+            const value = select.value;
+            logEvent('debug', 'PatternItemView', 'handleSelectChange', 'Events', `Select change for ${property}: ${value}`);
             this.callbacks.onPropertyChange?.(property, value);
         }
     }
