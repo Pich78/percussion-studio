@@ -9,23 +9,23 @@ export class FlowPanel {
         this.callbacks = callbacks || {};
         this.state = {};
         this.draggedIndex = null;
+        this.placeholder = null;
 
         loadCSS('/percussion-studio/src/components/RhythmEditorView/FlowPanel/FlowPanel.css');
         logEvent('info', 'FlowPanel', 'constructor', 'Lifecycle', 'Component created.');
         
-        // --- Use a single global click handler ---
         this.handleGlobalClick = this.handleGlobalClick.bind(this);
         document.addEventListener('click', this.handleGlobalClick);
 
         this.container.addEventListener('dragstart', this.handleDragStart.bind(this));
-        this.container.addEventListener('dragover', (e) => e.preventDefault());
+        this.container.addEventListener('dragover', this.handleDragOver.bind(this));
         this.container.addEventListener('drop', this.handleDrop.bind(this));
         this.container.addEventListener('dragend', this.handleDragEnd.bind(this));
     }
 
     render(state) {
         this.state = state;
-        const { flow, currentPatternId, isPinned /* scrollToLast removed */ } = state;
+        const { flow, currentPatternId, isPinned } = state;
 
         const flowItems = flow.map((item, index) => {
             const selectedClass = item.pattern === currentPatternId ? 'is-selected' : '';
@@ -45,23 +45,16 @@ export class FlowPanel {
                 <button data-action="add-pattern" class="w-100 mt3 pv2 ph3 bn br2 bg-blue white pointer hover-bg-dark-blue f3">+</button>
             </div>
         `;
-
-        // No scrolling behavior: intentionally do not create/update any custom scrollbars
-        // and do not call scrollTo() — content will be clipped if it overflows.
     }
     
-    // --- No custom scrollbar code (createCustomScrollbar / updateCustomScrollbar removed) ---
-
     handleGlobalClick(event) {
         const isClickInside = this.container.contains(event.target);
 
         if (isClickInside) {
-            // Pin the panel if it's not already pinned.
             if (!this.state.isPinned) {
                 this.callbacks.onPin?.(true);
             }
 
-            // Handle actionable element clicks.
             const target = event.target.closest('[data-action]');
             if (!target) return;
 
@@ -83,7 +76,6 @@ export class FlowPanel {
                     break;
             }
         } else {
-            // Unpin the panel if it's currently pinned.
             if (this.state.isPinned) {
                 logEvent('debug', 'FlowPanel', 'handleGlobalClick', 'Events', 'Outside click detected. Unpinning.');
                 this.callbacks.onPin?.(false);
@@ -100,13 +92,52 @@ export class FlowPanel {
         }
     }
 
+    handleDragOver(event) {
+        event.preventDefault();
+        const listContainer = this.container.querySelector('.flow-list');
+        const draggingItem = this.container.querySelector('.dragging');
+        if (!listContainer || !draggingItem) return;
+
+        if (!this.placeholder) {
+            this.placeholder = document.createElement('div');
+            this.placeholder.className = 'drop-placeholder';
+            this.placeholder.style.height = `${draggingItem.offsetHeight}px`;
+        }
+
+        const afterElement = this.getDragAfterElement(listContainer, event.clientY);
+        if (afterElement == null) {
+            listContainer.appendChild(this.placeholder);
+        } else {
+            listContainer.insertBefore(this.placeholder, afterElement);
+        }
+    }
+    
+    getDragAfterElement(container, y) {
+        const draggableElements = [...container.querySelectorAll('.flow-item:not(.dragging)')];
+
+        return draggableElements.reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+            if (offset < 0 && offset > closest.offset) {
+                return { offset: offset, element: child };
+            } else {
+                return closest;
+            }
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+
     handleDrop(event) {
         event.preventDefault();
-        const dropTarget = event.target.closest('.flow-item');
-        if (dropTarget && this.draggedIndex !== null) {
-            const newIndex = Array.from(this.container.querySelectorAll('.flow-item')).indexOf(dropTarget);
-            if (this.draggedIndex !== newIndex) {
-                this.callbacks.onReorderFlow?.(this.draggedIndex, newIndex);
+        if (this.draggedIndex !== null && this.placeholder?.parentNode) {
+            const listContainer = this.container.querySelector('.flow-list');
+            const items = Array.from(listContainer.children).filter(el => 
+                el.classList.contains('flow-item') || el === this.placeholder
+            );
+            const newIndex = items.indexOf(this.placeholder);
+            const adjustedIndex = (this.draggedIndex < newIndex) ? newIndex - 1 : newIndex;
+
+            if (this.draggedIndex !== adjustedIndex) {
+                this.callbacks.onReorderFlow?.(this.draggedIndex, adjustedIndex);
             }
         }
         this.handleDragEnd();
@@ -116,6 +147,10 @@ export class FlowPanel {
         if (this.draggedIndex !== null) {
             this.container.querySelector('.dragging')?.classList.remove('dragging');
             this.draggedIndex = null;
+        }
+        if (this.placeholder) {
+            this.placeholder.remove();
+            this.placeholder = null;
         }
     }
 }

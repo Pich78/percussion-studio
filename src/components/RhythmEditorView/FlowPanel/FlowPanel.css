@@ -47,11 +47,11 @@
   display: none;
 }
 
-/* The flow list: NO scrollbars — overflow is clipped */
+/* The flow list: Added 'gap' for consistent spacing */
 .flow-list {
-    flex: 1 1 0;      /* allow flex layout to size this element */
-    min-height: 0;    /* allow the flex child to shrink */
-    overflow: hidden; /* clip overflow and prevent scrollbars entirely */
+    flex: 1 1 0;
+    min-height: 0;
+    overflow: hidden;
     position: relative;
     padding-right: 0;
     box-sizing: border-box;
@@ -65,7 +65,24 @@
 .flow-item .delete-btn { visibility: hidden; opacity: 0; transition: opacity 0.15s ease-in-out; }
 .flow-item:hover .delete-btn { visibility: visible; opacity: 0.5; }
 .flow-item .delete-btn:hover { opacity: 1; }
-.flow-item.dragging { opacity: 0.5; }
+
+/* MODIFIED: Enhanced style for the item being dragged to "lift" it */
+.flow-item.dragging {
+    opacity: 0.8;
+    background-color: white;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    transform: rotate(10deg) scale(1.05);
+}
+
+/* MODIFIED: Placeholder style now creates a large visual gap */
+.drop-placeholder {
+    background-color: rgba(59, 130, 246, 0.1);
+    border: 2px dashed rgba(59, 130, 246, 0.5);
+    border-radius: .25rem;
+    box-sizing: border-box;
+    /* KEY CHANGE: This margin pushes other items away to create the gap */
+    margin: 1.75rem 0;
+}
 
 /* Apply the selected style if the panel is hovered OR if it is pinned. */
 .editor-panel:hover .flow-item.is-selected,
