@@ -104,10 +104,21 @@ export class PatternEditorView {
         this.container.appendChild(addBtn);
     }
     
-    // --- NEW: Centralized Interaction Handlers ---
+    // --- Centralized Interaction Handlers ---
+
+    _ensureActiveSound(instrument) {
+        if (!instrument || !instrument.symbol) return;
+
+        if (!this.state.activeSounds[instrument.symbol] && instrument.sounds?.length > 0) {
+            const defaultLetter = instrument.sounds[0].letter;
+            this.state.activeSounds[instrument.symbol] = defaultLetter;
+            logEvent('info', 'PatternEditorView', '_ensureActiveSound', 'State', `Setting default active sound for ${instrument.symbol} to '${defaultLetter}'`);
+        }
+    }
 
     _handleCellMouseDown(instrument, tickIndex, hasNote, event) {
         this.mouseDownInfo = { instrument, tickIndex, hasNote, event };
+        this._ensureActiveSound(instrument);
 
         this.holdTimeout = setTimeout(() => {
             this.holdTimeout = null; // Mark as fired
@@ -144,8 +155,12 @@ export class PatternEditorView {
     }
 
     _handleGridMouseEnter(instrument) {
+        // [Time][Class Name][Method Name][Feature][Log line]
+        logEvent('debug', 'PatternEditorView', '_handleGridMouseEnter', 'Cursor', 'Hovering over instrument:', instrument ? JSON.parse(JSON.stringify(instrument)) : 'null');
+        this._ensureActiveSound(instrument);
+
         const activeLetter = this.state.activeSounds[instrument.symbol];
-        const sound = instrument.sounds.find(s => s.letter === activeLetter);
+        const sound = instrument.sounds?.find(s => s.letter === activeLetter);
         this.cursor.update({ isVisible: true, svg: sound?.svg });
     }
 
@@ -153,7 +168,7 @@ export class PatternEditorView {
         this.cursor.update({ isVisible: false, svg: null });
     }
 
-    // --- NEW: Handlers for Modal Workflow ---
+    // --- Handlers for Modal Workflow ---
 
     _handleRequestAddInstrument(measureId) {
         logEvent('info', 'PatternEditorView', '_handleRequestAddInstrument', 'Events', `Request to add instrument to measure ${measureId}`);
