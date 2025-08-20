@@ -1,4 +1,4 @@
-/* FlowPanel styles - no scrollbars; overflow is clipped */
+/* file: src/components/RhythmEditorView/FlowPanel/FlowPanel.css */
 
 .editor-panel {
   transition: width 0.2s ease-in-out;

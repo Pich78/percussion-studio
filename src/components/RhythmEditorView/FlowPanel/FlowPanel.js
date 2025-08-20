@@ -1,3 +1,5 @@
+// file: src/components/RhythmEditorView/FlowPanel/FlowPanel.js
+
 import { loadCSS } from '/percussion-studio/lib/dom.js';
 import { logEvent } from '/percussion-studio/lib/Logger.js';
 
