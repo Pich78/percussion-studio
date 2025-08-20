@@ -1,9 +1,8 @@
-<!-- file: src/components/RhythmEditorView/FlowPanel/FlowPanel.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Test Harness: FlowPanel</title>
+    <title>Manual Test Harness: FlowPanel</title>
     <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
     <link rel="stylesheet" href="/percussion-studio/css/global.css">
     <link rel="stylesheet" href="/percussion-studio/src/components/RhythmEditorView/RhythmEditorView.css">
@@ -12,13 +11,8 @@
 <body class="bg-light-gray pa4">
     <div class="flex">
         <div class="w-70 pr3">
-            <h1 class="f2 b mb3 bb pb2">Automated Tests</h1>
-            <button id="run-tests-btn" class="pv2 ph3 bn br2 bg-blue white pointer hover-bg-dark-blue mb3">Run Tests</button>
-            <div id="test-results"></div>
-            <hr class="mv4"/>
             <h1 class="f2 b mb3 bb pb2">Live View Workbench</h1>
             <div class="relative w-100 h-100 bg-white shadow-2" style="height: 60vh;">
-                <!-- FlowPanel will render here -->
                 <div id="view-container"></div>
             </div>
             <div id="current-state-display" class="f6 code pa2 bg-washed-yellow mt3"></div>
@@ -34,14 +28,11 @@
     <div id="test-sandbox" style="position: absolute; visibility: hidden;"></div>
 
     <script type="module">
-        import { run } from './FlowPanel.test.js';
         import { FlowPanel } from './FlowPanel.js';
         import { Logger, logEvent } from '/percussion-studio/lib/Logger.js';
         
         Logger.init({ level: 'debug' });
         Logger.setTarget('log-output');
-
-        document.getElementById('run-tests-btn').addEventListener('click', run);
 
         let currentState = {
             flow: Array.from({length: 8}, (_, i) => ({ pattern: `Pattern ${i+1}`, repetitions: (i+1)*2 })),
