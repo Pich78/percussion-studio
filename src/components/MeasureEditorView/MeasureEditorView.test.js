@@ -15,7 +15,7 @@ export async function run() {
 
     const getMockManifest = () => ({
         instrumentDefs: [{ symbol: 'KCK', name: 'Kick Drum' }],
-        soundPacks: [{ symbol: 'KCK', pack_name: 'kick_1', name: 'Acoustic Kick' }]
+        soundPacks: [{ symbol: 'KCK', pack_name: 'kick_1', name: 'Acoustic Kick', sounds: [] }]
     });
 
     runner.describe('MeasureEditorView', () => {
@@ -39,7 +39,6 @@ export async function run() {
             runner.expect(testContainer.querySelector('.add-instrument-btn')).not.toBe(null);
         });
 
-        // --- NEW: Test for metric controls ---
         runner.it('should render metric controls with default values', () => {
             view = new MeasureEditorView(testContainer, getMockManifest());
             const numeratorInput = testContainer.querySelector('input[data-metric="numerator"]');
@@ -51,17 +50,14 @@ export async function run() {
 
         runner.it('should re-render child rows when metrics change', () => {
             view = new MeasureEditorView(testContainer, getMockManifest());
-            view._confirmAddInstrument({ symbol: 'KCK', packName: 'kick_1' });
+            view.addInstrument({ symbol: 'KCK', packName: 'kick_1' });
             
-            // Default 4/4 with 16ths should be 16 cells
             runner.expect(testContainer.querySelectorAll('.grid-cell').length).toBe(16);
 
-            // Simulate changing subdivision to 8th notes
             const subdivisionSelect = testContainer.querySelector('select[data-metric="subdivision"]');
             subdivisionSelect.value = '8';
             subdivisionSelect.dispatchEvent(new Event('change', { bubbles: true }));
 
-            // 4/4 with 8ths should now be 8 cells
             runner.expect(testContainer.querySelectorAll('.grid-cell').length).toBe(8);
         });
 
@@ -78,6 +74,21 @@ export async function run() {
 
             const expectedMetrics = { beatsPerMeasure: 7, beatUnit: 4, subdivision: 16, grouping: 4 };
             callbackLog.wasCalledWith('onMetricsChange', expectedMetrics);
+        });
+
+        // FIXED: This test now uses the correct MockLogger method.
+        runner.it('should fire onRequestAddInstrument callback when the add button is clicked', () => {
+            const callbackLog = new MockLogger('Callbacks');
+            view = new MeasureEditorView(testContainer, {
+                ...getMockManifest(),
+                onRequestAddInstrument: () => callbackLog.log('onRequestAddInstrument')
+            });
+            
+            const addBtn = testContainer.querySelector('.add-instrument-btn');
+            addBtn.click();
+
+            // Corrected from wasCalled() to wasCalledWith()
+            callbackLog.wasCalledWith('onRequestAddInstrument');
         });
     });
 
