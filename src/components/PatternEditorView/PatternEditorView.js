@@ -211,9 +211,9 @@ export class PatternEditorView {
                 this.cursor.update({ isVisible: true, svg: sound.svg });
             }
             
-            // Auto-place the selected sound in the cell that was held
-            const { tickIndex, hasNote } = this.mouseDownInfo;
-            this._performCellEdit(instrument, tickIndex, false); // false = treat as empty cell to place new sound
+            // --- FIX: Do not auto-place the sound after selection from the radial menu ---
+            // const { tickIndex, hasNote } = this.mouseDownInfo;
+            // this._performCellEdit(instrument, tickIndex, false); // false = treat as empty cell to place new sound
         } else {
             // If no mouseDownInfo, just update the active sound and cursor for the symbol
             // Find any instrument with this symbol to get the sound definition
