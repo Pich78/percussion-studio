@@ -26,7 +26,10 @@ export class PatternEditorView {
         // --- NEW: Instantiate and own the global UI services ---
         this.cursor = new EditorCursor();
         this.radialMenu = new RadialSoundSelector({
-            onSoundSelected: this._handleSoundSelected.bind(this)
+            onSoundSelected: (selectedLetter) => {
+                logEvent('debug', 'PatternEditorView', 'RadialMenuCallback', 'Events', `RadialSoundSelector callback fired with: ${selectedLetter}`);
+                this._handleSoundSelected(selectedLetter);
+            }
         });
 
         // --- FIX: Instantiate and own the instrument selection modal ---
@@ -114,6 +117,8 @@ export class PatternEditorView {
             this.state.activeSounds[instrument.symbol] = defaultLetter;
             logEvent('info', 'PatternEditorView', '_ensureActiveSound', 'State', `Setting default active sound for ${instrument.symbol} to '${defaultLetter}'`);
         }
+        
+        logEvent('debug', 'PatternEditorView', '_ensureActiveSound', 'State', `Active sound for ${instrument.symbol} is '${this.state.activeSounds[instrument.symbol]}'`);
     }
 
     _handleCellMouseDown(instrument, tickIndex, hasNote, event) {
@@ -122,6 +127,7 @@ export class PatternEditorView {
 
         this.holdTimeout = setTimeout(() => {
             this.holdTimeout = null; // Mark as fired
+            logEvent('info', 'PatternEditorView', '_handleCellMouseDown', 'Events', `Hold timeout fired - showing radial menu for ${instrument.symbol}`);
             this.cursor.update({ isVisible: false, svg: null }); // Hide cursor before showing menu
             this.radialMenu.activeInstrumentSymbol = instrument.symbol;
             this.radialMenu.show({
@@ -133,9 +139,15 @@ export class PatternEditorView {
         }, HOLD_DURATION_MS);
     }
 
-    // Updated _handleGlobalMouseUp method for PatternEditorView.js
-
     _handleGlobalMouseUp() {
+        logEvent('debug', 'PatternEditorView', '_handleGlobalMouseUp', 'Events', `Global mouseup - holdTimeout: ${!!this.holdTimeout}, radialDragging: ${this.radialMenu.isDragging}`);
+        
+        // If the radial menu is active, let it handle the mouseup - don't interfere
+        if (this.radialMenu.isDragging) {
+            logEvent('debug', 'PatternEditorView', '_handleGlobalMouseUp', 'Events', 'Radial menu is active, letting it handle mouseup');
+            return;
+        }
+        
         if (this.holdTimeout) {
             clearTimeout(this.holdTimeout);
             this.holdTimeout = null; // Reset timeout
@@ -150,14 +162,9 @@ export class PatternEditorView {
         
         // Reset mouse down info after processing
         this.mouseDownInfo = null;
-        
-        // This handles closing the menu after a selection is made or the gesture is cancelled.
-        if (this.radialMenu.isDragging) {
-            this.radialMenu.hide();
-        }
     }
 
-    // New method to add to PatternEditorView class
+    // New method to perform cell editing
     _performCellEdit(instrument, tickIndex, hasNote) {
         // Find the measure that contains this instrument
         const measureInstance = Array.from(this.childInstances.values()).find(measure => 
@@ -194,6 +201,38 @@ export class PatternEditorView {
         const symbol = this.radialMenu.activeInstrumentSymbol;
         logEvent('info', 'PatternEditorView', '_handleSoundSelected', 'State', `New active sound for ${symbol}: ${selectedLetter}`);
         this.state.activeSounds[symbol] = selectedLetter;
+        
+        // Update the cursor to show the newly selected sound
+        if (this.mouseDownInfo && this.mouseDownInfo.instrument) {
+            const instrument = this.mouseDownInfo.instrument;
+            const sound = instrument.sounds?.find(s => s.letter === selectedLetter);
+            if (sound) {
+                // Update cursor immediately
+                this.cursor.update({ isVisible: true, svg: sound.svg });
+            }
+            
+            // Auto-place the selected sound in the cell that was held
+            const { tickIndex, hasNote } = this.mouseDownInfo;
+            this._performCellEdit(instrument, tickIndex, false); // false = treat as empty cell to place new sound
+        } else {
+            // If no mouseDownInfo, just update the active sound and cursor for the symbol
+            // Find any instrument with this symbol to get the sound definition
+            let foundInstrument = null;
+            for (const measureInstance of this.childInstances.values()) {
+                foundInstrument = measureInstance.state.instruments.find(inst => inst.symbol === symbol);
+                if (foundInstrument) break;
+            }
+            
+            if (foundInstrument) {
+                const sound = foundInstrument.sounds?.find(s => s.letter === selectedLetter);
+                if (sound) {
+                    this.cursor.update({ isVisible: true, svg: sound.svg });
+                }
+            }
+        }
+        
+        // Always reset mouse down info after handling radial selection
+        this.mouseDownInfo = null;
     }
 
     _handleGridMouseEnter(instrument) {
@@ -203,6 +242,8 @@ export class PatternEditorView {
 
         const activeLetter = this.state.activeSounds[instrument.symbol];
         const sound = instrument.sounds?.find(s => s.letter === activeLetter);
+        
+        // Always update cursor when entering a grid, regardless of radial menu state
         this.cursor.update({ isVisible: true, svg: sound?.svg });
     }
 
@@ -266,7 +307,6 @@ export class PatternEditorView {
         this.activeMeasureId = null; 
         this.activeTrackId = null;
     }
-
 
     // --- Component Lifecycle Handlers ---
 
