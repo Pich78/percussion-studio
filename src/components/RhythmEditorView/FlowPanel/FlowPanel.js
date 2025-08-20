@@ -1,5 +1,3 @@
-// file: src/components/RhythmEditorView/FlowPanel/FlowPanel.js
-
 import { loadCSS } from '/percussion-studio/lib/dom.js';
 import { logEvent } from '/percussion-studio/lib/Logger.js';
 
@@ -13,7 +11,7 @@ export class FlowPanel {
         loadCSS('/percussion-studio/src/components/RhythmEditorView/FlowPanel/FlowPanel.css');
         logEvent('info', 'FlowPanel', 'constructor', 'Lifecycle', 'Component created.');
         
-        // --- MODIFICATION: Use a single global click handler ---
+        // --- Use a single global click handler ---
         this.handleGlobalClick = this.handleGlobalClick.bind(this);
         document.addEventListener('click', this.handleGlobalClick);
 
@@ -25,7 +23,7 @@ export class FlowPanel {
 
     render(state) {
         this.state = state;
-        const { flow, currentPatternId, isPinned, scrollToLast } = state;
+        const { flow, currentPatternId, isPinned /* scrollToLast removed */ } = state;
 
         const flowItems = flow.map((item, index) => {
             const selectedClass = item.pattern === currentPatternId ? 'is-selected' : '';
@@ -46,97 +44,24 @@ export class FlowPanel {
             </div>
         `;
 
-        // Set up the custom scrollbar after DOM is ready
-        const flowList = this.container.querySelector('.flow-list');
-        if (flowList) {
-            // Create the custom scrollbar elements
-            this.createCustomScrollbar(flowList);
-            
-            // Remove existing scroll listener if it exists
-            if (this.scrollHandler) {
-                flowList.removeEventListener('scroll', this.scrollHandler);
-            }
-            
-            // Add scroll event listener for custom scrollbar
-            this.scrollHandler = () => this.updateCustomScrollbar();
-            flowList.addEventListener('scroll', this.scrollHandler);
-            
-            // Initial scrollbar update
-            setTimeout(() => this.updateCustomScrollbar(), 0);
-        }
-
-        if (scrollToLast) {
-            setTimeout(() => flowList?.scrollTo({ top: 9999, behavior: 'smooth' }), 50);
-        }
+        // No scrolling behavior: intentionally do not create/update any custom scrollbars
+        // and do not call scrollTo() — content will be clipped if it overflows.
     }
     
-    createCustomScrollbar(flowList) {
-        // Remove existing custom scrollbar if it exists
-        const existingScrollbar = flowList.querySelector('.custom-scrollbar');
-        if (existingScrollbar) {
-            existingScrollbar.remove();
-        }
-        
-        // Create scrollbar container
-        const scrollbarContainer = document.createElement('div');
-        scrollbarContainer.className = 'custom-scrollbar';
-        
-        // Create scrollbar track
-        const scrollbarTrack = document.createElement('div');
-        scrollbarTrack.className = 'custom-scrollbar-track';
-        
-        // Create scrollbar thumb
-        const scrollbarThumb = document.createElement('div');
-        scrollbarThumb.className = 'custom-scrollbar-thumb';
-        
-        // Assemble the scrollbar
-        scrollbarContainer.appendChild(scrollbarTrack);
-        scrollbarContainer.appendChild(scrollbarThumb);
-        flowList.appendChild(scrollbarContainer);
-        
-        return { container: scrollbarContainer, track: scrollbarTrack, thumb: scrollbarThumb };
-    }
+    // --- No custom scrollbar code (createCustomScrollbar / updateCustomScrollbar removed) ---
 
-    updateCustomScrollbar() {
-        const flowList = this.container.querySelector('.flow-list');
-        if (!flowList) return;
-        
-        const scrollbarThumb = flowList.querySelector('.custom-scrollbar-thumb');
-        if (!scrollbarThumb) return;
-        
-        const scrollHeight = flowList.scrollHeight;
-        const clientHeight = flowList.clientHeight;
-        const scrollTop = flowList.scrollTop;
-        
-        // Calculate scrollbar thumb position and size
-        const scrollRatio = clientHeight / scrollHeight;
-        const thumbHeight = Math.max(20, clientHeight * scrollRatio);
-        const maxThumbTop = clientHeight - thumbHeight;
-        const thumbTop = scrollHeight > clientHeight ? (scrollTop / (scrollHeight - clientHeight)) * maxThumbTop : 0;
-        
-        // Update scrollbar thumb
-        scrollbarThumb.style.height = `${thumbHeight}px`;
-        scrollbarThumb.style.top = `${thumbTop}px`;
-        
-        // Show/hide scrollbar based on content
-        const needsScrollbar = scrollHeight > clientHeight;
-        scrollbarThumb.style.opacity = needsScrollbar ? '1' : '0.3';
-    }
-
-    // --- MODIFICATION: Replaced handleClick and handleDocumentClick with this single method ---
     handleGlobalClick(event) {
         const isClickInside = this.container.contains(event.target);
 
         if (isClickInside) {
-            // --- This is a click INSIDE the panel ---
             // Pin the panel if it's not already pinned.
             if (!this.state.isPinned) {
                 this.callbacks.onPin?.(true);
             }
 
-            // Now, handle the specific action if an actionable element was clicked.
+            // Handle actionable element clicks.
             const target = event.target.closest('[data-action]');
-            if (!target) return; // Click was on panel background, pinning is enough.
+            if (!target) return;
 
             const action = target.dataset.action;
             logEvent('debug', 'FlowPanel', 'handleGlobalClick', 'Events', `Action: ${action}`);
@@ -156,7 +81,6 @@ export class FlowPanel {
                     break;
             }
         } else {
-            // --- This is a click OUTSIDE the panel ---
             // Unpin the panel if it's currently pinned.
             if (this.state.isPinned) {
                 logEvent('debug', 'FlowPanel', 'handleGlobalClick', 'Events', 'Outside click detected. Unpinning.');
