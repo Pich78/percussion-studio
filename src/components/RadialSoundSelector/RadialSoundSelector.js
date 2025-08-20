@@ -39,14 +39,13 @@ export class RadialSoundSelector {
         let angles = [];
         const radius = 25;
 
-        if (soundsToRender.length === 2) {
-            const otherSound = soundsToRender.find(s => s.letter !== activeSoundLetter);
-            const currentSound = soundsToRender.find(s => s.letter === activeSoundLetter);
-            soundsToRender = [otherSound, currentSound];
-            angles = [-Math.PI / 2, Math.PI / 2];
-        } else {
-            const angleStep = (2 * Math.PI) / soundsToRender.length;
-            for(let i = 0; i < soundsToRender.length; i++) angles.push(i * angleStep - Math.PI / 2);
+        // --- FIX: Removed the special-case logic for 2 sounds. ---
+        // The generic logic below now handles all cases (2, 3, 4, etc.) 
+        // and ensures the layout is stable and predictable, based on the
+        // original order of the `sounds` array.
+        const angleStep = (2 * Math.PI) / soundsToRender.length;
+        for(let i = 0; i < soundsToRender.length; i++) {
+            angles.push(i * angleStep - Math.PI / 2);
         }
 
         soundsToRender.forEach((sound, index) => {
