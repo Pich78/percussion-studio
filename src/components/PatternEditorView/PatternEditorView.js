@@ -133,19 +133,61 @@ export class PatternEditorView {
         }, HOLD_DURATION_MS);
     }
 
+    // Updated _handleGlobalMouseUp method for PatternEditorView.js
+
     _handleGlobalMouseUp() {
         if (this.holdTimeout) {
             clearTimeout(this.holdTimeout);
-            // This was a tap, not a hold.
-            // In a full app, we would call the EditController here.
-            const { instrument, tickIndex, hasNote } = this.mouseDownInfo;
-            logEvent('info', 'PatternEditorView', 'TapAction', 'Events', `Tapped cell ${tickIndex} for ${instrument.symbol}. HasNote: ${hasNote}`);
+            this.holdTimeout = null; // Reset timeout
+            
+            // This was a tap, not a hold - perform the edit action
+            if (this.mouseDownInfo) {
+                const { instrument, tickIndex, hasNote } = this.mouseDownInfo;
+                this._performCellEdit(instrument, tickIndex, hasNote);
+                logEvent('info', 'PatternEditorView', 'TapAction', 'Events', `Tapped cell ${tickIndex} for ${instrument.symbol}. HasNote: ${hasNote}`);
+            }
         }
+        
+        // Reset mouse down info after processing
+        this.mouseDownInfo = null;
         
         // This handles closing the menu after a selection is made or the gesture is cancelled.
         if (this.radialMenu.isDragging) {
             this.radialMenu.hide();
         }
+    }
+
+    // New method to add to PatternEditorView class
+    _performCellEdit(instrument, tickIndex, hasNote) {
+        // Find the measure that contains this instrument
+        const measureInstance = Array.from(this.childInstances.values()).find(measure => 
+            measure.state.instruments.some(inst => inst.trackId === instrument.trackId)
+        );
+        
+        if (!measureInstance) {
+            logEvent('error', 'PatternEditorView', '_performCellEdit', 'State', 'Could not find measure instance for instrument', instrument);
+            return;
+        }
+
+        // Get the current pattern and convert to array
+        let patternArr = (instrument.pattern || '').replace(/\|/g, '').split('');
+        
+        if (hasNote) {
+            // Remove the note (set to empty)
+            patternArr[tickIndex] = '-';
+            logEvent('info', 'PatternEditorView', '_performCellEdit', 'Events', `Removing note at tick ${tickIndex} for ${instrument.symbol}`);
+        } else {
+            // Add a note using the active sound
+            const activeLetter = this.state.activeSounds[instrument.symbol] || instrument.sounds[0].letter;
+            patternArr[tickIndex] = activeLetter;
+            logEvent('info', 'PatternEditorView', '_performCellEdit', 'Events', `Adding note '${activeLetter}' at tick ${tickIndex} for ${instrument.symbol}`);
+        }
+        
+        // Reconstruct the pattern with delimiters
+        const newPattern = '||' + patternArr.join('') + '||';
+        
+        // Update the pattern in the measure
+        measureInstance.updateInstrumentPattern(instrument.trackId, newPattern);
     }
 
     _handleSoundSelected(selectedLetter) {
