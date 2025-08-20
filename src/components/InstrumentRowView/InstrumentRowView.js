@@ -26,7 +26,11 @@ export class InstrumentRowView {
         const headerEl = document.createElement('div');
         headerEl.className = 'instrument-row-header';
         headerEl.textContent = instrument.name;
-        headerEl.addEventListener('click', () => this.callbacks.onRequestInstrumentChange?.(instrument.symbol));
+        headerEl.addEventListener('click', (event) => {
+            // New log line to confirm the click event is being handled here.
+            logEvent('debug', 'InstrumentRowView', 'render', 'Events', `Instrument header for "${instrument.name}" clicked. Invoking onRequestInstrumentChange callback.`);
+            this.callbacks.onRequestInstrumentChange?.(instrument.symbol);
+        });
 
         const gridEl = document.createElement('div');
         gridEl.className = 'instrument-row-grid';
