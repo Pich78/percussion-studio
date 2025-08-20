@@ -8,7 +8,6 @@ export class PatternItemView {
         this.callbacks = callbacks || {};
 
         this.container.addEventListener('click', this.handleClick.bind(this));
-        // --- FIX: Rely on 'blur' for final value changes, which is more reliable ---
         this.container.addEventListener('blur', this.handleInputBlur.bind(this), true);
     }
 
@@ -16,8 +15,12 @@ export class PatternItemView {
         const { item, index, globalBPM, isSelected } = state;
         logEvent('debug', 'PatternItemView', 'render', 'State', `Rendering item at index ${index}`, state);
         
+        // --- NEW: Apply default values ---
+        const repsValue = item.repetitions ?? 1;
+        const bpmValue = item.bpm ?? globalBPM ?? 80; // Use item, then global, then fallback
+        const accelValue = item.bpm_accel_cents ?? 0;
+        
         const selectedClass = isSelected ? 'bg-washed-blue b--blue' : 'bg-white';
-        const bpmValue = item.bpm ?? globalBPM;
         const bpmClass = item.bpm ? 'dark-gray' : 'moon-gray';
 
         this.container.innerHTML = `
@@ -37,15 +40,15 @@ export class PatternItemView {
                     <div class="flex items-center justify-between gap2 f7">
                         <div class="flex items-center">
                             <label class="mr1 b">Reps:</label>
-                            <input data-property="repetitions" type="number" class="w3 tc bn pa1" value="${item.repetitions || 1}">
+                            <input data-property="repetitions" type="number" class="w3 tc bn pa1" value="${repsValue}">
                         </div>
                         <div class="flex items-center">
                             <label class="mr1 b">BPM:</label>
-                            <input data-property="bpm" type="number" class="w4 tc bn pa1 ${bpmClass}" value="${bpmValue}" placeholder="${globalBPM}">
+                            <input data-property="bpm" type="number" class="w3 tc bn pa1 ${bpmClass}" value="${bpmValue}" placeholder="${globalBPM}">
                         </div>
                         <div class="flex items-center">
                             <label class="mr1 b">Accel:</label>
-                            <input data-property="bpm_accel_cents" type="number" class="w4 tc bn pa1" value="${item.bpm_accel_cents || 0}">
+                            <input data-property="bpm_accel_cents" type="number" class="w3 tc bn pa1" value="${accelValue}">
                         </div>
                     </div>
                 </div>

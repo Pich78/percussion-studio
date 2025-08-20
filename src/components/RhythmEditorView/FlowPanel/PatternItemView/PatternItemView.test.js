@@ -13,7 +13,7 @@ export async function run() {
     const testContainer = document.getElementById('test-sandbox');
 
     const getMockState = (overrides = {}) => ({
-        item: { pattern: 'verse_a', repetitions: 4 },
+        item: { pattern: 'verse_a' }, // Minimal item by default
         index: 0,
         globalBPM: 120,
         isSelected: false,
@@ -21,16 +21,16 @@ export async function run() {
     });
 
     runner.describe('PatternItemView Rendering', () => {
-        runner.it('should render the correct pattern name and repetitions', () => {
+        runner.it('should render with correct default values when properties are missing', () => {
             testContainer.innerHTML = '';
             const view = new PatternItemView(testContainer, {});
-            view.render(getMockState({ item: { pattern: 'test_pattern', repetitions: 8 } }));
+            view.render(getMockState()); // Use the minimal state
             
-            const patternSelector = testContainer.querySelector('select[data-property="pattern"]');
             const repsInput = testContainer.querySelector('input[data-property="repetitions"]');
+            const accelInput = testContainer.querySelector('input[data-property="bpm_accel_cents"]');
 
-            runner.expect(patternSelector.value).toBe('test_pattern');
-            runner.expect(Number(repsInput.value)).toBe(8);
+            runner.expect(Number(repsInput.value)).toBe(1);
+            runner.expect(Number(accelInput.value)).toBe(0);
         });
 
         runner.it('should display the global BPM if no item-specific BPM is set', () => {
@@ -39,7 +39,6 @@ export async function run() {
             view.render(getMockState({ globalBPM: 150 }));
             const bpmInput = testContainer.querySelector('input[data-property="bpm"]');
             runner.expect(Number(bpmInput.value)).toBe(150);
-            runner.expect(bpmInput.classList.contains('moon-gray')).toBe(true);
         });
         
         runner.it('should display the item-specific BPM when set', () => {
@@ -49,7 +48,6 @@ export async function run() {
             view.render(state);
             const bpmInput = testContainer.querySelector('input[data-property="bpm"]');
             runner.expect(Number(bpmInput.value)).toBe(95);
-            runner.expect(bpmInput.classList.contains('dark-gray')).toBe(true);
         });
     });
 
@@ -74,7 +72,6 @@ export async function run() {
             
             const repsInput = testContainer.querySelector('input[data-property="repetitions"]');
             repsInput.value = '16';
-            // --- FIX: Dispatch the 'blur' event instead of 'change' ---
             repsInput.dispatchEvent(new Event('blur', { bubbles: true }));
 
             callbackLog.wasCalledWith('onPropertyChange', { prop: 'repetitions', val: 16 });

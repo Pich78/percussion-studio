@@ -1,0 +1,36 @@
+<!-- file: src/components/RhythmEditorView/FlowPanel/PatternItemView/PatternItemView.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Integration Harness: PatternItemView</title>
+    <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
+    <link rel="stylesheet" href="/percussion-studio/css/global.css">
+    <link rel="stylesheet" href="./PatternItemView.css">
+    <style> body { font-family: sans-serif; } </style>
+</head>
+<body class="bg-light-gray pa4">
+    <div class="flex">
+        <div class="w-70 pr3">
+            <h1 class="f2 b mb3 bb pb2">Integration Workbench for <code>PatternItemView</code></h1>
+            <p class="f6 gray mb3">Interact with the component below. Changes will be logged and the component will be re-rendered with the new state.</p>
+            <div id="view-container" class="bg-white shadow-2 pa3 br2 w-100" style="max-width: 400px;">
+                <!-- PatternItemView will be rendered here by the script -->
+            </div>
+            <div id="current-state-display" class="f6 code pa2 bg-washed-yellow mt3"></div>
+        </div>
+        <div class="w-30 pl3">
+            <div class="bg-near-black near-white pa3 br2 h-100">
+                <h2 class="f4 b bb pb2 mb2">Execution Log</h2>
+                <div id="log-output" class="f7 lh-copy" style="white-space: pre-wrap; height: 80vh; overflow-y: auto;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import and run the manual test setup from its dedicated JS file
+        import { manualTest } from './PatternItemView.integration.js';
+        manualTest();
+    </script>
+</body>
+</html>

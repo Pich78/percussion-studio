@@ -1,0 +1,31 @@
+/* file: src/components/RhythmEditorView/FlowPanel/PatternItemView/PatternItemView.css */
+
+/*
+  Component-specific styles for the PatternItemView.
+*/
+
+.flow-item .delete-btn {
+    visibility: hidden; /* Hide by default */
+    opacity: 0;
+    transition: opacity 0.15s ease-in-out;
+}
+
+.flow-item:hover .delete-btn {
+    visibility: visible; /* Show on hover of the parent item */
+    opacity: 0.5;
+}
+
+.flow-item .delete-btn:hover {
+    opacity: 1; /* Fully visible when hovering the button itself */
+}
+
+/* Give a subtle affordance to editable inputs */
+.flow-item input[type="number"] {
+    border-bottom: 1px dashed transparent;
+    transition: border-color 0.15s ease-in-out;
+}
+
+.flow-item input[type="number"]:hover,
+.flow-item input[type="number"]:focus {
+    border-bottom: 1px dashed #aaa;
+}
