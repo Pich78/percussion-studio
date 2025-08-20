@@ -55,6 +55,7 @@
     position: relative;
     padding-right: 0;
     box-sizing: border-box;
+    gap: 0.25rem;
 }
 
 /* Remove any possible custom scrollbar remnants */
@@ -66,22 +67,19 @@
 .flow-item:hover .delete-btn { visibility: visible; opacity: 0.5; }
 .flow-item .delete-btn:hover { opacity: 1; }
 
-/* MODIFIED: Enhanced style for the item being dragged to "lift" it */
-.flow-item.dragging {
-    opacity: 0.8;
-    background-color: white;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    transform: rotate(10deg) scale(1.05);
+/* 
+  NEW: Trello-like placeholder style.
+  This class is applied to the original drag item, turning it into the "shadow".
+*/
+.flow-item.drag-placeholder {
+    background-color: rgba(0, 0, 0, 0.1);
+    border: 1px dashed rgba(0, 0, 0, 0.3);
+    color: transparent; /* Hide the text */
 }
 
-/* MODIFIED: Placeholder style now creates a large visual gap */
-.drop-placeholder {
-    background-color: rgba(59, 130, 246, 0.1);
-    border: 2px dashed rgba(59, 130, 246, 0.5);
-    border-radius: .25rem;
-    box-sizing: border-box;
-    /* KEY CHANGE: This margin pushes other items away to create the gap */
-    margin: 1.75rem 0;
+/* Hide the contents of the placeholder, like the delete button */
+.flow-item.drag-placeholder > * {
+    visibility: hidden;
 }
 
 /* Apply the selected style if the panel is hovered OR if it is pinned. */

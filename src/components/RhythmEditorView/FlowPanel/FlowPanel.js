@@ -9,7 +9,7 @@ export class FlowPanel {
         this.callbacks = callbacks || {};
         this.state = {};
         this.draggedIndex = null;
-        this.placeholder = null;
+        // The separate placeholder element is no longer needed.
 
         loadCSS('/percussion-studio/src/components/RhythmEditorView/FlowPanel/FlowPanel.css');
         logEvent('info', 'FlowPanel', 'constructor', 'Lifecycle', 'Component created.');
@@ -88,32 +88,30 @@ export class FlowPanel {
         if (item) {
             this.draggedIndex = parseInt(item.dataset.index, 10);
             event.dataTransfer.effectAllowed = 'move';
-            setTimeout(() => item.classList.add('dragging'), 0);
+            // Use setTimeout to allow the browser to capture the ghost image before we change the style
+            setTimeout(() => {
+                item.classList.add('drag-placeholder');
+            }, 0);
         }
     }
 
     handleDragOver(event) {
         event.preventDefault();
         const listContainer = this.container.querySelector('.flow-list');
-        const draggingItem = this.container.querySelector('.dragging');
-        if (!listContainer || !draggingItem) return;
-
-        if (!this.placeholder) {
-            this.placeholder = document.createElement('div');
-            this.placeholder.className = 'drop-placeholder';
-            this.placeholder.style.height = `${draggingItem.offsetHeight}px`;
-        }
+        const placeholder = this.container.querySelector('.drag-placeholder');
+        if (!listContainer || !placeholder) return;
 
         const afterElement = this.getDragAfterElement(listContainer, event.clientY);
         if (afterElement == null) {
-            listContainer.appendChild(this.placeholder);
+            listContainer.appendChild(placeholder);
         } else {
-            listContainer.insertBefore(this.placeholder, afterElement);
+            listContainer.insertBefore(placeholder, afterElement);
         }
     }
     
     getDragAfterElement(container, y) {
-        const draggableElements = [...container.querySelectorAll('.flow-item:not(.dragging)')];
+        // Get all items except for the placeholder itself
+        const draggableElements = [...container.querySelectorAll('.flow-item:not(.drag-placeholder)')];
 
         return draggableElements.reduce((closest, child) => {
             const box = child.getBoundingClientRect();
@@ -128,29 +126,25 @@ export class FlowPanel {
 
     handleDrop(event) {
         event.preventDefault();
-        if (this.draggedIndex !== null && this.placeholder?.parentNode) {
+        const placeholder = this.container.querySelector('.drag-placeholder');
+        if (this.draggedIndex !== null && placeholder) {
             const listContainer = this.container.querySelector('.flow-list');
-            const items = Array.from(listContainer.children).filter(el => 
-                el.classList.contains('flow-item') || el === this.placeholder
-            );
-            const newIndex = items.indexOf(this.placeholder);
-            const adjustedIndex = (this.draggedIndex < newIndex) ? newIndex - 1 : newIndex;
+            // Get the final index of the placeholder in the list
+            const newIndex = Array.from(listContainer.children).indexOf(placeholder);
 
-            if (this.draggedIndex !== adjustedIndex) {
-                this.callbacks.onReorderFlow?.(this.draggedIndex, adjustedIndex);
+            if (this.draggedIndex !== newIndex) {
+                this.callbacks.onReorderFlow?.(this.draggedIndex, newIndex);
             }
         }
-        this.handleDragEnd();
     }
     
     handleDragEnd() {
-        if (this.draggedIndex !== null) {
-            this.container.querySelector('.dragging')?.classList.remove('dragging');
-            this.draggedIndex = null;
+        // The drop event will trigger a re-render which fixes the list.
+        // We just need to clean up the class from the element that was being dragged.
+        const placeholder = this.container.querySelector('.drag-placeholder');
+        if (placeholder) {
+            placeholder.classList.remove('drag-placeholder');
         }
-        if (this.placeholder) {
-            this.placeholder.remove();
-            this.placeholder = null;
-        }
+        this.draggedIndex = null;
     }
 }
