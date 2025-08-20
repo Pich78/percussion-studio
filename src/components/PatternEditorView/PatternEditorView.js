@@ -62,6 +62,12 @@ export class PatternEditorView {
     }
 
     render() {
+        // --- FIX: Preserve the state of child measure editors before re-rendering ---
+        const savedMeasureStates = new Map();
+        this.childInstances.forEach((instance, id) => {
+            savedMeasureStates.set(id, instance.getState());
+        });
+
         this.childInstances.forEach(instance => instance.destroy());
         this.childInstances.clear();
         
@@ -83,18 +89,22 @@ export class PatternEditorView {
             wrapper.appendChild(deleteBtn);
             this.container.appendChild(wrapper);
 
+            // --- FIX: Get the saved state for this measure ---
+            const initialState = savedMeasureStates.get(measure.id);
+
             // Create a new MeasureEditorView for this measure
             // --- MODIFIED: Pass down callbacks for events ---
             const measureEditor = new MeasureEditorView(measureContainer, {
                 instrumentDefs: this.state.manifest.instrumentDefs,
                 soundPacks: this.state.manifest.soundPacks,
+                // --- FIX: Pass the saved state down to the new instance ---
+                initialInstruments: initialState?.instruments,
+                initialMetrics: initialState?.metrics,
                 // Pass down callbacks so the PatternEditor can handle interactions
                 onCellMouseDown: this._handleCellMouseDown.bind(this),
                 onGridMouseEnter: this._handleGridMouseEnter.bind(this),
                 onGridMouseLeave: this._handleGridMouseLeave.bind(this),
-                // --- FIX: Handle request to add an instrument to this specific measure ---
                 onRequestAddInstrument: () => this._handleRequestAddInstrument(measure.id),
-                // --- FIX: Handle request to change an instrument in this specific measure ---
                 onRequestInstrumentChange: (instrument) => this._handleRequestChangeInstrument(measure.id, instrument)
             });
             

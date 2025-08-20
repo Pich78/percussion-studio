@@ -18,13 +18,14 @@ export class MeasureEditorView {
         return `track-${MeasureEditorView.nextTrackId++}`;
     }
 
-    constructor(container, { instrumentDefs, soundPacks, onMetricsChange, onCellMouseDown, onCellMouseUp, onGridMouseEnter, onGridMouseLeave, onRequestInstrumentChange, onRequestAddInstrument }) {
+    constructor(container, { instrumentDefs, soundPacks, onMetricsChange, onCellMouseDown, onCellMouseUp, onGridMouseEnter, onGridMouseLeave, onRequestInstrumentChange, onRequestAddInstrument, initialInstruments, initialMetrics }) {
         this.container = container;
         this.callbacks = { onMetricsChange, onCellMouseDown, onCellMouseUp, onGridMouseEnter, onGridMouseLeave, onRequestInstrumentChange, onRequestAddInstrument }; 
 
+        // --- FIX: Initialize state from props if provided, otherwise use defaults ---
         this.state = {
-            instruments: [],
-            metrics: { beatsPerMeasure: 4, beatUnit: 4, subdivision: 16, grouping: 4 },
+            instruments: initialInstruments || [],
+            metrics: initialMetrics || { beatsPerMeasure: 4, beatUnit: 4, subdivision: 16, grouping: 4 },
             manifest: { instrumentDefs, soundPacks }
         };
 
@@ -240,6 +241,16 @@ export class MeasureEditorView {
         logEvent('info', 'MeasureEditorView', 'replaceInstrument', 'State', `Replaced instrument ${trackIdToReplace} with ${selection.symbol}`);
         this.render();
         return newInstrument;
+    }
+    
+    /**
+     * --- NEW: Method to export state for parent component ---
+     */
+    getState() {
+        return {
+            instruments: this.state.instruments,
+            metrics: this.state.metrics
+        };
     }
 
     destroy() {
