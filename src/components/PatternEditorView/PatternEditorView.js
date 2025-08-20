@@ -37,7 +37,10 @@ export class PatternEditorView {
                 onCancel: this._handleModalCancel.bind(this)
             }
         );
+        // --- FIX: State to manage modal context ---
+        this.modalMode = 'add'; // 'add' or 'replace'
         this.activeMeasureId = null; // To track which measure is being edited
+        this.activeTrackId = null; // To track which track is being replaced
 
         this.childInstances = new Map();
         this.holdTimeout = null;
@@ -87,7 +90,9 @@ export class PatternEditorView {
                 onGridMouseEnter: this._handleGridMouseEnter.bind(this),
                 onGridMouseLeave: this._handleGridMouseLeave.bind(this),
                 // --- FIX: Handle request to add an instrument to this specific measure ---
-                onRequestAddInstrument: () => this._handleRequestAddInstrument(measure.id)
+                onRequestAddInstrument: () => this._handleRequestAddInstrument(measure.id),
+                // --- FIX: Handle request to change an instrument in this specific measure ---
+                onRequestInstrumentChange: (instrument) => this._handleRequestChangeInstrument(measure.id, instrument)
             });
             
             this.childInstances.set(measure.id, measureEditor);
@@ -152,6 +157,7 @@ export class PatternEditorView {
 
     _handleRequestAddInstrument(measureId) {
         logEvent('info', 'PatternEditorView', '_handleRequestAddInstrument', 'Events', `Request to add instrument to measure ${measureId}`);
+        this.modalMode = 'add';
         this.activeMeasureId = measureId;
         this.instrumentModal.show({
             instrumentDefs: this.state.manifest.instrumentDefs,
@@ -159,26 +165,49 @@ export class PatternEditorView {
         });
     }
 
+    _handleRequestChangeInstrument(measureId, instrument) {
+        logEvent('info', 'PatternEditorView', '_handleRequestChangeInstrument', 'Events', `Request to change instrument ${instrument.trackId} in measure ${measureId}`);
+        this.modalMode = 'replace';
+        this.activeMeasureId = measureId;
+        this.activeTrackId = instrument.trackId;
+        this.instrumentModal.show({
+            instrumentDefs: this.state.manifest.instrumentDefs,
+            soundPacks: this.state.manifest.soundPacks
+        });
+    }
+
     _handleInstrumentSelected(selection) {
-        logEvent('info', 'PatternEditorView', '_handleInstrumentSelected', 'Events', `Instrument selected for measure ${this.activeMeasureId}`, selection);
+        logEvent('info', 'PatternEditorView', '_handleInstrumentSelected', 'Events', `Instrument selected for measure ${this.activeMeasureId} in mode ${this.modalMode}`, selection);
         if (this.activeMeasureId === null) {
-            logEvent('warn', 'PatternEditorView', '_handleInstrumentSelected', 'State', 'No active measure ID to add instrument to.');
+            logEvent('warn', 'PatternEditorView', '_handleInstrumentSelected', 'State', 'No active measure ID.');
             return;
         }
 
         const measureInstance = this.childInstances.get(this.activeMeasureId);
-        if (measureInstance) {
-            measureInstance.addInstrument(selection);
-        } else {
+        if (!measureInstance) {
             logEvent('error', 'PatternEditorView', '_handleInstrumentSelected', 'State', `Could not find measure instance for ID: ${this.activeMeasureId}`);
+            this._resetModalState();
+            return;
+        }
+
+        if (this.modalMode === 'add') {
+            measureInstance.addInstrument(selection);
+        } else if (this.modalMode === 'replace' && this.activeTrackId) {
+            measureInstance.replaceInstrument(this.activeTrackId, selection);
         }
         
-        this.activeMeasureId = null; // Reset
+        this._resetModalState();
     }
     
     _handleModalCancel() {
         logEvent('info', 'PatternEditorView', '_handleModalCancel', 'Events', 'Instrument selection cancelled.');
-        this.activeMeasureId = null; // Reset
+        this._resetModalState();
+    }
+
+    _resetModalState() {
+        this.modalMode = 'add';
+        this.activeMeasureId = null; 
+        this.activeTrackId = null;
     }
 
 
