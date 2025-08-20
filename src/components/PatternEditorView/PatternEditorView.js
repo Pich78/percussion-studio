@@ -6,6 +6,8 @@ import { MeasureEditorView } from '/percussion-studio/src/components/MeasureEdit
 // --- NEW: Importing the services it will own ---
 import { EditorCursor } from '/percussion-studio/src/components/EditorCursor/EditorCursor.js';
 import { RadialSoundSelector } from '/percussion-studio/src/components/RadialSoundSelector/RadialSoundSelector.js';
+// --- FIX: Import the modal view ---
+import { InstrumentSelectionModalView } from '/percussion-studio/src/components/InstrumentSelectionModalView/InstrumentSelectionModalView.js';
 
 const HOLD_DURATION_MS = 200;
 
@@ -26,6 +28,16 @@ export class PatternEditorView {
         this.radialMenu = new RadialSoundSelector({
             onSoundSelected: this._handleSoundSelected.bind(this)
         });
+
+        // --- FIX: Instantiate and own the instrument selection modal ---
+        this.instrumentModal = new InstrumentSelectionModalView(
+            document.getElementById('modal-container'), 
+            {
+                onInstrumentSelected: this._handleInstrumentSelected.bind(this),
+                onCancel: this._handleModalCancel.bind(this)
+            }
+        );
+        this.activeMeasureId = null; // To track which measure is being edited
 
         this.childInstances = new Map();
         this.holdTimeout = null;
@@ -73,7 +85,9 @@ export class PatternEditorView {
                 // Pass down callbacks so the PatternEditor can handle interactions
                 onCellMouseDown: this._handleCellMouseDown.bind(this),
                 onGridMouseEnter: this._handleGridMouseEnter.bind(this),
-                onGridMouseLeave: this._handleGridMouseLeave.bind(this)
+                onGridMouseLeave: this._handleGridMouseLeave.bind(this),
+                // --- FIX: Handle request to add an instrument to this specific measure ---
+                onRequestAddInstrument: () => this._handleRequestAddInstrument(measure.id)
             });
             
             this.childInstances.set(measure.id, measureEditor);
@@ -134,6 +148,39 @@ export class PatternEditorView {
         this.cursor.update({ isVisible: false, svg: null });
     }
 
+    // --- NEW: Handlers for Modal Workflow ---
+
+    _handleRequestAddInstrument(measureId) {
+        logEvent('info', 'PatternEditorView', '_handleRequestAddInstrument', 'Events', `Request to add instrument to measure ${measureId}`);
+        this.activeMeasureId = measureId;
+        this.instrumentModal.show({
+            instrumentDefs: this.state.manifest.instrumentDefs,
+            soundPacks: this.state.manifest.soundPacks
+        });
+    }
+
+    _handleInstrumentSelected(selection) {
+        logEvent('info', 'PatternEditorView', '_handleInstrumentSelected', 'Events', `Instrument selected for measure ${this.activeMeasureId}`, selection);
+        if (this.activeMeasureId === null) {
+            logEvent('warn', 'PatternEditorView', '_handleInstrumentSelected', 'State', 'No active measure ID to add instrument to.');
+            return;
+        }
+
+        const measureInstance = this.childInstances.get(this.activeMeasureId);
+        if (measureInstance) {
+            measureInstance.addInstrument(selection);
+        } else {
+            logEvent('error', 'PatternEditorView', '_handleInstrumentSelected', 'State', `Could not find measure instance for ID: ${this.activeMeasureId}`);
+        }
+        
+        this.activeMeasureId = null; // Reset
+    }
+    
+    _handleModalCancel() {
+        logEvent('info', 'PatternEditorView', '_handleModalCancel', 'Events', 'Instrument selection cancelled.');
+        this.activeMeasureId = null; // Reset
+    }
+
 
     // --- Component Lifecycle Handlers ---
 
@@ -181,6 +228,8 @@ export class PatternEditorView {
         // Destroy the owned services
         this.cursor.destroy();
         this.radialMenu.destroy();
+        // --- FIX: Destroy the modal instance ---
+        this.instrumentModal.destroy();
         logEvent('info', 'PatternEditorView', 'destroy', 'Lifecycle', 'Component destroyed.');
     }
 }
