@@ -35,16 +35,15 @@ export class RadialSoundSelector {
             <div class="sector-highlight" style="display: none;"></div>
         `;
 
-        let soundsToRender = [...sounds]; // Create a copy to avoid mutating the original
+        let soundsToRender = sounds;
         let angles = [];
         const radius = 25;
 
-        // --- MODIFIED: The logic for 2 sounds is now stable ---
         if (soundsToRender.length === 2) {
-            // FIX: Sort alphabetically to ensure a stable, predictable layout.
-            // This prevents the sounds from swapping positions on subsequent openings.
-            soundsToRender.sort((a, b) => a.letter.localeCompare(b.letter));
-            angles = [-Math.PI / 2, Math.PI / 2]; // Top and bottom
+            const otherSound = soundsToRender.find(s => s.letter !== activeSoundLetter);
+            const currentSound = soundsToRender.find(s => s.letter === activeSoundLetter);
+            soundsToRender = [otherSound, currentSound];
+            angles = [-Math.PI / 2, Math.PI / 2];
         } else {
             const angleStep = (2 * Math.PI) / soundsToRender.length;
             for(let i = 0; i < soundsToRender.length; i++) angles.push(i * angleStep - Math.PI / 2);
@@ -153,23 +152,23 @@ export class RadialSoundSelector {
     }
 
     _updateSectorHighlight(sectorElement, selectedAngle, totalSectors) {
-        const sectorAngle = (2 * Math.PI) / totalSectors;
-        const startAngle = selectedAngle - sectorAngle / 2;
-        const endAngle = selectedAngle + sectorAngle / 2;
-        const startDegrees = (startAngle * 180 / Math.PI) + 90;
-        const endDegrees = (endAngle * 180 / Math.PI) + 90;
-        const normalizeAngle = (angle) => {
-            while (angle < 0) angle += 360;
-            return angle % 360;
-        };
-        const normalizedStart = normalizeAngle(startDegrees);
-        const normalizedEnd = normalizeAngle(endDegrees);
-        let gradient;
-        if (normalizedStart > normalizedEnd) {
-            gradient = `conic-gradient(from 0deg, rgba(59, 130, 246, 0.3) ${normalizedStart}deg, rgba(59, 130, 246, 0.3) 360deg, transparent 360deg, transparent 0deg, rgba(59, 130, 246, 0.3) 0deg, rgba(59, 130, 246, 0.3) ${normalizedEnd}deg, transparent ${normalizedEnd}deg)`;
-        } else {
-            gradient = `conic-gradient(from 0deg, transparent 0deg, transparent ${normalizedStart}deg, rgba(59, 130, 246, 0.3) ${normalizedStart}deg, rgba(59, 130, 246, 0.3) ${normalizedEnd}deg, transparent ${normalizedEnd}deg, transparent 360deg)`;
-        }
+        // --- FIX: This new logic is simpler and more robust, avoiding conic-gradient bugs. ---
+        // 1. Calculate the size of one sector in degrees.
+        const sectorAngleDegrees = 360 / totalSectors;
+        
+        // 2. Convert the selected item's angle (in radians) to degrees.
+        const selectedAngleDegrees = selectedAngle * 180 / Math.PI;
+        
+        // 3. Calculate the rotation. We start with the item's angle, subtract half a sector
+        //    to get to the leading edge, and add 90 degrees to align JavaScript's coordinate
+        //    system (0deg=right) with CSS's (0deg=top).
+        const rotation = selectedAngleDegrees - (sectorAngleDegrees / 2) + 90;
+
+        // 4. Define a simple, single gradient for a sector at the top of the circle.
+        const gradient = `conic-gradient(rgba(59, 130, 246, 0.3) 0deg ${sectorAngleDegrees}deg, transparent ${sectorAngleDegrees}deg 360deg)`;
+        
+        // 5. Apply the gradient and then rotate the entire element into the correct position.
+        sectorElement.style.transform = `translate(-50%, -50%) rotate(${rotation}deg)`;
         sectorElement.style.background = gradient;
         sectorElement.style.display = 'block';
     }
