@@ -13,11 +13,14 @@ const HOLD_DURATION_MS = 200;
 let measureEditor = null;
 let holdTimeout = null;
 let mouseDownInfo = null;
-let instrumentSymbolToReplace = null;
 const editorCursor = new EditorCursor();
 const radialMenu = new RadialSoundSelector({ onSoundSelected: handleSoundSelection });
-let activeSounds = {}; // e.g., { 'KCK': 'o', 'SNR': 's' }
-let changeInstrumentModal = null;
+let activeSounds = {}; // e.g., { 'track-1': 'o', 'track-2': 's' }
+
+// Modal-related state
+let instrumentModal = null;
+let modalMode = 'add'; // Can be 'add' or 'replace'
+let trackIdToReplace = null;
 
 // --- MOCK DATA (DATABASE) ---
 const svgs = {
@@ -59,7 +62,7 @@ function updateActiveTool(instrument) {
         editorCursor.update({ isVisible: false, svg: null });
         return;
     }
-    const soundLetter = activeSounds[instrument.symbol] || instrument.sounds[0].letter;
+    const soundLetter = activeSounds[instrument.trackId] || instrument.sounds[0].letter;
     const sound = instrument.sounds.find(s => s.letter === soundLetter);
     if (sound) {
         document.getElementById('active-tool-swatch').innerHTML = sound.svg;
@@ -72,15 +75,15 @@ function updateActiveTool(instrument) {
 function handleSoundSelection(selectedSoundLetter) {
     const { instrument } = radialMenu.lastContext || {};
     if (!instrument) return;
-    activeSounds[instrument.symbol] = selectedSoundLetter;
-    logEvent('info', 'Workbench', 'setActiveSound', 'State', `Active sound for ${instrument.symbol} changed to -> ${selectedSoundLetter}`);
+    activeSounds[instrument.trackId] = selectedSoundLetter;
+    logEvent('info', 'Workbench', 'setActiveSound', 'State', `Active sound for ${instrument.trackId} changed to -> ${selectedSoundLetter}`);
     updateActiveTool(instrument);
 }
 
 function handleGridMouseEnter(instrument) {
-    logCallback('onGridMouseEnter', { symbol: instrument.symbol });
-    if (!activeSounds[instrument.symbol]) {
-        activeSounds[instrument.symbol] = instrument.sounds[0].letter;
+    logCallback('onGridMouseEnter', { trackId: instrument.trackId, symbol: instrument.symbol });
+    if (!activeSounds[instrument.trackId]) {
+        activeSounds[instrument.trackId] = instrument.sounds[0].letter;
     }
     updateActiveTool(instrument);
 }
@@ -91,7 +94,7 @@ function handleGridMouseLeave() {
 }
 
 function handleCellMouseDown(instrument, tickIndex, hasNote, event) {
-    logCallback('onCellMouseDown', { symbol: instrument.symbol, tickIndex, hasNote });
+    logCallback('onCellMouseDown', { trackId: instrument.trackId, tickIndex, hasNote });
     event.preventDefault();
     clearTimeout(holdTimeout);
     mouseDownInfo = { instrument, tickIndex, hasNote };
@@ -99,13 +102,8 @@ function handleCellMouseDown(instrument, tickIndex, hasNote, event) {
         holdTimeout = setTimeout(() => {
             logEvent('info', 'Workbench', 'holdAction', 'Events', 'Hold detected, showing radial menu.');
             radialMenu.lastContext = { instrument, tickIndex };
-            radialMenu.show({
-                x: event.clientX,
-                y: event.clientY,
-                sounds: instrument.sounds,
-                activeSoundLetter: activeSounds[instrument.symbol]
-            });
-            mouseDownInfo = null; // Prevent click action on mouseup
+            radialMenu.show({ x: event.clientX, y: event.clientY, sounds: instrument.sounds, activeSoundLetter: activeSounds[instrument.trackId] });
+            mouseDownInfo = null;
         }, HOLD_DURATION_MS);
     }
 }
@@ -115,34 +113,38 @@ function handleCellMouseUp() {
     if (mouseDownInfo) {
         const { instrument, tickIndex, hasNote } = mouseDownInfo;
         let patternArr = (instrument.pattern || '').replace(/\|/g, '').split('');
-        
-        if (hasNote) {
-            patternArr[tickIndex] = '-';
-        } else {
-            patternArr[tickIndex] = activeSounds[instrument.symbol] || instrument.sounds[0].letter;
-        }
-        
+        patternArr[tickIndex] = hasNote ? '-' : (activeSounds[instrument.trackId] || instrument.sounds[0].letter);
         const newPattern = '||' + patternArr.join('') + '||';
-        measureEditor.updateInstrumentPattern(instrument.symbol, newPattern);
+        measureEditor.updateInstrumentPattern(instrument.trackId, newPattern);
     }
     mouseDownInfo = null;
 }
 
-function handleChangeInstrumentRequest(instrument) {
-    logCallback('onRequestInstrumentChange', { symbol: instrument.symbol });
-    instrumentSymbolToReplace = instrument.symbol;
-    changeInstrumentModal.show({ instrumentDefs: mockInstrumentDefs, soundPacks: mockSoundPacks });
+// --- MODAL WORKFLOW HANDLERS ---
+function handleAddInstrumentRequest() {
+    logCallback('onRequestAddInstrument', {});
+    modalMode = 'add';
+    instrumentModal.show({ instrumentDefs: mockInstrumentDefs, soundPacks: mockSoundPacks });
 }
 
-function handleChangeInstrumentConfirm(selection) {
-    if (!instrumentSymbolToReplace) return;
-    const newInstrument = measureEditor.replaceInstrument(instrumentSymbolToReplace, selection);
-    if (newInstrument) {
-        delete activeSounds[instrumentSymbolToReplace];
-        activeSounds[newInstrument.symbol] = newInstrument.sounds[0].letter;
-        updateActiveTool(newInstrument);
+function handleChangeInstrumentRequest(instrument) {
+    logCallback('onRequestInstrumentChange', { trackId: instrument.trackId });
+    modalMode = 'replace';
+    trackIdToReplace = instrument.trackId;
+    instrumentModal.show({ instrumentDefs: mockInstrumentDefs, soundPacks: mockSoundPacks });
+}
+
+function handleInstrumentSelection(selection) {
+    if (modalMode === 'add') {
+        measureEditor.addInstrument(selection);
+    } else if (modalMode === 'replace' && trackIdToReplace) {
+        const newInstrument = measureEditor.replaceInstrument(trackIdToReplace, selection);
+        if (newInstrument) {
+            activeSounds[newInstrument.trackId] = newInstrument.sounds[0].letter;
+            updateActiveTool(newInstrument);
+        }
+        trackIdToReplace = null;
     }
-    instrumentSymbolToReplace = null;
 }
 
 // --- INITIALIZATION ---
@@ -151,9 +153,9 @@ document.addEventListener('DOMContentLoaded', () => {
     Logger.setTarget('log-output');
 
     const modalContainer = document.getElementById('modal-container');
-    changeInstrumentModal = new InstrumentSelectionModalView(modalContainer, {
-        onInstrumentSelected: handleChangeInstrumentConfirm,
-        onCancel: () => logCallback('ChangeInstrumentCancelled', {})
+    instrumentModal = new InstrumentSelectionModalView(modalContainer, {
+        onInstrumentSelected: handleInstrumentSelection,
+        onCancel: () => logCallback('ModalCancelled', { mode: modalMode })
     });
     
     document.addEventListener('mouseup', handleCellMouseUp);
@@ -166,6 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
         onCellMouseDown: handleCellMouseDown,
         onGridMouseEnter: handleGridMouseEnter,
         onGridMouseLeave: handleGridMouseLeave,
+        onRequestAddInstrument: handleAddInstrumentRequest,
         onRequestInstrumentChange: handleChangeInstrumentRequest,
     });
     
