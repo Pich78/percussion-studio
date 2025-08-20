@@ -12,10 +12,10 @@ import { InstrumentSelectionModalView } from '/percussion-studio/src/components/
  * InstrumentRowView instances up to a higher-level parent controller.
  */
 export class MeasureEditorView {
-    constructor(container, { instrumentDefs, soundPacks, onMetricsChange, onCellMouseDown, onCellMouseUp, onGridMouseEnter, onGridMouseLeave }) {
+    constructor(container, { instrumentDefs, soundPacks, onMetricsChange, onCellMouseDown, onCellMouseUp, onGridMouseEnter, onGridMouseLeave, onRequestInstrumentChange }) {
         this.container = container;
         // It receives callbacks from its parent to report events
-        this.callbacks = { onMetricsChange, onCellMouseDown, onCellMouseUp, onGridMouseEnter, onGridMouseLeave }; 
+        this.callbacks = { onMetricsChange, onCellMouseDown, onCellMouseUp, onGridMouseEnter, onGridMouseLeave, onRequestInstrumentChange }; 
 
         // STATE MANAGEMENT: It owns the state for this specific measure
         this.state = {
@@ -77,7 +77,8 @@ export class MeasureEditorView {
                     this.callbacks.onCellMouseUp?.(instrument, tickIndex, event);
                 },
                 onGridMouseEnter: () => this.callbacks.onGridMouseEnter?.(instrument),
-                onGridMouseLeave: () => this.callbacks.onGridMouseLeave?.()
+                onGridMouseLeave: () => this.callbacks.onGridMouseLeave?.(),
+                onRequestInstrumentChange: () => this.callbacks.onRequestInstrumentChange?.(instrument),
             });
 
             const totalCells = (this.state.metrics.beatsPerMeasure / this.state.metrics.beatUnit) * this.state.metrics.subdivision;
@@ -154,10 +155,14 @@ export class MeasureEditorView {
         const newMetrics = { beatsPerMeasure: beats, beatUnit: unit, subdivision, grouping };
         this.state.metrics = newMetrics;
         
-        // When metrics change, update patterns for all instruments to match the new length
         const totalCells = (newMetrics.beatsPerMeasure / newMetrics.beatUnit) * newMetrics.subdivision;
         this.state.instruments.forEach(inst => {
-            inst.pattern = '||' + '-'.repeat(totalCells) + '||';
+            const currentPattern = inst.pattern.replace(/\|/g, '');
+            let newPattern = currentPattern.slice(0, totalCells);
+            if (newPattern.length < totalCells) {
+                newPattern += '-'.repeat(totalCells - newPattern.length);
+            }
+            inst.pattern = '||' + newPattern + '||';
         });
 
         logEvent('info', 'MeasureEditorView', '_handleMetricsChange', 'State', 'Metrics changed', newMetrics);
@@ -215,11 +220,6 @@ export class MeasureEditorView {
         }
     }
     
-    /**
-     * Public method to update the pattern for a specific instrument and re-render the view.
-     * @param {string} symbol - The symbol of the instrument to update (e.g., 'KCK').
-     * @param {string} newPattern - The new pattern string (e.g., '||o---o---||').
-     */
     updateInstrumentPattern(symbol, newPattern) {
         const instrument = this.state.instruments.find(inst => inst.symbol === symbol);
         if (instrument) {
@@ -229,6 +229,33 @@ export class MeasureEditorView {
         } else {
             logEvent('warn', 'MeasureEditorView', 'updateInstrumentPattern', 'State', `Could not find instrument with symbol ${symbol} to update.`);
         }
+    }
+
+    replaceInstrument(oldSymbol, selection) {
+        const soundPack = this.state.manifest.soundPacks.find(p => p.symbol === selection.symbol && p.pack_name === selection.packName);
+        if (!soundPack) {
+            logEvent('error', 'MeasureEditorView', 'replaceInstrument', 'State', 'Could not find selected sound pack:', selection);
+            return null;
+        }
+
+        const existingIndex = this.state.instruments.findIndex(inst => inst.symbol === oldSymbol);
+        if (existingIndex === -1) {
+            logEvent('error', 'MeasureEditorView', 'replaceInstrument', 'State', `Could not find instrument to replace with symbol: ${oldSymbol}`);
+            return null;
+        }
+        
+        if (oldSymbol !== selection.symbol && this.state.instruments.some(inst => inst.symbol === selection.symbol)) {
+            window.alert(`The instrument "${soundPack.name}" (${selection.symbol}) is already in this measure.`);
+            return null;
+        }
+
+        const totalCells = (this.state.metrics.beatsPerMeasure / this.state.metrics.beatUnit) * this.state.metrics.subdivision;
+        const newInstrument = { ...soundPack, pattern: '||' + '-'.repeat(totalCells) + '||' };
+
+        this.state.instruments.splice(existingIndex, 1, newInstrument);
+        logEvent('info', 'MeasureEditorView', 'replaceInstrument', 'State', `Replaced ${oldSymbol} with ${selection.symbol}`);
+        this.render();
+        return newInstrument;
     }
 
     destroy() {

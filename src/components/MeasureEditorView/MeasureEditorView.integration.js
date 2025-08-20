@@ -4,6 +4,7 @@ import { MeasureEditorView } from './MeasureEditorView.js';
 import { Logger, logEvent } from '/percussion-studio/lib/Logger.js';
 import { EditorCursor } from '/percussion-studio/src/components/EditorCursor/EditorCursor.js';
 import { RadialSoundSelector } from '/percussion-studio/src/components/RadialSoundSelector/RadialSoundSelector.js';
+import { InstrumentSelectionModalView } from '/percussion-studio/src/components/InstrumentSelectionModalView/InstrumentSelectionModalView.js';
 
 // --- CONSTANTS ---
 const HOLD_DURATION_MS = 200;
@@ -12,9 +13,11 @@ const HOLD_DURATION_MS = 200;
 let measureEditor = null;
 let holdTimeout = null;
 let mouseDownInfo = null;
+let instrumentSymbolToReplace = null;
 const editorCursor = new EditorCursor();
 const radialMenu = new RadialSoundSelector({ onSoundSelected: handleSoundSelection });
 let activeSounds = {}; // e.g., { 'KCK': 'o', 'SNR': 's' }
+let changeInstrumentModal = null;
 
 // --- MOCK DATA (DATABASE) ---
 const svgs = {
@@ -51,6 +54,8 @@ function logCallback(name, data) {
 
 function updateActiveTool(instrument) {
     if (!instrument) {
+        document.getElementById('active-tool-name').textContent = 'Hover over an instrument row to activate a tool.';
+        document.getElementById('active-tool-swatch').innerHTML = '';
         editorCursor.update({ isVisible: false, svg: null });
         return;
     }
@@ -123,11 +128,34 @@ function handleCellMouseUp() {
     mouseDownInfo = null;
 }
 
+function handleChangeInstrumentRequest(instrument) {
+    logCallback('onRequestInstrumentChange', { symbol: instrument.symbol });
+    instrumentSymbolToReplace = instrument.symbol;
+    changeInstrumentModal.show({ instrumentDefs: mockInstrumentDefs, soundPacks: mockSoundPacks });
+}
+
+function handleChangeInstrumentConfirm(selection) {
+    if (!instrumentSymbolToReplace) return;
+    const newInstrument = measureEditor.replaceInstrument(instrumentSymbolToReplace, selection);
+    if (newInstrument) {
+        delete activeSounds[instrumentSymbolToReplace];
+        activeSounds[newInstrument.symbol] = newInstrument.sounds[0].letter;
+        updateActiveTool(newInstrument);
+    }
+    instrumentSymbolToReplace = null;
+}
+
 // --- INITIALIZATION ---
 document.addEventListener('DOMContentLoaded', () => {
     Logger.init({ level: 'debug' });
     Logger.setTarget('log-output');
 
+    const modalContainer = document.getElementById('modal-container');
+    changeInstrumentModal = new InstrumentSelectionModalView(modalContainer, {
+        onInstrumentSelected: handleChangeInstrumentConfirm,
+        onCancel: () => logCallback('ChangeInstrumentCancelled', {})
+    });
+    
     document.addEventListener('mouseup', handleCellMouseUp);
 
     const editorContainer = document.getElementById('measure-editor-container');
@@ -137,7 +165,8 @@ document.addEventListener('DOMContentLoaded', () => {
         onMetricsChange: (newMetrics) => logCallback('onMetricsChange', newMetrics),
         onCellMouseDown: handleCellMouseDown,
         onGridMouseEnter: handleGridMouseEnter,
-        onGridMouseLeave: handleGridMouseLeave
+        onGridMouseLeave: handleGridMouseLeave,
+        onRequestInstrumentChange: handleChangeInstrumentRequest,
     });
     
     logEvent('info', 'Workbench', 'init', 'Lifecycle', 'MeasureEditorView Workbench initialized.');
