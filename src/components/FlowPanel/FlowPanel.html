@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Manual Test Harness: FlowPanel</title>
+    <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
+    <link rel="stylesheet" href="/percussion-studio/css/global.css">
+    <link rel="stylesheet" href="/percussion-studio/src/components/RhythmEditorView/RhythmEditorView.css">
+    <link rel="stylesheet" href="./FlowPanel.css">
+</head>
+<body class="bg-light-gray pa4">
+    <div class="flex">
+        <div class="w-70 pr3">
+            <h1 class="f2 b mb3 bb pb2">Live View Workbench</h1>
+            <div class="relative w-100 h-100 bg-white shadow-2" style="height: 60vh;">
+                <div id="view-container"></div>
+            </div>
+            <div id="current-state-display" class="f6 code pa2 bg-washed-yellow mt3"></div>
+        </div>
+        <div class="w-30 pl3">
+            <div class="bg-near-black near-white pa3 br2 h-100">
+                <h2 class="f4 b bb pb2 mb2">Execution Log</h2>
+                <div id="log-output" class="f7 lh-copy" style="white-space: pre-wrap; height: 80vh; overflow-y: auto;"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="test-sandbox" style="position: absolute; visibility: hidden;"></div>
+
+    <script type="module">
+        import { FlowPanel } from './FlowPanel.js';
+        import { Logger, logEvent } from '/percussion-studio/lib/Logger.js';
+        
+        Logger.init({ level: 'debug' });
+        Logger.setTarget('log-output');
+
+        let currentState = {
+            flow: Array.from({length: 8}, (_, i) => ({ pattern: `Pattern ${i+1}`, repetitions: (i+1)*2 })),
+            currentPatternId: null, 
+            isPinned: false,
+            scrollToLast: false,
+            globalBPM: 120,
+        };
+
+        const container = document.getElementById('view-container');
+        const stateDisplay = document.getElementById('current-state-display');
+
+        const rerender = () => {
+            logEvent('info', 'Harness', 'rerender', 'State', 'Rerendering...', currentState);
+
+            // FIX: Save scroll position before re-rendering.
+            const flowList = container.querySelector('.flow-list');
+            const scrollPosition = flowList ? flowList.scrollTop : 0;
+
+            view.render(currentState);
+
+            // FIX: Restore scroll position after re-rendering.
+            const newFlowList = container.querySelector('.flow-list');
+            if (newFlowList) {
+                newFlowList.scrollTop = scrollPosition;
+            }
+
+            currentState.scrollToLast = false;
+            stateDisplay.textContent = `Current State: ${JSON.stringify(currentState, null, 2)}`;
+        };
+
+        const view = new FlowPanel(container, {
+            onPin: (isPinned) => { currentState.isPinned = isPinned; rerender(); },
+            onPatternSelect: (id, focusTarget) => {
+                currentState.currentPatternId = id;
+                rerender();
+
+                if (focusTarget) {
+                    const itemIndex = currentState.flow.findIndex(item => item.pattern === id);
+                    if (itemIndex !== -1) {
+                        const elementToFocus = container.querySelector(
+                            `.flow-item-host[data-index="${itemIndex}"] [data-property="${focusTarget.property}"]`
+                        );
+                        elementToFocus?.focus();
+                    }
+                }
+            },
+            onAddPattern: () => {
+                const newId = `Pattern ${currentState.flow.length + 1}`;
+                currentState.flow.push({ pattern: newId, repetitions: 1 });
+                currentState.scrollToLast = true;
+                rerender();
+            },
+            onDeleteFlowItem: (index) => {
+                currentState.flow.splice(index, 1);
+                rerender();
+            },
+            onReorderFlow: (from, to) => {
+                const [item] = currentState.flow.splice(from, 1);
+                currentState.flow.splice(to, 0, item);
+                rerender();
+            },
+            onPatternPropertyChange: (index, property, value) => {
+                logEvent('info', 'Harness', 'onPatternPropertyChange', 'Events', `Item ${index} property '${property}' changed to ${value}`);
+                if (currentState.flow[index]) {
+                    currentState.flow[index][property] = value;
+                    rerender();
+                }
+            },
+        });
+
+        rerender();
+    </script>
+</body>
+</html>

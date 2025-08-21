@@ -1,0 +1,26 @@
+/* file: src/components/EditorView/EditorView.css */
+
+.editor-view {
+    position: relative;
+    height: 100%;
+    width: 100%;
+    background-color: #f0f0f0; /* A neutral background for the main area */
+}
+
+.editor-view-sidepanel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    z-index: 10; /* Ensure it's above the main content */
+}
+
+.editor-view-main {
+    height: 100%;
+    overflow-y: auto;
+    /* The padding-left should match the width of the collapsed FlowPanel */
+    padding-left: 2rem; 
+    padding-top: 1rem;
+    padding-right: 1rem;
+    box-sizing: border-box;
+}
