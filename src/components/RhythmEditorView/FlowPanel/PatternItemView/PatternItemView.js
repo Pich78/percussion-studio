@@ -7,10 +7,16 @@ export class PatternItemView {
         this.container = container;
         this.callbacks = callbacks || {};
 
-        // Listen on the container, which will wrap the component and its delete button
+        // State for the click-scroll-click interaction
+        this.activeProperty = null;
+        this.currentValue = 0;
+
+        // Bind new event handlers
+        this.handleWheel = this.handleWheel.bind(this);
+        this.exitActiveMode = this.exitActiveMode.bind(this);
+
         this.container.addEventListener('click', this.handleClick.bind(this));
-        this.container.addEventListener('blur', this.handleInputBlur.bind(this), true);
-        this.container.addEventListener('change', this.handleSelectChange.bind(this));
+        this.container.addEventListener('change', this.handleChange.bind(this));
         this.container.addEventListener('keydown', this.handleKeyDown.bind(this));
     }
 
@@ -20,16 +26,9 @@ export class PatternItemView {
         
         const repsValue = item.repetitions ?? 1;
         const bpmValue = item.bpm ?? globalBPM ?? 80;
-        const accelValue = item.bpm_accel_cents ?? 0;
+        const accelValue = item.bpm_accel_cents ?? 100;
         
         const themeClass = isSelected ? 'selected-state' : 'default-state';
-        const bpmClass = item.bpm ? '' : 'o-60';
-
-        // Helper string for input validation to enforce 3-digit max
-        const numberInputValidation = `
-            max="999" 
-            oninput="if(this.value.length > 3) this.value = this.value.slice(0, 3);"
-        `;
 
         this.container.innerHTML = `
             <div class="pattern-item-wrapper">
@@ -38,90 +37,144 @@ export class PatternItemView {
                     data-index="${index}" 
                     data-pattern-id="${item.pattern}"
                 >
-                    <!-- FIX: Move drag handle to the left side and adjust padding -->
                     <div class="drag-handle flex items-center justify-center pr2">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="5" cy="4" r="1.5"/>
-                            <circle cx="11" cy="4" r="1.5"/>
-                            <circle cx="5" cy="8" r="1.5"/>
-                            <circle cx="11" cy="8" r="1.5"/>
-                            <circle cx="5" cy="12" r="1.5"/>
-                            <circle cx="11" cy="12" r="1.5"/>
-                        </svg>
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="5" cy="4" r="1.5"/><circle cx="11" cy="4" r="1.5"/><circle cx="5" cy="8" r="1.5"/><circle cx="11" cy="8" r="1.5"/><circle cx="5" cy="12" r="1.5"/><circle cx="11" cy="12" r="1.5"/></svg>
                     </div>
-
-                    <!-- Pattern Name (Left Side) -->
                     <div class="flex-grow-1 ph2">
                         <select data-property="pattern" class="pattern-name w-100 pa0 pointer">
                             <option selected>${item.pattern}</option>
                         </select>
                     </div>
-
-                    <!-- Vertical Separator -->
                     <div class="v-separator h2 mh2"></div>
-
-                    <!-- Modifiers (Right Side) -->
-                    <div class="flex items-center">
-                        <div class="modifier-item flex items-center mr2">
-                            <label class="modifier-label mr2">Reps</label>
-                            <input data-property="repetitions" type="number" class="modifier-input" value="${repsValue}" ${numberInputValidation}>
+                    <div class="flex items-center modifiers-box">
+                        <div class="modifier-item">
+                            <label class="modifier-label">Reps</label>
+                            <input data-property="repetitions" type="number" class="modifier-input-number" value="${repsValue}" min="1" max="999">
                         </div>
-                        <div class="modifier-item flex items-center mr2">
-                            <label class="modifier-label mr2">BPM</label>
-                            <input data-property="bpm" type="number" class="modifier-input ${bpmClass}" value="${bpmValue}" placeholder="${globalBPM}" ${numberInputValidation}>
+                        <div class="modifier-item">
+                            <label class="modifier-label">BPM</label>
+                            <span class="modifier-value" data-property="bpm">${bpmValue}</span>
                         </div>
-                        <div class="modifier-item flex items-center">
-                            <label class="modifier-label mr2">Accel</label>
-                            <input data-property="bpm_accel_cents" type="number" class="modifier-input" value="${accelValue}" ${numberInputValidation}>
+                        <div class="modifier-item">
+                            <label class="modifier-label">Accel</label>
+                            <span class="modifier-value" data-property="bpm_accel_cents">${accelValue}</span>
                         </div>
                     </div>
                 </div>
-                
-                <!-- Delete Button (Positioned by CSS relative to wrapper) -->
                 <button data-action="delete" class="delete-btn pa0 bn pointer" title="Remove Item">×</button>
             </div>
         `;
     }
 
     handleClick(event) {
-        const target = event.target.closest('[data-action]');
-        if (target?.dataset.action === 'delete') {
-            logEvent('debug', 'PatternItemView', 'handleClick', 'Events', 'Delete button clicked');
+        // The global listener in exitActiveMode handles confirmation clicks.
+        // This handler now only needs to manage *entering* the active mode.
+
+        const valueTarget = event.target.closest('.modifier-value');
+        if (valueTarget) {
+            // If we are already editing a different property, confirm the old one first.
+            if (this.activeProperty && this.activeProperty !== valueTarget.dataset.property) {
+                this.exitActiveMode();
+            }
+            // If nothing is being edited, start editing this new one.
+            if (!this.activeProperty) {
+                event.stopPropagation();
+                this.enterActiveMode(valueTarget);
+            }
+            return;
+        }
+
+        const deleteTarget = event.target.closest('[data-action="delete"]');
+        if (deleteTarget) {
+            if (this.activeProperty) this.exitActiveMode(); // Ensure we exit edit mode before deleting
             this.callbacks.onDelete?.();
         }
     }
-    
-    handleInputBlur(event) {
-        const input = event.target.closest('input[type="number"]');
-        if (input) {
-            const property = input.dataset.property;
-            const value = Number(input.value);
-            logEvent('debug', 'PatternItemView', 'handleInputBlur', 'Events', `Input blur for ${property}: ${value}`);
-            this.callbacks.onPropertyChange?.(property, value);
+
+    enterActiveMode(element) {
+        this.activeProperty = element.dataset.property;
+        this.currentValue = Number(element.textContent);
+        element.classList.add('is-active-editing');
+        document.body.classList.add('hide-cursor');
+
+        document.addEventListener('wheel', this.handleWheel, { passive: false });
+        document.addEventListener('click', this.exitActiveMode, { capture: true, once: true }); // Use 'once' for safety
+    }
+
+    exitActiveMode(event) {
+        if (!this.activeProperty) return;
+
+        const activeElement = this.container.querySelector('.is-active-editing');
+        if (activeElement) {
+             // Immediately update the parent's state.
+            this.callbacks.onPropertyChange?.(this.activeProperty, this.currentValue);
         }
+
+        // BUGFIX: Use a microtask (setTimeout) to delay the event stop and cleanup.
+        // This allows the parent component (FlowPanel) to process the property change
+        // and its own state before this event is stopped, preventing the scroll lock.
+        setTimeout(() => {
+            if (event) {
+                event.stopPropagation();
+            }
+            if(activeElement) activeElement.classList.remove('is-active-editing');
+            document.body.classList.remove('hide-cursor');
+            document.removeEventListener('wheel', this.handleWheel);
+            // The 'once' option on the listener in enterActiveMode handles its own removal now.
+            this.activeProperty = null;
+        }, 0);
+    }
+
+    handleWheel(event) {
+        if (!this.activeProperty) return;
+        event.preventDefault();
+
+        const scrollDirection = -Math.sign(event.deltaY);
+        let step = this.activeProperty === 'bpm' ? 1 : 0.1;
+
+        if (event.shiftKey) {
+            step *= 10;
+        }
+
+        this.currentValue += (scrollDirection * step);
+
+        if (this.activeProperty === 'bpm') {
+            this.currentValue = Math.max(30, Math.min(250, this.currentValue));
+        } else if (this.activeProperty === 'bpm_accel_cents') {
+            this.currentValue = Math.max(80, Math.min(120, this.currentValue));
+        }
+        
+        const roundedValue = Math.round(this.currentValue);
+        const valueDisplay = this.container.querySelector(`.modifier-value[data-property="${this.activeProperty}"]`);
+        if (valueDisplay) {
+            valueDisplay.textContent = roundedValue;
+        }
+        this.currentValue = roundedValue; 
     }
     
-    handleSelectChange(event) {
-        const select = event.target.closest('select');
-        if (select) {
-            const property = select.dataset.property;
-            const value = select.value;
-            logEvent('debug', 'PatternItemView', 'handleSelectChange', 'Events', `Select change for ${property}: ${value}`);
+    handleChange(event) {
+        const input = event.target.closest('input[type="number"], select');
+        if (input) {
+            if (this.activeProperty) this.exitActiveMode();
+            const property = input.dataset.property;
+            const value = input.type === 'number' ? Number(input.value) : input.value;
             this.callbacks.onPropertyChange?.(property, value);
         }
     }
 
     handleKeyDown(event) {
-        if (event.key !== 'Enter') return;
-
-        const input = event.target.closest('input[type="number"]');
-        if (input) {
-            logEvent('debug', 'PatternItemView', 'handleKeyDown', 'Events', 'Enter key pressed on input.');
-            event.preventDefault();
-            
-            this.handleInputBlur({ target: input });
-            
-            input.blur();
+        if (event.key === 'Enter') {
+            const input = event.target.closest('input[type="number"]');
+            if (input) {
+                event.preventDefault();
+                this.handleChange({ target: input });
+                input.blur();
+            }
+        }
+        if (event.key === 'Enter' || event.key === 'Escape') {
+             if (this.activeProperty) {
+                this.exitActiveMode();
+             }
         }
     }
 }
