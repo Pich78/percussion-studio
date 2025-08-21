@@ -16,17 +16,10 @@ export function initIntegration() {
             patterns: { 
                 verse: { metadata: { resolution: 8 }, pattern_data: [{ KCK: 'o-o-o-o-' }] },
                 chorus: { metadata: { resolution: 8 }, pattern_data: [{ SNR: 'o-o--o-o' }] }
-            },
-            instrumentDefsBySymbol: { 
-                KCK: { name: 'Kick', sounds: [{ letter: 'o', name: 'Hit' }, { letter: 'p', name: 'Soft' }] },
-                SNR: { name: 'Snare', sounds: [{ letter: 'o', name: 'Hit'}] }
             }
         },
         currentEditingPatternId: 'verse',
         isFlowPinned: true,
-        isPalettePinned: false,
-        selectedInstrumentSymbol: 'KCK',
-        selectedNoteLetter: 'o',
         scrollToLastItem: false
     };
 
@@ -45,11 +38,6 @@ export function initIntegration() {
         onPinFlowPanel: (isPinned) => {
             logEvent('info', 'Harness', 'onPinFlowPanel', 'Callback', `isPinned: ${isPinned}`);
             currentState.isFlowPinned = isPinned;
-            rerender();
-        },
-        onPinPalettePanel: (isPinned) => {
-            logEvent('info', 'Harness', 'onPinPalettePanel', 'Callback', `isPinned: ${isPinned}`);
-            currentState.isPalettePinned = isPinned;
             rerender();
         },
         onPatternSelect: (id) => { 

@@ -127,20 +127,13 @@
   transform: rotate(180deg);
 }
 
-/* Specific styling for palette panel text (top to bottom) */
-#palette-panel .vertical-text {
-  writing-mode: vertical-rl;
-  /* MODIFICATION: No transform is needed anymore */
-  transform: none;
-}
-
 .editor-panel.is-expanded .vertical-text {
   opacity: 0;
   display: none;
 }
 
 .grid-panel {
-    transition: margin-left 0.2s ease-in-out, margin-right 0.2s ease-in-out;
+    transition: margin-left 0.2s ease-in-out;
 }
 
 .flow-item .delete-btn {

@@ -9,7 +9,6 @@ export class RhythmEditorView {
         this.callbacks = callbacks || {};
         this.state = {};
         this.isFlowHovered = false;
-        this.isPaletteHovered = false;
         this.draggedIndex = null;
         this.isDragging = false;
         this.dragStartedInPanel = false;
@@ -29,14 +28,14 @@ export class RhythmEditorView {
     render(state) {
         logEvent('debug', 'RhythmEditorView', 'render', 'State', 'Rendering with state:', state);
         this.state = state;
-        const { rhythm, isFlowPinned, isPalettePinned } = state;
+        const { rhythm, isFlowPinned } = state;
 
         if (!rhythm) {
             this.container.innerHTML = '<p class="f5 gray i tc pa4">No rhythm loaded.</p>';
             return;
         }
 
-        const gridMarginClasses = `ml-${isFlowPinned ? '64' : '8'} mr-${isPalettePinned ? '64' : '8'}`;
+        const gridMarginClasses = `ml-${isFlowPinned ? '64' : '8'}`;
 
         const html = `
             <div class="relative w-100 h-100">
@@ -44,7 +43,6 @@ export class RhythmEditorView {
                 <div class="grid-panel absolute top-0 left-0 w-100 h-100 pa3 overflow-auto ${gridMarginClasses}" data-action-scope="grid-panel">
                     ${this._renderGridPanel(state)}
                 </div>
-                ${this._renderPalettePanel(state)}
             </div>
         `;
         this.container.innerHTML = html;
@@ -119,29 +117,6 @@ export class RhythmEditorView {
             <div class="grid" style="grid-template-columns: 100px repeat(${resolution}, 1fr);">${gridHtml}</div>`;
     }
 
-    _renderPalettePanel(state) {
-        const { rhythm, isPalettePinned, selectedInstrumentSymbol, selectedNoteLetter } = state;
-        const isExpanded = isPalettePinned || this.isPaletteHovered;
-
-        let paletteContent = '<p class="f7 gray i">Select an instrument from the grid to see its notes.</p>';
-        if (selectedInstrumentSymbol && rhythm.instrumentDefsBySymbol[selectedInstrumentSymbol]) {
-            const instDef = rhythm.instrumentDefsBySymbol[selectedInstrumentSymbol];
-            paletteContent = (instDef.sounds || []).map(sound => {
-                const selectedClass = sound.letter === selectedNoteLetter ? 'bg-washed-blue' : '';
-                return `<div data-action="select-note" data-note-letter="${sound.letter}" class="pointer pa2 br1 hover-bg-light-gray ${selectedClass}">${sound.name} (${sound.letter})</div>`;
-            }).join('');
-        }
-
-        return `
-            <div id="palette-panel" class="editor-panel absolute top-0 right-0 h-100 bg-near-white shadow-2 pa3 ${isExpanded ? 'is-expanded' : ''}">
-                <h3 class="f4 b vertical-text">Palette</h3>
-                <div class="panel-content w-100">
-                    <h3 class="f4 b mt0">Palette</h3>
-                    ${paletteContent}
-                </div>
-            </div>`;
-    }
-
     handleClick(event) {
         // First check if we're clicking on a specific action element
         const actionTarget = event.target.closest('[data-action]');
@@ -172,18 +147,11 @@ export class RhythmEditorView {
             this.callbacks.onPinFlowPanel?.(!this.state.isFlowPinned);
             return;
         }
-
-        const palettePanel = event.target.closest('#palette-panel');
-        if (palettePanel) {
-            this.callbacks.onPinPalettePanel?.(!this.state.isPalettePinned);
-            return;
-        }
         
-        // If clicking on the grid panel (not on sidebars), unpin both panels
+        // If clicking on the grid panel (not on sidebars), unpin the flow panel
         const gridPanel = event.target.closest('[data-action-scope="grid-panel"]');
         if (gridPanel) {
             this.callbacks.onPinFlowPanel?.(false);
-            this.callbacks.onPinPalettePanel?.(false);
         }
     }
     
@@ -195,13 +163,6 @@ export class RhythmEditorView {
         if (event.target.id === 'flow-panel' || event.target.closest('#flow-panel') === document.getElementById('flow-panel')) {
             if (!this.state.isFlowPinned && !this.isFlowHovered) {
                 this.isFlowHovered = true;
-                this.render(this.state);
-            }
-        }
-        
-        if (event.target.id === 'palette-panel' || event.target.closest('#palette-panel') === document.getElementById('palette-panel')) {
-            if (!this.state.isPalettePinned && !this.isPaletteHovered) {
-                this.isPaletteHovered = true;
                 this.render(this.state);
             }
         }
@@ -219,18 +180,6 @@ export class RhythmEditorView {
                 const { clientX, clientY } = event;
                 if (clientX < rect.left || clientX > rect.right || clientY < rect.top || clientY > rect.bottom) {
                     this.isFlowHovered = false;
-                    this.render(this.state);
-                }
-            }
-        }
-        
-        if (event.target.id === 'palette-panel') {
-            if (!this.state.isPalettePinned && this.isPaletteHovered) {
-                // Make sure we're actually leaving the panel area
-                const rect = event.target.getBoundingClientRect();
-                const { clientX, clientY } = event;
-                if (clientX < rect.left || clientX > rect.right || clientY < rect.top || clientY > rect.bottom) {
-                    this.isPaletteHovered = false;
                     this.render(this.state);
                 }
             }
