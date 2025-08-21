@@ -24,7 +24,8 @@ export class FlowPanel {
 
         // Configurable constants for auto-scrolling.
         this.scrollZoneSize = 60; // Height in pixels of the top/bottom scroll trigger zones.
-        this.scrollSpeed = 10; // Pixels to scroll per frame while in a scroll zone.
+        // FIX: Lowered scroll speed from 10 to 5 for a smoother feel.
+        this.scrollSpeed = 5; // Pixels to scroll per frame while in a scroll zone.
 
         loadCSS('/percussion-studio/src/components/RhythmEditorView/FlowPanel/FlowPanel.css');
         loadCSS('/percussion-studio/src/components/RhythmEditorView/FlowPanel/PatternItemView/PatternItemView.css');
@@ -174,7 +175,6 @@ export class FlowPanel {
                 }
             }
         } else if (direction === 'down') {
-            // BUGFIX: Iterate backwards to find the last valid drop target efficiently.
             for (const child of restingElements.reverse()) {
                 const childBox = child.getBoundingClientRect();
                 if (draggedBottom >= (childBox.top + overlapThreshold)) {
