@@ -1,7 +1,27 @@
 /* file: src/components/PatternEditorView/PatternEditorView.css */
 
 .pattern-editor-view {
-    /* Main container for the whole component */
+    /* --- NEW: Use flexbox to manage layout and scrolling --- */
+    display: flex;
+    flex-direction: column;
+    max-height: 75vh; /* Set a max height to enable scrolling */
+    border: 1px solid #ccc;
+    background-color: #f9f9f9;
+    padding: 8px;
+    border-radius: 4px;
+}
+
+/* --- NEW: Style for the scrollable container --- */
+.pattern-editor-measures-container {
+    flex-grow: 1; /* Allow this container to grow and fill available space */
+    overflow-y: auto; /* Enable vertical scrolling when content overflows */
+    padding: 8px;
+    background-color: #f0f0f0;
+    border-radius: 4px;
+}
+/* --- NEW: Remove bottom margin from the last measure to prevent double spacing --- */
+.pattern-editor-measures-container .pattern-measure-wrapper:last-child {
+    margin-bottom: 0;
 }
 
 .pattern-measure-wrapper {
@@ -51,6 +71,9 @@
     color: #aaa;
     transition: all 0.2s ease-in-out;
     border-radius: 4px;
+    /* --- NEW: Adjustments for flex layout --- */
+    flex-shrink: 0; /* Prevent button from shrinking */
+    margin-top: 16px; /* Space between scroll area and button */
 }
 
 .add-measure-btn:hover {

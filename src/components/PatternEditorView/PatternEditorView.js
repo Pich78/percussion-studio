@@ -79,6 +79,10 @@ export class PatternEditorView {
         // --- FIX: Only clear the component's own root element ---
         this.rootElement.innerHTML = '';
 
+        // --- NEW: Create a dedicated, scrollable container for measures ---
+        const measuresContainer = document.createElement('div');
+        measuresContainer.className = 'pattern-editor-measures-container';
+
         this.state.measures.forEach(measure => {
             const wrapper = document.createElement('div');
             wrapper.className = 'pattern-measure-wrapper';
@@ -92,8 +96,8 @@ export class PatternEditorView {
             
             wrapper.appendChild(measureContainer);
             wrapper.appendChild(deleteBtn);
-            // --- FIX: Append to the component's own root element ---
-            this.rootElement.appendChild(wrapper);
+            // --- MODIFIED: Append to the new scrollable container ---
+            measuresContainer.appendChild(wrapper);
 
             // --- FIX: Get the saved state for this measure ---
             const initialState = savedMeasureStates.get(measure.id);
@@ -117,10 +121,13 @@ export class PatternEditorView {
             this.childInstances.set(measure.id, measureEditor);
         });
 
+        // --- NEW: Append the scrollable container to the root ---
+        this.rootElement.appendChild(measuresContainer);
+
         const addBtn = document.createElement('button');
         addBtn.className = 'add-measure-btn';
         addBtn.textContent = '+ Add Measure';
-        // --- FIX: Append to the component's own root element ---
+        // --- FIX: Append to the component's own root element, outside the scroll area ---
         this.rootElement.appendChild(addBtn);
     }
     
