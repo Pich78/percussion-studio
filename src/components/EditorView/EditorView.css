@@ -10,7 +10,8 @@
 .editor-view-sidepanel {
     position: absolute;
     top: 0;
-    left: 0;
+    /* FIX: Add a small left offset to create space from the edge */
+    left: 0.5rem;
     height: 100%;
     z-index: 10; /* Ensure it's above the main content */
 }
@@ -18,8 +19,9 @@
 .editor-view-main {
     height: 100%;
     overflow-y: auto;
-    /* The padding-left should match the width of the collapsed FlowPanel */
-    padding-left: 2rem; 
+    /* FIX: Adjust padding-left to account for the new sidepanel offset and maintain the visual gap. */
+    /* Calculation: 0.5rem (panel offset) + 2rem (panel width) + 0.5rem (gap) = 3rem */
+    padding-left: 3rem; 
     padding-top: 1rem;
     padding-right: 1rem;
     box-sizing: border-box;

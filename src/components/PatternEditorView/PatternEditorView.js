@@ -14,6 +14,10 @@ const HOLD_DURATION_MS = 200;
 export class PatternEditorView {
     constructor(container, { instrumentDefs, soundPacks }) {
         this.container = container;
+        // --- FIX: Create a dedicated root element for this component's content ---
+        this.rootElement = document.createElement('div');
+        this.rootElement.className = 'pattern-editor-view';
+        this.container.appendChild(this.rootElement);
         
         this.state = {
             measures: [],
@@ -55,7 +59,8 @@ export class PatternEditorView {
         loadCSS('/percussion-studio/src/components/PatternEditorView/PatternEditorView.css');
         
         this._boundHandleClick = this._handleClick.bind(this);
-        this.container.addEventListener('click', this._boundHandleClick);
+        // --- FIX: Attach event listener to the component's own root element ---
+        this.rootElement.addEventListener('click', this._boundHandleClick);
 
         this.render();
         logEvent('info', 'PatternEditorView', 'constructor', 'Lifecycle', 'Component created.');
@@ -71,8 +76,8 @@ export class PatternEditorView {
         this.childInstances.forEach(instance => instance.destroy());
         this.childInstances.clear();
         
-        this.container.innerHTML = '';
-        this.container.className = 'pattern-editor-view';
+        // --- FIX: Only clear the component's own root element ---
+        this.rootElement.innerHTML = '';
 
         this.state.measures.forEach(measure => {
             const wrapper = document.createElement('div');
@@ -87,7 +92,8 @@ export class PatternEditorView {
             
             wrapper.appendChild(measureContainer);
             wrapper.appendChild(deleteBtn);
-            this.container.appendChild(wrapper);
+            // --- FIX: Append to the component's own root element ---
+            this.rootElement.appendChild(wrapper);
 
             // --- FIX: Get the saved state for this measure ---
             const initialState = savedMeasureStates.get(measure.id);
@@ -114,7 +120,8 @@ export class PatternEditorView {
         const addBtn = document.createElement('button');
         addBtn.className = 'add-measure-btn';
         addBtn.textContent = '+ Add Measure';
-        this.container.appendChild(addBtn);
+        // --- FIX: Append to the component's own root element ---
+        this.rootElement.appendChild(addBtn);
     }
     
     // --- Centralized Interaction Handlers ---
@@ -357,7 +364,8 @@ export class PatternEditorView {
     }
 
     destroy() {
-        this.container.removeEventListener('click', this._boundHandleClick);
+        // --- FIX: Remove event listener from the component's own root element ---
+        this.rootElement.removeEventListener('click', this._boundHandleClick);
         window.removeEventListener('mouseup', this._handleGlobalMouseUp, true);
         this.childInstances.forEach(instance => instance.destroy());
         this.childInstances.clear();
@@ -366,6 +374,12 @@ export class PatternEditorView {
         this.radialMenu.destroy();
         // --- FIX: Destroy the modal instance ---
         this.instrumentModal.destroy();
+        
+        // --- FIX: Clean up the root element from the DOM ---
+        if (this.rootElement.parentElement) {
+            this.rootElement.parentElement.removeChild(this.rootElement);
+        }
+
         logEvent('info', 'PatternEditorView', 'destroy', 'Lifecycle', 'Component destroyed.');
     }
 }
