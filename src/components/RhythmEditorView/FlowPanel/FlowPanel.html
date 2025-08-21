@@ -47,7 +47,19 @@
 
         const rerender = () => {
             logEvent('info', 'Harness', 'rerender', 'State', 'Rerendering...', currentState);
+
+            // FIX: Save scroll position before re-rendering.
+            const flowList = container.querySelector('.flow-list');
+            const scrollPosition = flowList ? flowList.scrollTop : 0;
+
             view.render(currentState);
+
+            // FIX: Restore scroll position after re-rendering.
+            const newFlowList = container.querySelector('.flow-list');
+            if (newFlowList) {
+                newFlowList.scrollTop = scrollPosition;
+            }
+
             currentState.scrollToLast = false;
             stateDisplay.textContent = `Current State: ${JSON.stringify(currentState, null, 2)}`;
         };
@@ -56,9 +68,8 @@
             onPin: (isPinned) => { currentState.isPinned = isPinned; rerender(); },
             onPatternSelect: (id, focusTarget) => {
                 currentState.currentPatternId = id;
-                rerender(); // Re-render first to create the new element
+                rerender();
 
-                // After rendering, if a focus target was specified, find and focus it.
                 if (focusTarget) {
                     const itemIndex = currentState.flow.findIndex(item => item.pattern === id);
                     if (itemIndex !== -1) {
