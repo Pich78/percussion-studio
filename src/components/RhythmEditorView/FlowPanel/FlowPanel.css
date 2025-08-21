@@ -61,30 +61,23 @@
 /* Remove any possible custom scrollbar remnants */
 .flow-list::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
 
-/* Keep visual behavior intact for items */
-.flow-item { transition: all 0.2s ease; }
-.flow-item .delete-btn { visibility: hidden; opacity: 0; transition: opacity 0.15s ease-in-out; }
-.flow-item:hover .delete-btn { visibility: visible; opacity: 0.5; }
-.flow-item .delete-btn:hover { opacity: 1; }
-
 /* 
   NEW: Trello-like placeholder style.
-  This class is applied to the original drag item, turning it into the "shadow".
+  The 'drag-placeholder' class is now applied to the host wrapper element.
+  These rules style the '.flow-item' rendered by PatternItemView when its host is a placeholder.
 */
-.flow-item.drag-placeholder {
+.flow-item-host.drag-placeholder .flow-item {
     background-color: rgba(0, 0, 0, 0.1);
     border: 1px dashed rgba(0, 0, 0, 0.3);
     color: transparent; /* Hide the text */
 }
 
-/* Hide the contents of the placeholder, like the delete button */
-.flow-item.drag-placeholder > * {
+/* Hide the contents of the placeholder's inner component */
+.flow-item-host.drag-placeholder .flow-item > * {
     visibility: hidden;
 }
 
-/* Apply the selected style if the panel is hovered OR if it is pinned. */
-.editor-panel:hover .flow-item.is-selected,
-.editor-panel.is-pinned .flow-item.is-selected {
-    background-color: #e0f2fe;
-    border-color: #3b82f6;
-}
+/* 
+  REMOVED: The .is-selected styling is now fully managed by the 
+  PatternItemView component and its dedicated CSS file.
+*/

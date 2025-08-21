@@ -36,7 +36,6 @@ export class PatternItemView {
                     class="flow-item flex items-center pa2 ${themeClass}" 
                     data-index="${index}" 
                     data-pattern-id="${item.pattern}"
-                    draggable="true"
                 >
                     <!-- Pattern Name (Left Side) -->
                     <div class="flex-grow-1 ph2">

@@ -2,6 +2,7 @@
 
 import { loadCSS } from '/percussion-studio/lib/dom.js';
 import { logEvent } from '/percussion-studio/lib/Logger.js';
+import { PatternItemView } from './PatternItemView/PatternItemView.js';
 
 export class FlowPanel {
     constructor(container, callbacks) {
@@ -9,9 +10,10 @@ export class FlowPanel {
         this.callbacks = callbacks || {};
         this.state = {};
         this.draggedIndex = null;
-        // The separate placeholder element is no longer needed.
+        this.patternItemViews = [];
 
         loadCSS('/percussion-studio/src/components/RhythmEditorView/FlowPanel/FlowPanel.css');
+        loadCSS('/percussion-studio/src/components/RhythmEditorView/FlowPanel/PatternItemView/PatternItemView.css');
         logEvent('info', 'FlowPanel', 'constructor', 'Lifecycle', 'Component created.');
         
         this.handleGlobalClick = this.handleGlobalClick.bind(this);
@@ -25,26 +27,49 @@ export class FlowPanel {
 
     render(state) {
         this.state = state;
-        const { flow, currentPatternId, isPinned } = state;
+        const { flow, currentPatternId, isPinned, globalBPM } = state;
 
-        const flowItems = flow.map((item, index) => {
-            const selectedClass = item.pattern === currentPatternId ? 'is-selected' : '';
-            return `
-                <div data-action="select-pattern" data-pattern-id="${item.pattern}" data-index="${index}" class="flow-item flex items-center justify-between pa2 br1 ba b--black-10 pointer bg-white hover-bg-light-gray ${selectedClass}" draggable="true">
-                    <span class="truncate">${item.pattern}</span>
-                    <button data-action="delete-flow-item" data-index="${index}" class="delete-btn pa1 bn bg-transparent f4 red pointer" title="Remove Item">×</button>
-                </div>`;
-        }).join('');
-
+        // Render the main panel structure, leaving the list empty
         this.container.className = `editor-panel absolute top-0 left-0 h-100 bg-near-white shadow-2 pa3 ${isPinned ? 'is-pinned' : ''}`;
         this.container.innerHTML = `
             <h3 class="f4 b vertical-text">Rhythm Flow</h3>
             <div class="panel-content w-100">
                 <h3 class="f4 b mt0">Rhythm Flow</h3>
-                <div class="flow-list flex flex-column mt3">${flowItems}</div>
+                <div class="flow-list flex flex-column mt3"></div>
                 <button data-action="add-pattern" class="w-100 mt3 pv2 ph3 bn br2 bg-blue white pointer hover-bg-dark-blue f3">+</button>
             </div>
         `;
+
+        const flowListContainer = this.container.querySelector('.flow-list');
+        this.patternItemViews = [];
+        
+        // Create and render a PatternItemView for each item in the flow
+        flow.forEach((item, index) => {
+            const isSelected = item.pattern === currentPatternId;
+
+            // Create a host element that will be draggable and handle selection clicks
+            const itemHost = document.createElement('div');
+            itemHost.className = 'flow-item-host';
+            itemHost.draggable = true;
+            itemHost.dataset.action = 'select-pattern';
+            itemHost.dataset.patternId = item.pattern;
+            itemHost.dataset.index = index;
+
+            const itemView = new PatternItemView(itemHost, {
+                onDelete: () => {
+                    if (window.confirm('Remove this pattern from the flow?')) {
+                        this.callbacks.onDeleteFlowItem?.(index);
+                    }
+                },
+                onPropertyChange: (property, value) => {
+                    this.callbacks.onPatternPropertyChange?.(index, property, value);
+                }
+            });
+
+            this.patternItemViews.push(itemView);
+            itemView.render({ item, index, globalBPM, isSelected });
+            flowListContainer.appendChild(itemHost);
+        });
     }
     
     handleGlobalClick(event) {
@@ -68,12 +93,7 @@ export class FlowPanel {
                 case 'add-pattern':
                     this.callbacks.onAddPattern?.();
                     break;
-                case 'delete-flow-item':
-                    event.stopPropagation();
-                    if (window.confirm('Remove this pattern from the flow?')) {
-                        this.callbacks.onDeleteFlowItem?.(parseInt(target.dataset.index, 10));
-                    }
-                    break;
+                // The 'delete-flow-item' action is now handled by the PatternItemView's callback
             }
         } else {
             if (this.state.isPinned) {
@@ -84,13 +104,12 @@ export class FlowPanel {
     }
 
     handleDragStart(event) {
-        const item = event.target.closest('.flow-item');
-        if (item) {
-            this.draggedIndex = parseInt(item.dataset.index, 10);
+        const itemHost = event.target.closest('.flow-item-host');
+        if (itemHost) {
+            this.draggedIndex = parseInt(itemHost.dataset.index, 10);
             event.dataTransfer.effectAllowed = 'move';
-            // Use setTimeout to allow the browser to capture the ghost image before we change the style
             setTimeout(() => {
-                item.classList.add('drag-placeholder');
+                itemHost.classList.add('drag-placeholder');
             }, 0);
         }
     }
@@ -110,8 +129,7 @@ export class FlowPanel {
     }
     
     getDragAfterElement(container, y) {
-        // Get all items except for the placeholder itself
-        const draggableElements = [...container.querySelectorAll('.flow-item:not(.drag-placeholder)')];
+        const draggableElements = [...container.querySelectorAll('.flow-item-host:not(.drag-placeholder)')];
 
         return draggableElements.reduce((closest, child) => {
             const box = child.getBoundingClientRect();
@@ -129,7 +147,6 @@ export class FlowPanel {
         const placeholder = this.container.querySelector('.drag-placeholder');
         if (this.draggedIndex !== null && placeholder) {
             const listContainer = this.container.querySelector('.flow-list');
-            // Get the final index of the placeholder in the list
             const newIndex = Array.from(listContainer.children).indexOf(placeholder);
 
             if (this.draggedIndex !== newIndex) {
@@ -139,8 +156,6 @@ export class FlowPanel {
     }
     
     handleDragEnd() {
-        // The drop event will trigger a re-render which fixes the list.
-        // We just need to clean up the class from the element that was being dragged.
         const placeholder = this.container.querySelector('.drag-placeholder');
         if (placeholder) {
             placeholder.classList.remove('drag-placeholder');
