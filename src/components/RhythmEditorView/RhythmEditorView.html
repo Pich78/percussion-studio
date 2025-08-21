@@ -3,22 +3,24 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Test Harness: RhythmEditorView</title>
+    <title>Integration Workbench: RhythmEditorView</title>
     <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
     <link rel="stylesheet" href="/percussion-studio/css/global.css">
+    <!-- Load CSS for the container AND ALL of its children -->
     <link rel="stylesheet" href="./RhythmEditorView.css">
+    <link rel="stylesheet" href="./FlowPanel/FlowPanel.css">
+    <link rel="stylesheet" href="./InstrumentPalettePanel/InstrumentPalettePanel.css">
+    <link rel="stylesheet" href="../TubsGridView/TubsGridView.css">
     <style> body { font-family: sans-serif; } </style>
 </head>
 <body class="bg-light-gray pa4">
     <div class="flex">
         <div class="w-70 pr3">
-            <h1 class="f2 b mb3 bb pb2">Automated Tests</h1>
-            <button id="run-tests-btn" class="pv2 ph3 bn br2 bg-blue white pointer hover-bg-dark-blue mb3">Run Tests</button>
-            <div id="test-results"></div>
-            <hr class="mv4"/>
-            <h1 class="f2 b mb3 bb pb2">Live View Workbench</h1>
-            <p class="f6 gray mb3">Hover to expand. Click a panel (anywhere inside it) to pin it. Clicking another panel pins it without unpinning the first. Clicking the center grid unpins both.</p>
-            <div id="view-container" class="bg-white shadow-2 w-100 relative" style="height: 60vh;"></div>
+            <h1 class="f2 b mb3 bb pb2">Integration Workbench for <code>RhythmEditorView</code></h1>
+            <p class="f6 gray mb3">This harness renders the RhythmEditorView with its <strong>real</strong> sub-components to test their interaction.</p>
+            <div id="view-container" class="bg-white shadow-2 w-100 relative" style="height: 70vh;">
+                <!-- RhythmEditorView will render itself and its real children here -->
+            </div>
             <div id="current-state-display" class="f6 code pa2 bg-washed-yellow mt3"></div>
         </div>
         <div class="w-30 pl3">
@@ -28,82 +30,10 @@
             </div>
         </div>
     </div>
-    
-    <div id="test-sandbox" style="position: absolute; visibility: hidden;"></div>
 
     <script type="module">
-        import { run } from './RhythmEditorView.test.js';
-        import { RhythmEditorView } from './RhythmEditorView.js';
-        import { Logger, logEvent } from '/percussion-studio/lib/Logger.js';
-        
-        Logger.init({ level: 'debug' });
-        Logger.setTarget('log-output');
-
-        document.getElementById('run-tests-btn').addEventListener('click', run);
-
-        let currentState = {
-            rhythm: {
-                playback_flow: Array.from({length: 6}, (_, i) => ({ pattern: `p${i+1}`})),
-                patterns: {},
-            },
-            currentEditingPatternId: 'p1', 
-            isFlowPinned: false, 
-            isPalettePinned: false,
-        };
-
-        const container = document.getElementById('view-container');
-        const stateDisplay = document.getElementById('current-state-display');
-
-        const rerender = () => {
-            logEvent('info', 'Harness', 'rerender', 'State', 'Rerendering...', currentState);
-            view.render(currentState);
-            // Clear the scroll flag after rendering
-            currentState.scrollToLastItem = false;
-            stateDisplay.textContent = `Current State: ${JSON.stringify(currentState, null, 2)}`;
-        };
-
-        const view = new RhythmEditorView(container, {
-            onPinFlowPanel: (isPinned) => {
-                logEvent('info', 'Harness', 'onPinFlowPanel', 'Callback', `isPinned: ${isPinned}`);
-                currentState.isFlowPinned = isPinned;
-                rerender();
-            },
-            onPinPalettePanel: (isPinned) => {
-                logEvent('info', 'Harness', 'onPinPalettePanel', 'Callback', `isPinned: ${isPinned}`);
-                currentState.isPalettePinned = isPinned;
-                rerender();
-            },
-            onPatternSelect: (id) => { 
-                currentState.currentEditingPatternId = id; 
-                rerender(); 
-            },
-            onAddPattern: () => {
-                const newIndex = currentState.rhythm.playback_flow.length + 1;
-                currentState.rhythm.playback_flow.push({ pattern: `p${newIndex}` });
-                currentState.scrollToLastItem = true; // Flag to scroll to new item
-                logEvent('info', 'Harness', 'onAddPattern', 'Callback', `Added pattern p${newIndex}`);
-                rerender();
-            },
-            onDeleteFlowItem: (index) => {
-                if (index >= 0 && index < currentState.rhythm.playback_flow.length) {
-                    const removedPattern = currentState.rhythm.playback_flow[index];
-                    currentState.rhythm.playback_flow.splice(index, 1);
-                    logEvent('info', 'Harness', 'onDeleteFlowItem', 'Callback', `Removed pattern ${removedPattern.pattern} at index ${index}`);
-                    rerender();
-                }
-            },
-            onReorderFlow: (fromIndex, toIndex) => {
-                if (fromIndex >= 0 && fromIndex < currentState.rhythm.playback_flow.length && 
-                    toIndex >= 0 && toIndex < currentState.rhythm.playback_flow.length) {
-                    const movedItem = currentState.rhythm.playback_flow.splice(fromIndex, 1)[0];
-                    currentState.rhythm.playback_flow.splice(toIndex, 0, movedItem);
-                    logEvent('info', 'Harness', 'onReorderFlow', 'Callback', `Moved pattern ${movedItem.pattern} from index ${fromIndex} to ${toIndex}`);
-                    rerender();
-                }
-            },
-        });
-
-        rerender();
+        import { initIntegration } from './RhythmEditorView.integration.js';
+        initIntegration();
     </script>
 </body>
 </html>
