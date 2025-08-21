@@ -17,12 +17,15 @@
     border-radius: 6px;
     box-shadow: 0 1px 2px rgba(0,0,0,0.05);
     transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    /* FIX: Use a real border and reserve space for it to prevent layout shifts. */
+    border: 1px solid transparent;
 }
 
 /* Default State */
 .flow-item.default-state {
     background-color: #ffffff;
-    border: 1px solid #e5e7eb; /* cool-gray-200 */
+    /* FIX: Only set the color of the pre-defined border. */
+    border-color: #e5e7eb; /* cool-gray-200 */
 }
 
 .flow-item.default-state:hover {
@@ -33,8 +36,9 @@
 /* Selected State - NEW GRAY THEME */
 .flow-item.selected-state {
     background-color: #f3f4f6;     /* cool-gray-100 */
+    /* FIX: Use the real border instead of a clip-prone box-shadow. */
     border-color: #6b7280;     /* cool-gray-500 */
-    box-shadow: 0 0 0 1px #6b7280;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.07);
 }
 
 /* --- Pattern Name --- */
