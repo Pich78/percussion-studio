@@ -12,7 +12,7 @@
 
 .editor-panel:hover,
 .editor-panel.is-pinned {
-  width: 29rem;
+  width: 26rem;
   align-items: flex-start;
   justify-content: flex-start;
 }

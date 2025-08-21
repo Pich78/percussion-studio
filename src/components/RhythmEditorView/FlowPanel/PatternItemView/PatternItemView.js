@@ -7,11 +7,9 @@ export class PatternItemView {
         this.container = container;
         this.callbacks = callbacks || {};
 
-        // State for the click-scroll-click interaction
         this.activeProperty = null;
         this.currentValue = 0;
 
-        // Bind new event handlers
         this.handleWheel = this.handleWheel.bind(this);
         this.exitActiveMode = this.exitActiveMode.bind(this);
 
@@ -30,39 +28,42 @@ export class PatternItemView {
         
         const themeClass = isSelected ? 'selected-state' : 'default-state';
 
-        // The entire component is now rendered directly into the host container.
         this.container.innerHTML = `
             <div 
-                class="flow-item flex flex-column pa2 ${themeClass}" 
+                class="flow-item flex items-center pa2 ${themeClass}" 
                 data-index="${index}" 
                 data-pattern-id="${item.pattern}"
             >
-                <!-- Top Row: Handle, Name, Delete Button -->
-                <div class="pattern-item-top-row flex items-center w-100">
-                    <div class="drag-handle flex items-center justify-center">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="5" cy="4" r="1.5"/><circle cx="11" cy="4" r="1.5"/><circle cx="5" cy="8" r="1.5"/><circle cx="11" cy="8" r="1.5"/><circle cx="5" cy="12" r="1.5"/><circle cx="11" cy="12" r="1.5"/></svg>
-                    </div>
-                    <div class="flex-grow-1 ph2">
-                        <select data-property="pattern" class="pattern-name w-100 pa0 pointer">
-                            <option selected>${item.pattern}</option>
-                        </select>
-                    </div>
-                    <button data-action="delete" class="delete-btn pa0 bn pointer" title="Remove Item">×</button>
+                <div class="drag-handle flex items-center justify-center self-stretch">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="5" cy="4" r="1.5"/><circle cx="11" cy="4" r="1.5"/><circle cx="5" cy="8" r="1.5"/><circle cx="11" cy="8" r="1.5"/><circle cx="5" cy="12" r="1.5"/><circle cx="11" cy="12" r="1.5"/></svg>
                 </div>
+                
+                <!-- FIX: Removed 'flex-grow-1' to make the content wrapper compact -->
+                <div class="item-content-wrapper flex flex-column pl4">
+                    <!-- Top Row: Name, Delete Button -->
+                    <div class="pattern-item-top-row flex items-center w-100">
+                        <div class="flex-grow-1">
+                            <select data-property="pattern" class="pattern-name w-100 pa0 pointer">
+                                <option selected>${item.pattern}</option>
+                            </select>
+                        </div>
+                        <button data-action="delete" class="delete-btn pa0 bn pointer" title="Remove Item">×</button>
+                    </div>
 
-                <!-- Bottom Row: Modifiers -->
-                <div class="flex items-center justify-between modifiers-box mt2 w-100">
-                    <div class="modifier-item">
-                        <label class="modifier-label">Reps</label>
-                        <input data-property="repetitions" type="number" class="modifier-input-number" value="${repsValue}" min="1" max="999">
-                    </div>
-                    <div class="modifier-item">
-                        <label class="modifier-label">BPM</label>
-                        <span class="modifier-value" data-property="bpm">${bpmValue}</span>
-                    </div>
-                    <div class="modifier-item">
-                        <label class="modifier-label">Accel</label>
-                        <span class="modifier-value" data-property="bpm_accel_cents">${accelValue}</span>
+                    <!-- Bottom Row: Modifiers -->
+                    <div class="flex items-center modifiers-box mt2 w-100">
+                        <div class="modifier-item">
+                            <label class="modifier-label">Reps</label>
+                            <input data-property="repetitions" type="number" class="modifier-input-number" value="${repsValue}" min="1" max="999">
+                        </div>
+                        <div class="modifier-item">
+                            <label class="modifier-label">BPM</label>
+                            <span class="modifier-value" data-property="bpm">${bpmValue}</span>
+                        </div>
+                        <div class="modifier-item">
+                            <label class="modifier-label">Accel</label>
+                            <span class="modifier-value" data-property="bpm_accel_cents">${accelValue}</span>
+                        </div>
                     </div>
                 </div>
             </div>

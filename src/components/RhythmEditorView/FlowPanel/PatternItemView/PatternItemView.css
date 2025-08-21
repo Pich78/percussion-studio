@@ -48,7 +48,9 @@
 /* --- Modifiers (Bottom Row) --- */
 .modifiers-box {
     width: 100%;
-    padding: 0 0.5rem; /* Align controls visually */
+    /* FIX: Use gap and flex-start for a compact layout */
+    justify-content: flex-start;
+    gap: 1.5rem;
 }
 
 .modifier-item {
@@ -104,20 +106,26 @@
 /* --- Delete Button (now in-flow) --- */
 .delete-btn {
     background: transparent;
-    color: #adb5bd; /* Muted gray */
+    color: #adb5bd;
     font-size: 1.5rem;
     line-height: 1;
     padding: 0 0.25rem;
     transition: color 0.15s ease-in-out;
 }
 .delete-btn:hover {
-    color: #dc3545; /* Red on hover */
+    color: #dc3545;
 }
 
 /* --- Drag Handle --- */
 .drag-handle {
-    cursor: grab; opacity: 0.4;
+    cursor: grab;
+    opacity: 0.4;
     transition: opacity 0.15s ease-in-out;
+    padding-right: 0.5rem;
+    border-right: 1px solid #e5e7eb;
+}
+.selected-state .drag-handle {
+    border-right-color: #d1d5db;
 }
 .drag-handle svg { fill: #6b7280; }
 .flow-item:hover .drag-handle { opacity: 1; }
