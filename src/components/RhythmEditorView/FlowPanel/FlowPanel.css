@@ -12,7 +12,8 @@
 
 .editor-panel:hover,
 .editor-panel.is-pinned {
-  width: 26rem;
+  /* FIX: Reduced width for a more compact panel */
+  width: 23rem;
   align-items: flex-start;
   justify-content: flex-start;
 }
@@ -51,35 +52,22 @@
 .flow-list {
     flex: 1 1 0;
     min-height: 0;
-    /* FIX: Enable vertical scrolling to support auto-scroll feature. */
     overflow-y: auto;
     position: relative;
-    padding-right: 0;
+    /* FIX: Reduced padding for a tighter list */
+    padding-right: 0.5rem;
     box-sizing: border-box;
     gap: 0.25rem;
 }
 
-/* Remove any possible custom scrollbar remnants */
 .flow-list::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
 
-/* 
-  NEW: Trello-like placeholder style.
-  The 'drag-placeholder' class is now applied to the host wrapper element.
-  These rules style the '.flow-item' rendered by PatternItemView when its host is a placeholder.
-*/
 .flow-item-host.drag-placeholder .flow-item {
-    /* FIX: Use an opaque background and a clearer border to hide content underneath. */
     background-color: #e5e7eb;
     border: 2px dashed #9ca3af;
-    color: transparent; /* Hide the text */
+    color: transparent;
 }
 
-/* Hide the contents of the placeholder's inner component */
 .flow-item-host.drag-placeholder .flow-item > * {
     visibility: hidden;
 }
-
-/* 
-  REMOVED: The .is-selected styling is now fully managed by the 
-  PatternItemView component and its dedicated CSS file.
-*/

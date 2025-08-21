@@ -22,10 +22,8 @@ export class FlowPanel {
         
         this.overlapThresholdPercent = 0.25;
 
-        // Configurable constants for auto-scrolling.
-        this.scrollZoneSize = 60; // Height in pixels of the top/bottom scroll trigger zones.
-        // FIX: Lowered scroll speed from 10 to 5 for a smoother feel.
-        this.scrollSpeed = 5; // Pixels to scroll per frame while in a scroll zone.
+        this.scrollZoneSize = 60;
+        this.scrollSpeed = 5;
 
         loadCSS('/percussion-studio/src/components/RhythmEditorView/FlowPanel/FlowPanel.css');
         loadCSS('/percussion-studio/src/components/RhythmEditorView/FlowPanel/PatternItemView/PatternItemView.css');
