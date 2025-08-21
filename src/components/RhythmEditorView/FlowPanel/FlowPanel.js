@@ -98,12 +98,21 @@ export class FlowPanel {
             switch(action) {
                 case 'select-pattern':
                     {
+                        // BUGFIX: If the click was directly on the select element,
+                        // stop the event from bubbling to prevent a re-render,
+                        // which would close the dropdown instantly.
+                        if (event.target.matches('select.pattern-name')) {
+                            event.stopPropagation();
+                            break;
+                        }
+
                         const patternId = target.dataset.patternId;
                         let focusTarget = null;
-                        const interactiveElement = event.target.closest('input, select');
+                        const interactiveElement = event.target.closest('input, .modifier-value');
                         if (interactiveElement) {
                             focusTarget = { property: interactiveElement.dataset.property };
                         }
+                        
                         this.callbacks.onPatternSelect?.(patternId, focusTarget);
                         break;
                     }
