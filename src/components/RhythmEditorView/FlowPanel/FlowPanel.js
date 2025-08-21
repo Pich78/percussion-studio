@@ -43,11 +43,12 @@ export class FlowPanel {
         const { flow, currentPatternId, isPinned, globalBPM } = state;
 
         this.container.className = `editor-panel absolute top-0 left-0 h-100 bg-near-white shadow-2 pa3 ${isPinned ? 'is-pinned' : ''}`;
+        
+        // FIX: Removed the expanded view's H3 title and adjusted the list's top margin.
         this.container.innerHTML = `
             <h3 class="f4 b vertical-text">Rhythm Flow</h3>
             <div class="panel-content w-100">
-                <h3 class="f4 b mt0">Rhythm Flow</h3>
-                <div class="flow-list flex flex-column mt3"></div>
+                <div class="flow-list flex flex-column mt0"></div>
                 <button data-action="add-pattern" class="w-100 mt3 pv2 ph3 bn br2 bg-blue white pointer hover-bg-dark-blue f3">+</button>
             </div>
         `;
@@ -98,9 +99,6 @@ export class FlowPanel {
             switch(action) {
                 case 'select-pattern':
                     {
-                        // BUGFIX: If the click was directly on the select element,
-                        // stop the event from bubbling to prevent a re-render,
-                        // which would close the dropdown instantly.
                         if (event.target.matches('select.pattern-name')) {
                             event.stopPropagation();
                             break;
