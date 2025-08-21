@@ -67,16 +67,11 @@ export class PatternItemView {
     }
 
     handleClick(event) {
-        // The global listener in exitActiveMode handles confirmation clicks.
-        // This handler now only needs to manage *entering* the active mode.
-
         const valueTarget = event.target.closest('.modifier-value');
         if (valueTarget) {
-            // If we are already editing a different property, confirm the old one first.
             if (this.activeProperty && this.activeProperty !== valueTarget.dataset.property) {
                 this.exitActiveMode();
             }
-            // If nothing is being edited, start editing this new one.
             if (!this.activeProperty) {
                 event.stopPropagation();
                 this.enterActiveMode(valueTarget);
@@ -86,7 +81,7 @@ export class PatternItemView {
 
         const deleteTarget = event.target.closest('[data-action="delete"]');
         if (deleteTarget) {
-            if (this.activeProperty) this.exitActiveMode(); // Ensure we exit edit mode before deleting
+            if (this.activeProperty) this.exitActiveMode();
             this.callbacks.onDelete?.();
         }
     }
@@ -98,7 +93,7 @@ export class PatternItemView {
         document.body.classList.add('hide-cursor');
 
         document.addEventListener('wheel', this.handleWheel, { passive: false });
-        document.addEventListener('click', this.exitActiveMode, { capture: true, once: true }); // Use 'once' for safety
+        document.addEventListener('click', this.exitActiveMode, { capture: true, once: true });
     }
 
     exitActiveMode(event) {
@@ -106,13 +101,9 @@ export class PatternItemView {
 
         const activeElement = this.container.querySelector('.is-active-editing');
         if (activeElement) {
-             // Immediately update the parent's state.
             this.callbacks.onPropertyChange?.(this.activeProperty, this.currentValue);
         }
 
-        // BUGFIX: Use a microtask (setTimeout) to delay the event stop and cleanup.
-        // This allows the parent component (FlowPanel) to process the property change
-        // and its own state before this event is stopped, preventing the scroll lock.
         setTimeout(() => {
             if (event) {
                 event.stopPropagation();
@@ -120,7 +111,6 @@ export class PatternItemView {
             if(activeElement) activeElement.classList.remove('is-active-editing');
             document.body.classList.remove('hide-cursor');
             document.removeEventListener('wheel', this.handleWheel);
-            // The 'once' option on the listener in enterActiveMode handles its own removal now.
             this.activeProperty = null;
         }, 0);
     }
@@ -130,10 +120,13 @@ export class PatternItemView {
         event.preventDefault();
 
         const scrollDirection = -Math.sign(event.deltaY);
-        let step = this.activeProperty === 'bpm' ? 1 : 0.1;
+        
+        // BUGFIX: Use integer steps to avoid rounding errors. Set a larger
+        // step for BPM to create a "faster" feel than Accel.
+        let step = this.activeProperty === 'bpm' ? 5 : 1;
 
         if (event.shiftKey) {
-            step *= 10;
+            step *= 5; // Use a consistent multiplier for fast scrolling
         }
 
         this.currentValue += (scrollDirection * step);
