@@ -41,7 +41,6 @@ export class FlowPanel {
         this.state = state;
         const { flow, currentPatternId, isPinned, globalBPM } = state;
 
-        // BUGFIX: Corrected the HTML syntax from 'class.' to 'class='
         this.container.className = `editor-panel absolute top-0 left-0 h-100 bg-near-white shadow-2 pa3 ${isPinned ? 'is-pinned' : ''}`;
         this.container.innerHTML = `
             <h3 class="f4 b vertical-text">Rhythm Flow</h3>
@@ -177,7 +176,7 @@ export class FlowPanel {
                        nextSibling = nextSibling.nextElementSibling;
                     }
                     afterElement = nextSibling;
-                    break;
+                    // BUGFIX: Removed the 'break' statement to allow checking all items below.
                 }
             }
         }
