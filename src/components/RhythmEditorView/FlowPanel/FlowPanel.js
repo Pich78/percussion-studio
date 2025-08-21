@@ -20,6 +20,9 @@ export class FlowPanel {
         this.lastAfterElement = null;
         this.lastMouseY = 0;
         this.lastDirection = null;
+        
+        // Configurable constant for the overlap percentage.
+        this.overlapThresholdPercent = 0.25; // e.g., 0.25 for 25%, 0.5 for 50%
 
         loadCSS('/percussion-studio/src/components/RhythmEditorView/FlowPanel/FlowPanel.css');
         loadCSS('/percussion-studio/src/components/RhythmEditorView/FlowPanel/PatternItemView/PatternItemView.css');
@@ -38,6 +41,7 @@ export class FlowPanel {
         this.state = state;
         const { flow, currentPatternId, isPinned, globalBPM } = state;
 
+        // BUGFIX: Corrected the HTML syntax from 'class.' to 'class='
         this.container.className = `editor-panel absolute top-0 left-0 h-100 bg-near-white shadow-2 pa3 ${isPinned ? 'is-pinned' : ''}`;
         this.container.innerHTML = `
             <h3 class="f4 b vertical-text">Rhythm Flow</h3>
@@ -119,11 +123,13 @@ export class FlowPanel {
         if (itemHost) {
             this.draggedIndex = parseInt(itemHost.dataset.index, 10);
             event.dataTransfer.effectAllowed = 'move';
-            this.lastMouseY = event.clientY; // Initialize mouse position
+            this.lastMouseY = event.clientY;
 
             const rect = itemHost.getBoundingClientRect();
             this.dragStartOffset = event.clientY - rect.top;
             this.draggedItemHeight = rect.height;
+
+            this.lastAfterElement = itemHost.nextElementSibling;
 
             setTimeout(() => {
                 itemHost.classList.add('drag-placeholder');
@@ -137,17 +143,15 @@ export class FlowPanel {
         const placeholder = this.container.querySelector('.drag-placeholder');
         if (!listContainer || !placeholder || this.draggedIndex === null) return;
 
-        // 1. Determine direction of movement
         let direction = event.clientY < this.lastMouseY ? 'up' : (event.clientY > this.lastMouseY ? 'down' : this.lastDirection);
         if (direction !== this.lastDirection) {
-            this.lastLoggedCollision = null; // Reset collision when direction changes
+            this.lastLoggedCollision = null;
         }
+        const overlapThreshold = this.draggedItemHeight * this.overlapThresholdPercent;
 
-        // 2. Calculate dragged item's active border position
         const draggedTop = event.clientY - this.dragStartOffset;
         const draggedBottom = draggedTop + this.draggedItemHeight;
 
-        // 3. Find collision based on direction
         const restingElements = [...listContainer.querySelectorAll('.flow-item-host:not(.drag-placeholder)')];
         let collision = null;
         let afterElement = this.lastAfterElement;
@@ -156,8 +160,7 @@ export class FlowPanel {
             for (const child of restingElements) {
                 const childIndex = parseInt(child.dataset.index, 10);
                 const childBox = child.getBoundingClientRect();
-                // Active border (draggedTop) hits sensible border (childBox.bottom)
-                if (childIndex < this.draggedIndex && draggedTop <= childBox.bottom) {
+                if (childIndex < this.draggedIndex && draggedTop <= (childBox.bottom - overlapThreshold)) {
                     collision = { element: child, direction: 'up' };
                     afterElement = child;
                     break;
@@ -167,8 +170,7 @@ export class FlowPanel {
             for (const child of restingElements) {
                 const childIndex = parseInt(child.dataset.index, 10);
                 const childBox = child.getBoundingClientRect();
-                // Active border (draggedBottom) hits sensible border (childBox.top)
-                if (childIndex > this.draggedIndex && draggedBottom >= childBox.top) {
+                if (childIndex > this.draggedIndex && draggedBottom >= (childBox.top + overlapThreshold)) {
                     collision = { element: child, direction: 'down' };
                     let nextSibling = child.nextElementSibling;
                     if (nextSibling && nextSibling.classList.contains('drag-placeholder')) {
@@ -180,30 +182,29 @@ export class FlowPanel {
             }
         }
 
-        // 4. Log and update UI if a new, valid collision is detected
         if (collision && collision.element !== this.lastLoggedCollision) {
             const draggedItemName = this.state.flow[this.draggedIndex].pattern;
             const restingItemName = collision.element.dataset.patternId;
             const logMessage = collision.direction === 'up'
-                ? `Dragged Item: ${draggedItemName} - Upper border touched ${restingItemName} lower border.`
-                : `Dragged Item: ${draggedItemName} - Lower border touched ${restingItemName} upper border.`;
-            logEvent('info', 'FlowPanel', 'handleDragOver', 'Border-Touch', `${logMessage} Mouse Y: ${event.clientY}`);
+                ? `Dragged Item: ${draggedItemName} - ${this.overlapThresholdPercent * 100}% overlap detected with ${restingItemName} (lower border).`
+                : `Dragged Item: ${draggedItemName} - ${this.overlapThresholdPercent * 100}% overlap detected with ${restingItemName} (upper border).`;
+            logEvent('info', 'FlowPanel', 'handleDragOver', 'Overlap-Touch', `${logMessage} Mouse Y: ${event.clientY}`);
             
             const afterElementName = afterElement ? afterElement.dataset.patternId : 'the end of the list';
             logEvent('info', 'FlowPanel', 'handleDragOver', 'Drop-Area', `Drop area created for '${draggedItemName}' before '${afterElementName}'. Mouse Y: ${event.clientY}`);
 
             this.lastLoggedCollision = collision.element;
+        }
+        
+        if (afterElement !== this.lastAfterElement) {
             this.lastAfterElement = afterElement;
+            if (afterElement === null) {
+                listContainer.appendChild(placeholder);
+            } else {
+                listContainer.insertBefore(placeholder, afterElement);
+            }
         }
 
-        // 5. Update DOM
-        if (afterElement === null) {
-            listContainer.appendChild(placeholder);
-        } else {
-            listContainer.insertBefore(placeholder, afterElement);
-        }
-
-        // 6. Update state for the next frame
         this.lastMouseY = event.clientY;
         this.lastDirection = direction;
     }
