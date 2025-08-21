@@ -22,7 +22,7 @@ export class FlowPanel {
         
         this.overlapThresholdPercent = 0.25;
 
-        // New configurable constants for auto-scrolling.
+        // Configurable constants for auto-scrolling.
         this.scrollZoneSize = 60; // Height in pixels of the top/bottom scroll trigger zones.
         this.scrollSpeed = 10; // Pixels to scroll per frame while in a scroll zone.
 
@@ -144,7 +144,6 @@ export class FlowPanel {
         const placeholder = this.container.querySelector('.drag-placeholder');
         if (!listContainer || !placeholder || this.draggedIndex === null) return;
 
-        // --- Auto-scroll Logic ---
         const listRect = listContainer.getBoundingClientRect();
         if (event.clientY < listRect.top + this.scrollZoneSize) {
             listContainer.scrollTop -= this.scrollSpeed;
@@ -152,7 +151,6 @@ export class FlowPanel {
             listContainer.scrollTop += this.scrollSpeed;
         }
 
-        // --- Placeholder and Logging Logic ---
         let direction = event.clientY < this.lastMouseY ? 'up' : (event.clientY > this.lastMouseY ? 'down' : this.lastDirection);
         if (direction !== this.lastDirection) {
             this.lastLoggedCollision = null;
@@ -168,25 +166,25 @@ export class FlowPanel {
 
         if (direction === 'up') {
             for (const child of restingElements) {
-                const childIndex = parseInt(child.dataset.index, 10);
                 const childBox = child.getBoundingClientRect();
-                if (childIndex < this.draggedIndex && draggedTop <= (childBox.bottom - overlapThreshold)) {
+                if (draggedTop <= (childBox.bottom - overlapThreshold)) {
                     collision = { element: child, direction: 'up' };
                     afterElement = child;
                     break;
                 }
             }
         } else if (direction === 'down') {
-            for (const child of restingElements) {
-                const childIndex = parseInt(child.dataset.index, 10);
+            // BUGFIX: Iterate backwards to find the last valid drop target efficiently.
+            for (const child of restingElements.reverse()) {
                 const childBox = child.getBoundingClientRect();
-                if (childIndex > this.draggedIndex && draggedBottom >= (childBox.top + overlapThreshold)) {
+                if (draggedBottom >= (childBox.top + overlapThreshold)) {
                     collision = { element: child, direction: 'down' };
                     let nextSibling = child.nextElementSibling;
                     if (nextSibling && nextSibling.classList.contains('drag-placeholder')) {
                        nextSibling = nextSibling.nextElementSibling;
                     }
                     afterElement = nextSibling;
+                    break; 
                 }
             }
         }
