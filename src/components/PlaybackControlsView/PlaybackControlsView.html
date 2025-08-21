@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Test Harness: PlaybackControlsView</title>
+    <title>Workbench: PlaybackControlsView</title>
     <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
     <link rel="stylesheet" href="/percussion-studio/css/global.css">
     <!-- The component will load its own CSS -->
@@ -12,10 +12,6 @@
 <body class="bg-light-gray pa4">
     <div class="flex">
         <div class="w-70 pr3">
-            <h1 class="f2 b mb3 bb pb2">Automated Tests</h1>
-            <button id="run-tests-btn" class="pv2 ph3 bn br2 bg-blue white pointer hover-bg-dark-blue mb3">Run All Tests</button>
-            <div id="test-results"></div>
-            <hr class="mv4"/>
             <h1 class="f2 b mb3 bb pb2">Live View Workbench</h1>
             <div id="view-container" class="bg-white shadow-2 pa3 br2"></div>
             <div class="controls ba b--black-10 pa3 br2 bg-white mt3">
@@ -36,21 +32,6 @@
         </div>
     </div>
     
-    <div id="test-sandbox" style="position: absolute; visibility: hidden;"></div>
-
-    <script type="module">
-        import { run, manualTest } from './PlaybackControlsView.test.js';
-        import { Logger, logEvent } from '/percussion-studio/lib/Logger.js';
-        
-        Logger.init({ level: 'debug' });
-        Logger.setTarget('log-output');
-
-        document.getElementById('run-tests-btn').addEventListener('click', () => {
-            logEvent('info', 'Harness', 'runTests', 'Setup', 'Running automated tests...');
-            run();
-        });
-
-        manualTest();
-    </script>
+    <script type="module" src="./PlaybackControlsView.integration.js"></script>
 </body>
 </html>
