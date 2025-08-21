@@ -39,6 +39,7 @@
             currentPatternId: null, 
             isPinned: false,
             scrollToLast: false,
+            globalBPM: 120, // Add globalBPM to the state
         };
 
         const container = document.getElementById('view-container');
@@ -68,6 +69,14 @@
                 const [item] = currentState.flow.splice(from, 1);
                 currentState.flow.splice(to, 0, item);
                 rerender();
+            },
+            // FIX: Implement the callback to handle property changes from child components
+            onPatternPropertyChange: (index, property, value) => {
+                logEvent('info', 'Harness', 'onPatternPropertyChange', 'Events', `Item ${index} property '${property}' changed to ${value}`);
+                if (currentState.flow[index]) {
+                    currentState.flow[index][property] = value;
+                    rerender(); // Re-render to show the updated value
+                }
             },
         });
 

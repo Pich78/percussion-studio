@@ -88,6 +88,11 @@ export class FlowPanel {
 
             switch(action) {
                 case 'select-pattern':
+                    // --- FIX ---
+                    // Prevent selection when clicking on an interactive element within the item.
+                    if (event.target.closest('input, select, button')) {
+                        break; 
+                    }
                     this.callbacks.onPatternSelect?.(target.dataset.patternId);
                     break;
                 case 'add-pattern':

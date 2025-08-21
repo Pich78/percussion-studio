@@ -14,6 +14,7 @@ export class FlowPanelIntegrationHelper {
             onAddPattern: () => this.logCallback('onAddPattern', null),
             onDeleteFlowItem: (index) => this.logCallback('onDeleteFlowItem', { index }),
             onReorderFlow: (from, to) => this.logCallback('onReorderFlow', { from, to }),
+            onPatternPropertyChange: (index, property, value) => this.logCallback('onPatternPropertyChange', { index, property, value }),
         };
         this.flowPanel = new FlowPanel(this.container, this.callbacks);
     }
