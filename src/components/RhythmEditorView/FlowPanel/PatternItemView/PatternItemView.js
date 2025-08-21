@@ -30,14 +30,16 @@ export class PatternItemView {
         
         const themeClass = isSelected ? 'selected-state' : 'default-state';
 
+        // The entire component is now rendered directly into the host container.
         this.container.innerHTML = `
-            <div class="pattern-item-wrapper">
-                <div 
-                    class="flow-item flex items-center pa2 ${themeClass}" 
-                    data-index="${index}" 
-                    data-pattern-id="${item.pattern}"
-                >
-                    <div class="drag-handle flex items-center justify-center pr2">
+            <div 
+                class="flow-item flex flex-column pa2 ${themeClass}" 
+                data-index="${index}" 
+                data-pattern-id="${item.pattern}"
+            >
+                <!-- Top Row: Handle, Name, Delete Button -->
+                <div class="pattern-item-top-row flex items-center w-100">
+                    <div class="drag-handle flex items-center justify-center">
                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="5" cy="4" r="1.5"/><circle cx="11" cy="4" r="1.5"/><circle cx="5" cy="8" r="1.5"/><circle cx="11" cy="8" r="1.5"/><circle cx="5" cy="12" r="1.5"/><circle cx="11" cy="12" r="1.5"/></svg>
                     </div>
                     <div class="flex-grow-1 ph2">
@@ -45,23 +47,24 @@ export class PatternItemView {
                             <option selected>${item.pattern}</option>
                         </select>
                     </div>
-                    <div class="v-separator h2 mh2"></div>
-                    <div class="flex items-center modifiers-box">
-                        <div class="modifier-item">
-                            <label class="modifier-label">Reps</label>
-                            <input data-property="repetitions" type="number" class="modifier-input-number" value="${repsValue}" min="1" max="999">
-                        </div>
-                        <div class="modifier-item">
-                            <label class="modifier-label">BPM</label>
-                            <span class="modifier-value" data-property="bpm">${bpmValue}</span>
-                        </div>
-                        <div class="modifier-item">
-                            <label class="modifier-label">Accel</label>
-                            <span class="modifier-value" data-property="bpm_accel_cents">${accelValue}</span>
-                        </div>
+                    <button data-action="delete" class="delete-btn pa0 bn pointer" title="Remove Item">×</button>
+                </div>
+
+                <!-- Bottom Row: Modifiers -->
+                <div class="flex items-center justify-between modifiers-box mt2 w-100">
+                    <div class="modifier-item">
+                        <label class="modifier-label">Reps</label>
+                        <input data-property="repetitions" type="number" class="modifier-input-number" value="${repsValue}" min="1" max="999">
+                    </div>
+                    <div class="modifier-item">
+                        <label class="modifier-label">BPM</label>
+                        <span class="modifier-value" data-property="bpm">${bpmValue}</span>
+                    </div>
+                    <div class="modifier-item">
+                        <label class="modifier-label">Accel</label>
+                        <span class="modifier-value" data-property="bpm_accel_cents">${accelValue}</span>
                     </div>
                 </div>
-                <button data-action="delete" class="delete-btn pa0 bn pointer" title="Remove Item">×</button>
             </div>
         `;
     }
@@ -121,12 +124,10 @@ export class PatternItemView {
 
         const scrollDirection = -Math.sign(event.deltaY);
         
-        // BUGFIX: Use integer steps to avoid rounding errors. Set a larger
-        // step for BPM to create a "faster" feel than Accel.
         let step = this.activeProperty === 'bpm' ? 5 : 1;
 
         if (event.shiftKey) {
-            step *= 5; // Use a consistent multiplier for fast scrolling
+            step *= 5;
         }
 
         this.currentValue += (scrollDirection * step);
