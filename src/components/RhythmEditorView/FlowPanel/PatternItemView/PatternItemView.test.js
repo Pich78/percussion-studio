@@ -27,18 +27,12 @@ export async function run() {
             view.render(getMockState()); // Use the minimal state
             
             const repsInput = testContainer.querySelector('input[data-property="repetitions"]');
-            const accelInput = testContainer.querySelector('input[data-property="bpm_accel_cents"]');
+            const bpmValue = testContainer.querySelector('span[data-property="bpm"]');
+            const accelValue = testContainer.querySelector('span[data-property="bpm_accel_cents"]');
 
             runner.expect(Number(repsInput.value)).toBe(1);
-            runner.expect(Number(accelInput.value)).toBe(0);
-        });
-
-        runner.it('should display the global BPM if no item-specific BPM is set', () => {
-            testContainer.innerHTML = '';
-            const view = new PatternItemView(testContainer, {});
-            view.render(getMockState({ globalBPM: 150 }));
-            const bpmInput = testContainer.querySelector('input[data-property="bpm"]');
-            runner.expect(Number(bpmInput.value)).toBe(150);
+            runner.expect(Number(bpmValue.textContent)).toBe(120); // Uses globalBPM
+            runner.expect(Number(accelValue.textContent)).toBe(100); // Uses new default
         });
         
         runner.it('should display the item-specific BPM when set', () => {
@@ -46,8 +40,8 @@ export async function run() {
             const view = new PatternItemView(testContainer, {});
             const state = getMockState({ item: { pattern: 'p1', bpm: 95 } });
             view.render(state);
-            const bpmInput = testContainer.querySelector('input[data-property="bpm"]');
-            runner.expect(Number(bpmInput.value)).toBe(95);
+            const bpmValue = testContainer.querySelector('span[data-property="bpm"]');
+            runner.expect(Number(bpmValue.textContent)).toBe(95);
         });
     });
 
@@ -62,7 +56,7 @@ export async function run() {
             callbackLog.wasCalledWith('onDelete');
         });
 
-        runner.it('should fire onPropertyChange callback when repetitions input is blurred', () => {
+        runner.it('should fire onPropertyChange callback when repetitions input value is changed', () => {
             testContainer.innerHTML = '';
             const callbackLog = new MockLogger('Callbacks');
             const view = new PatternItemView(testContainer, { 
@@ -72,7 +66,8 @@ export async function run() {
             
             const repsInput = testContainer.querySelector('input[data-property="repetitions"]');
             repsInput.value = '16';
-            repsInput.dispatchEvent(new Event('blur', { bubbles: true }));
+            // The component now listens for the 'change' event on number inputs.
+            repsInput.dispatchEvent(new Event('change', { bubbles: true }));
 
             callbackLog.wasCalledWith('onPropertyChange', { prop: 'repetitions', val: 16 });
         });
