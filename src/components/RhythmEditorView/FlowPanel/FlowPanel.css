@@ -67,8 +67,9 @@
   These rules style the '.flow-item' rendered by PatternItemView when its host is a placeholder.
 */
 .flow-item-host.drag-placeholder .flow-item {
-    background-color: rgba(0, 0, 0, 0.1);
-    border: 1px dashed rgba(0, 0, 0, 0.3);
+    /* FIX: Use an opaque background and a clearer border to hide content underneath. */
+    background-color: #e5e7eb;
+    border: 2px dashed #9ca3af;
     color: transparent; /* Hide the text */
 }
 
