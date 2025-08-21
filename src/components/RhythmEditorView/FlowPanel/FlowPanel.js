@@ -15,14 +15,16 @@ export class FlowPanel {
         this.dragStartOffset = 0;
         this.draggedItemHeight = 0;
         
-        // State for diagnostic logging and direction tracking
         this.lastLoggedCollision = null;
         this.lastAfterElement = null;
         this.lastMouseY = 0;
         this.lastDirection = null;
         
-        // Configurable constant for the overlap percentage.
-        this.overlapThresholdPercent = 0.25; // e.g., 0.25 for 25%, 0.5 for 50%
+        this.overlapThresholdPercent = 0.25;
+
+        // New configurable constants for auto-scrolling.
+        this.scrollZoneSize = 60; // Height in pixels of the top/bottom scroll trigger zones.
+        this.scrollSpeed = 10; // Pixels to scroll per frame while in a scroll zone.
 
         loadCSS('/percussion-studio/src/components/RhythmEditorView/FlowPanel/FlowPanel.css');
         loadCSS('/percussion-studio/src/components/RhythmEditorView/FlowPanel/PatternItemView/PatternItemView.css');
@@ -142,6 +144,15 @@ export class FlowPanel {
         const placeholder = this.container.querySelector('.drag-placeholder');
         if (!listContainer || !placeholder || this.draggedIndex === null) return;
 
+        // --- Auto-scroll Logic ---
+        const listRect = listContainer.getBoundingClientRect();
+        if (event.clientY < listRect.top + this.scrollZoneSize) {
+            listContainer.scrollTop -= this.scrollSpeed;
+        } else if (event.clientY > listRect.bottom - this.scrollZoneSize) {
+            listContainer.scrollTop += this.scrollSpeed;
+        }
+
+        // --- Placeholder and Logging Logic ---
         let direction = event.clientY < this.lastMouseY ? 'up' : (event.clientY > this.lastMouseY ? 'down' : this.lastDirection);
         if (direction !== this.lastDirection) {
             this.lastLoggedCollision = null;
@@ -176,7 +187,6 @@ export class FlowPanel {
                        nextSibling = nextSibling.nextElementSibling;
                     }
                     afterElement = nextSibling;
-                    // BUGFIX: Removed the 'break' statement to allow checking all items below.
                 }
             }
         }
