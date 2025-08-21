@@ -11,7 +11,6 @@ export class PatternItemView {
         this.container.addEventListener('click', this.handleClick.bind(this));
         this.container.addEventListener('blur', this.handleInputBlur.bind(this), true);
         this.container.addEventListener('change', this.handleSelectChange.bind(this));
-        // FIX: Add keydown listener to handle 'Enter' key for committing changes.
         this.container.addEventListener('keydown', this.handleKeyDown.bind(this));
     }
 
@@ -39,6 +38,18 @@ export class PatternItemView {
                     data-index="${index}" 
                     data-pattern-id="${item.pattern}"
                 >
+                    <!-- FIX: Move drag handle to the left side and adjust padding -->
+                    <div class="drag-handle flex items-center justify-center pr2">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="5" cy="4" r="1.5"/>
+                            <circle cx="11" cy="4" r="1.5"/>
+                            <circle cx="5" cy="8" r="1.5"/>
+                            <circle cx="11" cy="8" r="1.5"/>
+                            <circle cx="5" cy="12" r="1.5"/>
+                            <circle cx="11" cy="12" r="1.5"/>
+                        </svg>
+                    </div>
+
                     <!-- Pattern Name (Left Side) -->
                     <div class="flex-grow-1 ph2">
                         <select data-property="pattern" class="pattern-name w-100 pa0 pointer">
@@ -100,20 +111,16 @@ export class PatternItemView {
         }
     }
 
-    // FIX: Method to handle keydown events, specifically the 'Enter' key.
     handleKeyDown(event) {
         if (event.key !== 'Enter') return;
 
         const input = event.target.closest('input[type="number"]');
         if (input) {
             logEvent('debug', 'PatternItemView', 'handleKeyDown', 'Events', 'Enter key pressed on input.');
-            // Prevent any default 'Enter' behavior like form submission
             event.preventDefault();
             
-            // Manually trigger the blur logic to commit the property change.
             this.handleInputBlur({ target: input });
             
-            // Unfocus the element to signify the edit is complete
             input.blur();
         }
     }

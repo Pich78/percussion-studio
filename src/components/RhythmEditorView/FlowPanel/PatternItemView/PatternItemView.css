@@ -17,14 +17,12 @@
     border-radius: 6px;
     box-shadow: 0 1px 2px rgba(0,0,0,0.05);
     transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-    /* FIX: Use a real border and reserve space for it to prevent layout shifts. */
     border: 1px solid transparent;
 }
 
 /* Default State */
 .flow-item.default-state {
     background-color: #ffffff;
-    /* FIX: Only set the color of the pre-defined border. */
     border-color: #e5e7eb; /* cool-gray-200 */
 }
 
@@ -36,7 +34,6 @@
 /* Selected State - NEW GRAY THEME */
 .flow-item.selected-state {
     background-color: #f3f4f6;     /* cool-gray-100 */
-    /* FIX: Use the real border instead of a clip-prone box-shadow. */
     border-color: #6b7280;     /* cool-gray-500 */
     box-shadow: 0 1px 3px rgba(0,0,0,0.07);
 }
@@ -112,12 +109,11 @@
     opacity: 0;
     transition: opacity 0.15s ease, transform 0.15s ease;
     
-    /* Styling for the circular button */
     background-color: white;
     border-radius: 50%;
     width: 24px;
     height: 24px;
-    line-height: 22px; /* Vertically center the 'x' */
+    line-height: 22px; 
     text-align: center;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     color: #6b7280;
@@ -134,4 +130,17 @@
 .delete-btn:hover {
     opacity: 1;
     background-color: #e5e7eb;
+}
+
+/* FIX: Styles for the new drag handle */
+.drag-handle {
+    cursor: grab;
+    opacity: 0.4;
+    transition: opacity 0.15s ease-in-out;
+}
+.drag-handle svg {
+    fill: #6b7280; /* cool-gray-500 */
+}
+.flow-item:hover .drag-handle {
+    opacity: 1;
 }
