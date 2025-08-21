@@ -11,6 +11,8 @@ export class PatternItemView {
         this.container.addEventListener('click', this.handleClick.bind(this));
         this.container.addEventListener('blur', this.handleInputBlur.bind(this), true);
         this.container.addEventListener('change', this.handleSelectChange.bind(this));
+        // FIX: Add keydown listener to handle 'Enter' key for committing changes.
+        this.container.addEventListener('keydown', this.handleKeyDown.bind(this));
     }
 
     render(state) {
@@ -95,6 +97,24 @@ export class PatternItemView {
             const value = select.value;
             logEvent('debug', 'PatternItemView', 'handleSelectChange', 'Events', `Select change for ${property}: ${value}`);
             this.callbacks.onPropertyChange?.(property, value);
+        }
+    }
+
+    // FIX: Method to handle keydown events, specifically the 'Enter' key.
+    handleKeyDown(event) {
+        if (event.key !== 'Enter') return;
+
+        const input = event.target.closest('input[type="number"]');
+        if (input) {
+            logEvent('debug', 'PatternItemView', 'handleKeyDown', 'Events', 'Enter key pressed on input.');
+            // Prevent any default 'Enter' behavior like form submission
+            event.preventDefault();
+            
+            // Manually trigger the blur logic to commit the property change.
+            this.handleInputBlur({ target: input });
+            
+            // Unfocus the element to signify the edit is complete
+            input.blur();
         }
     }
 }

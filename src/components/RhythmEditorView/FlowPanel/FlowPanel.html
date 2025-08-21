@@ -39,7 +39,7 @@
             currentPatternId: null, 
             isPinned: false,
             scrollToLast: false,
-            globalBPM: 120, // Add globalBPM to the state
+            globalBPM: 120,
         };
 
         const container = document.getElementById('view-container');
@@ -54,7 +54,21 @@
 
         const view = new FlowPanel(container, {
             onPin: (isPinned) => { currentState.isPinned = isPinned; rerender(); },
-            onPatternSelect: (id) => { currentState.currentPatternId = id; rerender(); },
+            onPatternSelect: (id, focusTarget) => {
+                currentState.currentPatternId = id;
+                rerender(); // Re-render first to create the new element
+
+                // After rendering, if a focus target was specified, find and focus it.
+                if (focusTarget) {
+                    const itemIndex = currentState.flow.findIndex(item => item.pattern === id);
+                    if (itemIndex !== -1) {
+                        const elementToFocus = container.querySelector(
+                            `.flow-item-host[data-index="${itemIndex}"] [data-property="${focusTarget.property}"]`
+                        );
+                        elementToFocus?.focus();
+                    }
+                }
+            },
             onAddPattern: () => {
                 const newId = `Pattern ${currentState.flow.length + 1}`;
                 currentState.flow.push({ pattern: newId, repetitions: 1 });
@@ -70,12 +84,11 @@
                 currentState.flow.splice(to, 0, item);
                 rerender();
             },
-            // FIX: Implement the callback to handle property changes from child components
             onPatternPropertyChange: (index, property, value) => {
                 logEvent('info', 'Harness', 'onPatternPropertyChange', 'Events', `Item ${index} property '${property}' changed to ${value}`);
                 if (currentState.flow[index]) {
                     currentState.flow[index][property] = value;
-                    rerender(); // Re-render to show the updated value
+                    rerender();
                 }
             },
         });
