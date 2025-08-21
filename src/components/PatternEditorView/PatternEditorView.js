@@ -10,10 +10,12 @@ import { RadialSoundSelector } from '/percussion-studio/src/components/RadialSou
 import { InstrumentSelectionModalView } from '/percussion-studio/src/components/InstrumentSelectionModalView/InstrumentSelectionModalView.js';
 
 const HOLD_DURATION_MS = 200;
+const DEFAULT_PATTERN_NAME = 'New Pattern';
 
 export class PatternEditorView {
-    constructor(container, { instrumentDefs, soundPacks }) {
+    constructor(container, { instrumentDefs, soundPacks, onSave, onTransport, onSettingsChange }) {
         this.container = container;
+        this.callbacks = { onSave, onTransport, onSettingsChange };
         // --- FIX: Create a dedicated root element for this component's content ---
         this.rootElement = document.createElement('div');
         this.rootElement.className = 'pattern-editor-view';
@@ -24,7 +26,17 @@ export class PatternEditorView {
             nextMeasureId: 0,
             manifest: { instrumentDefs, soundPacks },
             // NEW: The top-level editor now owns the active sound state
-            activeSounds: { KCK: 'o', SNR: 'x' } // Default active sounds
+            activeSounds: { KCK: 'o', SNR: 'x' }, // Default active sounds
+            // --- NEW: State for the header controls ---
+            patternName: DEFAULT_PATTERN_NAME,
+            isDirty: false,
+            playback: {
+                // --- MODIFIED: Use a status string instead of a boolean for more granular control ---
+                status: 'STOPPED', // STOPPED, PLAYING, PAUSED
+                isLooping: true,
+                volume: 80,
+                bpm: 120,
+            }
         };
 
         // --- NEW: Instantiate and own the global UI services ---
@@ -59,8 +71,10 @@ export class PatternEditorView {
         loadCSS('/percussion-studio/src/components/PatternEditorView/PatternEditorView.css');
         
         this._boundHandleClick = this._handleClick.bind(this);
+        this._boundHandleInputChange = this._handleInputChange.bind(this);
         // --- FIX: Attach event listener to the component's own root element ---
         this.rootElement.addEventListener('click', this._boundHandleClick);
+        this.rootElement.addEventListener('input', this._boundHandleInputChange);
 
         this.render();
         logEvent('info', 'PatternEditorView', 'constructor', 'Lifecycle', 'Component created.');
@@ -78,6 +92,9 @@ export class PatternEditorView {
         
         // --- FIX: Only clear the component's own root element ---
         this.rootElement.innerHTML = '';
+
+        // --- NEW: Render the header ---
+        this.rootElement.appendChild(this._renderHeader());
 
         // --- NEW: Create a dedicated, scrollable container for measures ---
         const measuresContainer = document.createElement('div');
@@ -131,6 +148,33 @@ export class PatternEditorView {
         this.rootElement.appendChild(addBtn);
     }
     
+    // --- NEW: Method to render the control header ---
+    _renderHeader() {
+        const header = document.createElement('div');
+        header.className = 'pattern-editor-header';
+
+        const { status, isLooping, volume, bpm } = this.state.playback;
+
+        // --- MODIFIED: Render four separate transport buttons with explicit state handling ---
+        header.innerHTML = `
+            <div class="pattern-info">
+                <input type="text" class="pattern-name-input" data-control="patternName" value="${this.state.patternName}" />
+                <button class="pattern-save-btn" data-action="save" ${!this.state.isDirty ? 'disabled' : ''}>Save</button>
+            </div>
+            <div class="transport-controls">
+                <button data-action="play" ${status === 'PLAYING' ? 'disabled' : ''}>Play</button>
+                <button data-action="pause" ${status !== 'PLAYING' ? 'disabled' : ''}>Pause</button>
+                <button data-action="stop" ${status === 'STOPPED' ? 'disabled' : ''}>Stop</button>
+                <button data-action="loop" class="${isLooping ? 'active' : ''}">Loop</button>
+            </div>
+            <div class="settings-controls">
+                <label>BPM: <input type="number" data-control="bpm" value="${bpm}" min="40" max="300" /></label>
+                <label>Vol: <input type="range" data-control="volume" value="${volume}" min="0" max="100" /></label>
+            </div>
+        `;
+        return header;
+    }
+
     // --- Centralized Interaction Handlers ---
 
     _ensureActiveSound(instrument) {
@@ -219,6 +263,8 @@ export class PatternEditorView {
         
         // Update the pattern in the measure
         measureInstance.updateInstrumentPattern(instrument.trackId, newPattern);
+        this.state.isDirty = true;
+        this.render(); // Re-render to enable save button
     }
 
     _handleSoundSelected(selectedLetter) {
@@ -318,7 +364,9 @@ export class PatternEditorView {
             measureInstance.replaceInstrument(this.activeTrackId, selection);
         }
         
+        this.state.isDirty = true;
         this._resetModalState();
+        this.render();
     }
     
     _handleModalCancel() {
@@ -337,9 +385,88 @@ export class PatternEditorView {
     _handleClick(event) {
         const addBtn = event.target.closest('.add-measure-btn');
         const deleteBtn = event.target.closest('.delete-measure-btn');
+        const actionBtn = event.target.closest('button[data-action]');
 
         if (addBtn) this._addMeasure();
         if (deleteBtn) this._deleteMeasure(parseInt(deleteBtn.dataset.measureId, 10));
+        if (actionBtn) {
+            const action = actionBtn.dataset.action;
+            // --- MODIFIED: Handle separate play, pause, and stop actions ---
+            switch (action) {
+                case 'save':
+                    this._handleSave();
+                    break;
+                case 'play':
+                    this.state.playback.status = 'PLAYING';
+                    this.callbacks.onTransport?.({ action: 'play' });
+                    this.render();
+                    break;
+                case 'pause':
+                    this.state.playback.status = 'PAUSED';
+                    this.callbacks.onTransport?.({ action: 'pause' });
+                    this.render();
+                    break;
+                case 'stop':
+                    this.state.playback.status = 'STOPPED';
+                    this.callbacks.onTransport?.({ action: 'stop' });
+                    this.render();
+                    break;
+                case 'loop':
+                    this.state.playback.isLooping = !this.state.playback.isLooping;
+                    this.callbacks.onSettingsChange?.({ isLooping: this.state.playback.isLooping });
+                    this.render();
+                    break;
+            }
+        }
+    }
+
+    _handleInputChange(event) {
+        const control = event.target.dataset.control;
+        if (!control) return;
+    
+        // --- FIX: Handle text input separately to prevent re-rendering and focus loss ---
+        if (control === 'patternName') {
+            this.state.patternName = event.target.value;
+            // If the component isn't already marked as dirty, update the state
+            // and manually enable the save button to avoid a full re-render.
+            if (!this.state.isDirty) {
+                this.state.isDirty = true;
+                const saveBtn = this.rootElement.querySelector('.pattern-save-btn');
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                }
+            }
+            // IMPORTANT: We return here to prevent the full re-render that would
+            // cause the input to lose focus.
+            return;
+        }
+    
+        // For other controls like sliders and number inputs, re-rendering is fine.
+        switch (control) {
+            case 'bpm':
+                this.state.playback.bpm = parseInt(event.target.value, 10);
+                this.callbacks.onSettingsChange?.({ bpm: this.state.playback.bpm });
+                break;
+            case 'volume':
+                this.state.playback.volume = parseInt(event.target.value, 10);
+                this.callbacks.onSettingsChange?.({ volume: this.state.playback.volume });
+                break;
+        }
+        this.state.isDirty = true;
+        this.render();
+    }
+
+    _handleSave() {
+        const isNew = this.state.patternName === DEFAULT_PATTERN_NAME;
+        const patternData = {
+            name: this.state.patternName,
+            bpm: this.state.playback.bpm,
+            measures: this.state.measures.map(m => this.childInstances.get(m.id)?.getState())
+        };
+        this.callbacks.onSave?.({ isNew, patternData });
+        // Assuming save is successful
+        this.state.isDirty = false;
+        this.render();
     }
 
     _addMeasure() {
@@ -349,6 +476,7 @@ export class PatternEditorView {
         };
         this.state.measures.push(newMeasure);
         this.state.nextMeasureId++;
+        this.state.isDirty = true;
         logEvent('info', 'PatternEditorView', '_addMeasure', 'State', 'Adding new measure', newMeasure);
         this.render();
     }
@@ -365,6 +493,7 @@ export class PatternEditorView {
             }
             
             this.state.measures = this.state.measures.filter(m => m.id !== measureId);
+            this.state.isDirty = true;
             this.render();
             logEvent('info', 'PatternEditorView', '_deleteMeasure', 'State', `Measure ${measureId} removed.`);
         }
@@ -373,6 +502,7 @@ export class PatternEditorView {
     destroy() {
         // --- FIX: Remove event listener from the component's own root element ---
         this.rootElement.removeEventListener('click', this._boundHandleClick);
+        this.rootElement.removeEventListener('input', this._boundHandleInputChange);
         window.removeEventListener('mouseup', this._handleGlobalMouseUp, true);
         this.childInstances.forEach(instance => instance.destroy());
         this.childInstances.clear();
