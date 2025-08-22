@@ -5,6 +5,23 @@
     height: 100%;
     width: 100%;
     background-color: #f0f0f0; /* A neutral background for the main area */
+    /* FIX: Use Flexbox to create the top-bar and content-area layout */
+    display: flex;
+    flex-direction: column;
+}
+
+/* FIX: New container for the playback controls */
+.editor-view-topbar {
+    padding: 0.5rem;
+    background-color: #f0f0f0;
+    border-bottom: 1px solid #ccc;
+}
+
+/* FIX: New container for the side and main panels */
+.editor-view-content {
+    flex: 1; /* This makes it take up all remaining vertical space */
+    position: relative; /* This is crucial for the absolutely-positioned side panel */
+    min-height: 0; /* Prevents flexbox overflow issues */
 }
 
 .editor-view-sidepanel {
@@ -14,6 +31,8 @@
     left: 0.5rem;
     height: 100%;
     z-index: 10; /* Ensure it's above the main content */
+    /* FIX: Add transition for the highlight effect */
+    transition: box-shadow 0.2s ease-in-out;
 }
 
 .editor-view-main {
@@ -25,4 +44,11 @@
     padding-top: 1rem;
     padding-right: 1rem;
     box-sizing: border-box;
+    /* FIX: Add transition for the highlight effect */
+    transition: box-shadow 0.2s ease-in-out;
+}
+
+/* FIX: New class for highlighting the active playback target */
+.playback-target {
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.4); /* Blue glow */
 }
