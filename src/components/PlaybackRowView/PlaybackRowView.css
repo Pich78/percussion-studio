@@ -1,0 +1,79 @@
+/* file: src/components/PlaybackRowView/PlaybackRowView.css */
+
+.playback-row-view {
+    display: flex;
+    align-items: stretch;
+    margin-bottom: 4px;
+    border: 1px solid #ddd;
+    background-color: #fff;
+    height: var(--row-height, 50px);
+}
+
+/* Container for the InstrumentMixerView instance */
+.playback-row-mixer {
+    flex-shrink: 0;
+    width: 120px; /* Provides a consistent width for the mixer panel */
+    display: flex;
+    align-items: stretch; /* Make the inner component fill this container */
+    border-right: 1px solid #ddd;
+}
+
+/* The child mixer component should fill the container */
+.playback-row-mixer .mixer-track {
+    width: 100%;
+    border: none; /* Remove default border from mixer as it's now embedded */
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.playback-row-grid {
+    display: flex;
+    flex-grow: 0;
+    cursor: none;
+}
+
+.grid-cell {
+    flex-grow: 0;
+    flex-shrink: 0;
+    border-left: 1px solid #eee;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    height: 100%;
+}
+
+/* Adaptive Sizing based on Density */
+.density-low .grid-cell { width: 60px; }
+.density-low { --row-height: 60px; }
+
+.density-medium .grid-cell { width: 40px; }
+.density-medium { --row-height: 50px; } /* Mixer height is ~50px, let's align */
+
+.density-high .grid-cell { width: 30px; }
+.density-high { --row-height: 50px; }
+
+
+.grid-cell .note {
+    width: 80%;
+    height: 80%;
+}
+
+.grid-cell .note svg {
+    width: 100%;
+    height: 100%;
+}
+
+.grid-cell.highlighted-beat {
+    border-left: 1px solid #bbb;
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+.grid-cell.sub-beat-line {
+    border-left: 1px dotted #ddd;
+}
+
+
+.grid-cell.highlighted-beat:first-child {
+    border-left: none;
+}
