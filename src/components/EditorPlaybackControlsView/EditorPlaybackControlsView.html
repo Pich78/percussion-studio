@@ -1,0 +1,41 @@
+<!-- file: src/components/EditorPlaybackControlsView/EditorPlaybackControlsView.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Live View Workbench: EditorPlaybackControlsView</title>
+    <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
+    <link rel="stylesheet" href="./EditorPlaybackControlsView.css">
+    <style> body { font-family: sans-serif; } </style>
+</head>
+<body class="bg-light-gray pa4">
+
+    <div class="flex">
+        <div class="w-70 pr3">
+            <h1 class="f2 b mb3 bb pb2">Live View Workbench: Editor Playback Controls</h1>
+            <p class="f6 gray mb3">
+                This component encapsulates the playback transport and settings controls.
+            </p>
+            <div id="playback-controls-container" class="mb3">
+                <!-- The EditorPlaybackControlsView component will render here -->
+            </div>
+
+            <h2 class="f4 b mt4">Manual Triggers</h2>
+            <p class="f6 gray mb3">
+                Use these buttons to simulate external events updating the component.
+            </p>
+            <button id="update-text-btn-1" class="pv2 ph3 bn br2 bg-blue white pointer hover-bg-dark-blue mb3 mr2">Set Text: "My Cool Beat"</button>
+            <button id="update-text-btn-2" class="pv2 ph3 bn br2 bg-blue white pointer hover-bg-dark-blue mb3">Set Text: "Another Pattern Name"</button>
+
+        </div>
+        <div class="w-30 pl3">
+            <div class="bg-near-black near-white pa3 br2 h-100">
+                <h2 class="f4 b bb pb2 mb2">Execution Log</h2>
+                <div id="log-output" class="f7 lh-copy" style="white-space: pre-wrap; height: 80vh; overflow-y: auto;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="./EditorPlaybackControlsView.integration.js"></script>
+</body>
+</html>
