@@ -13,9 +13,15 @@
     <div class="flex">
         <div class="w-70 pr3">
             <h1 class="f2 b mb3 bb pb2">Live View Workbench</h1>
-            <p class="f6 gray mb3">The mixer is now fully stateful. Clicking the header toggles mute and remembers the last volume. Sliding to zero also mutes.</p>
-            <div id="view-container" class="bg-white shadow-2 pa3 br2 w-100" style="max-width: 300px;">
-                <!-- The InstrumentMixerView will render itself here -->
+            <p class="f6 gray mb3">Below are four independent instances of the mixer component, arranged in a column with spacing that matches the FlowPanel component.</p>
+            
+            <!-- This wrapper will lay out the four instances in a vertical column -->
+            <div id="view-container" class="flex flex-column" style="gap: 0.25rem; max-width: 300px;">
+                <!-- The component will be rendered into these containers by the integration script -->
+                <div id="instance-1" class="w-100"></div>
+                <div id="instance-2" class="w-100"></div>
+                <div id="instance-3" class="w-100"></div>
+                <div id="instance-4" class="w-100"></div>
             </div>
         </div>
         <div class="w-30 pl3">

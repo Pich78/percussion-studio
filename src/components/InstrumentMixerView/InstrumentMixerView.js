@@ -51,15 +51,19 @@ export class InstrumentMixerView {
             const instrumentName = instDef?.name || symbol;
             const isEffectivelyMuted = trackState.muted || trackState.volume === 0;
             const mutedClass = isEffectivelyMuted ? 'is-muted' : '';
-            const headerBg = isEffectivelyMuted ? '' : 'bg-green';
 
             const trackElement = document.createElement('div');
-            trackElement.className = 'mixer-track flex flex-column gap2 pa2 br2 bg-light-gray';
+            trackElement.className = 'mixer-track flex flex-column'; // Removed padding and gap, handled by panels now
             trackElement.dataset.instrumentId = instrumentId;
 
+            // NEW: Encapsulated header and slider in separate "panel" divs
             trackElement.innerHTML = `
-                <div data-action="toggle-mute" class="instrument-header f6 b pv1 ph2 br2 tc pointer ${headerBg} ${mutedClass} white truncate" title="${instrumentName}">${instrumentName}</div>
-                <input type="range" class="volume-slider w-100" min="0" max="1" step="0.01" value="${isEffectivelyMuted ? 0 : trackState.volume}" title="Volume">
+                <div data-action="toggle-mute" class="instrument-header pointer truncate ${mutedClass}" title="${instrumentName}">
+                    ${instrumentName}
+                </div>
+                <div class="volume-slider-panel">
+                    <input type="range" class="volume-slider w-100" min="0" max="1" step="0.01" value="${isEffectivelyMuted ? 0 : trackState.volume}" title="Volume">
+                </div>
             `;
             mixerContainer.appendChild(trackElement);
         }
@@ -85,7 +89,6 @@ export class InstrumentMixerView {
             // Update header styles
             const header = trackElement.querySelector('.instrument-header');
             header.classList.toggle('is-muted', isEffectivelyMuted);
-            header.classList.toggle('bg-green', !isEffectivelyMuted);
 
             // Update slider value
             const slider = trackElement.querySelector('.volume-slider');

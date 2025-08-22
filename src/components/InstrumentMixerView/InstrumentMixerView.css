@@ -1,13 +1,59 @@
 /* file: src/components/InstrumentMixerView/InstrumentMixerView.css */
 
-/* Custom styles for the range slider to ensure cross-browser consistency */
+/*
+  Styles for the two-panel mixer track layout.
+*/
+
+/* The container for an individual instrument track. It now acts as a card. */
+.mixer-track {
+    background-color: #ffffff;
+    /* CHANGED: Updated border color to the dark gray from PatternItemView */
+    border: 1px solid #6b7280;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    border-radius: 4px; /* A single border radius for the whole card */
+    overflow: hidden; /* Ensures child panels conform to the rounded corners */
+    transition: box-shadow 0.2s ease; /* Removed border-color transition */
+}
+
+.mixer-track:hover {
+    /* The border color no longer changes on hover, only the shadow deepens */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+}
+
+/* Panel 1: The header for the instrument name (mute button) */
+.instrument-header {
+    font-weight: 500;
+    color: #343a40;
+    background-color: #ffffff; /* A clean, white background */
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
+    text-align: center;
+    /* CHANGED: Using a lighter gray for the internal separator line */
+    border-bottom: 1px solid #d1d5db; 
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.instrument-header.is-muted {
+    background-color: #e5e7eb;
+    color: #6b7280;
+    border-bottom-color: #d1d5db;
+}
+
+/* Panel 2: The container for the volume slider */
+.volume-slider-panel {
+    padding: 0.75rem;
+    background-color: #f8f9fa; /* A slightly off-white background to differentiate */
+}
+
+
+/* --- Volume Slider Styles --- */
+
 .volume-slider {
     -webkit-appearance: none;
     appearance: none;
     width: 100%;
     height: 8px;
-    /* NEW: Prominent track color */
-    background: #cbd5e1; /* Tachyons 'slate-300' */
+    background: #e5e7eb;
     border-radius: 9999px;
     outline: none;
     transition: background-color 0.15s ease-in-out;
@@ -18,7 +64,7 @@
     appearance: none;
     width: 16px;
     height: 16px;
-    background: #3b82f6; /* Tachyons 'blue-500' */
+    background: #3b82f6; /* The primary accent blue */
     cursor: pointer;
     border-radius: 9999px;
 }
@@ -26,13 +72,7 @@
 .volume-slider::-moz-range-thumb {
     width: 16px;
     height: 16px;
-    background: #3b82f6; /* Tachyons 'blue-500' */
+    background: #3b82f6;
     cursor: pointer;
     border-radius: 9999px;
-}
-
-/* Style for the instrument header when its track is muted */
-.instrument-header.is-muted {
-    background-color: #94a3b8; /* Tachyons 'slate-400' */
-    color: #e2e8f0; /* Tachyons 'slate-200' */
 }
