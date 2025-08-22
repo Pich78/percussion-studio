@@ -61,12 +61,13 @@
     appearance: none;
     width: 100%;
     height: 8px;
-    /* MODIFIED: Make slider track transparent so text behind it is visible. */
-    background: transparent;
+    /* --- MODIFIED: Set a darker, harmonious gray for the track color. --- */
+    background: #d1d5db;
     border-radius: 9999px;
     outline: none;
     /* MODIFIED: Ensure slider is a positioned element for z-indexing */
     position: relative;
+    transition: background-color 0.2s ease; /* Added for smooth transition */
 }
 
 .volume-slider::-webkit-slider-thumb,
@@ -82,15 +83,25 @@
 }
 
 /* --- Muted (Disabled) State --- */
+
+/* This is the main rule for the disabled look */
 .mixer-track.is-muted {
-    background-color: #e5e7eb;
+    background-color: #e5e7eb; /* The uniform disabled background color */
     cursor: not-allowed;
 }
 
+/* The header text becomes muted */
 .mixer-track.is-muted .instrument-header {
     color: #9ca3af; 
 }
 
+/* --- NEW: Make the slider track "disappear" when muted --- */
+/* It takes on the same color as the muted background. */
+.mixer-track.is-muted .volume-slider {
+    background: #e5e7eb;
+}
+
+/* The slider thumb becomes a flat, inactive gray */
 .mixer-track.is-muted .volume-slider::-webkit-slider-thumb,
 .mixer-track.is-muted .volume-slider::-moz-range-thumb {
     background: #9ca3af;
