@@ -23,7 +23,8 @@
     flex-shrink: 0;
 }
 
-.pattern-info, .transport-controls, .settings-controls {
+/* --- MODIFIED: Removed transport and settings controls selectors --- */
+.pattern-info {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -56,17 +57,9 @@
     cursor: not-allowed;
 }
 
-/* --- MODIFIED: New style for active toggle buttons (like Loop) --- */
-.transport-controls button.active {
-    background-color: #d1e7ff; /* Light blue */
-    color: #004085;
-    border-color: #b8daff;
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
-}
+/* --- REMOVED: Style for active toggle buttons is no longer needed --- */
 
-.settings-controls input[type="number"] {
-    width: 60px;
-}
+/* --- REMOVED: Style for settings number input is no longer needed --- */
 
 
 /* --- NEW: Style for the scrollable container --- */

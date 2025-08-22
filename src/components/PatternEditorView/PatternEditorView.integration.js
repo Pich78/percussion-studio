@@ -3,39 +3,7 @@
 import { PatternEditorView } from './PatternEditorView.js';
 import { Logger, logEvent } from '/percussion-studio/lib/Logger.js';
 
-// --- NEW: Controller state for playback ---
-const playbackState = {
-    status: 'STOPPED', // STOPPED, PLAYING, PAUSED
-    isLooping: true,
-    bpm: 120,
-    volume: 80,
-};
-
-// --- NEW: Controller logic for transport controls ---
-function handleTransport({ action }) {
-    logEvent('info', 'Controller', 'handleTransport', 'Playback', `Transport action received: ${action}`);
-    switch (action) {
-        case 'play':
-            // If it was stopped, start from beginning. If paused, resume.
-            playbackState.status = 'PLAYING';
-            logEvent('info', 'Controller', 'handleTransport', 'Playback', `Playback state -> ${playbackState.status}`);
-            break;
-        case 'pause':
-            playbackState.status = 'PAUSED';
-            logEvent('info', 'Controller', 'handleTransport', 'Playback', `Playback state -> ${playbackState.status}`);
-            break;
-        case 'stop':
-            playbackState.status = 'STOPPED';
-            logEvent('info', 'Controller', 'handleTransport', 'Playback', `Playback state -> ${playbackState.status}`);
-            break;
-    }
-}
-
-// --- NEW: Controller logic for settings ---
-function handleSettingsChange(settings) {
-    logEvent('info', 'Controller', 'handleSettingsChange', 'Playback', `Settings changed`, settings);
-    Object.assign(playbackState, settings);
-}
+// --- REMOVED: Playback state and transport/settings handlers are no longer needed ---
 
 // --- NEW: Controller logic for saving ---
 function handleSave({ isNew, patternData }) {
@@ -92,12 +60,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const editorContainer = document.getElementById('pattern-editor-container');
 
     try {
-        // --- MODIFIED: Pass controller callbacks to the view ---
+        // --- MODIFIED: Pass only the save callback to the view ---
         const patternEditor = new PatternEditorView(editorContainer, {
             ...manifestData,
             onSave: handleSave,
-            onTransport: handleTransport,
-            onSettingsChange: handleSettingsChange,
         });
         logEvent('info', 'IntegrationTest', 'DOMContentLoaded', 'App', 'PatternEditorView component initialized successfully for manual testing.');
     } catch (error) {

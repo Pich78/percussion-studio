@@ -13,9 +13,9 @@ const HOLD_DURATION_MS = 200;
 const DEFAULT_PATTERN_NAME = 'New Pattern';
 
 export class PatternEditorView {
-    constructor(container, { instrumentDefs, soundPacks, onSave, onTransport, onSettingsChange }) {
+    constructor(container, { instrumentDefs, soundPacks, onSave }) {
         this.container = container;
-        this.callbacks = { onSave, onTransport, onSettingsChange };
+        this.callbacks = { onSave };
         // --- FIX: Create a dedicated root element for this component's content ---
         this.rootElement = document.createElement('div');
         this.rootElement.className = 'pattern-editor-view';
@@ -30,13 +30,7 @@ export class PatternEditorView {
             // --- NEW: State for the header controls ---
             patternName: DEFAULT_PATTERN_NAME,
             isDirty: false,
-            playback: {
-                // --- MODIFIED: Use a status string instead of a boolean for more granular control ---
-                status: 'STOPPED', // STOPPED, PLAYING, PAUSED
-                isLooping: true,
-                volume: 80,
-                bpm: 120,
-            }
+            // --- REMOVED: Playback state is no longer managed by this component ---
         };
 
         // --- NEW: Instantiate and own the global UI services ---
@@ -153,23 +147,11 @@ export class PatternEditorView {
         const header = document.createElement('div');
         header.className = 'pattern-editor-header';
 
-        const { status, isLooping, volume, bpm } = this.state.playback;
-
-        // --- MODIFIED: Render four separate transport buttons with explicit state handling ---
+        // --- MODIFIED: Render only the pattern name and save button ---
         header.innerHTML = `
             <div class="pattern-info">
                 <input type="text" class="pattern-name-input" data-control="patternName" value="${this.state.patternName}" />
                 <button class="pattern-save-btn" data-action="save" ${!this.state.isDirty ? 'disabled' : ''}>Save</button>
-            </div>
-            <div class="transport-controls">
-                <button data-action="play" ${status === 'PLAYING' ? 'disabled' : ''}>Play</button>
-                <button data-action="pause" ${status !== 'PLAYING' ? 'disabled' : ''}>Pause</button>
-                <button data-action="stop" ${status === 'STOPPED' ? 'disabled' : ''}>Stop</button>
-                <button data-action="loop" class="${isLooping ? 'active' : ''}">Loop</button>
-            </div>
-            <div class="settings-controls">
-                <label>BPM: <input type="number" data-control="bpm" value="${bpm}" min="40" max="300" /></label>
-                <label>Vol: <input type="range" data-control="volume" value="${volume}" min="0" max="100" /></label>
             </div>
         `;
         return header;
@@ -391,31 +373,9 @@ export class PatternEditorView {
         if (deleteBtn) this._deleteMeasure(parseInt(deleteBtn.dataset.measureId, 10));
         if (actionBtn) {
             const action = actionBtn.dataset.action;
-            // --- MODIFIED: Handle separate play, pause, and stop actions ---
-            switch (action) {
-                case 'save':
-                    this._handleSave();
-                    break;
-                case 'play':
-                    this.state.playback.status = 'PLAYING';
-                    this.callbacks.onTransport?.({ action: 'play' });
-                    this.render();
-                    break;
-                case 'pause':
-                    this.state.playback.status = 'PAUSED';
-                    this.callbacks.onTransport?.({ action: 'pause' });
-                    this.render();
-                    break;
-                case 'stop':
-                    this.state.playback.status = 'STOPPED';
-                    this.callbacks.onTransport?.({ action: 'stop' });
-                    this.render();
-                    break;
-                case 'loop':
-                    this.state.playback.isLooping = !this.state.playback.isLooping;
-                    this.callbacks.onSettingsChange?.({ isLooping: this.state.playback.isLooping });
-                    this.render();
-                    break;
+            // --- MODIFIED: Only handle the 'save' action as playback controls are removed ---
+            if (action === 'save') {
+                this._handleSave();
             }
         }
     }
@@ -441,26 +401,13 @@ export class PatternEditorView {
             return;
         }
     
-        // For other controls like sliders and number inputs, re-rendering is fine.
-        switch (control) {
-            case 'bpm':
-                this.state.playback.bpm = parseInt(event.target.value, 10);
-                this.callbacks.onSettingsChange?.({ bpm: this.state.playback.bpm });
-                break;
-            case 'volume':
-                this.state.playback.volume = parseInt(event.target.value, 10);
-                this.callbacks.onSettingsChange?.({ volume: this.state.playback.volume });
-                break;
-        }
-        this.state.isDirty = true;
-        this.render();
+        // --- REMOVED: Input handlers for playback controls are no longer needed ---
     }
 
     _handleSave() {
         const isNew = this.state.patternName === DEFAULT_PATTERN_NAME;
         const patternData = {
             name: this.state.patternName,
-            bpm: this.state.playback.bpm,
             measures: this.state.measures.map(m => this.childInstances.get(m.id)?.getState())
         };
         this.callbacks.onSave?.({ isNew, patternData });
