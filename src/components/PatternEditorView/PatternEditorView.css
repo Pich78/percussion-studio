@@ -4,7 +4,7 @@
     /* --- NEW: Use flexbox to manage layout and scrolling --- */
     display: flex;
     flex-direction: column;
-    max-height: 75vh; /* Set a max height to enable scrolling */
+    max-height: 95vh; /* Set a max height to enable scrolling */
     border: 1px solid #ccc;
     background-color: #f9f9f9;
     padding: 8px;
