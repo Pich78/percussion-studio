@@ -2,12 +2,11 @@
 
 /*
   Styles for the two-panel mixer track layout.
-  The .mixer-track is now the root element of a single component instance.
 */
 
 /* The container for an individual instrument track. It now acts as a card. */
 .mixer-track {
-    background-color: #ffffff;
+    background-color: #f3f4f6;
     border: 1px solid #6b7280;
     box-shadow: 0 1px 2px rgba(0,0,0,0.05);
     border-radius: 4px; /* A single border radius for the whole card */
@@ -23,24 +22,39 @@
 .instrument-header {
     font-weight: 500;
     color: #343a40;
-    background-color: #ffffff;
+    background-color: transparent;
     padding: 0.5rem 0.75rem;
     font-size: 0.9rem;
     text-align: center;
-    border-bottom: 1px solid #d1d5db; 
+    /* MODIFIED: The border is now handled by a pseudo-element, so we need a positioning context. */
+    position: relative; 
+    /* REMOVED: border-bottom: 1px solid #d1d5db; */
     transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* NEW: The inset separator line, created with a pseudo-element. */
+.instrument-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    /* These values create the inset effect, stopping the line from touching the edges */
+    left: 0.75rem;
+    right: 0.75rem;
+    height: 1px;
+    background-color: #d1d5db;
 }
 
 .instrument-header.is-muted {
     background-color: #e5e7eb;
     color: #6b7280;
-    border-bottom-color: #d1d5db;
 }
+
+/* The pseudo-element's color doesn't need to change for the muted state, so this is all we need */
 
 /* Panel 2: The container for the volume slider */
 .volume-slider-panel {
     padding: 0.75rem;
-    background-color: #f8f9fa;
+    background-color: transparent;
 }
 
 
@@ -62,7 +76,7 @@
     appearance: none;
     width: 16px;
     height: 16px;
-    background: #3b82f6;
+    background: #3b82f6; /* The primary accent blue */
     cursor: pointer;
     border-radius: 9999px;
 }
