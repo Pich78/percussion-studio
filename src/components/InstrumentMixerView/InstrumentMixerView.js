@@ -33,15 +33,16 @@ export class InstrumentMixerView {
         const isEffectivelyMuted = muted || volume === 0;
         const mutedClass = isEffectivelyMuted ? 'is-muted' : '';
 
-        this.container.className = `mixer-track flex flex-column ${mutedClass}`;
+        this.container.className = `mixer-track ${mutedClass}`;
         this.container.dataset.instrumentId = id;
 
+        // MODIFIED: Removed data-action attribute as it's no longer used for click handling.
         this.container.innerHTML = `
-            <div data-action="toggle-mute" class="instrument-header pointer truncate" title="${name}">
-                ${name}
-            </div>
             <div class="volume-slider-panel">
                 <input type="range" class="volume-slider w-100" min="0" max="1" step="0.01" value="${isEffectivelyMuted ? 0 : volume}" title="Volume">
+            </div>
+            <div class="instrument-header pointer truncate" title="${name}">
+                ${name}
             </div>
         `;
         this.isRendered = true;
@@ -63,8 +64,15 @@ export class InstrumentMixerView {
     }
 
     handleClick(event) {
-        const header = event.target.closest('[data-action="toggle-mute"]');
-        if (header && this.instrumentId) {
+        // --- FIX: Simplified click handling ---
+        // If the direct target of the click was the slider, do nothing.
+        // This prevents muting when the user intends to change the volume.
+        if (event.target.classList.contains('volume-slider')) {
+            return;
+        }
+
+        // For any other click on the component, trigger the mute callback.
+        if (this.instrumentId) {
             logEvent('debug', 'InstrumentMixerView', 'handleClick', 'Events', `Mute toggle requested for ${this.instrumentId}`);
             this.callbacks.onToggleMute?.(this.instrumentId);
         }
@@ -74,7 +82,6 @@ export class InstrumentMixerView {
         if (event.target.classList.contains('volume-slider') && this.instrumentId) {
             const newVolume = parseFloat(event.target.value);
             logEvent('debug', 'InstrumentMixerView', 'handleInput', 'Events', `Volume change for ${this.instrumentId}: ${newVolume}`);
-            // FIXED: Changed 'instrumentId' to 'this.instrumentId' to correctly fire the callback.
             this.callbacks.onVolumeChange?.(this.instrumentId, newVolume);
         }
     }

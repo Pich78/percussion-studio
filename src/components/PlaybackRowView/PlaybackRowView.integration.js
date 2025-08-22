@@ -45,7 +45,6 @@ let mockState = {
         [initialTracks[1].trackId]: '||----o-------s-------o-------s---||',
         [initialTracks[2].trackId]: '||o-p-o-p-o-p-o-p-o-p-o-p-o-p-o-p-||'
     },
-    // Mixer state is now part of the main state object, keyed by trackId
     mixer: {
         [initialTracks[0].trackId]: { volume: 1.0, muted: false, unmutedVolume: 1.0 },
         [initialTracks[1].trackId]: { volume: 0.8, muted: false, unmutedVolume: 0.8 },
@@ -61,6 +60,8 @@ let mockState = {
 const rowsContainer = document.getElementById('rows-inner-container');
 const callbackLogEl = document.getElementById('callback-log');
 const editorCursor = new EditorCursor();
+// --- FIX: A map to hold the component instances ---
+const viewInstances = new Map();
 
 // --- CORE LOGIC & STATE MANAGEMENT ---
 function logCallback(name, data) {
@@ -70,12 +71,33 @@ function logCallback(name, data) {
     callbackLogEl.scrollTop = callbackLogEl.scrollHeight;
 }
 
-function rerender() {
-    rowsContainer.innerHTML = '';
+// --- FIX: A function to re-render a single instance ---
+function renderSingleInstance(trackId) {
+    const track = mockState.tracks.find(t => t.trackId === trackId);
+    const view = viewInstances.get(trackId);
+    if (!track || !view) return;
+
     const totalCells = (mockState.metrics.beatsPerMeasure / mockState.metrics.beatUnit) * mockState.metrics.subdivision;
     let densityClass = 'density-medium';
     if (totalCells <= 12) densityClass = 'density-low';
     else if (totalCells > 32) densityClass = 'density-high';
+
+    const mixerState = mockState.mixer[trackId];
+    view.render({
+        instrument: track.instrument,
+        notation: mockState.pattern[trackId],
+        metrics: mockState.metrics,
+        densityClass: densityClass,
+        id: trackId,
+        volume: mixerState.volume,
+        muted: mixerState.muted,
+    });
+}
+
+
+function rerenderAll() {
+    rowsContainer.innerHTML = '';
+    viewInstances.clear(); // Clear old instances
 
     mockState.tracks.forEach((track) => {
         const container = document.createElement('div');
@@ -86,21 +108,16 @@ function rerender() {
             onGridMouseEnter: (instrument) => {
                 const soundLetter = mockState.activeSounds[trackId];
                 const sound = instrument.sounds.find(s => s.letter === soundLetter);
-                if (sound) {
-                    editorCursor.update({ isVisible: true, svg: sound.svg });
-                }
+                if (sound) editorCursor.update({ isVisible: true, svg: sound.svg });
             },
             onGridMouseLeave: () => editorCursor.update({ isVisible: false, svg: null }),
             onCellMouseDown: (tickIndex, event, hasNote) => {
                 logCallback('onCellMouseDown', { trackId, tickIndex, hasNote });
                 let patternArr = (mockState.pattern[trackId] || '').replace(/\|/g, '').split('');
-                if (hasNote) {
-                    patternArr[tickIndex] = '-';
-                } else {
-                    patternArr[tickIndex] = mockState.activeSounds[trackId];
-                }
+                if (hasNote) patternArr[tickIndex] = '-';
+                else patternArr[tickIndex] = mockState.activeSounds[trackId];
                 mockState.pattern[trackId] = '||' + patternArr.join('') + '||';
-                rerender(); // Simple rerender on click
+                renderSingleInstance(trackId); // Re-render only this instance
             },
             // Mixer Callbacks
             onVolumeChange: (id, vol) => {
@@ -110,7 +127,8 @@ function rerender() {
                     trackState.volume = vol;
                     trackState.muted = (vol === 0);
                     if (vol > 0) trackState.unmutedVolume = vol;
-                    rerender();
+                    // --- FIX: Call render on the specific instance, not the global function ---
+                    renderSingleInstance(id);
                 }
             },
             onToggleMute: (id) => {
@@ -119,22 +137,15 @@ function rerender() {
                 if (trackState) {
                     trackState.muted = !trackState.muted;
                     trackState.volume = trackState.muted ? 0 : trackState.unmutedVolume;
-                    rerender();
+                    // --- FIX: Call render on the specific instance, not the global function ---
+                    renderSingleInstance(id);
                 }
             },
         });
-
-        // Pass combined props to the new component
-        const mixerState = mockState.mixer[trackId];
-        view.render({
-            instrument: track.instrument,
-            notation: mockState.pattern[trackId],
-            metrics: mockState.metrics,
-            densityClass: densityClass,
-            id: trackId,
-            volume: mixerState.volume,
-            muted: mixerState.muted,
-        });
+        
+        // --- FIX: Store the new instance in the map ---
+        viewInstances.set(trackId, view);
+        renderSingleInstance(trackId); // Call the single renderer to do the initial render
     });
 }
 
@@ -148,11 +159,9 @@ function updateMetrics() {
     const unit = parseInt(denominatorInput.value, 10) || 4;
     const subdivision = Number(subdivisionSelect.value);
     let grouping = (subdivision / unit);
-    if ([6, 9, 12].includes(beats) && unit === 8) {
-        grouping = 3;
-    }
+    if ([6, 9, 12].includes(beats) && unit === 8) grouping = 3;
     mockState.metrics = { beatsPerMeasure: beats, beatUnit: unit, subdivision: subdivision, grouping: grouping };
-    rerender();
+    rerenderAll(); // A full rebuild is correct here since metrics affect all rows
 }
 
 [numeratorInput, denominatorInput, subdivisionSelect].forEach(el => el.addEventListener('change', updateMetrics));

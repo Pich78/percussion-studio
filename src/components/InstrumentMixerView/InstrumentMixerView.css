@@ -12,37 +12,48 @@
     border-radius: 4px;
     overflow: hidden;
     transition: box-shadow 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+
+    /* MODIFIED: Use CSS Grid to create a single-cell layout for stacking. */
+    display: grid;
+    /* MODIFIED: Removed align-items so we can control each element individually. */
+    /* MODIFIED: Adjusted padding to create vertical space at the top and bottom. */
+    padding: 0.4rem 0;
 }
 
 .mixer-track:hover {
     box-shadow: 0 1px 3px rgba(0,0,0,0.07);
 }
 
+.instrument-header,
+.volume-slider-panel {
+    /* MODIFIED: Assign both elements to the same grid cell to overlay them. */
+    grid-column: 1 / -1;
+    grid-row: 1 / -1;
+}
+
 .instrument-header {
     font-weight: 500;
     color: #343a40;
-    background-color: transparent;
-    padding: 0.5rem 0.75rem;
     font-size: 0.9rem;
     text-align: center;
-    position: relative; 
     transition: color 0.2s ease;
-}
-
-.instrument-header::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0.75rem;
-    right: 0.75rem;
-    height: 1px;
-    background-color: #d1d5db;
-    transition: background-color 0.2s ease;
+    /* MODIFIED: The name is on a lower visual layer. */
+    z-index: 10;
+    /* MODIFIED: Align this element to the top of the grid cell. */
+    align-self: start;
+    padding: 0 0.75rem; /* Horizontal padding only */
+    
+    /* --- FIX: Make the header transparent to mouse events --- */
+    /* This allows clicks to pass through to the slider below it. */
+    pointer-events: none;
 }
 
 .volume-slider-panel {
-    padding: 0.75rem;
-    background-color: transparent;
+    padding: 0 0.75rem;
+    /* MODIFIED: The slider panel is on a higher visual layer. */
+    z-index: 20;
+    /* MODIFIED: Align this element to the bottom of the grid cell. */
+    align-self: end;
 }
 
 .volume-slider {
@@ -50,9 +61,12 @@
     appearance: none;
     width: 100%;
     height: 8px;
-    background: #e5e7eb;
+    /* MODIFIED: Make slider track transparent so text behind it is visible. */
+    background: transparent;
     border-radius: 9999px;
     outline: none;
+    /* MODIFIED: Ensure slider is a positioned element for z-indexing */
+    position: relative;
 }
 
 .volume-slider::-webkit-slider-thumb,
@@ -68,24 +82,15 @@
 }
 
 /* --- Muted (Disabled) State --- */
-
-/* This is the main rule for the disabled look */
 .mixer-track.is-muted {
-    background-color: #e5e7eb; /* The uniform disabled background color */
-    cursor: not-allowed; /* The "unclickable" feeling */
+    background-color: #e5e7eb;
+    cursor: not-allowed;
 }
 
-/* The header text becomes muted */
 .mixer-track.is-muted .instrument-header {
     color: #9ca3af; 
 }
 
-/* The separator line also gets a muted color */
-.mixer-track.is-muted .instrument-header::after {
-    background-color: #cbd5e1;
-}
-
-/* The slider thumb becomes a flat, inactive gray */
 .mixer-track.is-muted .volume-slider::-webkit-slider-thumb,
 .mixer-track.is-muted .volume-slider::-moz-range-thumb {
     background: #9ca3af;
