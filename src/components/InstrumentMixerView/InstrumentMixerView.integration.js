@@ -19,36 +19,23 @@ function manualTest() {
     Logger.init({ level: 'debug' });
     Logger.setTarget('log-output');
 
-    // A single, unified state object for the entire "application". All instruments are merged.
+    // MODIFIED: The state object now only contains data for 3 instruments.
     const appState = {
         rhythm: {
             sound_kit: {
-                // From group 1
-                KCK: 'kick_1', SNR: 'snare_1', HHC: 'hihat_1',
-                // From group 2
-                TML: 'tom_low_1', TMH: 'tom_high_1', CYM: 'cymbal_1',
-                // From group 3
-                CLAP: 'clap_808', COW: 'cowbell_808',
-                // From group 4
-                REV: 'reverb_1', DLY: 'delay_1',
+                KCK: 'kick_1', 
+                SNR: 'snare_1', 
+                HHC: 'hihat_1',
             },
             instrumentDefsBySymbol: {
-                KCK: { name: 'Kick' }, SNR: { name: 'Snare' }, HHC: { name: 'Hi-Hat' },
-                TML: { name: 'Low Tom' }, TMH: { name: 'High Tom' }, CYM: { name: 'Cymbal' },
-                CLAP: { name: '808 Clap' }, COW: { name: '808 Cowbell' },
-                REV: { name: 'Reverb Send' }, DLY: { name: 'Delay Send' },
+                KCK: { name: 'Kick' }, 
+                SNR: { name: 'Snare' }, 
+                HHC: { name: 'Hi-Hat' },
             },
             mixer: {
                 kick_1: { volume: 1.0, muted: false, unmutedVolume: 1.0 },
                 snare_1: { volume: 0.8, muted: false, unmutedVolume: 0.8 },
                 hihat_1: { volume: 0.6, muted: true, unmutedVolume: 0.6 },
-                tom_low_1: { volume: 0.7, muted: false, unmutedVolume: 0.7 },
-                tom_high_1: { volume: 0.7, muted: false, unmutedVolume: 0.7 },
-                cymbal_1: { volume: 0.5, muted: false, unmutedVolume: 0.5 },
-                clap_808: { volume: 0.9, muted: false, unmutedVolume: 0.9 },
-                cowbell_808: { volume: 0, muted: true, unmutedVolume: 0.6 },
-                reverb_1: { volume: 0.25, muted: false, unmutedVolume: 0.25 },
-                delay_1: { volume: 0.4, muted: false, unmutedVolume: 0.4 },
             }
         }
     };
@@ -104,7 +91,7 @@ function manualTest() {
     const viewContainer = document.getElementById('view-container');
     const { sound_kit, mixer, instrumentDefsBySymbol } = appState.rhythm;
 
-    // A single loop to create all 10 instances in the single container.
+    // This loop will now run 3 times, creating one instance for each instrument.
     for (const [symbol, id] of Object.entries(sound_kit)) {
         const trackState = mixer[id];
         const instrumentDef = instrumentDefsBySymbol[symbol];
