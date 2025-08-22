@@ -7,21 +7,28 @@
     border: 1px solid #ddd;
     background-color: #fff;
     height: var(--row-height, 50px);
+    /* FIX: Force minimum width to prevent compression */
+    min-width: fit-content;
+    /* FIX: Allow the row to extend beyond container if needed */
+    width: max-content;
 }
 
 /* Container for the InstrumentMixerView instance */
 .playback-row-mixer {
     flex-shrink: 0;
-    width: 120px; /* Provides a consistent width for the mixer panel */
+    /* FIX: Use min-width in addition to width for stronger enforcement */
+    width: 120px;
+    min-width: 120px; /* This ensures it never goes below 120px */
+    max-width: 120px; /* This ensures it never goes above 120px */
     display: flex;
-    align-items: stretch; /* Make the inner component fill this container */
+    align-items: stretch;
     border-right: 1px solid #ddd;
 }
 
 /* The child mixer component should fill the container */
 .playback-row-mixer .mixer-track {
     width: 100%;
-    border: none; /* Remove default border from mixer as it's now embedded */
+    border: none;
     border-radius: 0;
     box-shadow: none;
 }
@@ -29,6 +36,7 @@
 .playback-row-grid {
     display: flex;
     flex-grow: 0;
+    flex-shrink: 0; /* FIX: Prevent grid from shrinking */
     cursor: none;
 }
 
@@ -44,15 +52,23 @@
 }
 
 /* Adaptive Sizing based on Density */
-.density-low .grid-cell { width: 60px; }
+.density-low .grid-cell { 
+    width: 60px; 
+    min-width: 60px; /* FIX: Enforce minimum width */
+}
 .density-low { --row-height: 60px; }
 
-.density-medium .grid-cell { width: 40px; }
-.density-medium { --row-height: 50px; } /* Mixer height is ~50px, let's align */
+.density-medium .grid-cell { 
+    width: 40px; 
+    min-width: 40px; /* FIX: Enforce minimum width */
+}
+.density-medium { --row-height: 50px; }
 
-.density-high .grid-cell { width: 30px; }
+.density-high .grid-cell { 
+    width: 30px; 
+    min-width: 30px; /* FIX: Enforce minimum width */
+}
 .density-high { --row-height: 50px; }
-
 
 .grid-cell .note {
     width: 80%;
@@ -72,7 +88,6 @@
 .grid-cell.sub-beat-line {
     border-left: 1px dotted #ddd;
 }
-
 
 .grid-cell.highlighted-beat:first-child {
     border-left: none;

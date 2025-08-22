@@ -18,6 +18,10 @@
     /* MODIFIED: Removed align-items so we can control each element individually. */
     /* MODIFIED: Adjusted padding to create vertical space at the top and bottom. */
     padding: 0.4rem 0;
+
+    /* --- FIX: Ensure padding is included in the element's total width --- */
+    /* This prevents the element from overflowing its container and causing unwanted shrinking. */
+    box-sizing: border-box;
 }
 
 .mixer-track:hover {
