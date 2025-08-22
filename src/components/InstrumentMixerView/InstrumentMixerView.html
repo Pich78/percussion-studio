@@ -7,13 +7,19 @@
     <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
     <link rel="stylesheet" href="/percussion-studio/css/global.css">
     <!-- The component will load its own CSS -->
-    <style> body { font-family: sans-serif; } </style>
+    <style> 
+        body { 
+            font-family: sans-serif;
+            /* MODIFIED: Set the background color as requested */
+            background-color: #EDF0F3; /* RGB(237, 240, 243) */
+        } 
+    </style>
 </head>
-<body class="bg-light-gray pa4">
+<!-- MODIFIED: Removed bg-light-gray class -->
+<body class="pa4">
     <div class="flex">
         <div class="w-70 pr3">
             <h1 class="f2 b mb3 bb pb2">Live View Workbench</h1>
-            <!-- MODIFIED: Text updated to reflect 3 instances -->
             <p class="f6 gray mb3">Below are 3 independent instances of the mixer component, rendered in a single, ungrouped list.</p>
             
             <!-- This single container will hold all dynamically generated instrument views -->

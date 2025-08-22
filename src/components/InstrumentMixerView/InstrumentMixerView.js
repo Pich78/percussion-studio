@@ -13,12 +13,10 @@ export class InstrumentMixerView {
         loadCSS('/percussion-studio/src/components/InstrumentMixerView/InstrumentMixerView.css');
         logEvent('info', 'InstrumentMixerView', 'constructor', 'Lifecycle', 'Component instance created.');
         
-        // Listeners are now on the component's root container
         this.container.addEventListener('click', this.handleClick.bind(this));
         this.container.addEventListener('input', this.handleInput.bind(this));
     }
 
-    // The render method now accepts state for a SINGLE instrument
     render(instrumentState) {
         logEvent('debug', 'InstrumentMixerView', 'render', 'State', `Render called for instrument ID: ${instrumentState.id}`, instrumentState);
         this.instrumentId = instrumentState.id;
@@ -35,12 +33,11 @@ export class InstrumentMixerView {
         const isEffectivelyMuted = muted || volume === 0;
         const mutedClass = isEffectivelyMuted ? 'is-muted' : '';
 
-        // The component's container IS the mixer track now. No more outer loops or containers.
-        this.container.className = 'mixer-track flex flex-column';
+        this.container.className = `mixer-track flex flex-column ${mutedClass}`;
         this.container.dataset.instrumentId = id;
 
         this.container.innerHTML = `
-            <div data-action="toggle-mute" class="instrument-header pointer truncate ${mutedClass}" title="${name}">
+            <div data-action="toggle-mute" class="instrument-header pointer truncate" title="${name}">
                 ${name}
             </div>
             <div class="volume-slider-panel">
@@ -55,11 +52,8 @@ export class InstrumentMixerView {
         const { volume, muted } = state;
         const isEffectivelyMuted = muted || volume === 0;
 
-        // Update header styles
-        const header = this.container.querySelector('.instrument-header');
-        header.classList.toggle('is-muted', isEffectivelyMuted);
+        this.container.classList.toggle('is-muted', isEffectivelyMuted);
 
-        // Update slider value
         const slider = this.container.querySelector('.volume-slider');
         const sliderValue = isEffectivelyMuted ? '0' : String(volume);
         if (slider.value !== sliderValue) {
@@ -80,6 +74,7 @@ export class InstrumentMixerView {
         if (event.target.classList.contains('volume-slider') && this.instrumentId) {
             const newVolume = parseFloat(event.target.value);
             logEvent('debug', 'InstrumentMixerView', 'handleInput', 'Events', `Volume change for ${this.instrumentId}: ${newVolume}`);
+            // FIXED: Changed 'instrumentId' to 'this.instrumentId' to correctly fire the callback.
             this.callbacks.onVolumeChange?.(this.instrumentId, newVolume);
         }
     }

@@ -4,21 +4,20 @@
   Styles for the two-panel mixer track layout.
 */
 
-/* The container for an individual instrument track. It now acts as a card. */
+/* --- Default State --- */
 .mixer-track {
     background-color: #f3f4f6;
     border: 1px solid #6b7280;
     box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-    border-radius: 4px; /* A single border radius for the whole card */
-    overflow: hidden; /* Ensures child panels conform to the rounded corners */
-    transition: box-shadow 0.2s ease;
+    border-radius: 4px;
+    overflow: hidden;
+    transition: box-shadow 0.2s ease, background-color 0.2s ease, color 0.2s ease;
 }
 
 .mixer-track:hover {
     box-shadow: 0 1px 3px rgba(0,0,0,0.07);
 }
 
-/* Panel 1: The header for the instrument name (mute button) */
 .instrument-header {
     font-weight: 500;
     color: #343a40;
@@ -26,39 +25,25 @@
     padding: 0.5rem 0.75rem;
     font-size: 0.9rem;
     text-align: center;
-    /* MODIFIED: The border is now handled by a pseudo-element, so we need a positioning context. */
     position: relative; 
-    /* REMOVED: border-bottom: 1px solid #d1d5db; */
-    transition: background-color 0.2s ease, color 0.2s ease;
+    transition: color 0.2s ease;
 }
 
-/* NEW: The inset separator line, created with a pseudo-element. */
 .instrument-header::after {
     content: '';
     position: absolute;
     bottom: 0;
-    /* These values create the inset effect, stopping the line from touching the edges */
     left: 0.75rem;
     right: 0.75rem;
     height: 1px;
     background-color: #d1d5db;
+    transition: background-color 0.2s ease;
 }
 
-.instrument-header.is-muted {
-    background-color: #e5e7eb;
-    color: #6b7280;
-}
-
-/* The pseudo-element's color doesn't need to change for the muted state, so this is all we need */
-
-/* Panel 2: The container for the volume slider */
 .volume-slider-panel {
     padding: 0.75rem;
     background-color: transparent;
 }
-
-
-/* --- Volume Slider Styles --- */
 
 .volume-slider {
     -webkit-appearance: none;
@@ -68,23 +53,40 @@
     background: #e5e7eb;
     border-radius: 9999px;
     outline: none;
-    transition: background-color 0.15s ease-in-out;
 }
 
-.volume-slider::-webkit-slider-thumb {
+.volume-slider::-webkit-slider-thumb,
+.volume-slider::-moz-range-thumb {
     -webkit-appearance: none;
     appearance: none;
     width: 16px;
     height: 16px;
-    background: #3b82f6; /* The primary accent blue */
+    background: #3b82f6; /* Active blue */
     cursor: pointer;
     border-radius: 9999px;
+    transition: background-color 0.2s ease;
 }
 
-.volume-slider::-moz-range-thumb {
-    width: 16px;
-    height: 16px;
-    background: #3b82f6;
-    cursor: pointer;
-    border-radius: 9999px;
+/* --- Muted (Disabled) State --- */
+
+/* This is the main rule for the disabled look */
+.mixer-track.is-muted {
+    background-color: #e5e7eb; /* The uniform disabled background color */
+    cursor: not-allowed; /* The "unclickable" feeling */
+}
+
+/* The header text becomes muted */
+.mixer-track.is-muted .instrument-header {
+    color: #9ca3af; 
+}
+
+/* The separator line also gets a muted color */
+.mixer-track.is-muted .instrument-header::after {
+    background-color: #cbd5e1;
+}
+
+/* The slider thumb becomes a flat, inactive gray */
+.mixer-track.is-muted .volume-slider::-webkit-slider-thumb,
+.mixer-track.is-muted .volume-slider::-moz-range-thumb {
+    background: #9ca3af;
 }
