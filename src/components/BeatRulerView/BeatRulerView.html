@@ -1,0 +1,75 @@
+<!-- file: src/components/BeatRulerView/BeatRulerView.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Live View Workbench: BeatRulerView</title>
+    <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
+    <style>
+        body { font-family: sans-serif; }
+        /* Define the cell-width variable that the CSS and JS depend on */
+        :root {
+            --cell-width: 40px;
+        }
+        /* Simple styling for the dummy grid to help with alignment */
+        .dummy-grid { display: flex; flex-direction: column; width: fit-content; padding-left: 150px; }
+        .dummy-grid-line { display: flex; height: 40px; }
+        .dummy-cell {
+            width: var(--cell-width);
+            min-width: var(--cell-width);
+            border-left: 1px solid #eee;
+            box-sizing: border-box;
+        }
+        .dummy-cell.strong-beat { border-left: 1px solid #bbb; background-color: #f0f0f0; }
+        .dummy-cell:first-child { border-left: none; }
+    </style>
+</head>
+<body class="bg-light-gray pa4">
+
+    <div class="flex">
+        <div class="w-70 pr3">
+            <h1 class="f2 b mb3 bb pb2">Live View Workbench: BeatRulerView</h1>
+            
+            <div class="bg-white shadow-2 pa3 mb3">
+                <h3 class="f4 b mt0">Controls</h3>
+                <p class="f6 gray">The script will simulate the `MeasureEditorView`'s logic to generate the correct layout properties for the ruler.</p>
+                
+                <div class="flex items-center">
+                    <div class="mr3">
+                        <label class="f6 b db mb2">Time Signature</label>
+                        <input id="ts-numerator" type="number" value="4" class="w3 tc"> /
+                        <input id="ts-denominator" type="number" value="4" class="w3 tc">
+                    </div>
+                    <div>
+                        <label for="subdivision-select" class="f6 b db mb2">Subdivision</label>
+                        <select id="subdivision-select" class="w5">
+                            <option value="4">4th Notes</option>
+                            <option value="8">8th Notes</option>
+                            <option value="16" selected>16th Notes</option>
+                            <option value="32">32nd Notes</option>
+                            <option value="64">64th Notes</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="f4 b mt0">Rendered Component</h3>
+            <div class="bg-white shadow-2">
+                <!-- The BeatRulerView component will be rendered here -->
+                <div id="ruler-container"></div>
+                <!-- A dummy grid is rendered below to check alignment -->
+                <div id="dummy-grid-container" class="dummy-grid"></div>
+            </div>
+            
+        </div>
+        <div class="w-30 pl3">
+            <div class="bg-near-black near-white pa3 br2 h-100">
+                <h2 class="f4 b bb pb2 mb2">Execution Log</h2>
+                <div id="log-output" class="f7 lh-copy" style="white-space: pre-wrap; height: 80vh; overflow-y: auto;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="./BeatRulerView.integration.js"></script>
+</body>
+</html>

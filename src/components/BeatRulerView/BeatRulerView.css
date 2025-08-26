@@ -1,0 +1,31 @@
+/* file: src/components/BeatRulerView/BeatRulerView.css */
+
+.beat-ruler {
+    display: flex;
+    flex-direction: column;
+    width: fit-content; /* The ruler container only takes up as much width as its lines */
+    padding-left: 150px; /* IMPORTANT: This offset must match the fixed width of the row header panel */
+    box-sizing: border-box;
+}
+
+.beat-ruler-line {
+    position: relative;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #ccc;
+    margin-bottom: 4px; /* Space between ruler lines for wrapped measures */
+    background-color: #f8f9fa;
+}
+
+.beat-ruler-number {
+    position: absolute;
+    top: 50%;
+    font-size: 11px;
+    font-weight: bold;
+    color: #495057;
+    /* This centers the number above the beat line instead of starting at the line */
+    transform: translate(-50%, -50%);
+    padding: 2px;
+    user-select: none;
+}
