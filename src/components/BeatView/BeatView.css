@@ -1,0 +1,27 @@
+/* file: src/components/BeatView/BeatView.css */
+
+.beat-view {
+    border: 1px solid #b0c4de; /* Light steel blue border */
+    background-color: #ffffff;
+    border-radius: 4px;
+    padding: 8px;
+    margin-bottom: 16px; /* Space between beats */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+
+.beat-view__header {
+    font-size: 0.75rem;
+    font-weight: bold;
+    color: #6c757d; /* Muted gray text */
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 8px 0;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #e9ecef; /* Faint line under the header */
+}
+
+.beat-view__rows {
+    display: flex;
+    flex-direction: column;
+    gap: 4px; /* Creates the small space between instrument rows within the beat */
+}
