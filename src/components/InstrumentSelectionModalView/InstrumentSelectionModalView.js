@@ -124,6 +124,7 @@ export class InstrumentSelectionModalView {
             this.hide();
         }
     }
+    
     /**
      * --- NEW: Cleanup method to remove event listeners ---
      */

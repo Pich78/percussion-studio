@@ -22,22 +22,26 @@ export async function run() {
     });
 
     runner.describe('InstrumentSelectionModalView', () => {
-        runner.it('should be hidden by default', () => {
+        let view = null;
+        
+        runner.afterEach(() => {
+            if (view) view.destroy();
             testContainer.innerHTML = '';
-            const view = new InstrumentSelectionModalView(testContainer, {});
+        });
+
+        runner.it('should be hidden by default', () => {
+            view = new InstrumentSelectionModalView(testContainer, {});
             runner.expect(testContainer.classList.contains('is-visible')).toBe(false);
         });
 
         runner.it('should become visible when show() is called', () => {
-            testContainer.innerHTML = '';
-            const view = new InstrumentSelectionModalView(testContainer, {});
+            view = new InstrumentSelectionModalView(testContainer, {});
             view.show(getMockData());
             runner.expect(testContainer.classList.contains('is-visible')).toBe(true);
         });
 
         runner.it('should update the sound pack list when an instrument type is clicked', () => {
-            testContainer.innerHTML = '';
-            const view = new InstrumentSelectionModalView(testContainer, {});
+            view = new InstrumentSelectionModalView(testContainer, {});
             view.show(getMockData());
 
             // Initially shows 1 kick pack
@@ -55,9 +59,8 @@ export async function run() {
         });
 
         runner.it('should fire onInstrumentSelected callback with correct data on confirm', () => {
-            testContainer.innerHTML = '';
             const callbackLog = new MockLogger('Callbacks');
-            const view = new InstrumentSelectionModalView(testContainer, {
+            view = new InstrumentSelectionModalView(testContainer, {
                 onInstrumentSelected: (sel) => callbackLog.log('onInstrumentSelected', sel)
             });
             view.show(getMockData());
@@ -72,8 +75,7 @@ export async function run() {
         });
 
         runner.it('should disable confirm button until a pack is selected', () => {
-             testContainer.innerHTML = '';
-            const view = new InstrumentSelectionModalView(testContainer, {});
+            view = new InstrumentSelectionModalView(testContainer, {});
             view.show(getMockData());
 
             // Confirm button is initially disabled
@@ -91,5 +93,5 @@ export async function run() {
 
     await runner.runAll();
     runner.renderResults('test-results');
-    logEvent('info', 'TestRunner', 'run', 'Teardown', 'InstrumentSelectionModalView test suite finished.');
+    logEvent('info', 'TestRunner', 'run', 'Teadown', 'InstrumentSelectionModalView test suite finished.');
 }
