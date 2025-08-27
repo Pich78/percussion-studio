@@ -1,0 +1,34 @@
+<!-- file: src/components/PlaybackRowHeaderView/PlaybackRowHeaderView.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Live View Workbench: PlaybackRowHeaderView</title>
+    <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
+    <style> 
+        body { font-family: sans-serif; background-color: #EDF0F3; } 
+    </style>
+</head>
+<body class="pa4">
+    <div class="flex">
+        <div class="w-70 pr3">
+            <h1 class="f2 b mb3 bb pb2">Live View Workbench: PlaybackRowHeaderView</h1>
+            <p class="f6 gray mb3">Interact with the mixer components below. Note how each one manages its own state and fires callbacks independently.</p>
+            
+            <div id="view-container" class="flex flex-column" style="gap: 0.5rem; width: 150px;">
+                <!-- Component instances will be dynamically added here -->
+            </div>
+            
+            <div id="callback-log" class="f7 code pa2 bg-washed-yellow mt3 h4 overflow-y-auto">Callbacks will appear here.</div>
+        </div>
+        <div class="w-30 pl3">
+            <div class="bg-near-black near-white pa3 br2 h-100">
+                <h2 class="f4 b bb pb2 mb2">Execution Log</h2>
+                <div id="log-output" class="f7 lh-copy" style="white-space: pre-wrap; height: 80vh; overflow-y: auto;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="./PlaybackRowHeaderView.integration.js"></script>
+</body>
+</html>
