@@ -1,0 +1,81 @@
+// file: src/components/EditorRowHeaderView/EditorRowHeaderView.test.js
+
+import { TestRunner } from '/percussion-studio/lib/TestRunner.js';
+import { MockLogger } from '/percussion-studio/lib/MockLogger.js';
+import { logEvent } from '/percussion-studio/lib/Logger.js';
+import { EditorRowHeaderView } from './EditorRowHeaderView.js';
+
+export async function run() {
+    const runner = new TestRunner();
+    MockLogger.clearLogs();
+    logEvent('info', 'TestRunner', 'run', 'Setup', 'Starting EditorRowHeaderView test suite.');
+    
+    const testContainer = document.getElementById('test-sandbox');
+
+    const getMockData = () => ({
+        instrument: { 
+            id: 'kck_1', 
+            name: 'Kick Drum', 
+            pack: 'Studio Kit' 
+        },
+    });
+
+    runner.describe('EditorRowHeaderView', () => {
+        let view = null;
+        
+        runner.afterEach(() => {
+            if (view) view.destroy();
+            testContainer.innerHTML = '';
+        });
+
+        runner.it('should render the instrument and pack names correctly', () => {
+            const props = getMockData();
+            view = new EditorRowHeaderView(testContainer, props);
+            view.render();
+            
+            const nameEl = testContainer.querySelector('.editor-header__instrument-name');
+            const packEl = testContainer.querySelector('.editor-header__pack-name');
+            
+            runner.expect(nameEl).not.toBe(null);
+            runner.expect(packEl).not.toBe(null);
+            runner.expect(nameEl.textContent).toBe('Kick Drum');
+            runner.expect(packEl.textContent).toBe('Studio Kit');
+        });
+        
+        runner.it('should fire onRequestInstrumentChange callback when clicked', () => {
+            const callbackLog = new MockLogger('Callbacks');
+            const props = getMockData();
+            props.callbacks = {
+                onRequestInstrumentChange: (instrument) => callbackLog.log('onRequestInstrumentChange', instrument)
+            };
+
+            view = new EditorRowHeaderView(testContainer, props);
+            view.render();
+            
+            testContainer.click(); // Click the container the component is attached to
+
+            callbackLog.wasCalledWith('onRequestInstrumentChange', props.instrument);
+        });
+
+        runner.it('should update its content when render is called with new data', () => {
+            const initialProps = getMockData();
+            view = new EditorRowHeaderView(testContainer, initialProps);
+            view.render();
+
+            let nameEl = testContainer.querySelector('.editor-header__instrument-name');
+            runner.expect(nameEl.textContent).toBe('Kick Drum');
+
+            const newInstrument = { id: 'snr_1', name: 'Snare', pack: 'Rock Kit' };
+            view.render(newInstrument);
+
+            nameEl = testContainer.querySelector('.editor-header__instrument-name');
+            const packEl = testContainer.querySelector('.editor-header__pack-name');
+            runner.expect(nameEl.textContent).toBe('Snare');
+            runner.expect(packEl.textContent).toBe('Rock Kit');
+        });
+    });
+
+    await runner.runAll();
+    runner.renderResults('test-results');
+    logEvent('info', 'TestRunner', 'run', 'Teardown', 'EditorRowHeaderView test suite finished.');
+}

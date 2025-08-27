@@ -1,0 +1,53 @@
+<!-- file: src/components/EditorRowHeaderView/EditorRowHeaderView.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Live View Workbench: EditorRowHeaderView</title>
+    <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
+    <!-- The component will load its own CSS -->
+    <style> 
+        body { font-family: sans-serif; } 
+    </style>
+</head>
+<body class="bg-light-gray pa4">
+
+    <div class="flex">
+        <div class="w-70 pr3">
+            <h1 class="f2 b mb3 bb pb2">Live View Workbench: EditorRowHeaderView</h1>
+            
+            <div class="bg-white shadow-2 pa3 mb3">
+                <h3 class="f4 b mt0">Controls</h3>
+                <p class="f6 gray">Change the text below to re-render the component. Click the component to see the callback fire.</p>
+                <div class="flex">
+                    <div class="mr3 w-50">
+                        <label class="f6 b db mb2">Instrument Name</label>
+                        <input id="instrument-name" type="text" value="Iya" class="w-100">
+                    </div>
+                    <div class="w-50">
+                        <label class="f6 b db mb2">Pack Name</label>
+                        <input id="pack-name" type="text" value="Dundunba Set" class="w-100">
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="f4 b mt0">Rendered Component</h3>
+            <p class="f6 gray">The component is rendered inside a container that simulates the fixed-size header panel (`150px` wide).</p>
+            <div class="bg-white shadow-2" style="width: 150px; height: 60px;">
+                <!-- The EditorRowHeaderView component will be rendered here -->
+                <div id="header-container"></div>
+            </div>
+            
+            <div id="callback-log" class="f7 code pa2 bg-washed-yellow mt3 h4 overflow-y-auto">Callbacks will appear here.</div>
+        </div>
+        <div class="w-30 pl3">
+            <div class="bg-near-black near-white pa3 br2 h-100">
+                <h2 class="f4 b bb pb2 mb2">Execution Log</h2>
+                <div id="log-output" class="f7 lh-copy" style="white-space: pre-wrap; height: 80vh; overflow-y: auto;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="./EditorRowHeaderView.integration.js"></script>
+</body>
+</html>
