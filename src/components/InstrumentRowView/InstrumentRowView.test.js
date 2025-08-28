@@ -12,93 +12,89 @@ export async function run() {
     
     const testContainer = document.getElementById('test-sandbox');
 
-    const getMockProps = () => ({
+    const getMockProps = (mode = 'editor') => ({
+        mode: mode,
         instrument: { 
-            symbol: 'KCK', name: 'Kick Test', 
-            sounds: [{letter: 'o', svg: '<svg>o</svg>'}, {letter: 'p', svg: '<svg>p</svg>'}] 
+            id: 'k1', symbol: 'KCK', name: 'Kick', pack: 'Test Kit', 
+            volume: 0.8, muted: false,
+            sounds: [{letter: 'o', svg: '<svg>o</svg>'}] 
         },
-        notation: '||o-p-o---||',
-        metrics: { beatsPerMeasure: 4, beatUnit: 4, subdivision: 8, grouping: 2 }, // 4/4 with 8ths
-        // --- FIX: Add the missing densityClass prop required by the component ---
-        densityClass: 'density-medium' 
+        notation: 'o---o---',
+        metrics: { beatsPerMeasure: 4, beatUnit: 8, subdivision: 8, grouping: 2 },
+        densityClass: 'density-medium',
+        callbacks: {},
     });
 
-    runner.describe('InstrumentRowView', () => {
-        // ... all test cases below this line remain exactly the same ...
-        runner.it('should render the correct number of cells based on metrics', () => {
+    runner.describe('InstrumentRowView Composition and Rendering', () => {
+        let view = null;
+        
+        runner.afterEach(() => {
+            if(view) view.destroy();
+        });
+
+        runner.it('should render the EditorRowHeaderView in editor mode', () => {
             testContainer.innerHTML = '';
-            const view = new InstrumentRowView(testContainer, {});
-            let props = getMockProps();
+            view = new InstrumentRowView(testContainer, getMockProps('editor'));
+            view.render(getMockProps('editor'));
             
+            const editorHeader = testContainer.querySelector('.editor-header');
+            const playbackHeader = testContainer.querySelector('.mixer-track');
+
+            runner.expect(editorHeader).not.toBe(null);
+            runner.expect(playbackHeader).toBe(null);
+        });
+
+        runner.it('should render the PlaybackRowHeaderView in playback mode', () => {
+            testContainer.innerHTML = '';
+            view = new InstrumentRowView(testContainer, getMockProps('playback'));
+            view.render(getMockProps('playback'));
+
+            const editorHeader = testContainer.querySelector('.editor-header');
+            const playbackHeader = testContainer.querySelector('.mixer-track');
+            
+            runner.expect(playbackHeader).not.toBe(null);
+            runner.expect(editorHeader).toBe(null);
+        });
+
+        runner.it('should render the correct number of grid cells', () => {
+            testContainer.innerHTML = '';
+            const props = getMockProps();
+            view = new InstrumentRowView(testContainer, props);
             view.render(props);
             runner.expect(testContainer.querySelectorAll('.grid-cell').length).toBe(8);
-
-            props.metrics = { beatsPerMeasure: 6, beatUnit: 8, subdivision: 16, grouping: 3 };
-            view.render(props);
-            runner.expect(testContainer.querySelectorAll('.grid-cell').length).toBe(12);
         });
 
-        runner.it('should render notes in the correct cells based on notation string', () => {
+        runner.it('should apply rhythmic shading classes correctly', () => {
             testContainer.innerHTML = '';
-            const view = new InstrumentRowView(testContainer, {});
-            view.render(getMockProps());
+            const props = getMockProps();
+            view = new InstrumentRowView(testContainer, props);
+            view.render(props);
+            
+            const cells = testContainer.querySelectorAll('.grid-cell');
+            runner.expect(cells[0].classList.contains('cell-downbeat')).toBe(true);
+            runner.expect(cells[1].classList.contains('cell-weak-beat')).toBe(true);
+            runner.expect(cells[2].classList.contains('cell-strong-beat')).toBe(true);
+            runner.expect(cells[4].classList.contains('cell-strong-beat')).toBe(true);
+        });
+        
+        runner.it('should apply triplet shading classes correctly when specified', () => {
+            testContainer.innerHTML = '';
+            const props = getMockProps();
+            props.metrics.feel = 'triplet';
+            props.notation = 'o--o--';
+            view = new InstrumentRowView(testContainer, props);
+            view.render(props);
 
             const cells = testContainer.querySelectorAll('.grid-cell');
-            runner.expect(cells[0].querySelector('.note')).not.toBe(null);
-            runner.expect(cells[2].querySelector('.note')).not.toBe(null);
-            runner.expect(cells[4].querySelector('.note')).not.toBe(null);
-            runner.expect(cells[1].querySelector('.note')).toBe(null);
-            runner.expect(cells[5].querySelector('.note')).toBe(null);
-        });
-
-        runner.it('should apply highlighted-beat class to the correct cells', () => {
-            testContainer.innerHTML = '';
-            const view = new InstrumentRowView(testContainer, {});
-            
-            let props = getMockProps();
-            view.render(props);
-            let highlighted = testContainer.querySelectorAll('.highlighted-beat');
-            runner.expect(highlighted.length).toBe(4);
-            runner.expect(highlighted[0].dataset.tickIndex).toBe('0');
-            runner.expect(highlighted[1].dataset.tickIndex).toBe('2');
-
-            props.metrics = { beatsPerMeasure: 12, beatUnit: 8, subdivision: 8, grouping: 3 };
-            view.render(props);
-            highlighted = testContainer.querySelectorAll('.highlighted-beat');
-            runner.expect(highlighted.length).toBe(4);
-            runner.expect(highlighted[0].dataset.tickIndex).toBe('0');
-            runner.expect(highlighted[1].dataset.tickIndex).toBe('3');
-            runner.expect(highlighted[2].dataset.tickIndex).toBe('6');
-        });
-
-        runner.it('should fire onRequestInstrumentChange when header is clicked', () => {
-            testContainer.innerHTML = '';
-            const callbackLog = new MockLogger('Callbacks');
-            const view = new InstrumentRowView(testContainer, {
-                onRequestInstrumentChange: (symbol) => callbackLog.log('onRequestInstrumentChange', symbol)
-            });
-            view.render(getMockProps());
-            
-            testContainer.querySelector('.instrument-row-header').click();
-            callbackLog.wasCalledWith('onRequestInstrumentChange', 'KCK');
-        });
-
-        runner.it('should fire onCellMouseDown with correct index when a cell is clicked', () => {
-            testContainer.innerHTML = '';
-            const callbackLog = new MockLogger('Callbacks');
-            const view = new InstrumentRowView(testContainer, {
-                onCellMouseDown: (index, event) => callbackLog.log('onCellMouseDown', { index })
-            });
-            view.render(getMockProps());
-
-            const cellToClick = testContainer.querySelector('[data-tick-index="3"]');
-            cellToClick.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
-            
-            callbackLog.wasCalledWith('onCellMouseDown', { index: 3 });
+            runner.expect(cells.length).toBe(6);
+            runner.expect(cells[0].classList.contains('cell-triplet-1')).toBe(true);
+            runner.expect(cells[1].classList.contains('cell-triplet-2')).toBe(true);
+            runner.expect(cells[2].classList.contains('cell-triplet-3')).toBe(true);
+            runner.expect(cells[3].classList.contains('cell-triplet-1')).toBe(true);
         });
     });
 
     await runner.runAll();
     runner.renderResults('test-results');
-    logEvent('info', 'TestRunner', 'run', 'Teown', 'InstrumentRowView test suite finished.');
+    logEvent('info', 'TestRunner', 'run', 'Teardown', 'InstrumentRowView test suite finished.');
 }

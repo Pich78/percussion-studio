@@ -1,91 +1,69 @@
 /* file: src/components/InstrumentRowView/InstrumentRowView.css */
 
 .instrument-row-view {
-    /* --- MODIFIED: Changed back to 'flex' --- */
-    /* This ensures the component is a block-level element, guaranteeing */
-    /* that each instrument will always render on its own new line. */
     display: flex;
-    
     align-items: stretch;
-    margin-bottom: 4px;
-    border: 1px solid #ddd;
-    background-color: #fff;
     height: var(--row-height, 50px);
-}
-
-.instrument-row-header {
-    flex-shrink: 0;
-    width: 150px;
-    padding: 8px;
-    background-color: #f7f7f7;
-    border-right: 1px solid #ddd;
-    font-weight: bold;
-    font-size: 0.9rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    user-select: none;
-    -webkit-user-select: none;
-}
-
-.instrument-row-header:hover {
-    background-color: #e0e0e0;
-}
-
-.instrument-row-grid {
-    display: flex;
-    /* --- MODIFIED: Ensure flex-grow is 0 --- */
-    /* This is the other half of the fix. It prevents the grid from stretching */
-    /* to fill empty space, preserving the "shrink-to-fit" behavior for the cells. */
-    flex-grow: 0;
-    cursor: none;
-}
-
-.grid-cell {
-    flex-grow: 0;
-    flex-shrink: 0;
     
-    border-left: 1px solid #eee;
+    /* --- FIX: Prevent the row from being compressed by its container --- */
+    min-width: fit-content; 
+}
+
+/* --- The Header "Slot" --- */
+.instrument-row__header-panel {
+    /* The "Golden Rule" for fixed size in a flex container */
+    flex: 0 0 150px;
+    box-sizing: border-box;
+    overflow: hidden;
+    display: flex; /* Helps child component fill the space */
+    border-right: 1px solid #dee2e6;
+}
+
+/* --- The Grid Panel --- */
+.instrument-row__grid-panel {
+    display: flex;
+}
+
+/* --- Grid Cells --- */
+.grid-cell {
+    /* --- FIX: Use explicit width from density class, and prevent shrinking --- */
+    flex-shrink: 0;
+    flex-grow: 0;
+
     display: flex;
     justify-content: center;
     align-items: center;
+    border-left: 1px solid #e9ecef;
+    box-sizing: border-box;
     position: relative;
     height: 100%;
 }
 
-/* Adaptive Sizing based on Density */
-.density-low .grid-cell { width: 60px; }
-.density-low { --row-height: 60px; }
-
-.density-medium .grid-cell { width: 40px; }
-.density-medium { --row-height: 40px; }
-
-.density-high .grid-cell { width: 30px; }
-.density-high { --row-height: 30px; }
-
-
-.grid-cell .note {
-    width: 80%;
-    height: 80%;
-}
-
-.grid-cell .note svg {
-    width: 100%;
-    height: 100%;
-}
-
-/* Main beat highlight (strongest line) */
-.grid-cell.highlighted-beat {
-    border-left: 1px solid #bbb;
-    background-color: rgba(0, 0, 0, 0.02);
-}
-
-/* Softer visual hint for high subdivisions */
-.grid-cell.sub-beat-line {
-    border-left: 1px dotted #ddd;
-}
-
-
-.grid-cell.highlighted-beat:first-child {
+.grid-cell:first-child {
     border-left: none;
 }
+
+/* Rhythmic Shading */
+.cell-weak-beat { background-color: #ffffff; }
+.cell-strong-beat { background-color: #f8f9fa; }
+.cell-downbeat { background-color: #e9ecef; }
+
+/* Triplet Shading */
+.cell-triplet-1 { background-color: #f1f3f5; }
+.cell-triplet-2 { background-color: #f8f9fa; }
+.cell-triplet-3 { background-color: #f8f9fa; }
+
+/* Note SVG Styling */
+.note { width: 80%; height: 80%; }
+.note svg { width: 100%; height: 100%; }
+
+/* Adaptive Sizing based on Density */
+/* The CSS variable controls the row height, while the width is applied directly to the cell */
+.density-low .grid-cell { width: 60px; }
+.instrument-row-view.density-low { --row-height: 60px; }
+
+.density-medium .grid-cell { width: 40px; }
+.instrument-row-view.density-medium { --row-height: 50px; }
+
+.density-high .grid-cell { width: 30px; }
+.instrument-row-view.density-high { --row-height: 40px; }

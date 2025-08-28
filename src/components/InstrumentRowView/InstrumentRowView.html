@@ -3,35 +3,22 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Workbench: InstrumentRowView</title>
+    <title>Live View Workbench: InstrumentRowView</title>
     <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
+    <!-- Load CSS for the component and ALL its dependencies -->
+    <link rel="stylesheet" href="/percussion-studio/src/components/PlaybackRowHeaderView/PlaybackRowHeaderView.css">
+    <link rel="stylesheet" href="/percussion-studio/src/components/EditorRowHeaderView/EditorRowHeaderView.css">
+    <!-- FIX: Add CSS for the modal -->
+    <link rel="stylesheet" href="/percussion-studio/src/components/InstrumentSelectionModalView/InstrumentSelectionModalView.css">
+    <link rel="stylesheet" href="./InstrumentRowView.css">
     <style> 
         body { font-family: sans-serif; } 
+        :root { --cell-width: 40px; }
         .rows-wrapper {
-            overflow-x: auto; /* Enable horizontal scrolling */
+            overflow-x: auto;
             border: 1px solid #ccc;
             padding: 8px;
             background-color: #f8f8f8;
-        }
-        .rows-inner-container {
-            width: fit-content;
-        }
-        .active-tool {
-            border: 2px solid #3b82f6;
-            padding: 8px;
-            display: flex;
-            align-items: center;
-            background-color: #eff6ff;
-        }
-        .active-tool .swatch {
-            width: 30px;
-            height: 30px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border: 1px solid #94a3b8;
-            background-color: white;
-            margin-right: 12px;
         }
     </style>
 </head>
@@ -39,47 +26,28 @@
 
     <div class="flex">
         <div class="w-70 pr3">
-            <h1 class="f2 b mb3 bb pb2">Live View Workbench</h1>
+            <h1 class="f2 b mb3 bb pb2">Live View Workbench: InstrumentRowView</h1>
             
             <div class="bg-white shadow-2 pa3 mb3">
-                <h3 class="f4 b mt0">Global Controls</h3>
-                
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center">
-                        <div class="mr3">
-                            <label class="f6 b db mb2">Time Signature</label>
-                            <input id="ts-numerator" type="number" value="4" class="w3 tc"> /
-                            <input id="ts-denominator" type="number" value="4" class="w3 tc">
-                        </div>
-                        <div>
-                            <label for="subdivision-select" class="f6 b db mb2">Subdivision</label>
-                            <select id="subdivision-select" class="w5">
-                                <option value="4">4th Notes</option>
-                                <option value="8">8th Notes</option>
-                                <option value="16" selected>16th Notes</option>
-                                <option value="32">32nd Notes</option>
-                                <option value="64">64th Notes</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="f6 b db mb2">Active Tool</label>
-                        <div id="active-tool-display" class="active-tool">
-                            <div id="active-tool-swatch" class="swatch"></div>
-                            <span id="active-tool-name" class="f6"></span>
-                        </div>
-                    </div>
+                <h3 class="f4 b mt0">Controls</h3>
+                <p class="f6 gray">Select a rhythm to see how the row renders. Interact with the headers to test callbacks.</p>
+                <div class="mv3">
+                    <label for="rhythm-select" class="f6 b db mb2">Rhythm Configuration</label>
+                    <select id="rhythm-select" class="w-100"></select>
                 </div>
+            </div>
 
-                <hr class="mv3"/>
+            <div class="mb4">
+                <h3 class="f4 b mt0">Editor Mode</h3>
                 <div class="rows-wrapper">
-                    <div id="rows-inner-container" class="rows-inner-container">
-                        <!-- InstrumentRowView components will be rendered here -->
-                    </div>
+                    <div id="editor-row-container"></div>
                 </div>
-                <!-- --- NEW: Button to add a new track --- -->
-                <div class="mt3">
-                    <button id="add-track-btn" class="pv2 ph3 bn br2 bg-green white pointer hover-bg-dark-green f6">Add Kick Drum Track</button>
+            </div>
+
+            <div>
+                <h3 class="f4 b mt0">Playback Mode</h3>
+                <div class="rows-wrapper">
+                    <div id="playback-row-container"></div>
                 </div>
             </div>
             
@@ -92,7 +60,8 @@
             </div>
         </div>
     </div>
-
+    
+    <!-- FIX: Add the global container for the selection modal -->
     <div id="modal-container"></div>
 
     <script type="module" src="./InstrumentRowView.integration.js"></script>

@@ -2,86 +2,111 @@
 
 import { loadCSS } from '/percussion-studio/lib/dom.js';
 import { logEvent } from '/percussion-studio/lib/Logger.js';
+import { EditorRowHeaderView } from '/percussion-studio/src/components/EditorRowHeaderView/EditorRowHeaderView.js';
+import { PlaybackRowHeaderView } from '/percussion-studio/src/components/PlaybackRowHeaderView/PlaybackRowHeaderView.js';
 
 export class InstrumentRowView {
-    constructor(container, callbacks) {
+    constructor(container, { mode, instrument, callbacks }) {
         this.container = container;
+        this.mode = mode || 'editor';
         this.callbacks = callbacks || {};
+        this.headerComponent = null;
+        this.gridPanel = null;
+        this.rootEl = null;
 
         loadCSS('/percussion-studio/src/components/InstrumentRowView/InstrumentRowView.css');
-        logEvent('debug', 'InstrumentRowView', 'constructor', 'Lifecycle', 'Component created.');
+        this._renderBaseLayout();
+
+        const headerPanel = this.container.querySelector('.instrument-row__header-panel');
+        
+        if (this.mode === 'playback') {
+            this.headerComponent = new PlaybackRowHeaderView(headerPanel, {
+                onVolumeChange: this.callbacks.onVolumeChange,
+                onToggleMute: this.callbacks.onToggleMute
+            });
+        } else {
+            this.headerComponent = new EditorRowHeaderView(headerPanel, {
+                instrument: instrument,
+                callbacks: {
+                    onRequestInstrumentChange: this.callbacks.onRequestInstrumentChange
+                }
+            });
+        }
+        logEvent('debug', 'InstrumentRowView', 'constructor', 'Lifecycle', `[${Date.now()}] Component created in '${this.mode}' mode.`);
+    }
+
+    _renderBaseLayout() {
+        this.rootEl = document.createElement('div');
+        this.rootEl.className = 'instrument-row-view';
+        
+        this.rootEl.innerHTML = `
+            <div class="instrument-row__header-panel"></div>
+            <div class="instrument-row__grid-panel"></div>
+        `;
+        this.gridPanel = this.rootEl.querySelector('.instrument-row__grid-panel');
+        this.container.appendChild(this.rootEl);
     }
 
     render({ instrument, notation, metrics, densityClass }) {
-        logEvent('debug', 'InstrumentRowView', 'render', 'State', `Rendering row for ${instrument.symbol} with density ${densityClass}`);
+        logEvent('debug', 'InstrumentRowView', 'render', 'State', `[${Date.now()}] Rendering row for ${instrument.symbol}`);
 
-        // --- FIX: Create a new root element for the component ---
-        // This is the core of the fix. We build everything in this element first.
-        const rowEl = document.createElement('div');
-        rowEl.className = `instrument-row-view ${densityClass}`;
+        // Set the density class on the root element to control row height
+        this.rootEl.className = `instrument-row-view ${densityClass}`;
 
-        const totalCells = (metrics.beatsPerMeasure / metrics.beatUnit) * metrics.subdivision;
-        const notationChars = notation.replace(/\|/g, '');
-
-        const headerEl = document.createElement('div');
-        headerEl.className = 'instrument-row-header';
-        headerEl.textContent = instrument.name;
-        headerEl.addEventListener('click', (event) => {
-            // New log line to confirm the click event is being handled here.
-            logEvent('debug', 'InstrumentRowView', 'render', 'Events', `Instrument header for "${instrument.name}" clicked. Invoking onRequestInstrumentChange callback.`);
-            this.callbacks.onRequestInstrumentChange?.(instrument.symbol);
-        });
-
-        const gridEl = document.createElement('div');
-        gridEl.className = 'instrument-row-grid';
-        gridEl.addEventListener('mouseenter', () => this.callbacks.onGridMouseEnter?.(instrument));
-        gridEl.addEventListener('mouseleave', () => this.callbacks.onGridMouseLeave?.());
-
-        for (let i = 0; i < totalCells; i++) {
-            const cellEl = document.createElement('div');
-            cellEl.className = 'grid-cell';
-            cellEl.dataset.tickIndex = i;
-
-            if ((i % metrics.grouping) === 0) {
-                cellEl.classList.add('highlighted-beat');
-            } else if (metrics.subdivision >= 32) {
-                const sixteenthGrouping = metrics.grouping / 2;
-                if ((i % sixteenthGrouping) === 0) {
-                    cellEl.classList.add('sub-beat-line');
-                }
-            }
-
-            const soundLetter = notationChars[i];
-            const hasNote = soundLetter && soundLetter !== '-';
-            if (hasNote) {
-                const sound = instrument.sounds.find(s => s.letter === soundLetter);
-                if (sound?.svg) {
-                    const noteEl = document.createElement('div');
-                    noteEl.className = 'note';
-                    noteEl.innerHTML = sound.svg;
-                    cellEl.appendChild(noteEl);
-                }
-            }
-            
-            cellEl.addEventListener('mousedown', (event) => {
-                event.preventDefault();
-                this.callbacks.onCellMouseDown?.(i, event, hasNote);
+        // 1. Render the composed header
+        if (this.mode === 'playback') {
+            this.headerComponent.render({
+                id: instrument.id,
+                name: instrument.name,
+                volume: instrument.volume,
+                muted: instrument.muted
             });
-            
-            cellEl.addEventListener('mouseup', (event) => {
-                this.callbacks.onCellMouseUp?.(i, event);
-            });
-
-            // Append the finished cell to the grid
-            gridEl.appendChild(cellEl);
+        } else {
+            this.headerComponent.render(instrument);
         }
 
-        // --- FIX: Assemble the component in memory first ---
-        rowEl.appendChild(headerEl);
-        rowEl.appendChild(gridEl);
+        // 2. Render the grid
+        this.gridPanel.innerHTML = '';
+        const notationChars = notation.replace(/\|/g, '');
+        
+        for (let i = 0; i < notationChars.length; i++) {
+            const cellEl = this._createCell(i, notationChars[i], instrument, metrics);
+            this.gridPanel.appendChild(cellEl);
+        }
+    }
 
-        // --- FIX: As the final step, safely replace the container's content ---
+    _createCell(index, soundLetter, instrument, metrics) {
+        const cellEl = document.createElement('div');
+        cellEl.className = 'grid-cell';
+        cellEl.dataset.tickIndex = index;
+        
+        // Rhythmic Shading Logic
+        const isTriplet = metrics.feel === 'triplet';
+        if (isTriplet) {
+            const tripletPos = index % 3;
+            cellEl.classList.add(`cell-triplet-${tripletPos + 1}`);
+        } else {
+            const isDownbeat = (index === 0);
+            const isStrongBeat = (index > 0) && (index % metrics.grouping) === 0;
+            if (isDownbeat) cellEl.classList.add('cell-downbeat');
+            else if (isStrongBeat) cellEl.classList.add('cell-strong-beat');
+            else cellEl.classList.add('cell-weak-beat');
+        }
+
+        const hasNote = soundLetter && soundLetter !== '-';
+        if (hasNote) {
+            const sound = instrument.sounds.find(s => s.letter === soundLetter);
+            if (sound?.svg) {
+                cellEl.innerHTML = `<div class="note">${sound.svg}</div>`;
+            }
+        }
+        
+        return cellEl;
+    }
+
+    destroy() {
+        this.headerComponent?.destroy();
         this.container.innerHTML = '';
-        this.container.appendChild(rowEl);
+        logEvent('debug', 'InstrumentRowView', 'destroy', 'Lifecycle', `[${Date.now()}] Component destroyed.`);
     }
 }

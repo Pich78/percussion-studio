@@ -5,9 +5,9 @@
     <meta charset="UTF-8">
     <title>Test Runner: InstrumentRowView</title>
     <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
-    <style> 
-        body { font-family: sans-serif; } 
-    </style>
+    <!-- Load CSS for dependencies, which the component under test will create -->
+    <link rel="stylesheet" href="/percussion-studio/src/components/EditorRowHeaderView/EditorRowHeaderView.css">
+    <link rel="stylesheet" href="/percussion-studio/src/components/PlaybackRowHeaderView/PlaybackRowHeaderView.css">
 </head>
 <body class="bg-light-gray pa4">
 
@@ -25,22 +25,24 @@
         </div>
     </div>
 
-    <!-- Hidden sandbox area for the tests to safely manipulate the DOM -->
     <div id="test-sandbox" style="position: absolute; visibility: hidden;"></div>
 
     <script type="module">
+        // --- FIX: Removed the 'jest' hack ---
         import { run } from './InstrumentRowView.test.js';
         import { Logger } from '/percussion-studio/lib/Logger.js';
 
-        // Initialize the logger to display output from the test suite
+        // We need to ensure the JS for the child components is loaded so the main component can instantiate them.
+        import '/percussion-studio/src/components/EditorRowHeaderView/EditorRowHeaderView.js';
+        import '/percussion-studio/src/components/PlaybackRowHeaderView/PlaybackRowHeaderView.js';
+
         Logger.init({ level: 'debug' });
         Logger.setTarget('log-output');
 
-        // Wire up the button to execute the test runner
         document.getElementById('run-tests-btn').addEventListener('click', run);
         
-        // Optional: Run tests automatically on page load
-        // run(); 
+        // Run tests on page load
+        run(); 
     </script>
 </body>
 </html>
