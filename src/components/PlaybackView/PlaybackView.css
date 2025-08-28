@@ -1,0 +1,18 @@
+/* file: src/components/PlaybackView/PlaybackView.css */
+
+.playback-view {
+    border: 1px solid #adb5bd;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    padding: 16px;
+}
+
+.playback-view__measures-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px; /* Space between measure components */
+}
+
+.playback-view__measure-container {
+    /* The child component (PlaybackMeasureView) will fill this container */
+}
