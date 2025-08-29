@@ -1,35 +1,29 @@
 /* file: src/components/InstrumentRowView/InstrumentRowView.css */
 
-.instrument-row-view {
+/* --- Panels (These are direct grid items in BeatChunkPanel) --- */
+.instrument-row__header-panel,
+.instrument-row__grid-panel {
     display: flex;
     align-items: stretch;
     height: var(--row-height, 50px);
-    
-    /* --- FIX: Prevent the row from being compressed by its container --- */
-    min-width: fit-content; 
+    box-sizing: border-box;
 }
 
-/* --- The Header "Slot" --- */
 .instrument-row__header-panel {
-    /* The "Golden Rule" for fixed size in a flex container */
-    flex: 0 0 150px;
-    box-sizing: border-box;
-    overflow: hidden;
-    display: flex; /* Helps child component fill the space */
     border-right: 1px solid #dee2e6;
 }
 
-/* --- The Grid Panel --- */
-.instrument-row__grid-panel {
-    display: flex;
-}
+/* Apply density-based height to the panels */
+.density-low { --row-height: 60px; }
+.density-medium { --row-height: 50px; }
+.density-high { --row-height: 40px; }
+
 
 /* --- Grid Cells --- */
 .grid-cell {
-    /* --- FIX: Use explicit width from density class, and prevent shrinking --- */
     flex-shrink: 0;
     flex-grow: 0;
-
+    width: var(--cell-width, 40px); /* Use a CSS variable for width */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -56,14 +50,3 @@
 /* Note SVG Styling */
 .note { width: 80%; height: 80%; }
 .note svg { width: 100%; height: 100%; }
-
-/* Adaptive Sizing based on Density */
-/* The CSS variable controls the row height, while the width is applied directly to the cell */
-.density-low .grid-cell { width: 60px; }
-.instrument-row-view.density-low { --row-height: 60px; }
-
-.density-medium .grid-cell { width: 40px; }
-.instrument-row-view.density-medium { --row-height: 50px; }
-
-.density-high .grid-cell { width: 30px; }
-.instrument-row-view.density-high { --row-height: 40px; }

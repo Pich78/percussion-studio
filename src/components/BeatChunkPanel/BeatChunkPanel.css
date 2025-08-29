@@ -4,12 +4,23 @@
     display: grid;
     /* This defines the core two-column layout */
     grid-template-columns: 150px auto; 
+
+    /* --- FIX: Explicitly define the row heights --- */
+    /* The first row (for the ruler) will have a fixed height. */
+    grid-template-rows: 24px; /* e.g., 24px for the ruler row */
     
+    /* All subsequent rows (for the instruments) will get their height from this property. */
+    /* It will default to 50px but can be overridden by the density variable. */
+    grid-auto-rows: var(--row-height, 50px);
+
     border: 1px solid #dee2e6;
     background-color: #ffffff;
     border-radius: 4px;
     padding: 8px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    
+    /* Use a gap for consistent spacing between all rows */
+    gap: 4px 0; /* 4px row gap, 0px column gap */
 }
 
 /* --- Grid Item Placement --- */
@@ -18,7 +29,8 @@
 .beat-chunk-panel__ruler-area {
     grid-column: 2 / 3;
     grid-row: 1 / 2;
-    padding-left: 0 !important; /* Override the ruler's own padding */
+    padding-left: 0 !important;
+    align-self: center; /* Vertically center the ruler content */
 }
 /* The empty header area is in the first row, first column */
 .beat-chunk-panel__header-area--empty {
@@ -27,13 +39,15 @@
     border-right: 1px solid #dee2e6;
 }
 
-/* Each InstrumentRowView container will span both columns and create a new row */
-.beat-chunk-panel__row-container {
-    grid-column: 1 / -1; /* Span all columns */
-    margin-top: 4px;
+/* Each InstrumentRowView container will now be a direct grid item */
+/* We no longer need the .beat-chunk-panel__row-container wrapper */
+
+/* The InstrumentRowView's header panel is placed in the first column of its row */
+.instrument-row__header-panel {
+    grid-column: 1 / 2;
 }
 
-/* Ensure the InstrumentRowView's header aligns with our grid */
-.beat-chunk-panel__row-container .instrument-row__header-panel {
-    border-right: 1px solid #dee2e6; /* This creates the vertical line */
+/* The InstrumentRowView's grid panel is placed in the second column of its row */
+.instrument-row__grid-panel {
+    grid-column: 2 / 3;
 }

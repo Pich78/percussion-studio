@@ -5,6 +5,20 @@ import { MockLogger } from '/percussion-studio/lib/MockLogger.js';
 import { logEvent } from '/percussion-studio/lib/Logger.js';
 import { InstrumentRowView } from './InstrumentRowView.js';
 
+// --- Mocks for Headers ---
+let headerRenderCount = 0;
+let lastHeaderProps = null;
+class MockHeader {
+    constructor(container, props) {
+        lastHeaderProps = props;
+    }
+    render(props) {
+        headerRenderCount++;
+        lastHeaderProps = props;
+    }
+    destroy() {}
+}
+
 export async function run() {
     const runner = new TestRunner();
     MockLogger.clearLogs();
@@ -12,85 +26,55 @@ export async function run() {
     
     const testContainer = document.getElementById('test-sandbox');
 
-    const getMockProps = (mode = 'editor') => ({
-        mode: mode,
-        instrument: { 
-            id: 'k1', symbol: 'KCK', name: 'Kick', pack: 'Test Kit', 
-            volume: 0.8, muted: false,
-            sounds: [{letter: 'o', svg: '<svg>o</svg>'}] 
-        },
-        notation: 'o---o---',
-        metrics: { beatsPerMeasure: 4, beatUnit: 8, subdivision: 8, grouping: 2 },
-        densityClass: 'density-medium',
+    const getMockProps = () => ({
+        instrument: { id: 'k1', symbol: 'KCK', sounds: [] },
+        notation: 'o---',
+        metrics: { beatGrouping: 4, feel: 'duple' },
+        HeaderComponent: MockHeader,
+        headerProps: { name: 'Test Kick' }, // The generic props object
         callbacks: {},
     });
 
-    runner.describe('InstrumentRowView Composition and Rendering', () => {
-        let view = null;
+    runner.describe('InstrumentRowView Rendering', () => {
+        let view, headerPanel, gridPanel;
         
+        runner.beforeEach(() => {
+            headerRenderCount = 0;
+            lastHeaderProps = null;
+            testContainer.innerHTML = `
+                <div id="header-panel-test"></div>
+                <div id="grid-panel-test"></div>
+            `;
+            headerPanel = document.getElementById('header-panel-test');
+            gridPanel = document.getElementById('grid-panel-test');
+        });
+
         runner.afterEach(() => {
             if(view) view.destroy();
         });
 
-        runner.it('should render the EditorRowHeaderView in editor mode', () => {
-            testContainer.innerHTML = '';
-            view = new InstrumentRowView(testContainer, getMockProps('editor'));
-            view.render(getMockProps('editor'));
-            
-            const editorHeader = testContainer.querySelector('.editor-header');
-            const playbackHeader = testContainer.querySelector('.mixer-track');
-
-            runner.expect(editorHeader).not.toBe(null);
-            runner.expect(playbackHeader).toBe(null);
-        });
-
-        runner.it('should render the PlaybackRowHeaderView in playback mode', () => {
-            testContainer.innerHTML = '';
-            view = new InstrumentRowView(testContainer, getMockProps('playback'));
-            view.render(getMockProps('playback'));
-
-            const editorHeader = testContainer.querySelector('.editor-header');
-            const playbackHeader = testContainer.querySelector('.mixer-track');
-            
-            runner.expect(playbackHeader).not.toBe(null);
-            runner.expect(editorHeader).toBe(null);
+        runner.it('should pass headerProps to the injected header component', () => {
+            const props = getMockProps();
+            view = new InstrumentRowView({ headerPanel, gridPanel }, props);
+            runner.expect(lastHeaderProps.name).toBe('Test Kick');
         });
 
         runner.it('should render the correct number of grid cells', () => {
-            testContainer.innerHTML = '';
             const props = getMockProps();
-            view = new InstrumentRowView(testContainer, props);
+            view = new InstrumentRowView({ headerPanel, gridPanel }, props);
             view.render(props);
-            runner.expect(testContainer.querySelectorAll('.grid-cell').length).toBe(8);
+            runner.expect(gridPanel.querySelectorAll('.grid-cell').length).toBe(4);
         });
 
-        runner.it('should apply rhythmic shading classes correctly', () => {
-            testContainer.innerHTML = '';
+        runner.it('should call render on its header component with updated props', () => {
             const props = getMockProps();
-            view = new InstrumentRowView(testContainer, props);
-            view.render(props);
+            view = new InstrumentRowView({ headerPanel, gridPanel }, props);
             
-            const cells = testContainer.querySelectorAll('.grid-cell');
-            runner.expect(cells[0].classList.contains('cell-downbeat')).toBe(true);
-            runner.expect(cells[1].classList.contains('cell-weak-beat')).toBe(true);
-            runner.expect(cells[2].classList.contains('cell-strong-beat')).toBe(true);
-            runner.expect(cells[4].classList.contains('cell-strong-beat')).toBe(true);
-        });
-        
-        runner.it('should apply triplet shading classes correctly when specified', () => {
-            testContainer.innerHTML = '';
-            const props = getMockProps();
-            props.metrics.feel = 'triplet';
-            props.notation = 'o--o--';
-            view = new InstrumentRowView(testContainer, props);
-            view.render(props);
+            const newRenderProps = { ...props, headerProps: { name: 'New Name' } };
+            view.render(newRenderProps);
 
-            const cells = testContainer.querySelectorAll('.grid-cell');
-            runner.expect(cells.length).toBe(6);
-            runner.expect(cells[0].classList.contains('cell-triplet-1')).toBe(true);
-            runner.expect(cells[1].classList.contains('cell-triplet-2')).toBe(true);
-            runner.expect(cells[2].classList.contains('cell-triplet-3')).toBe(true);
-            runner.expect(cells[3].classList.contains('cell-triplet-1')).toBe(true);
+            runner.expect(headerRenderCount).toBe(1);
+            runner.expect(lastHeaderProps.name).toBe('New Name');
         });
     });
 

@@ -6,6 +6,8 @@
     <title>Live View Workbench: InstrumentRowView</title>
     <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
     <!-- Load CSS for the component and ALL its dependencies -->
+    <link rel="stylesheet" href="/percussion-studio/src/components/BeatChunkPanel/BeatChunkPanel.css">
+    <link rel="stylesheet" href="/percussion-studio/src/components/BeatRulerView/BeatRulerView.css">
     <link rel="stylesheet" href="/percussion-studio/src/components/PlaybackRowHeaderView/PlaybackRowHeaderView.css">
     <link rel="stylesheet" href="/percussion-studio/src/components/EditorRowHeaderView/EditorRowHeaderView.css">
     <!-- FIX: Add CSS for the modal -->
@@ -14,12 +16,6 @@
     <style> 
         body { font-family: sans-serif; } 
         :root { --cell-width: 40px; }
-        .rows-wrapper {
-            overflow-x: auto;
-            border: 1px solid #ccc;
-            padding: 8px;
-            background-color: #f8f8f8;
-        }
     </style>
 </head>
 <body class="bg-light-gray pa4">
@@ -27,31 +23,18 @@
     <div class="flex">
         <div class="w-70 pr3">
             <h1 class="f2 b mb3 bb pb2">Live View Workbench: InstrumentRowView</h1>
+            <p class="f6 gray mb3">
+                This workbench now demonstrates the full interactive loop. Interacting with a header will fire a callback, update the state, and re-render the component.
+            </p>
             
-            <div class="bg-white shadow-2 pa3 mb3">
-                <h3 class="f4 b mt0">Controls</h3>
-                <p class="f6 gray">Select a rhythm to see how the row renders. Interact with the headers to test callbacks.</p>
-                <div class="mv3">
-                    <label for="rhythm-select" class="f6 b db mb2">Rhythm Configuration</label>
-                    <select id="rhythm-select" class="w-100"></select>
-                </div>
-            </div>
-
-            <div class="mb4">
-                <h3 class="f4 b mt0">Editor Mode</h3>
-                <div class="rows-wrapper">
-                    <div id="editor-row-container"></div>
-                </div>
-            </div>
-
-            <div>
-                <h3 class="f4 b mt0">Playback Mode</h3>
-                <div class="rows-wrapper">
-                    <div id="playback-row-container"></div>
-                </div>
-            </div>
+            <h3 class="f4 b mt0">Editor Mode Example</h3>
+            <div id="editor-panel-container"></div>
+            
+            <h3 class="f4 b mt4">Playback Mode Example</h3>
+            <div id="playback-panel-container"></div>
             
             <div id="callback-log" class="f7 code pa2 bg-washed-yellow mt3 h4 overflow-y-auto">Callbacks will appear here.</div>
+
         </div>
         <div class="w-30 pl3">
             <div class="bg-near-black near-white pa3 br2 h-100">
@@ -60,7 +43,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- FIX: Add the global container for the selection modal -->
     <div id="modal-container"></div>
 
