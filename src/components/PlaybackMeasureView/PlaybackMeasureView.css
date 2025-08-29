@@ -1,0 +1,9 @@
+/* file: src/components/PlaybackMeasureView/PlaybackMeasureView.css */
+
+.playback-measure-view {
+    /* This component is primarily a logical container. */
+    /* Visual styling is handled by its child, MeasureLayoutView, and its children. */
+    /* We can add a border or background here if we want to visually group the entire measure */
+    /* in a way that's distinct from the BeatView grouping. */
+    border: 1px solid transparent; /* Reserve space, but keep it subtle */
+}

@@ -1,0 +1,55 @@
+<!-- file: src/components/PlaybackMeasureView/PlaybackMeasureView.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Live View Workbench: PlaybackMeasureView</title>
+    <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
+    <!-- Load CSS for the component AND ALL its real dependencies -->
+    <link rel="stylesheet" href="/percussion-studio/src/components/MeasureLayoutView/MeasureLayoutView.css">
+    <link rel="stylesheet" href="/percussion-studio/src/components/BeatRulerView/BeatRulerView.css">
+    <link rel="stylesheet" href="/percussion-studio/src/components/BeatView/BeatView.css">
+    <link rel="stylesheet" href="/percussion-studio/src/components/InstrumentRowView/InstrumentRowView.css">
+    <link rel="stylesheet" href="/percussion-studio/src/components/PlaybackRowHeaderView/PlaybackRowHeaderView.css">
+    <link rel="stylesheet" href="./PlaybackMeasureView.css">
+    <style> 
+        body { font-family: sans-serif; } 
+        :root { --cell-width: 40px; }
+    </style>
+</head>
+<body class="bg-light-gray pa4">
+
+    <div class="flex">
+        <div class="w-70 pr3">
+            <h1 class="f2 b mb3 bb pb2">Live View Workbench: PlaybackMeasureView</h1>
+            
+            <div class="bg-white shadow-2 pa3 mb3">
+                <h3 class="f4 b mt0">Controls</h3>
+                <div class="flex items-center justify-between">
+                    <div>
+                        <label for="measure-select" class="f6 b db mb2">Select Saved Measure Data</label>
+                        <select id="measure-select"></select>
+                    </div>
+                    <div>
+                        <label for="playhead-slider" class="f6 b db mb2">Simulate Playhead (<span id="playhead-value">-1</span>)</label>
+                        <input type="range" id="playhead-slider" min="-1" max="15" value="-1" class="w5">
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="f4 b mt0">Rendered Component</h3>
+            <!-- The PlaybackMeasureView component will be rendered here -->
+            <div id="measure-container"></div>
+            
+        </div>
+        <div class="w-30 pl3">
+            <div class="bg-near-black near-white pa3 br2 h-100">
+                <h2 class="f4 b bb pb2 mb2">Execution Log</h2>
+                <div id="log-output" class="f7 lh-copy" style="white-space: pre-wrap; height: 80vh; overflow-y: auto;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="./PlaybackMeasureView.integration.js"></script>
+</body>
+</html>
