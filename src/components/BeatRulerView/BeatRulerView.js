@@ -15,7 +15,6 @@ export class BeatRulerView {
     render({ groupingPattern, beatGrouping }) {
         logEvent('debug', 'BeatRulerView', 'render', 'State', 'Render called with', { groupingPattern, beatGrouping });
 
-        // Clear previous state
         this.container.innerHTML = '';
 
         const rulerEl = document.createElement('div');
@@ -23,20 +22,15 @@ export class BeatRulerView {
 
         let beatCounter = 1;
 
-        // A groupingPattern like [16, 12] means two lines.
         for (const boxesInThisLine of groupingPattern) {
             const lineEl = document.createElement('div');
             lineEl.className = 'beat-ruler-line';
             lineEl.style.width = `calc(${boxesInThisLine} * var(--cell-width, 40px))`;
 
-            // For each beat on this specific line...
-            // The loop increments by the number of boxes in a single beat.
             for (let i = 0; i < boxesInThisLine; i += beatGrouping) {
                 const numberEl = document.createElement('span');
                 numberEl.className = 'beat-ruler-number';
                 numberEl.textContent = beatCounter;
-
-                // Position the number at the start of its beat group, relative to the line.
                 numberEl.style.left = `calc(${i} * var(--cell-width, 40px))`;
                 
                 lineEl.appendChild(numberEl);
@@ -47,5 +41,14 @@ export class BeatRulerView {
         
         this.container.appendChild(rulerEl);
         this.isRendered = true;
+    }
+
+    /**
+     * --- FIX: Added the missing destroy method ---
+     * This method is called by the parent component to clean up the DOM.
+     */
+    destroy() {
+        this.container.innerHTML = '';
+        logEvent('debug', 'BeatRulerView', 'destroy', 'Lifecycle', 'Component destroyed.');
     }
 }

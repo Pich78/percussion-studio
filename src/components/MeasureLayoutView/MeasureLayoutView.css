@@ -1,0 +1,24 @@
+/* file: src/components/MeasureLayoutView/MeasureLayoutView.css */
+
+.measure-layout-view {
+    display: flex;
+    flex-direction: column;
+}
+
+.measure-layout-view__ruler {
+    flex-shrink: 0;
+    margin-bottom: 4px;
+}
+
+.measure-layout-view__beats {
+    display: flex;
+    flex-direction: column;
+}
+
+/* --- Playback Indicator --- */
+/* This is a generic class that can be applied to a grid cell */
+.grid-cell.is-active {
+    background-color: #fffde7 !important; /* Important to override rhythmic shading */
+    box-shadow: inset 0 0 0 2px #fbc02d;
+    z-index: 10;
+}
