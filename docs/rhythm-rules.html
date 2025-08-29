@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Rhythm Layout Rules Visualization</title>
+    <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
+    <style>
+        body { font-family: sans-serif; }
+        .rule-table { border-collapse: collapse; }
+        .rule-table th, .rule-table td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        .line-break { 
+            display: block;
+            margin-top: 4px;
+            padding-top: 4px;
+            border-top: 1px dashed #aaa;
+        }
+    </style>
+</head>
+<body class="pa4">
+    <h1 class="f2 b mb3 bb pb2">Rhythm Layout Rules Visualization</h1>
+    <p class="f6 gray mb4">
+        This table is automatically generated from the <code>METRICS_CONFIG</code> object. It shows how each rhythm is broken down into lines for rendering in the editor.
+    </p>
+
+    <div id="table-container"></div>
+
+    <script type="module">
+        import { METRICS_CONFIG } from '/percussion-studio/src/config/MetricsConfiguration.js';
+
+        const container = document.getElementById('table-container');
+        let tableHtml = `<table class="rule-table w-100">
+            <thead>
+                <tr>
+                    <th>Time Signature</th>
+                    <th>Subdivision</th>
+                    <th>Total Boxes</th>
+                    <th>Beat Grouping</th>
+                    <th>Feel</th>
+                    <th>Rendered Layout (Grouping Pattern)</th>
+                </tr>
+            </thead>
+            <tbody>`;
+
+        for (const timeSigKey in METRICS_CONFIG) {
+            const timeSigConfig = METRICS_CONFIG[timeSigKey];
+            for (const subKey in timeSigConfig.subdivisions) {
+                const subConfig = timeSigConfig.subdivisions[subKey];
+                
+                // Format the grouping pattern for display
+                const layoutDisplay = subConfig.groupingPattern
+                    .map(boxes => `<div>${boxes} boxes</div>`)
+                    .join('<span class="line-break"></span>');
+
+                tableHtml += `
+                    <tr>
+                        <td><strong>${timeSigConfig.label}</strong></td>
+                        <td>${subConfig.label}</td>
+                        <td>${subConfig.totalBoxes}</td>
+                        <td>${subConfig.beatGrouping}</td>
+                        <td><code class="bg-washed-blue pa1 br2 f7">${subConfig.feel}</code></td>
+                        <td>${layoutDisplay}</td>
+                    </tr>
+                `;
+            }
+        }
+
+        tableHtml += '</tbody></table>';
+        container.innerHTML = tableHtml;
+    </script>
+</body>
+</html>
