@@ -1,0 +1,39 @@
+/* file: src/components/BeatChunkPanel/BeatChunkPanel.css */
+
+.beat-chunk-panel {
+    display: grid;
+    /* This defines the core two-column layout */
+    grid-template-columns: 150px auto; 
+    
+    border: 1px solid #dee2e6;
+    background-color: #ffffff;
+    border-radius: 4px;
+    padding: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+
+/* --- Grid Item Placement --- */
+
+/* The ruler area is in the first row, second column */
+.beat-chunk-panel__ruler-area {
+    grid-column: 2 / 3;
+    grid-row: 1 / 2;
+    padding-left: 0 !important; /* Override the ruler's own padding */
+}
+/* The empty header area is in the first row, first column */
+.beat-chunk-panel__header-area--empty {
+    grid-column: 1 / 2;
+    grid-row: 1 / 2;
+    border-right: 1px solid #dee2e6;
+}
+
+/* Each InstrumentRowView container will span both columns and create a new row */
+.beat-chunk-panel__row-container {
+    grid-column: 1 / -1; /* Span all columns */
+    margin-top: 4px;
+}
+
+/* Ensure the InstrumentRowView's header aligns with our grid */
+.beat-chunk-panel__row-container .instrument-row__header-panel {
+    border-right: 1px solid #dee2e6; /* This creates the vertical line */
+}
