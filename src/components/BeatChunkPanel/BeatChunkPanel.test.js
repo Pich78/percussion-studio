@@ -9,20 +9,14 @@ import { BeatChunkPanel } from './BeatChunkPanel.js';
 let lastInjectedHeaderComponent = null;
 let instrumentRowInstanceCount = 0;
 const MockInstrumentRowView = class {
-    constructor(container, props) {
-        lastInjectedHeaderComponent = props.HeaderComponent;
+    constructor({ headerPanel, gridPanel }, { HeaderComponent }) {
+        lastInjectedHeaderComponent = HeaderComponent;
         instrumentRowInstanceCount++;
     }
-    render(props) { }
-    destroy() { }
-};
-
-const MockBeatRulerView = class {
-    constructor() {}
-    render() {}
+    render(props) {}
     destroy() {}
 };
-
+const MockBeatRulerView = class { constructor() {}; render() {}; destroy() {}; };
 class MockEditorHeader {}
 class MockPlaybackHeader {}
 // --- End of Mocks ---
@@ -60,7 +54,6 @@ export async function run() {
 
         runner.it('should instantiate one InstrumentRowView for each instrument', () => {
             testContainer.innerHTML = '';
-            // --- FIX: Inject mocks during construction ---
             panel = new BeatChunkPanel(testContainer, {}, mockDependencies);
             const props = getMockProps();
             props.instruments.push({ id: 's1', pattern: '----' });

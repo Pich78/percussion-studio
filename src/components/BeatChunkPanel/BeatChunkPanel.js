@@ -19,11 +19,14 @@ export class BeatChunkPanel {
             rows: new Map(),
         };
 
+        this.lastRenderProps = {}; // Store props for granular updates
+
         loadCSS('/percussion-studio/src/components/BeatChunkPanel/BeatChunkPanel.css');
         logEvent('debug', 'BeatChunkPanel', 'constructor', 'Lifecycle', 'Component created.');
     }
 
     render({ beatNumber, boxesInChunk, instruments, metrics, HeaderComponent }) {
+        this.lastRenderProps = { beatNumber, boxesInChunk, instruments, metrics, HeaderComponent };
         logEvent('debug', 'BeatChunkPanel', 'render', 'State', `Rendering Beat Chunk starting at beat #${beatNumber} with ${boxesInChunk} boxes.`);
 
         this.destroyChildren();
@@ -43,7 +46,8 @@ export class BeatChunkPanel {
         const rulerView = new this.BeatRulerView(rulerArea);
         rulerView.render({ 
             groupingPattern: [boxesInChunk], 
-            beatGrouping: metrics.beatGrouping 
+            beatGrouping: metrics.beatGrouping,
+            startingBeat: beatNumber,
         });
         this.childInstances.ruler = rulerView;
         
@@ -57,29 +61,16 @@ export class BeatChunkPanel {
             panelEl.appendChild(headerPanel);
             panelEl.appendChild(gridPanel);
 
-            // --- Logic to prepare the correct props for the specific header ---
             let headerProps;
             if (HeaderComponent === PlaybackRowHeaderView) {
-                // Playback header needs a specific state object
-                headerProps = {
-                    id: instrument.id,
-                    name: instrument.name,
-                    volume: instrument.volume,
-                    muted: instrument.muted,
-                };
+                headerProps = { id: instrument.id, name: instrument.name, volume: instrument.volume, muted: instrument.muted };
             } else {
-                // Editor header can take the whole instrument object
                 headerProps = instrument;
             }
 
             const rowView = new this.InstrumentRowView(
                 { headerPanel, gridPanel },
-                {
-                    HeaderComponent: HeaderComponent,
-                    instrument, // Still needed for the grid itself
-                    callbacks: this.callbacks,
-                    headerProps: headerProps // Pass the prepared props
-                }
+                { HeaderComponent, headerProps, callbacks: this.callbacks }
             );
             
             let densityClass = 'density-medium';
@@ -89,15 +80,23 @@ export class BeatChunkPanel {
             headerPanel.classList.add(densityClass);
             gridPanel.classList.add(densityClass);
 
-            rowView.render({ 
-                instrument, 
-                notation: instrument.pattern, 
-                metrics,
-                headerProps: headerProps // Pass props to render as well
-            });
-            
+            rowView.render({ instrument, notation: instrument.pattern, metrics, headerProps });
             this.childInstances.rows.set(instrument.id, rowView);
         });
+    }
+
+    updateInstrument(instrument) {
+        const rowView = this.childInstances.rows.get(instrument.id);
+        if (rowView) {
+            const { metrics, HeaderComponent } = this.lastRenderProps;
+            let headerProps;
+            if (HeaderComponent === PlaybackRowHeaderView) {
+                headerProps = { id: instrument.id, name: instrument.name, volume: instrument.volume, muted: instrument.muted };
+            } else {
+                headerProps = instrument;
+            }
+            rowView.render({ instrument, notation: instrument.pattern, metrics, headerProps });
+        }
     }
 
     destroyChildren() {

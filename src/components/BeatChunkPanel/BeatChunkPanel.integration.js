@@ -2,8 +2,6 @@
 
 import { BeatChunkPanel } from './BeatChunkPanel.js';
 import { Logger, logEvent } from '/percussion-studio/lib/Logger.js';
-
-// Import all real dependencies that the panel will instantiate
 import { EditorRowHeaderView } from '/percussion-studio/src/components/EditorRowHeaderView/EditorRowHeaderView.js';
 import { PlaybackRowHeaderView } from '/percussion-studio/src/components/PlaybackRowHeaderView/PlaybackRowHeaderView.js';
 
@@ -11,18 +9,16 @@ import { PlaybackRowHeaderView } from '/percussion-studio/src/components/Playbac
 Logger.init({ level: 'debug' });
 Logger.setTarget('log-output');
 
-// --- MOCK DATA ---
-const mockInstruments = [
-    { id: 'kck_1', name: 'Kick', pack: 'Studio Kick', pattern: 'o---o---o---o---', sounds:[] },
-    { id: 'snr_1', name: 'Snare', pack: 'Rock Snare', pattern: '----o-------o---', sounds:[] },
-    { id: 'hhc_1', name: 'Hi-Hat', pack: 'Acoustic Hats', pattern: 'x-x-x-x-x-x-x-x-', sounds:[] },
-    { id: 'tom_1', name: 'Tom 1', pack: 'Floor Tom', pattern: '------------o---', sounds:[] },
-    { id: 'cr_1', name: 'Crash', pack: 'Acoustic Crash', pattern: 's---------------', sounds:[] },
-];
-
-const mockMetrics = {
-    beatsPerMeasure: 4, beatUnit: 4, subdivision: 16, 
-    beatGrouping: 4, feel: 'duple'
+// --- MOCK DATA & STATE ---
+let mockState = {
+    metrics: { beatGrouping: 4, feel: 'duple' },
+    instruments: [
+        { id: 'kck_1', name: 'Kick', pack: 'Studio Kick', pattern: 'o---'.repeat(4), volume: 1.0, muted: false, unmutedVolume: 1.0, sounds:[] },
+        { id: 'snr_1', name: 'Snare', pack: 'Rock Snare', pattern: '----o---'.repeat(2), volume: 0.8, muted: false, unmutedVolume: 0.8, sounds:[] },
+        { id: 'hhc_1', name: 'Hi-Hat', pack: 'Acoustic', pattern: 'x-x-'.repeat(4), volume: 0.6, muted: true, unmutedVolume: 0.6, sounds:[] },
+        { id: 'tom_1', name: 'Tom 1', pack: 'Floor Tom', pattern: '------------o---', volume: 0.9, muted: false, unmutedVolume: 0.9, sounds:[] },
+        { id: 'cr_1', name: 'Crash', pack: 'Acoustic', pattern: 's---------------', volume: 0.7, muted: false, unmutedVolume: 0.7, sounds:[] },
+    ]
 };
 
 // --- DOM REFERENCES ---
@@ -30,27 +26,50 @@ const panelContainer = document.getElementById('panel-container');
 const modeSelect = document.getElementById('mode-select');
 const instrumentCountInput = document.getElementById('instrument-count');
 
+// --- CALLBACKS & STATE MANAGEMENT ---
+const callbacks = {
+    onVolumeChange: (id, vol) => {
+        const instrument = mockState.instruments.find(i => i.id === id);
+        if (instrument) {
+            instrument.volume = vol;
+            instrument.muted = (vol === 0);
+            if (vol > 0) instrument.unmutedVolume = vol;
+            // Granular update: only re-render the one instrument that changed
+            beatChunkPanel.updateInstrument(instrument);
+        }
+    },
+    onToggleMute: (id) => {
+        const instrument = mockState.instruments.find(i => i.id === id);
+        if (instrument) {
+            instrument.muted = !instrument.muted;
+            instrument.volume = instrument.muted ? 0 : instrument.unmutedVolume;
+            // Granular update
+            beatChunkPanel.updateInstrument(instrument);
+        }
+    },
+    onRequestInstrumentChange: (instrument) => {
+        window.alert(`Request to change ${instrument.name}.`);
+    }
+};
+
 // --- COMPONENT INSTANCE ---
-const beatChunkPanel = new BeatChunkPanel(panelContainer, {});
+const beatChunkPanel = new BeatChunkPanel(panelContainer, callbacks);
 
 // --- CORE LOGIC ---
 function rerender() {
     const mode = modeSelect.value;
     const instrumentCount = parseInt(instrumentCountInput.value, 10);
-
-    // --- The Core of Dependency Injection ---
-    // The workbench, acting as the "smart parent", decides which component class to inject.
     const HeaderComponentToInject = (mode === 'editor') ? EditorRowHeaderView : PlaybackRowHeaderView;
     
-    logEvent('info', 'Workbench', 'rerender', 'DependencyInjection', `Injecting '${HeaderComponentToInject.name}' into the panel.`);
+    logEvent('info', 'Workbench', 'rerender', 'FullRender', `Performing full re-render for mode: ${mode}`);
 
-    const instrumentsForPanel = mockInstruments.slice(0, instrumentCount);
+    const instrumentsForPanel = mockState.instruments.slice(0, instrumentCount);
     
     beatChunkPanel.render({
         beatNumber: 1,
         boxesInChunk: 16,
         instruments: instrumentsForPanel,
-        metrics: mockMetrics,
+        metrics: mockState.metrics,
         HeaderComponent: HeaderComponentToInject
     });
 }

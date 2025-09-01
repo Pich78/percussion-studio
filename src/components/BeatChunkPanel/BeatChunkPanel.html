@@ -12,8 +12,13 @@
     <link rel="stylesheet" href="/percussion-studio/src/components/PlaybackRowHeaderView/PlaybackRowHeaderView.css">
     <link rel="stylesheet" href="./BeatChunkPanel.css">
     <style> 
-        body { font-family: sans-serif; } 
-        :root { --cell-width: 40px; }
+        body { 
+            font-family: sans-serif;
+            font-size: calc(12px + 0.5vw);
+        } 
+        :root { 
+            --cell-width: 2.5rem; /* Responsive cell width */
+        }
     </style>
 </head>
 <body class="bg-light-gray pa4">
@@ -40,7 +45,6 @@
             </div>
 
             <h3 class="f4 b mt0">Rendered Component</h3>
-            <!-- The BeatChunkPanel component will be rendered here -->
             <div id="panel-container"></div>
             
         </div>
