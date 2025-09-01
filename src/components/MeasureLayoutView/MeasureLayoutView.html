@@ -6,15 +6,20 @@
     <title>Live View Workbench: MeasureLayoutView</title>
     <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
     <!-- Load CSS for the component AND ALL its real dependencies -->
+    <link rel="stylesheet" href="/percussion-studio/src/components/BeatChunkPanel/BeatChunkPanel.css">
     <link rel="stylesheet" href="/percussion-studio/src/components/BeatRulerView/BeatRulerView.css">
-    <link rel="stylesheet" href="/percussion-studio/src/components/BeatView/BeatView.css">
     <link rel="stylesheet" href="/percussion-studio/src/components/InstrumentRowView/InstrumentRowView.css">
     <link rel="stylesheet" href="/percussion-studio/src/components/EditorRowHeaderView/EditorRowHeaderView.css">
     <link rel="stylesheet" href="/percussion-studio/src/components/PlaybackRowHeaderView/PlaybackRowHeaderView.css">
     <link rel="stylesheet" href="./MeasureLayoutView.css">
     <style> 
-        body { font-family: sans-serif; } 
-        :root { --cell-width: 40px; }
+        body { 
+            font-family: sans-serif;
+            font-size: calc(12px + 0.5vw);
+        } 
+        :root { 
+            --cell-width: 2.5rem; 
+        }
     </style>
 </head>
 <body class="bg-light-gray pa4">
@@ -39,7 +44,7 @@
                     </div>
                     <div>
                         <label for="playhead-slider" class="f6 b db mb2">Active Tick (<span id="playhead-value">-1</span>)</label>
-                        <input type="range" id="playhead-slider" min="-1" max="31" value="-1" class="w5">
+                        <input type="range" id="playhead-slider" min="-1" max="15" value="-1" class="w5">
                     </div>
                 </div>
             </div>

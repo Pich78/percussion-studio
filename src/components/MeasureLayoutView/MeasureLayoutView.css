@@ -1,24 +1,35 @@
 /* file: src/components/MeasureLayoutView/MeasureLayoutView.css */
 
+:root {
+    --header-width: 9rem; /* ~144px */
+    --ruler-height: 1.5rem; /* ~24px */
+}
+
 .measure-layout-view {
+    position: relative; /* Positioning context for the playhead */
+}
+
+.measure-layout-view__panels {
     display: flex;
     flex-direction: column;
+    gap: 1rem; /* Space between BeatChunkPanels */
 }
 
-.measure-layout-view__ruler {
-    flex-shrink: 0;
-    margin-bottom: 4px;
+/* --- Playhead Indicator --- */
+.playhead-indicator {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 2px;
+    background-color: #f59e0b;
+    box-shadow: 0 0 0.3rem #f59e0b;
+    z-index: 50;
+    transition: transform 0.05s linear;
+    pointer-events: none; /* Make sure it's not clickable */
+    display: none;
 }
 
-.measure-layout-view__beats {
-    display: flex;
-    flex-direction: column;
-}
-
-/* --- Playback Indicator --- */
-/* This is a generic class that can be applied to a grid cell */
-.grid-cell.is-active {
-    background-color: #fffde7 !important; /* Important to override rhythmic shading */
-    box-shadow: inset 0 0 0 2px #fbc02d;
-    z-index: 10;
+.playhead-indicator.is-active {
+    display: block;
 }

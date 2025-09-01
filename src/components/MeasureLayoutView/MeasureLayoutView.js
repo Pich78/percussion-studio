@@ -2,90 +2,104 @@
 
 import { loadCSS } from '/percussion-studio/lib/dom.js';
 import { logEvent } from '/percussion-studio/lib/Logger.js';
-import { BeatRulerView as DefaultBeatRulerView } from '/percussion-studio/src/components/BeatRulerView/BeatRulerView.js';
-import { BeatView as DefaultBeatView } from '/percussion-studio/src/components/BeatView/BeatView.js';
+// --- FIX: Import dependencies directly. No more injection for the class itself. ---
+import { BeatChunkPanel } from '/percussion-studio/src/components/BeatChunkPanel/BeatChunkPanel.js';
 
 export class MeasureLayoutView {
     constructor(container, callbacks) {
         this.container = container;
         this.callbacks = callbacks || {};
         
-        // Allow for mock injection in tests
-        this.BeatRulerView = MeasureLayoutView.prototype.BeatRulerView || DefaultBeatRulerView;
-        this.BeatView = MeasureLayoutView.prototype.BeatView || DefaultBeatView;
-
-        this.rulerView = null;
-        this.beatViews = new Map();
+        this.chunkPanels = new Map();
+        this.playheadElement = null;
+        this.lastRenderProps = {};
 
         loadCSS('/percussion-studio/src/components/MeasureLayoutView/MeasureLayoutView.css');
         logEvent('debug', 'MeasureLayoutView', 'constructor', 'Lifecycle', 'Component created.');
     }
 
-    render({ groupingPattern, metrics, instruments, mode, activeTick = -1 }) {
-        logEvent('debug', 'MeasureLayoutView', 'render', 'State', 'Render called with', { groupingPattern, mode, activeTick });
+    render({ groupingPattern, metrics, instruments, HeaderComponent }) {
+        this.lastRenderProps = { groupingPattern, metrics, instruments, HeaderComponent };
+        logEvent('debug', 'MeasureLayoutView', 'render', 'State', 'Render called with', { groupingPattern });
 
         this.destroyChildren();
         this.container.innerHTML = `
             <div class="measure-layout-view">
-                <div class="measure-layout-view__ruler"></div>
-                <div class="measure-layout-view__beats"></div>
+                <div class="measure-layout-view__panels"></div>
+                <div class="playhead-indicator"></div>
             </div>
         `;
 
-        const rulerContainer = this.container.querySelector('.measure-layout-view__ruler');
-        const beatsContainer = this.container.querySelector('.measure-layout-view__beats');
+        const panelsContainer = this.container.querySelector('.measure-layout-view__panels');
+        this.playheadElement = this.container.querySelector('.playhead-indicator');
 
-        // 1. Render Beat Ruler
-        this.rulerView = new this.BeatRulerView(rulerContainer);
-        this.rulerView.render({ groupingPattern, beatGrouping: metrics.beatGrouping });
-
-        // 2. Render Beat Views based on the grouping pattern
         let tickOffset = 0;
         let beatCounter = 1;
         
-        groupingPattern.forEach((boxesInThisBeat, index) => {
-            const beatHostEl = document.createElement('div');
-            beatsContainer.appendChild(beatHostEl);
+        groupingPattern.forEach((boxesInChunk, index) => {
+            const panelHostEl = document.createElement('div');
+            panelsContainer.appendChild(panelHostEl);
 
-            const instrumentsForThisBeat = instruments.map(inst => ({
+            const instrumentsForChunk = instruments.map(inst => ({
                 ...inst,
-                pattern: (inst.pattern || '').substring(tickOffset, tickOffset + boxesInThisBeat)
+                pattern: (inst.pattern || '').substring(tickOffset, tickOffset + boxesInChunk)
             }));
             
-            const beatView = new this.BeatView(beatHostEl, this.callbacks);
-            beatView.render({
+            // --- Use the real BeatChunkPanel component ---
+            const panelView = new BeatChunkPanel(panelHostEl, this.callbacks);
+            panelView.render({
                 beatNumber: beatCounter,
-                instruments: instrumentsForThisBeat,
+                boxesInChunk: boxesInChunk,
+                instruments: instrumentsForChunk,
                 metrics: metrics,
-                mode: mode,
+                HeaderComponent: HeaderComponent,
             });
             
-            this.beatViews.set(`beat_${index}`, beatView);
+            this.chunkPanels.set(`chunk_${index}`, panelView);
             
-            tickOffset += boxesInThisBeat;
-            beatCounter += boxesInThisBeat / metrics.beatGrouping;
+            tickOffset += boxesInChunk;
+            beatCounter += boxesInChunk / metrics.beatGrouping;
         });
-
-        if (activeTick > -1) {
-            this.updatePlaybackIndicator(activeTick);
-        }
     }
     
     updatePlaybackIndicator(absoluteTick) {
-        this.container.querySelector('.grid-cell.is-active')?.classList.remove('is-active');
+        if (!this.playheadElement) return;
 
         if (absoluteTick > -1) {
-            const allCells = this.container.querySelectorAll('.grid-cell');
-            if (absoluteTick < allCells.length) {
-                allCells[absoluteTick].classList.add('is-active');
+            this.playheadElement.classList.add('is-active');
+            
+            // This logic correctly calculates the X and Y position for the playhead
+            // across multiple wrapped panels.
+            let remainingTick = absoluteTick;
+            let yOffset = 0;
+            let xOffset = 0;
+            const { groupingPattern } = this.lastRenderProps;
+            
+            for (let i = 0; i < groupingPattern.length; i++) {
+                const panelHost = this.chunkPanels.get(`chunk_${i}`)?.container;
+                if (!panelHost) break;
+
+                const boxesInThisChunk = groupingPattern[i];
+                if (remainingTick < boxesInThisChunk) {
+                    // The tick is in this panel
+                    xOffset = remainingTick * parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--cell-width') || '40');
+                    yOffset += panelHost.offsetTop;
+                    break;
+                }
+                remainingTick -= boxesInThisChunk;
             }
+            
+            const headerWidth = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-width') || '150');
+            this.playheadElement.style.transform = `translate(${headerWidth + xOffset}px, ${yOffset}px)`;
+
+        } else {
+            this.playheadElement.classList.remove('is-active');
         }
     }
 
     destroyChildren() {
-        this.rulerView?.destroy();
-        this.beatViews.forEach(view => view.destroy());
-        this.beatViews.clear();
+        this.chunkPanels.forEach(view => view.destroy());
+        this.chunkPanels.clear();
     }
 
     destroy() {
@@ -93,4 +107,4 @@ export class MeasureLayoutView {
         this.container.innerHTML = '';
         logEvent('debug', 'MeasureLayoutView', 'destroy', 'Lifecycle', 'Component destroyed.');
     }
-}
+}    

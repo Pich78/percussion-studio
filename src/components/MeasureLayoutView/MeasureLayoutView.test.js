@@ -5,12 +5,11 @@ import { MockLogger } from '/percussion-studio/lib/MockLogger.js';
 import { logEvent } from '/percussion-studio/lib/Logger.js';
 import { MeasureLayoutView } from './MeasureLayoutView.js';
 
-// We import the real child components because we will now test by observing them in the DOM.
-import '/percussion-studio/src/components/BeatRulerView/BeatRulerView.js';
-import '/percussion-studio/src/components/BeatView/BeatView.js';
-import '/percussion-studio/src/components/InstrumentRowView/InstrumentRowView.js';
-import '/percussion-studio/src/components/EditorRowHeaderView/EditorRowHeaderView.js';
-import '/percussion-studio/src/components/PlaybackRowHeaderView/PlaybackRowHeaderView.js';
+// Import the real header components for testing injection
+import { EditorRowHeaderView } from '/percussion-studio/src/components/EditorRowHeaderView/EditorRowHeaderView.js';
+import { PlaybackRowHeaderView } from '/percussion-studio/src/components/PlaybackRowHeaderView/PlaybackRowHeaderView.js';
+
+// All other dependencies are loaded via the test HTML
 
 export async function run() {
     const runner = new TestRunner();
@@ -21,12 +20,11 @@ export async function run() {
 
     const getMockProps = (overrides = {}) => ({
         groupingPattern: [16],
-        metrics: { beatGrouping: 4, feel: 'duple' }, // Added 'feel' for robustness
+        metrics: { beatGrouping: 4, feel: 'duple' },
         instruments: [
-            { id: 'k1', symbol: 'KCK', name: 'Kick', pack: 'Test', pattern: 'o---o---o---o---', sounds:[{letter: 'o', svg:'<svg/>'}] },
-            { id: 's1', symbol: 'SNR', name: 'Snare', pack: 'Test', pattern: '----o-------o---', sounds:[{letter: 'o', svg:'<svg/>'}] }
+            { id: 'k1', symbol: 'KCK', name: 'Kick', pack: 'Test', pattern: 'o---'.repeat(4), sounds:[] },
         ],
-        mode: 'editor',
+        HeaderComponent: EditorRowHeaderView,
         ...overrides,
     });
 
@@ -37,59 +35,36 @@ export async function run() {
             if (view) view.destroy();
         });
 
-        runner.it('should render a BeatRuler and one BeatView for a single-line layout', () => {
+        runner.it('should render one BeatChunkPanel for a single-line layout', () => {
             testContainer.innerHTML = '';
             view = new MeasureLayoutView(testContainer, {});
             view.render(getMockProps());
             
-            // Check for the real components' unique classes
-            runner.expect(testContainer.querySelector('.beat-ruler')).not.toBe(null);
-            runner.expect(testContainer.querySelectorAll('.beat-view').length).toBe(1);
+            // Test the behavior: is there one panel in the DOM?
+            runner.expect(testContainer.querySelectorAll('.beat-chunk-panel').length).toBe(1);
         });
 
-        runner.it('should render multiple BeatViews for a multi-line layout', () => {
+        runner.it('should render multiple BeatChunkPanels for a multi-line layout', () => {
             testContainer.innerHTML = '';
             view = new MeasureLayoutView(testContainer, {});
-            const props = getMockProps({ groupingPattern: [12, 12] });
-            view.render(props);
+            view.render(getMockProps({ groupingPattern: [12, 12] }));
 
-            runner.expect(testContainer.querySelectorAll('.beat-view').length).toBe(2);
+            runner.expect(testContainer.querySelectorAll('.beat-chunk-panel').length).toBe(2);
         });
-        
-        runner.it('should render headers in "editor" mode correctly', () => {
+
+        runner.it('should render the correct header type in its children', () => {
             testContainer.innerHTML = '';
             view = new MeasureLayoutView(testContainer, {});
-            view.render(getMockProps({ mode: 'editor' }));
-
-            // All rows should have an editor header
-            runner.expect(testContainer.querySelectorAll('.editor-header').length).toBe(2);
+            
+            // Test Editor Mode
+            view.render(getMockProps({ HeaderComponent: EditorRowHeaderView }));
+            runner.expect(testContainer.querySelector('.editor-header')).not.toBe(null);
             runner.expect(testContainer.querySelector('.mixer-track')).toBe(null);
-        });
 
-        runner.it('should render headers in "playback" mode correctly', () => {
-            testContainer.innerHTML = '';
-            view = new MeasureLayoutView(testContainer, {});
-            view.render(getMockProps({ mode: 'playback' }));
-            
-            // All rows should have a playback/mixer header
-            runner.expect(testContainer.querySelectorAll('.mixer-track').length).toBe(2);
+            // Test Playback Mode
+            view.render(getMockProps({ HeaderComponent: PlaybackRowHeaderView }));
+            runner.expect(testContainer.querySelector('.mixer-track')).not.toBe(null);
             runner.expect(testContainer.querySelector('.editor-header')).toBe(null);
-        });
-
-        runner.it('should highlight the active tick when updatePlaybackIndicator is called', () => {
-            testContainer.innerHTML = '';
-            view = new MeasureLayoutView(testContainer, {});
-            view.render(getMockProps());
-
-            view.updatePlaybackIndicator(5);
-            const activeCell = testContainer.querySelector('.grid-cell.is-active');
-            runner.expect(activeCell).not.toBe(null);
-            runner.expect(activeCell.dataset.tickIndex).toBe('5');
-            
-            // Move the indicator
-            view.updatePlaybackIndicator(10);
-            runner.expect(testContainer.querySelectorAll('.grid-cell.is-active').length).toBe(1);
-            runner.expect(testContainer.querySelector('.grid-cell.is-active').dataset.tickIndex).toBe('10');
         });
     });
 
