@@ -15,7 +15,6 @@ export class InstrumentSelectionModalView {
 
         loadCSS('/percussion-studio/src/components/InstrumentSelectionModalView/InstrumentSelectionModalView.css');
         
-        // --- MODIFIED: Bind the handler so we can remove it later ---
         this._boundHandleClick = this._handleClick.bind(this);
         this.container.addEventListener('click', this._boundHandleClick);
 
@@ -27,7 +26,6 @@ export class InstrumentSelectionModalView {
         this.instrumentDefs = instrumentDefs || [];
         this.soundPacks = soundPacks || [];
         
-        // Set initial selection state
         this.selectedSymbol = this.instrumentDefs.length > 0 ? this.instrumentDefs[0].symbol : null;
         this.selectedPackName = null;
 
@@ -46,7 +44,6 @@ export class InstrumentSelectionModalView {
             return;
         }
 
-        // --- Render Instrument Types (Left Column) ---
         const typesHtml = this.instrumentDefs.map(def => `
             <button 
                 class="db w-100 tl pa2 bn bg-transparent hover-bg-light-gray pointer f6 ${def.symbol === this.selectedSymbol ? 'bg-washed-blue b' : ''}"
@@ -55,7 +52,6 @@ export class InstrumentSelectionModalView {
             </button>
         `).join('');
 
-        // --- Filter and Render Sound Packs (Right Column) ---
         const availablePacks = this.soundPacks.filter(pack => pack.symbol === this.selectedSymbol);
         const packsHtml = availablePacks.map(pack => `
             <button 
@@ -69,19 +65,19 @@ export class InstrumentSelectionModalView {
 
         const html = `
             <div class="modal-overlay">
-                <div class="modal-content bg-white br2 shadow-5 w-100 w-60-ns" style="max-width: 600px;">
+                <div class="modal-content bg-white br2 shadow-5 w-100">
                     <header class="f4 b pa3 bb b--black-10">Select Instrument</header>
                     <div class="modal-body flex">
-                        <div class="w-50 br b--black-10 pa2 overflow-y-auto" style="max-height: 50vh;">
+                        <div class="w-50 br b--black-10 pa2 overflow-y-auto">
                             ${typesHtml}
                         </div>
-                        <div class="w-50 pa2 overflow-y-auto" style="max-height: 50vh;">
-                            ${availablePacks.length > 0 ? packsHtml : '<p class="f7 gray i tc pa2">No sound packs found for this instrument.</p>'}
+                        <div class="w-50 pa2 overflow-y-auto">
+                            ${availablePacks.length > 0 ? packsHtml : '<p class="f7 gray i tc pa2">No sound packs found.</p>'}
                         </div>
                     </div>
                     <footer class="pa3 bt b--black-10 tr">
                         <button data-action="cancel" class="pv2 ph3 bn br2 bg-transparent hover-bg-light-gray pointer f6 mr2">Cancel</button>
-                        <button data-action="confirm" class="pv2 ph3 bn br2 bg-blue white pointer hover-bg-dark-blue f6" ${isConfirmDisabled ? 'disabled' : ''}>Select Instrument</button>
+                        <button data-action="confirm" class="pv2 ph3 bn br2 bg-blue white pointer hover-bg-dark-blue f6" ${isConfirmDisabled ? 'disabled' : ''}>Select</button>
                     </footer>
                 </div>
             </div>
@@ -96,15 +92,13 @@ export class InstrumentSelectionModalView {
         const { symbol, packName, action } = button.dataset;
 
         if (symbol) {
-            logEvent('debug', 'InstrumentSelectionModalView', '_handleClick', 'Events', `Instrument type selected: ${symbol}`);
             this.selectedSymbol = symbol;
-            this.selectedPackName = null; // Reset pack selection when type changes
+            this.selectedPackName = null;
             this.render();
             return;
         }
 
         if (packName) {
-            logEvent('debug', 'InstrumentSelectionModalView', '_handleClick', 'Events', `Sound pack selected: ${packName}`);
             this.selectedPackName = packName;
             this.render();
             return;
@@ -116,7 +110,6 @@ export class InstrumentSelectionModalView {
         }
 
         if (action === 'confirm') {
-            logEvent('info', 'InstrumentSelectionModalView', '_handleClick', 'Events', 'Selection confirmed.');
             this.callbacks.onInstrumentSelected?.({ 
                 symbol: this.selectedSymbol, 
                 packName: this.selectedPackName 
@@ -125,11 +118,9 @@ export class InstrumentSelectionModalView {
         }
     }
     
-    /**
-     * --- NEW: Cleanup method to remove event listeners ---
-     */
     destroy() {
         this.container.removeEventListener('click', this._boundHandleClick);
+        this.container.innerHTML = '';
         logEvent('info', 'InstrumentSelectionModalView', 'destroy', 'Lifecycle', 'Component destroyed.');
     }    
 }

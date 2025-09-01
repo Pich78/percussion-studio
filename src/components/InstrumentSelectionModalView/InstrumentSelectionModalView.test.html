@@ -25,7 +25,6 @@
         </div>
     </div>
 
-    <!-- Hidden sandbox area for the tests to safely manipulate the DOM -->
     <div id="test-sandbox" style="position: absolute; visibility: hidden;"></div>
 
     <script type="module">
@@ -36,8 +35,6 @@
         Logger.setTarget('log-output');
 
         document.getElementById('run-tests-btn').addEventListener('click', run);
-        
-        // Run tests automatically on page load
         run(); 
     </script>
 </body>

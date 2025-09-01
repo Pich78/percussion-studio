@@ -19,15 +19,26 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    padding: 1rem;
 }
 
 .modal-content {
     display: flex;
     flex-direction: column;
+    width: 100%;
+    max-width: 40rem; /* ~640px */
+    max-height: 80vh; /* Max height is 80% of the viewport height */
 }
 
 .modal-body {
-    min-height: 200px;
+    /* The body will grow to fill the available space in the modal content flex container */
+    flex-grow: 1;
+    min-height: 12.5rem; /* ~200px */
+}
+
+/* Ensure the columns within the body also grow */
+.modal-body > div {
+    height: 100%;
 }
 
 button:disabled {

@@ -5,7 +5,13 @@
     <meta charset="UTF-8">
     <title>Live View Workbench: InstrumentSelectionModalView</title>
     <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
-    <style> body { font-family: sans-serif; } </style>
+    <style> 
+        body { 
+            font-family: sans-serif; 
+            /* Base font size for responsive layout */
+            font-size: calc(12px + 0.5vw);
+        } 
+    </style>
 </head>
 <body class="bg-light-gray pa4">
 
@@ -24,7 +30,6 @@
         </div>
     </div>
 
-    <!-- The global container where the modal component will be rendered -->
     <div id="modal-container"></div>
 
     <script type="module" src="./InstrumentSelectionModalView.integration.js"></script>
