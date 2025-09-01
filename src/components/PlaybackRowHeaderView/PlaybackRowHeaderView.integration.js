@@ -65,14 +65,16 @@ const handleToggleMute = (id) => {
 
 // --- SETUP ---
 for (const [id, trackState] of Object.entries(appState.mixer)) {
-    // Create a host div for each component instance
+    // --- UPDATED: Use a styled wrapper for the host element ---
     const hostEl = document.createElement('div');
-    hostEl.style.height = '60px'; // Simulate the row height
+    hostEl.className = 'header-wrapper'; // Use class from HTML for responsive size
     viewContainer.appendChild(hostEl);
 
     const view = new PlaybackRowHeaderView(hostEl, {
-        onVolumeChange: handleVolumeChange,
-        onToggleMute: handleToggleMute,
+        callbacks: {
+            onVolumeChange: handleVolumeChange,
+            onToggleMute: handleToggleMute,
+        }
     });
 
     view.render({

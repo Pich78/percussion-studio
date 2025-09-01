@@ -6,16 +6,26 @@
     <title>Live View Workbench: PlaybackRowHeaderView</title>
     <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
     <style> 
-        body { font-family: sans-serif; background-color: #EDF0F3; } 
+        body { 
+            font-family: sans-serif; 
+            background-color: #EDF0F3;
+            /* Base font size for responsive layout */
+            font-size: calc(12px + 0.5vw);
+        }
+        .header-wrapper {
+            /* Use rem units for responsive sizing */
+            width: 9rem; /* Approx 144px */
+            height: 3.125rem; /* Approx 50px */
+        }
     </style>
 </head>
 <body class="pa4">
     <div class="flex">
         <div class="w-70 pr3">
             <h1 class="f2 b mb3 bb pb2">Live View Workbench: PlaybackRowHeaderView</h1>
-            <p class="f6 gray mb3">Interact with the mixer components below. Note how each one manages its own state and fires callbacks independently.</p>
+            <p class="f6 gray mb3">Interact with the mixer components below. The components are now sized with responsive units.</p>
             
-            <div id="view-container" class="flex flex-column" style="gap: 0.5rem; width: 150px;">
+            <div id="view-container" class="flex flex-column" style="gap: 0.5rem;">
                 <!-- Component instances will be dynamically added here -->
             </div>
             
