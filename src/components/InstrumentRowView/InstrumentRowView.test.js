@@ -41,6 +41,7 @@ export async function run() {
         runner.beforeEach(() => {
             headerRenderCount = 0;
             lastHeaderProps = null;
+            // Create the two panel elements that the parent would provide
             testContainer.innerHTML = `
                 <div id="header-panel-test"></div>
                 <div id="grid-panel-test"></div>

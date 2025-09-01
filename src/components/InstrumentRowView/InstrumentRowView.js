@@ -18,7 +18,7 @@ export class InstrumentRowView {
         
         // Pass the prepared props directly to the injected header's constructor
         this.headerComponent = new HeaderComponent(this.headerPanel, {
-            ...headerProps, // Spread the props object
+            ...headerProps,
             callbacks: this.callbacks
         });
         
@@ -28,10 +28,10 @@ export class InstrumentRowView {
     render({ instrument, notation, metrics, headerProps }) {
         logEvent('debug', 'InstrumentRowView', 'render', 'State', `Rendering row for ${instrument.symbol}`);
         
-        // Pass the prepared props directly to the header's render method
+        // 1. Render the composed header with the latest data
         this.headerComponent.render(headerProps);
 
-        // Render the grid cells into the grid panel
+        // 2. Render the grid cells into the grid panel
         this.gridPanel.innerHTML = '';
         const notationChars = notation.replace(/\|/g, '');
         
