@@ -10,7 +10,9 @@ export class EditorRowHeaderView {
         this.callbacks = callbacks || {};
 
         loadCSS('/percussion-studio/src/components/EditorRowHeaderView/EditorRowHeaderView.css');
-        this.container.addEventListener('click', this._handleClick.bind(this));
+        
+        this._boundHandleClick = this._handleClick.bind(this);
+        this.container.addEventListener('click', this._boundHandleClick);
         logEvent('debug', 'EditorRowHeaderView', 'constructor', 'Lifecycle', 'Component created.');
     }
 
@@ -34,7 +36,8 @@ export class EditorRowHeaderView {
     }
     
     destroy() {
-        this.container.removeEventListener('click', this._handleClick.bind(this));
+        this.container.removeEventListener('click', this._boundHandleClick);
+        this.container.innerHTML = '';
         logEvent('debug', 'EditorRowHeaderView', 'destroy', 'Lifecycle', 'Component destroyed.');
     }
 }

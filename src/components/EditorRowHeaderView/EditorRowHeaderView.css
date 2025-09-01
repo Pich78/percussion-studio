@@ -7,13 +7,14 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 8px;
+    padding: 0.5rem; /* 8px */
     cursor: pointer;
     background-color: #f8f9fa;
     transition: background-color 0.2s ease;
     user-select: none;
     box-sizing: border-box;
     text-align: center;
+    overflow: hidden;
 }
 
 .editor-header:hover {
@@ -22,13 +23,15 @@
 
 .editor-header__instrument-name {
     font-weight: bold;
-    font-size: 1.1em;
+    font-size: 1.1em; /* Scales with the container's font size */
     color: #212529;
+    white-space: nowrap;
 }
 
 .editor-header__pack-name {
-    font-size: 0.8em;
+    font-size: 0.8em; /* Scales with the container's font size */
     color: #6c757d;
     font-style: italic;
-    margin-top: 2px;
+    margin-top: 0.125rem; /* 2px */
+    white-space: nowrap;
 }

@@ -12,12 +12,13 @@ export async function run() {
     
     const testContainer = document.getElementById('test-sandbox');
 
-    const getMockData = () => ({
+    const getMockProps = () => ({
         instrument: { 
             id: 'kck_1', 
             name: 'Kick Drum', 
             pack: 'Studio Kit' 
         },
+        callbacks: {}
     });
 
     runner.describe('EditorRowHeaderView', () => {
@@ -25,11 +26,11 @@ export async function run() {
         
         runner.afterEach(() => {
             if (view) view.destroy();
-            testContainer.innerHTML = '';
         });
 
         runner.it('should render the instrument and pack names correctly', () => {
-            const props = getMockData();
+            testContainer.innerHTML = '';
+            const props = getMockProps();
             view = new EditorRowHeaderView(testContainer, props);
             view.render();
             
@@ -44,21 +45,21 @@ export async function run() {
         
         runner.it('should fire onRequestInstrumentChange callback when clicked', () => {
             const callbackLog = new MockLogger('Callbacks');
-            const props = getMockData();
-            props.callbacks = {
-                onRequestInstrumentChange: (instrument) => callbackLog.log('onRequestInstrumentChange', instrument)
-            };
+            testContainer.innerHTML = '';
+            const props = getMockProps();
+            props.callbacks.onRequestInstrumentChange = (instrument) => callbackLog.log('onRequestInstrumentChange', instrument);
 
             view = new EditorRowHeaderView(testContainer, props);
             view.render();
             
-            testContainer.click(); // Click the container the component is attached to
+            testContainer.click();
 
             callbackLog.wasCalledWith('onRequestInstrumentChange', props.instrument);
         });
 
         runner.it('should update its content when render is called with new data', () => {
-            const initialProps = getMockData();
+            testContainer.innerHTML = '';
+            const initialProps = getMockProps();
             view = new EditorRowHeaderView(testContainer, initialProps);
             view.render();
 

@@ -49,7 +49,6 @@ function rerender() {
     mockInstrument.name = newName;
     mockInstrument.pack = newPack;
     
-    // Call the component's render method with the updated data
     headerView.render(mockInstrument);
 }
 

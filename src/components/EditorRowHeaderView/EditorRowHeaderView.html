@@ -5,9 +5,17 @@
     <meta charset="UTF-8">
     <title>Live View Workbench: EditorRowHeaderView</title>
     <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
-    <!-- The component will load its own CSS -->
     <style> 
-        body { font-family: sans-serif; } 
+        body { 
+            font-family: sans-serif; 
+            /* Base font size for responsive layout */
+            font-size: calc(12px + 0.5vw);
+        }
+        .header-wrapper {
+            /* Use rem units for responsive sizing */
+            width: 9rem; /* Approx 144px */
+            height: 3.75rem; /* Approx 60px */
+        }
     </style>
 </head>
 <body class="bg-light-gray pa4">
@@ -32,9 +40,8 @@
             </div>
 
             <h3 class="f4 b mt0">Rendered Component</h3>
-            <p class="f6 gray">The component is rendered inside a container that simulates the fixed-size header panel (`150px` wide).</p>
-            <div class="bg-white shadow-2" style="width: 150px; height: 60px;">
-                <!-- The EditorRowHeaderView component will be rendered here -->
+            <p class="f6 gray">The component is rendered inside a container with responsive `rem` units for its size.</p>
+            <div class="bg-white shadow-2 header-wrapper">
                 <div id="header-container"></div>
             </div>
             
