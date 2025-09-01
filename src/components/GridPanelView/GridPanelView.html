@@ -1,0 +1,66 @@
+<!-- file: src/components/GridPanelView/GridPanelView.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Live View Workbench: GridPanelView</title>
+    <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
+    <style> 
+        body { 
+            font-family: sans-serif; 
+            /* Responsive base font size */
+            font-size: calc(12px + 0.5vw);
+        }
+        .wrapper {
+            overflow-x: auto;
+            border: 1px solid #ccc;
+            padding: 0.5rem;
+            background-color: #f8f8f8;
+        }
+    </style>
+</head>
+<body class="bg-light-gray pa4">
+
+    <div class="flex">
+        <div class="w-70 pr3">
+            <h1 class="f2 b mb3 bb pb2">Live View Workbench: GridPanelView</h1>
+            
+            <div class="bg-white shadow-2 pa3 mb3">
+                <h3 class="f4 b mt0">Controls</h3>
+                <div class="flex items-center">
+                    <div class="mr3 w-40">
+                        <label for="notation-input" class="f6 b db mb2">Notation String</label>
+                        <input id="notation-input" type="text" value="o--o--o--o--" class="w-100">
+                    </div>
+                    <div class="mr3">
+                        <label for="feel-select" class="f6 b db mb2">Rhythmic Feel</label>
+                        <select id="feel-select">
+                            <option value="duple">Duple</option>
+                            <option value="triplet" selected>Triplet</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="grouping-input" class="f6 b db mb2">Beat Grouping</label>
+                        <input id="grouping-input" type="number" value="3" class="w3 tc">
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="f4 b mt0">Rendered Component</h3>
+            <div class="wrapper">
+                <!-- The GridPanelView component will be rendered here -->
+                <div id="grid-container"></div>
+            </div>
+            
+        </div>
+        <div class="w-30 pl3">
+            <div class="bg-near-black near-white pa3 br2 h-100">
+                <h2 class="f4 b bb pb2 mb2">Execution Log</h2>
+                <div id="log-output" class="f7 lh-copy" style="white-space: pre-wrap; height: 80vh; overflow-y: auto;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="./GridPanelView.integration.js"></script>
+</body>
+</html>
