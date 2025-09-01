@@ -1,85 +1,32 @@
 /* file: src/components/MeasureEditorView/MeasureEditorView.css */
 
 .measure-editor-view {
-    /* Main container for the whole component */
+    display: flex;
+    flex-direction: column;
+    gap: 1rem; /* Space between header, layout, and add button */
 }
 
 .measure-editor-header {
-    padding-bottom: 12px;
-    margin-bottom: 12px;
-    border-bottom: 1px solid #eee;
-}
-
-/* --- NEW: Styles for the scrolling wrapper --- */
-.measure-rows-wrapper {
-    overflow-x: auto;
-    border: 1px solid #eee;
-    padding: 8px;
-    background-color: #fafafa;
-}
-
-.measure-rows-inner-container {
-    width: fit-content;
-}
-
-
-.measure-instrument-row {
-    display: flex;
-    align-items: center; 
-    margin-bottom: 8px;
-}
-/* Remove margin from the last row inside the container */
-.measure-instrument-row:last-child {
-    margin-bottom: 0;
-}
-
-
-.instrument-row-container {
-    flex-grow: 1;
-}
-
-.delete-row-btn {
-    flex-shrink: 0;
-    margin-left: 12px;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    border: 1px solid #ccc;
-    background-color: #f0f0f0;
-    cursor: pointer;
-    color: #888;
-    font-size: 20px;
-    line-height: 24px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    transition: all 0.2s ease-in-out;
-}
-
-.delete-row-btn:hover {
-    color: #fff;
-    background-color: #e53935;
-    border-color: #d32f2f;
-}
-
-.add-instrument-container {
-    padding-top: 8px;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #dee2e6;
 }
 
 .add-instrument-btn {
     display: block;
     width: 100%;
-    padding: 12px;
-    border: 1px dashed #ccc;
+    padding: 1rem;
+    border: 2px dashed #ced4da;
     background-color: transparent;
     cursor: pointer;
-    font-size: 24px;
-    color: #aaa;
+    font-size: 1rem;
+    font-weight: bold;
+    color: #adb5bd;
     transition: all 0.2s ease-in-out;
+    border-radius: 0.25rem;
 }
 
 .add-instrument-btn:hover {
-    background-color: #e8f5e9;
-    color: #2e7d32;
-    border-color: #a5d6a7;
+    background-color: #e9ecef;
+    color: #495057;
+    border-color: #adb5bd;
 }

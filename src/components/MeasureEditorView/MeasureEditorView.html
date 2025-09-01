@@ -5,20 +5,21 @@
     <meta charset="UTF-8">
     <title>Workbench: MeasureEditorView</title>
     <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
-    <!-- All component CSS needed for the view -->
-    <link rel="stylesheet" href="/percussion-studio/src/components/MeasureEditorView/MeasureEditorView.css">
+    <!-- Load CSS for ALL required dependencies -->
+    <link rel="stylesheet" href="/percussion-studio/src/components/MeasureLayoutView/MeasureLayoutView.css">
+    <link rel="stylesheet" href="/percussion-studio/src/components/BeatChunkPanel/BeatChunkPanel.css">
+    <link rel="stylesheet" href="/percussion-studio/src/components/BeatRulerView/BeatRulerView.css">
     <link rel="stylesheet" href="/percussion-studio/src/components/InstrumentRowView/InstrumentRowView.css">
+    <link rel="stylesheet" href="/percussion-studio/src/components/EditorRowHeaderView/EditorRowHeaderView.css">
     <link rel="stylesheet" href="/percussion-studio/src/components/InstrumentSelectionModalView/InstrumentSelectionModalView.css">
-    <!-- CSS for new workbench tools -->
-    <link rel="stylesheet" href="/percussion-studio/src/components/EditorCursor/EditorCursor.css">
-    <link rel="stylesheet" href="/percussion-studio/src/components/RadialSoundSelector/RadialSoundSelector.css">
+    <link rel="stylesheet" href="./MeasureEditorView.css">
     <style> 
-        body { font-family: sans-serif; }
-        .active-tool {
-            border: 2px solid #3b82f6; padding: 8px; display: flex; align-items: center; background-color: #eff6ff; min-height: 54px;
+        body { 
+            font-family: sans-serif;
+            font-size: calc(12px + 0.5vw);
         }
-        .active-tool .swatch {
-            width: 30px; height: 30px; display: flex; justify-content: center; align-items: center; border: 1px solid #94a3b8; background-color: white; margin-right: 12px;
+        :root { 
+            --cell-width: 2.5rem;
         }
     </style>
 </head>
@@ -28,19 +29,11 @@
         <div class="w-70 pr3">
             <h1 class="f2 b mb3 bb pb2">Live View Workbench: Measure Editor</h1>
             <p class="f6 gray mb3">
-                This is a manual testing environment. Add instruments, change the time signature, and click on the grid to add/remove notes. Click-and-hold on a note to change the sound articulation.
+                This is the "smart" measure editor component. It uses the METRICS_CONFIG to decide on a layout and then tells the shared `MeasureLayoutView` how to render it.
             </p>
             <div class="bg-white shadow-2 pa3 mb3">
                 <div id="measure-editor-container">
                     <!-- The MeasureEditorView component will render here -->
-                </div>
-            </div>
-             <!-- Active Tool Display -->
-            <div class="mt3">
-                <label class="f6 b db mb2">Active Tool</label>
-                <div id="active-tool-display" class="active-tool">
-                    <div id="active-tool-swatch" class="swatch"></div>
-                    <span id="active-tool-name" class="f6">Hover over an instrument row to activate a tool.</span>
                 </div>
             </div>
             <div id="callback-log" class="f7 code pa2 bg-washed-yellow mt3 h4 overflow-y-auto">Callbacks will appear here.</div>
@@ -53,10 +46,8 @@
         </div>
     </div>
 
-    <!-- Container for the instrument selection modal -->
     <div id="modal-container"></div>
 
-    <!-- The setup logic is now in a dedicated integration file -->
     <script type="module" src="./MeasureEditorView.integration.js"></script>
 
 </body>
