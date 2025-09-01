@@ -65,20 +65,18 @@ function rerender() {
     
     logEvent('info', 'Workbench', 'rerender', 'Props', `Rendering with injected '${HeaderComponent.name}'`);
     measureLayoutView.render(props);
-    updateSlider();
+    
+    // Update slider properties and reset playhead after a full re-render
+    playheadSlider.max = config.notationLength - 1;
+    playheadSlider.value = -1;
+    playheadValueEl.textContent = '-1';
+    measureLayoutView.updatePlaybackIndicator(-1);
 }
 
-function updateSlider() {
-    const layoutKey = layoutSelect.value;
-    const config = MOCK_LAYOUTS[layoutKey];
+function handleSliderInput() {
     const activeTick = parseInt(playheadSlider.value, 10);
-    
-    playheadSlider.max = config.notationLength - 1;
-    if (activeTick >= config.notationLength) {
-        playheadSlider.value = -1;
-    }
-    playheadValueEl.textContent = playheadSlider.value;
-    measureLayoutView.updatePlaybackIndicator(parseInt(playheadSlider.value, 10));
+    playheadValueEl.textContent = activeTick;
+    measureLayoutView.updatePlaybackIndicator(activeTick);
 }
 
 
@@ -90,12 +88,9 @@ Object.keys(MOCK_LAYOUTS).forEach(key => {
     layoutSelect.appendChild(option);
 });
 
-layoutSelect.addEventListener('change', () => {
-    playheadSlider.value = -1;
-    rerender();
-});
+layoutSelect.addEventListener('change', rerender);
 modeSelect.addEventListener('change', rerender);
-playheadSlider.addEventListener('input', updateSlider);
+playheadSlider.addEventListener('input', handleSliderInput);
 
 
 // --- INITIAL RENDER ---

@@ -1,25 +1,38 @@
 /* file: src/components/BeatChunkPanel/BeatChunkPanel.css */
 
 .beat-chunk-panel {
+    position: relative; /* Positioning context for the playhead */
     display: grid;
-    /* Responsive header width, auto grid width */
     grid-template-columns: 9rem auto; 
-    
-    /* First row (ruler) has a fixed responsive height */
-    grid-template-rows: 1.5rem; /* ~24px */
-    
-    /* All subsequent instrument rows get their height from this variable */
-    grid-auto-rows: var(--row-height, 3.125rem); /* ~50px */
-
+    grid-template-rows: 1.5rem;
+    grid-auto-rows: var(--row-height, 3.125rem);
     border: 1px solid #dee2e6;
     background-color: #ffffff;
-    border-radius: 0.25rem; /* ~4px */
-    padding: 0.5rem; /* ~8px */
+    border-radius: 0.25rem;
+    padding: 0.5rem;
     box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-    
-    /* Responsive gap between all rows */
-    gap: 0.25rem 0; /* ~4px row gap, 0px column gap */
+    gap: 0.25rem 0;
 }
+
+/* --- The Playhead, now owned by this component --- */
+.playhead-indicator {
+    position: absolute;
+    top: 0; /* JS will set top and left via transform */
+    left: 0;
+    background-color: rgba(251, 192, 45, 0.2);
+    border: 1px solid rgba(251, 192, 45, 0.7);
+    border-radius: 0.25rem;
+    box-sizing: border-box;
+    z-index: 50;
+    transition: transform 0.05s linear, width 0.05s linear, height 0.05s linear;
+    pointer-events: none;
+    display: none;
+}
+
+.playhead-indicator.is-active {
+    display: block;
+}
+
 
 /* --- Grid Item Placement --- */
 .beat-chunk-panel__ruler-area {

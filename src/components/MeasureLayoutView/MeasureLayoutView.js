@@ -2,7 +2,6 @@
 
 import { loadCSS } from '/percussion-studio/lib/dom.js';
 import { logEvent } from '/percussion-studio/lib/Logger.js';
-// --- FIX: Import dependencies directly. No more injection for the class itself. ---
 import { BeatChunkPanel } from '/percussion-studio/src/components/BeatChunkPanel/BeatChunkPanel.js';
 
 export class MeasureLayoutView {
@@ -11,7 +10,6 @@ export class MeasureLayoutView {
         this.callbacks = callbacks || {};
         
         this.chunkPanels = new Map();
-        this.playheadElement = null;
         this.lastRenderProps = {};
 
         loadCSS('/percussion-studio/src/components/MeasureLayoutView/MeasureLayoutView.css');
@@ -20,18 +18,11 @@ export class MeasureLayoutView {
 
     render({ groupingPattern, metrics, instruments, HeaderComponent }) {
         this.lastRenderProps = { groupingPattern, metrics, instruments, HeaderComponent };
-        logEvent('debug', 'MeasureLayoutView', 'render', 'State', 'Render called with', { groupingPattern });
+        logEvent('debug', 'MeasureLayoutView', 'render', 'State', 'Render called');
 
         this.destroyChildren();
-        this.container.innerHTML = `
-            <div class="measure-layout-view">
-                <div class="measure-layout-view__panels"></div>
-                <div class="playhead-indicator"></div>
-            </div>
-        `;
-
+        this.container.innerHTML = `<div class="measure-layout-view__panels"></div>`;
         const panelsContainer = this.container.querySelector('.measure-layout-view__panels');
-        this.playheadElement = this.container.querySelector('.playhead-indicator');
 
         let tickOffset = 0;
         let beatCounter = 1;
@@ -45,7 +36,6 @@ export class MeasureLayoutView {
                 pattern: (inst.pattern || '').substring(tickOffset, tickOffset + boxesInChunk)
             }));
             
-            // --- Use the real BeatChunkPanel component ---
             const panelView = new BeatChunkPanel(panelHostEl, this.callbacks);
             panelView.render({
                 beatNumber: beatCounter,
@@ -62,38 +52,27 @@ export class MeasureLayoutView {
         });
     }
     
+    /**
+     * --- REFACTORED ---
+     * This method now finds the correct BeatChunkPanel and delegates the update command to it.
+     */
     updatePlaybackIndicator(absoluteTick) {
-        if (!this.playheadElement) return;
+        let remainingTick = absoluteTick;
+        const { groupingPattern } = this.lastRenderProps;
+
+        // Deactivate all panels first
+        this.chunkPanels.forEach(panel => panel.updatePlaybackIndicator(-1));
 
         if (absoluteTick > -1) {
-            this.playheadElement.classList.add('is-active');
-            
-            // This logic correctly calculates the X and Y position for the playhead
-            // across multiple wrapped panels.
-            let remainingTick = absoluteTick;
-            let yOffset = 0;
-            let xOffset = 0;
-            const { groupingPattern } = this.lastRenderProps;
-            
             for (let i = 0; i < groupingPattern.length; i++) {
-                const panelHost = this.chunkPanels.get(`chunk_${i}`)?.container;
-                if (!panelHost) break;
-
                 const boxesInThisChunk = groupingPattern[i];
                 if (remainingTick < boxesInThisChunk) {
-                    // The tick is in this panel
-                    xOffset = remainingTick * parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--cell-width') || '40');
-                    yOffset += panelHost.offsetTop;
-                    break;
+                    const targetPanel = this.chunkPanels.get(`chunk_${i}`);
+                    targetPanel?.updatePlaybackIndicator(remainingTick);
+                    break; 
                 }
                 remainingTick -= boxesInThisChunk;
             }
-            
-            const headerWidth = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-width') || '150');
-            this.playheadElement.style.transform = `translate(${headerWidth + xOffset}px, ${yOffset}px)`;
-
-        } else {
-            this.playheadElement.classList.remove('is-active');
         }
     }
 
@@ -107,4 +86,4 @@ export class MeasureLayoutView {
         this.container.innerHTML = '';
         logEvent('debug', 'MeasureLayoutView', 'destroy', 'Lifecycle', 'Component destroyed.');
     }
-}    
+}

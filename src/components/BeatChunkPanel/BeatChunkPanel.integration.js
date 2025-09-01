@@ -25,6 +25,8 @@ let mockState = {
 const panelContainer = document.getElementById('panel-container');
 const modeSelect = document.getElementById('mode-select');
 const instrumentCountInput = document.getElementById('instrument-count');
+const playheadSlider = document.getElementById('playhead-slider');
+const playheadValueEl = document.getElementById('playhead-value');
 
 // --- CALLBACKS & STATE MANAGEMENT ---
 const callbacks = {
@@ -34,7 +36,6 @@ const callbacks = {
             instrument.volume = vol;
             instrument.muted = (vol === 0);
             if (vol > 0) instrument.unmutedVolume = vol;
-            // Granular update: only re-render the one instrument that changed
             beatChunkPanel.updateInstrument(instrument);
         }
     },
@@ -43,7 +44,6 @@ const callbacks = {
         if (instrument) {
             instrument.muted = !instrument.muted;
             instrument.volume = instrument.muted ? 0 : instrument.unmutedVolume;
-            // Granular update
             beatChunkPanel.updateInstrument(instrument);
         }
     },
@@ -72,10 +72,20 @@ function rerender() {
         metrics: mockState.metrics,
         HeaderComponent: HeaderComponentToInject
     });
+    
+    // Reset playhead on full render
+    playheadSlider.value = -1;
+    playheadValueEl.textContent = '-1';
 }
 
 // --- UI EVENT BINDINGS ---
 [modeSelect, instrumentCountInput].forEach(el => el.addEventListener('change', rerender));
+
+playheadSlider.addEventListener('input', (event) => {
+    const tick = parseInt(event.target.value, 10);
+    playheadValueEl.textContent = tick;
+    beatChunkPanel.updatePlaybackIndicator(tick);
+});
 
 // --- INITIAL RENDER ---
 rerender();

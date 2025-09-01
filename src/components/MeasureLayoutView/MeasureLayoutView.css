@@ -1,35 +1,11 @@
 /* file: src/components/MeasureLayoutView/MeasureLayoutView.css */
 
 :root {
-    --header-width: 9rem; /* ~144px */
-    --ruler-height: 1.5rem; /* ~24px */
-}
-
-.measure-layout-view {
-    position: relative; /* Positioning context for the playhead */
+    --panel-gap: 1rem;
 }
 
 .measure-layout-view__panels {
     display: flex;
     flex-direction: column;
-    gap: 1rem; /* Space between BeatChunkPanels */
-}
-
-/* --- Playhead Indicator --- */
-.playhead-indicator {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    width: 2px;
-    background-color: #f59e0b;
-    box-shadow: 0 0 0.3rem #f59e0b;
-    z-index: 50;
-    transition: transform 0.05s linear;
-    pointer-events: none; /* Make sure it's not clickable */
-    display: none;
-}
-
-.playhead-indicator.is-active {
-    display: block;
+    gap: var(--panel-gap);
 }

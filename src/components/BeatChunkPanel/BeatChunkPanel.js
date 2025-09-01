@@ -19,7 +19,8 @@ export class BeatChunkPanel {
             rows: new Map(),
         };
 
-        this.lastRenderProps = {}; // Store props for granular updates
+        this.playheadElement = null;
+        this.lastRenderProps = {};
 
         loadCSS('/percussion-studio/src/components/BeatChunkPanel/BeatChunkPanel.css');
         logEvent('debug', 'BeatChunkPanel', 'constructor', 'Lifecycle', 'Component created.');
@@ -27,14 +28,22 @@ export class BeatChunkPanel {
 
     render({ beatNumber, boxesInChunk, instruments, metrics, HeaderComponent }) {
         this.lastRenderProps = { beatNumber, boxesInChunk, instruments, metrics, HeaderComponent };
-        logEvent('debug', 'BeatChunkPanel', 'render', 'State', `Rendering Beat Chunk starting at beat #${beatNumber} with ${boxesInChunk} boxes.`);
+        logEvent('debug', 'BeatChunkPanel', 'render', 'State', `Rendering Beat Chunk starting at beat #${beatNumber}`);
 
         this.destroyChildren();
         
         this.container.innerHTML = `<div class="beat-chunk-panel"></div>`;
         const panelEl = this.container.querySelector('.beat-chunk-panel');
 
-        // --- ROW 1: The Ruler and its empty header ---
+        if (!panelEl) {
+            logEvent('error', 'BeatChunkPanel', 'render', 'DOM', 'Could not find the panel root element.');
+            return;
+        }
+
+        this.playheadElement = document.createElement('div');
+        this.playheadElement.className = 'playhead-indicator';
+        panelEl.appendChild(this.playheadElement);
+
         const rulerHeaderArea = document.createElement('div');
         rulerHeaderArea.className = 'beat-chunk-panel__header-area--empty';
         panelEl.appendChild(rulerHeaderArea);
@@ -47,11 +56,10 @@ export class BeatChunkPanel {
         rulerView.render({ 
             groupingPattern: [boxesInChunk], 
             beatGrouping: metrics.beatGrouping,
-            startingBeat: beatNumber,
+            startingBeat: beatNumber
         });
         this.childInstances.ruler = rulerView;
         
-        // --- SUBSEQUENT ROWS: The Instruments ---
         instruments.forEach(instrument => {
             const headerPanel = document.createElement('div');
             headerPanel.className = 'instrument-row__header-panel';
@@ -69,7 +77,7 @@ export class BeatChunkPanel {
             }
 
             const rowView = new this.InstrumentRowView(
-                { headerPanel, gridPanel },
+                { headerPanel, gridPanel }, // Pass the two panel elements
                 { HeaderComponent, headerProps, callbacks: this.callbacks }
             );
             
@@ -83,6 +91,33 @@ export class BeatChunkPanel {
             rowView.render({ instrument, notation: instrument.pattern, metrics, headerProps });
             this.childInstances.rows.set(instrument.id, rowView);
         });
+    }
+
+    updatePlaybackIndicator(tick) {
+        if (!this.playheadElement) return;
+
+        if (tick > -1) {
+            const columnCells = this.container.querySelectorAll(`.grid-cell[data-tick-index="${tick}"]`);
+            if (columnCells.length === 0) {
+                this.playheadElement.classList.remove('is-active');
+                return;
+            }
+
+            const firstCell = columnCells[0];
+            const lastCell = columnCells[columnCells.length - 1];
+
+            const x = firstCell.offsetLeft;
+            const y = firstCell.offsetTop;
+            const width = firstCell.offsetWidth;
+            const height = (lastCell.offsetTop + lastCell.offsetHeight) - y;
+            
+            this.playheadElement.style.width = `${width}px`;
+            this.playheadElement.style.height = `${height}px`;
+            this.playheadElement.style.transform = `translate(${x}px, ${y}px)`;
+            this.playheadElement.classList.add('is-active');
+        } else {
+            this.playheadElement.classList.remove('is-active');
+        }
     }
 
     updateInstrument(instrument) {
