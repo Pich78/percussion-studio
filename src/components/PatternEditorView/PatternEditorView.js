@@ -3,20 +3,18 @@
 import { loadCSS } from '/percussion-studio/lib/dom.js';
 import { logEvent } from '/percussion-studio/lib/Logger.js';
 import { MeasureEditorView } from '/percussion-studio/src/components/MeasureEditorView/MeasureEditorView.js';
-// --- NEW: Importing the services it will own ---
 import { EditorCursor } from '/percussion-studio/src/components/EditorCursor/EditorCursor.js';
 import { RadialSoundSelector } from '/percussion-studio/src/components/RadialSoundSelector/RadialSoundSelector.js';
-// --- FIX: Import the modal view ---
 import { InstrumentSelectionModalView } from '/percussion-studio/src/components/InstrumentSelectionModalView/InstrumentSelectionModalView.js';
 
 const HOLD_DURATION_MS = 200;
 const DEFAULT_PATTERN_NAME = 'New Pattern';
 
 export class PatternEditorView {
-    constructor(container, { instrumentDefs, soundPacks, onSave }) {
+    constructor(container, { soundPacks, onSave }) {
         this.container = container;
         this.callbacks = { onSave };
-        // --- FIX: Create a dedicated root element for this component's content ---
+        
         this.rootElement = document.createElement('div');
         this.rootElement.className = 'pattern-editor-view';
         this.container.appendChild(this.rootElement);
@@ -24,25 +22,16 @@ export class PatternEditorView {
         this.state = {
             measures: [],
             nextMeasureId: 0,
-            manifest: { instrumentDefs, soundPacks },
-            // NEW: The top-level editor now owns the active sound state
-            activeSounds: { KCK: 'o', SNR: 'x' }, // Default active sounds
-            // --- NEW: State for the header controls ---
+            soundPacks: soundPacks,
+            activeSounds: {},
             patternName: DEFAULT_PATTERN_NAME,
             isDirty: false,
-            // --- REMOVED: Playback state is no longer managed by this component ---
         };
 
-        // --- NEW: Instantiate and own the global UI services ---
         this.cursor = new EditorCursor();
         this.radialMenu = new RadialSoundSelector({
-            onSoundSelected: (selectedLetter) => {
-                logEvent('debug', 'PatternEditorView', 'RadialMenuCallback', 'Events', `RadialSoundSelector callback fired with: ${selectedLetter}`);
-                this._handleSoundSelected(selectedLetter);
-            }
+            onSoundSelected: this._handleSoundSelected.bind(this)
         });
-
-        // --- FIX: Instantiate and own the instrument selection modal ---
         this.instrumentModal = new InstrumentSelectionModalView(
             document.getElementById('modal-container'), 
             {
@@ -50,23 +39,18 @@ export class PatternEditorView {
                 onCancel: this._handleModalCancel.bind(this)
             }
         );
-        // --- FIX: State to manage modal context ---
-        this.modalMode = 'add'; // 'add' or 'replace'
-        this.activeMeasureId = null; // To track which measure is being edited
-        this.activeTrackId = null; // To track which track is being replaced
 
+        this.modalContext = { mode: 'add', measureId: null, trackId: null };
         this.childInstances = new Map();
         this.holdTimeout = null;
         this.mouseDownInfo = null;
         
-        // Global listener to ensure the radial menu always closes
         window.addEventListener('mouseup', this._handleGlobalMouseUp.bind(this), true);
 
         loadCSS('/percussion-studio/src/components/PatternEditorView/PatternEditorView.css');
         
         this._boundHandleClick = this._handleClick.bind(this);
         this._boundHandleInputChange = this._handleInputChange.bind(this);
-        // --- FIX: Attach event listener to the component's own root element ---
         this.rootElement.addEventListener('click', this._boundHandleClick);
         this.rootElement.addEventListener('input', this._boundHandleInputChange);
 
@@ -75,7 +59,6 @@ export class PatternEditorView {
     }
 
     render() {
-        // --- FIX: Preserve the state of child measure editors before re-rendering ---
         const savedMeasureStates = new Map();
         this.childInstances.forEach((instance, id) => {
             savedMeasureStates.set(id, instance.getState());
@@ -84,13 +67,9 @@ export class PatternEditorView {
         this.childInstances.forEach(instance => instance.destroy());
         this.childInstances.clear();
         
-        // --- FIX: Only clear the component's own root element ---
         this.rootElement.innerHTML = '';
-
-        // --- NEW: Render the header ---
         this.rootElement.appendChild(this._renderHeader());
 
-        // --- NEW: Create a dedicated, scrollable container for measures ---
         const measuresContainer = document.createElement('div');
         measuresContainer.className = 'pattern-editor-measures-container';
 
@@ -100,54 +79,43 @@ export class PatternEditorView {
 
             const deleteBtn = document.createElement('button');
             deleteBtn.className = 'delete-measure-btn';
-            deleteBtn.innerHTML = '×';
+            deleteBtn.innerHTML = '&times;';
             deleteBtn.dataset.measureId = measure.id;
 
             const measureContainer = document.createElement('div');
             
             wrapper.appendChild(measureContainer);
             wrapper.appendChild(deleteBtn);
-            // --- MODIFIED: Append to the new scrollable container ---
             measuresContainer.appendChild(wrapper);
 
-            // --- FIX: Get the saved state for this measure ---
             const initialState = savedMeasureStates.get(measure.id);
 
-            // Create a new MeasureEditorView for this measure
-            // --- MODIFIED: Pass down callbacks for events ---
             const measureEditor = new MeasureEditorView(measureContainer, {
-                instrumentDefs: this.state.manifest.instrumentDefs,
-                soundPacks: this.state.manifest.soundPacks,
-                // --- FIX: Pass the saved state down to the new instance ---
+                soundPacks: this.state.soundPacks,
                 initialInstruments: initialState?.instruments,
-                initialMetrics: initialState?.metrics,
-                // Pass down callbacks so the PatternEditor can handle interactions
-                onCellMouseDown: this._handleCellMouseDown.bind(this),
-                onGridMouseEnter: this._handleGridMouseEnter.bind(this),
-                onGridMouseLeave: this._handleGridMouseLeave.bind(this),
-                onRequestAddInstrument: () => this._handleRequestAddInstrument(measure.id),
-                onRequestInstrumentChange: (instrument) => this._handleRequestChangeInstrument(measure.id, instrument)
+                callbacks: {
+                    onCellMouseDown: this._handleCellMouseDown.bind(this),
+                    onGridMouseEnter: this._handleGridMouseEnter.bind(this),
+                    onGridMouseLeave: this._handleGridMouseLeave.bind(this),
+                    onRequestAddInstrument: () => this._handleRequestAddInstrument(measure.id),
+                    onRequestInstrumentChange: (instrument) => this._handleRequestChangeInstrument(measure.id, instrument)
+                }
             });
             
             this.childInstances.set(measure.id, measureEditor);
         });
 
-        // --- NEW: Append the scrollable container to the root ---
         this.rootElement.appendChild(measuresContainer);
 
         const addBtn = document.createElement('button');
         addBtn.className = 'add-measure-btn';
         addBtn.textContent = '+ Add Measure';
-        // --- FIX: Append to the component's own root element, outside the scroll area ---
         this.rootElement.appendChild(addBtn);
     }
     
-    // --- NEW: Method to render the control header ---
     _renderHeader() {
         const header = document.createElement('div');
         header.className = 'pattern-editor-header';
-
-        // --- MODIFIED: Render only the pattern name and save button ---
         header.innerHTML = `
             <div class="pattern-info">
                 <input type="text" class="pattern-name-input" data-control="patternName" value="${this.state.patternName}" />
@@ -157,28 +125,13 @@ export class PatternEditorView {
         return header;
     }
 
-    // --- Centralized Interaction Handlers ---
-
-    _ensureActiveSound(instrument) {
-        if (!instrument || !instrument.symbol) return;
-
-        if (!this.state.activeSounds[instrument.symbol] && instrument.sounds?.length > 0) {
-            const defaultLetter = instrument.sounds[0].letter;
-            this.state.activeSounds[instrument.symbol] = defaultLetter;
-            logEvent('info', 'PatternEditorView', '_ensureActiveSound', 'State', `Setting default active sound for ${instrument.symbol} to '${defaultLetter}'`);
-        }
-        
-        logEvent('debug', 'PatternEditorView', '_ensureActiveSound', 'State', `Active sound for ${instrument.symbol} is '${this.state.activeSounds[instrument.symbol]}'`);
-    }
-
     _handleCellMouseDown(instrument, tickIndex, hasNote, event) {
         this.mouseDownInfo = { instrument, tickIndex, hasNote, event };
         this._ensureActiveSound(instrument);
 
         this.holdTimeout = setTimeout(() => {
-            this.holdTimeout = null; // Mark as fired
-            logEvent('info', 'PatternEditorView', '_handleCellMouseDown', 'Events', `Hold timeout fired - showing radial menu for ${instrument.symbol}`);
-            this.cursor.update({ isVisible: false, svg: null }); // Hide cursor before showing menu
+            this.holdTimeout = null;
+            this.cursor.update({ isVisible: false });
             this.radialMenu.activeInstrumentSymbol = instrument.symbol;
             this.radialMenu.show({
                 x: event.clientX,
@@ -190,280 +143,150 @@ export class PatternEditorView {
     }
 
     _handleGlobalMouseUp() {
-        logEvent('debug', 'PatternEditorView', '_handleGlobalMouseUp', 'Events', `Global mouseup - holdTimeout: ${!!this.holdTimeout}, radialDragging: ${this.radialMenu.isDragging}`);
-        
-        // If the radial menu is active, let it handle the mouseup - don't interfere
-        if (this.radialMenu.isDragging) {
-            logEvent('debug', 'PatternEditorView', '_handleGlobalMouseUp', 'Events', 'Radial menu is active, letting it handle mouseup');
-            return;
-        }
+        if (this.radialMenu.isDragging) return;
         
         if (this.holdTimeout) {
             clearTimeout(this.holdTimeout);
-            this.holdTimeout = null; // Reset timeout
-            
-            // This was a tap, not a hold - perform the edit action
+            this.holdTimeout = null;
             if (this.mouseDownInfo) {
                 const { instrument, tickIndex, hasNote } = this.mouseDownInfo;
                 this._performCellEdit(instrument, tickIndex, hasNote);
-                logEvent('info', 'PatternEditorView', 'TapAction', 'Events', `Tapped cell ${tickIndex} for ${instrument.symbol}. HasNote: ${hasNote}`);
             }
         }
-        
-        // Reset mouse down info after processing
         this.mouseDownInfo = null;
     }
 
-    // New method to perform cell editing
     _performCellEdit(instrument, tickIndex, hasNote) {
-        // Find the measure that contains this instrument
         const measureInstance = Array.from(this.childInstances.values()).find(measure => 
             measure.state.instruments.some(inst => inst.trackId === instrument.trackId)
         );
-        
-        if (!measureInstance) {
-            logEvent('error', 'PatternEditorView', '_performCellEdit', 'State', 'Could not find measure instance for instrument', instrument);
-            return;
-        }
+        if (!measureInstance) return;
 
-        // Get the current pattern and convert to array
-        let patternArr = (instrument.pattern || '').replace(/\|/g, '').split('');
-        
+        let patternArr = (instrument.pattern || '').split('');
         if (hasNote) {
-            // Remove the note (set to empty)
             patternArr[tickIndex] = '-';
-            logEvent('info', 'PatternEditorView', '_performCellEdit', 'Events', `Removing note at tick ${tickIndex} for ${instrument.symbol}`);
         } else {
-            // Add a note using the active sound
-            const activeLetter = this.state.activeSounds[instrument.symbol] || instrument.sounds[0].letter;
-            patternArr[tickIndex] = activeLetter;
-            logEvent('info', 'PatternEditorView', '_performCellEdit', 'Events', `Adding note '${activeLetter}' at tick ${tickIndex} for ${instrument.symbol}`);
+            patternArr[tickIndex] = this.state.activeSounds[instrument.symbol] || instrument.sounds[0].letter;
         }
         
-        // Reconstruct the pattern with delimiters
-        const newPattern = '||' + patternArr.join('') + '||';
-        
-        // Update the pattern in the measure
-        measureInstance.updateInstrumentPattern(instrument.trackId, newPattern);
+        measureInstance.updateInstrumentPattern(instrument.trackId, patternArr.join(''));
         this.state.isDirty = true;
-        this.render(); // Re-render to enable save button
+        this.render();
     }
 
     _handleSoundSelected(selectedLetter) {
         const symbol = this.radialMenu.activeInstrumentSymbol;
-        logEvent('info', 'PatternEditorView', '_handleSoundSelected', 'State', `New active sound for ${symbol}: ${selectedLetter}`);
         this.state.activeSounds[symbol] = selectedLetter;
-        
-        // Update the cursor to show the newly selected sound
-        if (this.mouseDownInfo && this.mouseDownInfo.instrument) {
-            const instrument = this.mouseDownInfo.instrument;
-            const sound = instrument.sounds?.find(s => s.letter === selectedLetter);
-            if (sound) {
-                // Update cursor immediately
-                this.cursor.update({ isVisible: true, svg: sound.svg });
-            }
-            
-            // --- FIX: Do not auto-place the sound after selection from the radial menu ---
-            // const { tickIndex, hasNote } = this.mouseDownInfo;
-            // this._performCellEdit(instrument, tickIndex, false); // false = treat as empty cell to place new sound
-        } else {
-            // If no mouseDownInfo, just update the active sound and cursor for the symbol
-            // Find any instrument with this symbol to get the sound definition
-            let foundInstrument = null;
-            for (const measureInstance of this.childInstances.values()) {
-                foundInstrument = measureInstance.state.instruments.find(inst => inst.symbol === symbol);
-                if (foundInstrument) break;
-            }
-            
-            if (foundInstrument) {
-                const sound = foundInstrument.sounds?.find(s => s.letter === selectedLetter);
-                if (sound) {
-                    this.cursor.update({ isVisible: true, svg: sound.svg });
-                }
-            }
+        if (this.mouseDownInfo?.instrument) {
+            const sound = this.mouseDownInfo.instrument.sounds.find(s => s.letter === selectedLetter);
+            if (sound) this.cursor.update({ isVisible: true, svg: sound.svg });
         }
-        
-        // Always reset mouse down info after handling radial selection
         this.mouseDownInfo = null;
     }
 
     _handleGridMouseEnter(instrument) {
-        // [Time][Class Name][Method Name][Feature][Log line]
-        logEvent('debug', 'PatternEditorView', '_handleGridMouseEnter', 'Cursor', 'Hovering over instrument:', instrument ? JSON.parse(JSON.stringify(instrument)) : 'null');
         this._ensureActiveSound(instrument);
-
         const activeLetter = this.state.activeSounds[instrument.symbol];
         const sound = instrument.sounds?.find(s => s.letter === activeLetter);
-        
-        // Always update cursor when entering a grid, regardless of radial menu state
         this.cursor.update({ isVisible: true, svg: sound?.svg });
     }
 
     _handleGridMouseLeave() {
-        this.cursor.update({ isVisible: false, svg: null });
+        this.cursor.update({ isVisible: false });
+    }
+    
+    _ensureActiveSound(instrument) {
+        if (!this.state.activeSounds[instrument.symbol] && instrument.sounds?.length > 0) {
+            this.state.activeSounds[instrument.symbol] = instrument.sounds[0].letter;
+        }
     }
 
-    // --- Handlers for Modal Workflow ---
-
     _handleRequestAddInstrument(measureId) {
-        logEvent('info', 'PatternEditorView', '_handleRequestAddInstrument', 'Events', `Request to add instrument to measure ${measureId}`);
-        this.modalMode = 'add';
-        this.activeMeasureId = measureId;
-        this.instrumentModal.show({
-            instrumentDefs: this.state.manifest.instrumentDefs,
-            soundPacks: this.state.manifest.soundPacks
-        });
+        this.modalContext = { mode: 'add', measureId, trackId: null };
+        this.instrumentModal.show({ soundPacks: this.state.soundPacks });
     }
 
     _handleRequestChangeInstrument(measureId, instrument) {
-        logEvent('info', 'PatternEditorView', '_handleRequestChangeInstrument', 'Events', `Request to change instrument ${instrument.trackId} in measure ${measureId}`);
-        this.modalMode = 'replace';
-        this.activeMeasureId = measureId;
-        this.activeTrackId = instrument.trackId;
-        this.instrumentModal.show({
-            instrumentDefs: this.state.manifest.instrumentDefs,
-            soundPacks: this.state.manifest.soundPacks
-        });
+        this.modalContext = { mode: 'replace', measureId, trackId: instrument.trackId };
+        this.instrumentModal.show({ soundPacks: this.state.soundPacks });
     }
 
     _handleInstrumentSelected(selection) {
-        logEvent('info', 'PatternEditorView', '_handleInstrumentSelected', 'Events', `Instrument selected for measure ${this.activeMeasureId} in mode ${this.modalMode}`, selection);
-        if (this.activeMeasureId === null) {
-            logEvent('warn', 'PatternEditorView', '_handleInstrumentSelected', 'State', 'No active measure ID.');
-            return;
-        }
+        const { mode, measureId, trackId } = this.modalContext;
+        const measureInstance = this.childInstances.get(measureId);
+        if (!measureInstance) return;
 
-        const measureInstance = this.childInstances.get(this.activeMeasureId);
-        if (!measureInstance) {
-            logEvent('error', 'PatternEditorView', '_handleInstrumentSelected', 'State', `Could not find measure instance for ID: ${this.activeMeasureId}`);
-            this._resetModalState();
-            return;
-        }
-
-        if (this.modalMode === 'add') {
+        if (mode === 'add') {
             measureInstance.addInstrument(selection);
-        } else if (this.modalMode === 'replace' && this.activeTrackId) {
-            measureInstance.replaceInstrument(this.activeTrackId, selection);
+        } else if (mode === 'replace' && trackId) {
+            measureInstance.replaceInstrument(trackId, selection);
         }
         
         this.state.isDirty = true;
-        this._resetModalState();
         this.render();
     }
     
     _handleModalCancel() {
-        logEvent('info', 'PatternEditorView', '_handleModalCancel', 'Events', 'Instrument selection cancelled.');
-        this._resetModalState();
+        logEvent('debug', 'PatternEditorView', '_handleModalCancel', 'Events', 'Modal cancelled.');
     }
-
-    _resetModalState() {
-        this.modalMode = 'add';
-        this.activeMeasureId = null; 
-        this.activeTrackId = null;
-    }
-
-    // --- Component Lifecycle Handlers ---
 
     _handleClick(event) {
         const addBtn = event.target.closest('.add-measure-btn');
         const deleteBtn = event.target.closest('.delete-measure-btn');
-        const actionBtn = event.target.closest('button[data-action]');
+        const saveBtn = event.target.closest('.pattern-save-btn');
 
         if (addBtn) this._addMeasure();
         if (deleteBtn) this._deleteMeasure(parseInt(deleteBtn.dataset.measureId, 10));
-        if (actionBtn) {
-            const action = actionBtn.dataset.action;
-            // --- MODIFIED: Only handle the 'save' action as playback controls are removed ---
-            if (action === 'save') {
-                this._handleSave();
-            }
-        }
+        if (saveBtn) this._handleSave();
     }
 
     _handleInputChange(event) {
         const control = event.target.dataset.control;
-        if (!control) return;
-    
-        // --- FIX: Handle text input separately to prevent re-rendering and focus loss ---
         if (control === 'patternName') {
             this.state.patternName = event.target.value;
-            // If the component isn't already marked as dirty, update the state
-            // and manually enable the save button to avoid a full re-render.
             if (!this.state.isDirty) {
                 this.state.isDirty = true;
-                const saveBtn = this.rootElement.querySelector('.pattern-save-btn');
-                if (saveBtn) {
-                    saveBtn.disabled = false;
-                }
+                this.rootElement.querySelector('.pattern-save-btn').disabled = false;
             }
-            // IMPORTANT: We return here to prevent the full re-render that would
-            // cause the input to lose focus.
-            return;
         }
-    
-        // --- REMOVED: Input handlers for playback controls are no longer needed ---
     }
 
     _handleSave() {
-        const isNew = this.state.patternName === DEFAULT_PATTERN_NAME;
         const patternData = {
             name: this.state.patternName,
-            measures: this.state.measures.map(m => this.childInstances.get(m.id)?.getState())
+            measures: Array.from(this.childInstances.values()).map(m => m.getState())
         };
-        this.callbacks.onSave?.({ isNew, patternData });
-        // Assuming save is successful
+        this.callbacks.onSave?.({ isNew: this.state.patternName === DEFAULT_PATTERN_NAME, patternData });
         this.state.isDirty = false;
         this.render();
     }
 
     _addMeasure() {
-        const newMeasure = {
-            id: this.state.nextMeasureId,
-            // In a real app, other measure-specific data would go here
-        };
+        const newMeasure = { id: this.state.nextMeasureId++ };
         this.state.measures.push(newMeasure);
-        this.state.nextMeasureId++;
         this.state.isDirty = true;
-        logEvent('info', 'PatternEditorView', '_addMeasure', 'State', 'Adding new measure', newMeasure);
         this.render();
     }
 
     _deleteMeasure(measureId) {
-        logEvent('info', 'PatternEditorView', '_deleteMeasure', 'Events', `Request to delete measure ID: ${measureId}`);
-        const confirmed = window.confirm('Are you sure you want to delete this measure?');
-
-        if (confirmed) {
-            // Clean up the specific child instance before removing from state
-            if (this.childInstances.has(measureId)) {
-                this.childInstances.get(measureId).destroy();
-                this.childInstances.delete(measureId);
-            }
-            
+        if (window.confirm('Are you sure you want to delete this measure?')) {
             this.state.measures = this.state.measures.filter(m => m.id !== measureId);
+            this.childInstances.get(measureId)?.destroy();
+            this.childInstances.delete(measureId);
             this.state.isDirty = true;
             this.render();
-            logEvent('info', 'PatternEditorView', '_deleteMeasure', 'State', `Measure ${measureId} removed.`);
         }
     }
 
     destroy() {
-        // --- FIX: Remove event listener from the component's own root element ---
         this.rootElement.removeEventListener('click', this._boundHandleClick);
         this.rootElement.removeEventListener('input', this._boundHandleInputChange);
         window.removeEventListener('mouseup', this._handleGlobalMouseUp, true);
         this.childInstances.forEach(instance => instance.destroy());
-        this.childInstances.clear();
-        // Destroy the owned services
         this.cursor.destroy();
         this.radialMenu.destroy();
-        // --- FIX: Destroy the modal instance ---
         this.instrumentModal.destroy();
-        
-        // --- FIX: Clean up the root element from the DOM ---
-        if (this.rootElement.parentElement) {
-            this.rootElement.parentElement.removeChild(this.rootElement);
-        }
-
+        this.container.innerHTML = '';
         logEvent('info', 'PatternEditorView', 'destroy', 'Lifecycle', 'Component destroyed.');
     }
 }

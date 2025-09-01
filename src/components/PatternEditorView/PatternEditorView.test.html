@@ -23,21 +23,18 @@
         </div>
     </div>
     
-    <!-- The necessary containers for the tests to run -->
     <div id="test-sandbox" style="position: absolute; visibility: hidden;"></div>
-    <!-- The modal container is also needed by the component during testing -->
-    <div id="modal-container" style="position: absolute; visibility: hidden;"></div>
 
     <script type="module">
         import { run } from './PatternEditorView.test.js';
         import { Logger } from '/percussion-studio/lib/Logger.js';
 
-        // This script is now solely responsible for running tests.
         document.addEventListener('DOMContentLoaded', () => {
             Logger.init({ level: 'debug' });
             Logger.setTarget('log-output');
 
             document.getElementById('run-tests-btn').addEventListener('click', run);
+            run();
         });
     </script>
 </body>

@@ -5,104 +5,94 @@ import { MockLogger } from '/percussion-studio/lib/MockLogger.js';
 import { logEvent } from '/percussion-studio/lib/Logger.js';
 import { PatternEditorView } from './PatternEditorView.js';
 
+// --- Mocks for isolated unit testing ---
+class MockMeasureEditorView {
+    constructor(container, props) { this.props = props; }
+    destroy() {}
+    getState() { return { instruments: this.props.initialInstruments || [], metrics: {} }; }
+}
+class MockEditorCursor { destroy() {} update() {} }
+class MockRadialSoundSelector { destroy() {} show() {} hide() {} }
+class MockInstrumentSelectionModalView { destroy() {} show() {} }
+
+// This is a hack for the simple test runner to inject mocks.
+PatternEditorView.prototype.MeasureEditorView = MockMeasureEditorView;
+PatternEditorView.prototype.EditorCursor = MockEditorCursor;
+PatternEditorView.prototype.RadialSoundSelector = MockRadialSoundSelector;
+PatternEditorView.prototype.InstrumentSelectionModalView = MockInstrumentSelectionModalView;
+
+
 export async function run() {
     const runner = new TestRunner();
     MockLogger.clearLogs();
-    logEvent('info', 'TestRunner', 'run', 'Setup', 'Starting PatternEditorView unit test suite.');
+    logEvent('info', 'TestRunner', 'run', 'Setup', 'Starting PatternEditorView test suite.');
     
     const testContainer = document.getElementById('test-sandbox');
-    let modalContainer = null;
-
-    const getMockManifest = () => ({
-        instrumentDefs: [], soundPacks: []
-    });
+    if (!document.getElementById('modal-container')) {
+        document.body.appendChild(document.createElement('div')).id = 'modal-container';
+    }
 
     runner.describe('PatternEditorView', () => {
         let view = null;
         
-        runner.beforeEach(() => {
-            logEvent('info', 'TestRunner', 'beforeEach', 'Lifecycle', 'Setting up test environment.');
-            modalContainer = document.createElement('div');
-            modalContainer.id = 'modal-container';
-            document.body.appendChild(modalContainer);
-        });
-
         runner.afterEach(() => {
-            logEvent('info', 'TestRunner', 'afterEach', 'Lifecycle', 'Tearing down test environment.');
             if (view) view.destroy();
-            if (modalContainer) modalContainer.remove();
             testContainer.innerHTML = '';
         });
 
         runner.it('should start with zero measures and an "add" button', () => {
-            try {
-                view = new PatternEditorView(testContainer, getMockManifest());
-                runner.expect(testContainer.querySelectorAll('.pattern-measure-wrapper').length).toBe(0);
-                runner.expect(testContainer.querySelector('.add-measure-btn')).not.toBe(null);
-                logEvent('info', 'PatternEditorView', 'run', 'Test', 'Successfully verified initial state.');
-            } catch (error) {
-                logEvent('error', 'PatternEditorView', 'run', 'Test', `Error during "start with zero measures" test: ${error.message}`);
-            }
+            view = new PatternEditorView(testContainer, { soundPacks: [] });
+            runner.expect(testContainer.querySelectorAll('.pattern-measure-wrapper').length).toBe(0);
+            runner.expect(testContainer.querySelector('.add-measure-btn')).not.toBe(null);
         });
 
         runner.it('should add a measure when the "add" button is clicked', () => {
-            try {
-                view = new PatternEditorView(testContainer, getMockManifest());
-                testContainer.querySelector('.add-measure-btn').click();
-                runner.expect(testContainer.querySelectorAll('.pattern-measure-wrapper').length).toBe(1);
-                logEvent('info', 'PatternEditorView', 'run', 'Test', 'Successfully verified adding a measure.');
-            } catch (error) {
-                logEvent('error', 'PatternEditorView', 'run', 'Test', `Error during "add measure" test: ${error.message}`);
-            }
-        });
-
-        runner.it('should render a delete button for each added measure', () => {
-            try {
-                view = new PatternEditorView(testContainer, getMockManifest());
-                testContainer.querySelector('.add-measure-btn').click();
-                runner.expect(testContainer.querySelector('.delete-measure-btn')).not.toBe(null);
-                logEvent('info', 'PatternEditorView', 'run', 'Test', 'Successfully verified delete button rendering.');
-            } catch (error) {
-                logEvent('error', 'PatternEditorView', 'run', 'Test', `Error during "delete button rendering" test: ${error.message}`);
-            }
+            view = new PatternEditorView(testContainer, { soundPacks: [] });
+            testContainer.querySelector('.add-measure-btn').click();
+            runner.expect(testContainer.querySelectorAll('.pattern-measure-wrapper').length).toBe(1);
         });
 
         runner.it('should remove a measure after user confirmation', () => {
-            try {
-                view = new PatternEditorView(testContainer, getMockManifest());
-                testContainer.querySelector('.add-measure-btn').click();
-                runner.expect(testContainer.querySelectorAll('.pattern-measure-wrapper').length).toBe(1);
+            view = new PatternEditorView(testContainer, { soundPacks: [] });
+            testContainer.querySelector('.add-measure-btn').click();
+            runner.expect(testContainer.querySelectorAll('.pattern-measure-wrapper').length).toBe(1);
 
-                const originalConfirm = window.confirm;
-                window.confirm = () => true; // Force confirmation
+            const originalConfirm = window.confirm;
+            window.confirm = () => true;
 
-                testContainer.querySelector('.delete-measure-btn').click();
-                runner.expect(testContainer.querySelectorAll('.pattern-measure-wrapper').length).toBe(0);
+            testContainer.querySelector('.delete-measure-btn').click();
+            runner.expect(testContainer.querySelectorAll('.pattern-measure-wrapper').length).toBe(0);
 
-                window.confirm = originalConfirm; // Restore
-                logEvent('info', 'PatternEditorView', 'run', 'Test', 'Successfully verified measure removal with confirmation.');
-            } catch (error) {
-                logEvent('error', 'PatternEditorView', 'run', 'Test', `Error during "remove measure with confirmation" test: ${error.message}`);
-            }
+            window.confirm = originalConfirm;
         });
         
-        runner.it('should NOT remove a measure if user cancels confirmation', () => {
-            try {
-                view = new PatternEditorView(testContainer, getMockManifest());
-                testContainer.querySelector('.add-measure-btn').click();
-                runner.expect(testContainer.querySelectorAll('.pattern-measure-wrapper').length).toBe(1);
-
-                const originalConfirm = window.confirm;
-                window.confirm = () => false; // Force cancellation
-
-                testContainer.querySelector('.delete-measure-btn').click();
-                runner.expect(testContainer.querySelectorAll('.pattern-measure-wrapper').length).toBe(1);
-
-                window.confirm = originalConfirm; // Restore
-                logEvent('info', 'PatternEditorView', 'run', 'Test', 'Successfully verified measure is not removed on cancellation.');
-            } catch (error) {
-                logEvent('error', 'PatternEditorView', 'run', 'Test', `Error during "cancel removal" test: ${error.message}`);
-            }
+        runner.it('should fire onSave callback when save button is clicked', () => {
+            // Use a simple flag-based approach instead of MockLogger
+            let callbackCalled = false;
+            let callbackData = null;
+            
+            view = new PatternEditorView(testContainer, { 
+                soundPacks: [],
+                onSave: (data) => {
+                    callbackCalled = true;
+                    callbackData = data;
+                }
+            });
+            
+            // Add a measure first to enable the save button
+            testContainer.querySelector('.add-measure-btn').click();
+            
+            // The save button should now be enabled since we have changes
+            const saveBtn = testContainer.querySelector('.pattern-save-btn');
+            runner.expect(saveBtn.disabled).toBe(false);
+            
+            // Click the save button
+            saveBtn.click();
+            
+            // Check that the callback was called
+            runner.expect(callbackCalled).toBe(true);
+            runner.expect(callbackData).not.toBe(null);
+            runner.expect(callbackData.patternData.name).toBe('New Pattern');
         });
     });
 

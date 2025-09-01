@@ -5,15 +5,26 @@
     <meta charset="UTF-8">
     <title>Live View Workbench: PatternEditorView</title>
     <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
-    <!-- Load CSS for ALL required child components -->
-    <link rel="stylesheet" href="/percussion-studio/src/components/InstrumentRowView/InstrumentRowView.css">
+    <!-- Load CSS for ALL required dependencies -->
     <link rel="stylesheet" href="/percussion-studio/src/components/MeasureEditorView/MeasureEditorView.css">
+    <link rel="stylesheet" href="/percussion-studio/src/components/MeasureLayoutView/MeasureLayoutView.css">
+    <link rel="stylesheet" href="/percussion-studio/src/components/BeatChunkPanel/BeatChunkPanel.css">
+    <link rel="stylesheet" href="/percussion-studio/src/components/BeatRulerView/BeatRulerView.css">
+    <link rel="stylesheet" href="/percussion-studio/src/components/InstrumentRowView/InstrumentRowView.css">
+    <link rel="stylesheet" href="/percussion-studio/src/components/EditorRowHeaderView/EditorRowHeaderView.css">
     <link rel="stylesheet" href="/percussion-studio/src/components/InstrumentSelectionModalView/InstrumentSelectionModalView.css">
-    <!-- FIX: Add missing CSS for owned services -->
     <link rel="stylesheet" href="/percussion-studio/src/components/EditorCursor/EditorCursor.css">
     <link rel="stylesheet" href="/percussion-studio/src/components/RadialSoundSelector/RadialSoundSelector.css">
     <link rel="stylesheet" href="./PatternEditorView.css">
-    <style> body { font-family: sans-serif; } </style>
+    <style> 
+        body { 
+            font-family: sans-serif;
+            font-size: calc(12px + 0.5vw);
+        } 
+        :root {
+            --cell-width: 2.5rem;
+        }
+    </style>
 </head>
 <body class="bg-light-gray pa4">
 
@@ -21,7 +32,7 @@
         <div class="w-70 pr3">
             <h1 class="f2 b mb3 bb pb2">Live View Workbench: Pattern Editor</h1>
             <p class="f6 gray mb3">
-                Click the '+ Add Measure' button to create new measure editors.
+                Click '+ Add Measure' to create new measure editors. All components use a responsive layout.
             </p>
             <div id="pattern-editor-container">
                 <!-- The PatternEditorView component will render here -->
@@ -35,7 +46,6 @@
         </div>
     </div>
 
-    <!-- The global container for the selection modal, which the component will use -->
     <div id="modal-container"></div>
 
     <script type="module" src="./PatternEditorView.integration.js"></script>
