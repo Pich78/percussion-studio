@@ -13,14 +13,22 @@ const gridWrapper = document.getElementById('grid-wrapper');
 const timeSignatureSelect = document.getElementById('time-signature-select');
 const subdivisionSelect = document.getElementById('subdivision-select');
 const notationInput = document.getElementById('notation-input');
+const legendContainer = document.getElementById('legend-container');
 
 // --- MOCK DATA ---
-const mockInstrument = { 
-    symbol: 'KCK', 
-    sounds: [
-        { letter: 'o', svg: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="currentColor"/></svg>' }
-    ] 
-};
+const svgCircle = '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" stroke="currentColor" stroke-width="8" fill="none"/></svg>';
+const svgCross = '<svg viewBox="0 0 100 100"><line x1="10" y1="10" x2="90" y2="90" stroke="currentColor" stroke-width="8"/><line x1="10" y1="90" x2="90" y2="10" stroke="currentColor" stroke-width="8"/></svg>';
+const svgSquare = '<svg viewBox="0 0 100 100"><rect x="10" y="10" width="80" height="80" stroke="currentColor" stroke-width="8" fill="none"/></svg>';
+const svgTriangle = '<svg viewBox="0 0 100 100"><polygon points="50,10 90,90 10,90" stroke="currentColor" stroke-width="8" fill="none"/></svg>';
+const svgDiamond = '<svg viewBox="0 0 100 100"><polygon points="50,10 90,50 50,90 10,50" stroke="currentColor" stroke-width="8" fill="none"/></svg>';
+
+const ALL_SOUNDS = [
+    { letter: 'o', svg: svgCircle },
+    { letter: 'x', svg: svgCross },
+    { letter: 's', svg: svgSquare },
+    { letter: 't', svg: svgTriangle },
+    { letter: 'd', svg: svgDiamond },
+];
 
 // --- FAKE CALLBACKS ---
 const interactiveCallbacks = {
@@ -37,7 +45,7 @@ function populateTimeSignatures() {
         option.textContent = METRICS_CONFIG[ts].label;
         timeSignatureSelect.appendChild(option);
     });
-    timeSignatureSelect.value = '4/4'; // Default
+    timeSignatureSelect.value = '4/4';
 }
 
 function populateSubdivisions() {
@@ -54,28 +62,36 @@ function populateSubdivisions() {
     rerender();
 }
 
+function updateLegend() {
+    legendContainer.innerHTML = '';
+    ALL_SOUNDS.forEach(sound => {
+        const item = document.createElement('div');
+        item.className = 'legend-item mr2 mb2';
+        item.innerHTML = `
+            <div class="legend-svg">${sound.svg}</div>
+            <code class="f5 b">${sound.letter}</code>
+        `;
+        legendContainer.appendChild(item);
+    });
+}
+
 // --- CORE RENDER LOGIC ---
 function rerender() {
     gridWrapper.innerHTML = '';
-    
     const tsKey = timeSignatureSelect.value;
     const subKey = subdivisionSelect.value;
     const metrics = METRICS_CONFIG[tsKey]?.subdivisions[subKey];
 
-    if (!metrics) {
-        logEvent('error', 'Workbench', 'rerender', 'Config', 'Could not find metrics config for', {tsKey, subKey});
-        return;
-    }
-
-    logEvent('info', 'Workbench', 'rerender', 'Config', 'Rendering with metrics:', metrics);
+    if (!metrics) return;
     
-    // Adjust the raw notation string to fit the required length
+    logEvent('debug', 'Workbench', 'rerender', 'State', 'Rerendering grid...');
     const rawNotation = notationInput.value;
     const expectedLength = metrics.totalBoxes;
     const finalNotation = rawNotation.padEnd(expectedLength, '-').slice(0, expectedLength);
 
+    const instrument = { symbol: 'DRM', sounds: ALL_SOUNDS };
+
     let notationCursor = 0;
-    // For each row defined in the grouping pattern...
     metrics.groupingPattern.forEach((rowLength) => {
         const rowContainer = document.createElement('div');
         gridWrapper.appendChild(rowContainer);
@@ -85,7 +101,7 @@ function rerender() {
         notationCursor += rowLength;
 
         gridView.render({
-            instrument: mockInstrument,
+            instrument: instrument,
             notation: notationForRow,
             metrics: {
                 beatGrouping: metrics.beatGrouping,
@@ -98,9 +114,10 @@ function rerender() {
 // --- UI EVENT BINDINGS ---
 timeSignatureSelect.addEventListener('change', populateSubdivisions);
 subdivisionSelect.addEventListener('change', rerender);
-notationInput.addEventListener('input', rerender); // Re-render on notation change
+notationInput.addEventListener('input', rerender);
 
-// --- INITIAL RENDER ---
+// --- INITIALIZATION ---
 populateTimeSignatures();
 populateSubdivisions();
+updateLegend();
 logEvent('info', 'Workbench', 'init', 'Lifecycle', 'Workbench initialized.');
