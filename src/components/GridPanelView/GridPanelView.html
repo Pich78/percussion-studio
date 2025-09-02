@@ -8,7 +8,6 @@
     <style> 
         body { 
             font-family: sans-serif; 
-            /* Responsive base font size */
             font-size: calc(12px + 0.5vw);
         }
         .wrapper {
@@ -16,6 +15,16 @@
             border: 1px solid #ccc;
             padding: 0.5rem;
             background-color: #f8f8f8;
+        }
+        .log-panel {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .log-box {
+            flex: 1;
+            overflow-y: auto;
+            white-space: pre-wrap;
         }
     </style>
 </head>
@@ -46,7 +55,7 @@
                 </div>
             </div>
 
-            <h3 class="f4 b mt0">Rendered Component</h3>
+            <h3 class="f4 b mt0">Rendered Component (Click and Drag on the Grid)</h3>
             <div class="wrapper">
                 <!-- The GridPanelView component will be rendered here -->
                 <div id="grid-container"></div>
@@ -54,9 +63,15 @@
             
         </div>
         <div class="w-30 pl3">
-            <div class="bg-near-black near-white pa3 br2 h-100">
-                <h2 class="f4 b bb pb2 mb2">Execution Log</h2>
-                <div id="log-output" class="f7 lh-copy" style="white-space: pre-wrap; height: 80vh; overflow-y: auto;"></div>
+            <div class="bg-near-black near-white pa3 br2 log-panel">
+                <div>
+                    <h2 class="f4 b bb pb2 mb2">Execution Log</h2>
+                    <div id="log-output" class="f7 lh-copy log-box" style="height: 38vh;"></div>
+                </div>
+                <div class="mt3">
+                    <h2 class="f4 b bb pb2 mb2">Callback Log</h2>
+                    <div id="callback-log-output" class="f7 lh-copy log-box" style="height: 38vh;"></div>
+                </div>
             </div>
         </div>
     </div>

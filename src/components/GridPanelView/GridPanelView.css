@@ -23,6 +23,7 @@
     box-sizing: border-box;
     position: relative;
     height: 100%;
+    cursor: pointer; /* Add pointer to indicate interactivity */
 }
 
 .grid-cell:first-child {
@@ -31,7 +32,7 @@
 
 /* Rhythmic Shading */
 .cell-weak-beat { background-color: #ffffff; }
-.cell-strong-beat { background-color: #f8f9fa; }
+.cell-strong-beat { background-color: #f8f9fa; } /* Note: this class is not currently used but kept for future use */
 .cell-downbeat { background-color: #e9ecef; }
 
 /* Triplet Shading */

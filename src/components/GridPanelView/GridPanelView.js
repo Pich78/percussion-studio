@@ -6,14 +6,14 @@ import { logEvent } from '/percussion-studio/lib/Logger.js';
 export class GridPanelView {
     constructor(container, callbacks) {
         this.container = container;
-        this.callbacks = callbacks || {}; // For future grid interactions
+        this.callbacks = callbacks || {};
 
         loadCSS('/percussion-studio/src/components/GridPanelView/GridPanelView.css');
         logEvent('debug', 'GridPanelView', 'constructor', 'Lifecycle', 'Component created.');
     }
 
     render({ instrument, notation, metrics }) {
-        logEvent('debug', 'GridPanelView', 'render', 'State', `Rendering grid for ${instrument.symbol} with notation: ${notation}`);
+        logEvent('debug', 'GridPanelView', 'render', 'State', `Rendering grid for ${instrument?.symbol} with notation: ${notation}`);
 
         this.container.innerHTML = '';
         this.container.className = 'grid-panel';
@@ -36,6 +36,38 @@ export class GridPanelView {
         cellEl.className = 'grid-cell';
         cellEl.dataset.tickIndex = index;
         
+        const hasNote = soundLetter && soundLetter !== '-';
+
+        // --- Event Handling ---
+        const createEventData = (event) => ({
+            instrument,
+            tickIndex: index,
+            hasNote,
+            event,
+        });
+
+        cellEl.addEventListener('mousedown', (e) => {
+            if (this.callbacks.onCellMouseDown) {
+                logEvent('debug', 'GridPanelView', '_createCell', 'Event', `mousedown fired for tick ${index}.`);
+                this.callbacks.onCellMouseDown(createEventData(e));
+            }
+        });
+
+        cellEl.addEventListener('mouseup', (e) => {
+            if (this.callbacks.onCellMouseUp) {
+                logEvent('debug', 'GridPanelView', '_createCell', 'Event', `mouseup fired for tick ${index}.`);
+                this.callbacks.onCellMouseUp(createEventData(e));
+            }
+        });
+
+        cellEl.addEventListener('mouseenter', (e) => {
+            // Only fire for drag events (when primary mouse button is pressed)
+            if (e.buttons === 1 && this.callbacks.onCellMouseEnter) {
+                logEvent('debug', 'GridPanelView', '_createCell', 'Event', `mouseenter (drag) fired for tick ${index}.`);
+                this.callbacks.onCellMouseEnter(createEventData(e));
+            }
+        });
+
         // Rhythmic Shading Logic
         const isTriplet = metrics.feel === 'triplet';
         if (isTriplet) {
@@ -43,14 +75,15 @@ export class GridPanelView {
             cellEl.classList.add(`cell-triplet-${tripletPos + 1}`);
         } else {
             const beatGrouping = metrics.beatGrouping || 4;
-            const isDownbeat = (index === 0);
-            const isStrongBeat = (index > 0) && (index % beatGrouping) === 0;
-            if (isDownbeat) cellEl.classList.add('cell-downbeat');
-            else if (isStrongBeat) cellEl.classList.add('cell-strong-beat');
-            else cellEl.classList.add('cell-weak-beat');
+            const isDownbeat = (index % beatGrouping === 0);
+            
+            if (isDownbeat) {
+                 cellEl.classList.add('cell-downbeat');
+            } else {
+                 cellEl.classList.add('cell-weak-beat');
+            }
         }
 
-        const hasNote = soundLetter && soundLetter !== '-';
         if (hasNote) {
             const sound = instrument.sounds.find(s => s.letter === soundLetter);
             if (sound?.svg) {
