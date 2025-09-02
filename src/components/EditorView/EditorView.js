@@ -13,7 +13,7 @@ export class EditorView {
         this.state = {
             flow,
             manifest,
-            currentPattern: { name: 'New Pattern', measures: [] }, // Simplified for now
+            currentPattern: { name: 'New Pattern', measures: [] },
             isPinned: false,
         };
 
@@ -26,6 +26,36 @@ export class EditorView {
         loadCSS('/percussion-studio/src/components/EditorView/EditorView.css');
         logEvent('info', 'EditorView', 'constructor', 'Lifecycle', 'Component created.');
         this.render();
+    }
+
+    // Helper method to generate instrument definitions from sound packs
+    _generateInstrumentDefs(soundPacks) {
+        const uniqueInstruments = new Map();
+        
+        soundPacks.forEach(pack => {
+            if (!uniqueInstruments.has(pack.symbol)) {
+                uniqueInstruments.set(pack.symbol, {
+                    symbol: pack.symbol,
+                    name: this._getInstrumentNameFromSymbol(pack.symbol)
+                });
+            }
+        });
+        
+        return Array.from(uniqueInstruments.values());
+    }
+
+    // Helper method to convert symbol to readable instrument name
+    _getInstrumentNameFromSymbol(symbol) {
+        const symbolNames = {
+            'KCK': 'Kick Drum',
+            'SNR': 'Snare Drum',
+            'HH': 'Hi-Hat',
+            'CYM': 'Cymbal',
+            'TOM': 'Tom',
+            'PERC': 'Percussion'
+        };
+        
+        return symbolNames[symbol] || symbol;
     }
 
     render() {
@@ -51,9 +81,21 @@ export class EditorView {
         this.instrumentModal = new InstrumentSelectionModalView(modalContainer, {
             onInstrumentSelected: (selection) => {
                 logEvent('info', 'EditorView', 'onInstrumentSelected', 'Callback', 'Instrument selected', selection);
-                // In a real app, this would bubble down to the correct measure editor
+                
+                // Pass the selection to the PatternEditorView
+                if (this.patternEditor && this.patternEditor.handleInstrumentSelected) {
+                    this.patternEditor.handleInstrumentSelected(selection);
+                } else {
+                    logEvent('error', 'EditorView', 'onInstrumentSelected', 'Error', 'PatternEditorView not available or missing handleInstrumentSelected method');
+                }
             },
-            onCancel: () => logEvent('info', 'EditorView', 'onModalCancel', 'Callback', 'Modal cancelled.'),
+            onCancel: () => {
+                logEvent('info', 'EditorView', 'onModalCancel', 'Callback', 'Modal cancelled.');
+                // Also notify PatternEditorView about cancellation if needed
+                if (this.patternEditor && this.patternEditor._handleModalCancel) {
+                    this.patternEditor._handleModalCancel();
+                }
+            },
         });
 
         // 2. Playback Controls
@@ -67,14 +109,22 @@ export class EditorView {
             },
         });
         
-        // 4. Pattern Editor (The main content of the FlowPanel)
+        // 4. Pattern Editor (The main content area)
         this.patternEditor = new PatternEditorView(mainContainer, {
             soundPacks: this.state.manifest.soundPacks,
             onSave: (data) => logEvent('info', 'EditorView', 'onSavePattern', 'Callback', 'Save requested', data),
             // Pass down a callback that allows the child to request the modal
             onRequestInstrumentChange: () => {
                 logEvent('info', 'EditorView', 'onRequestInstrumentChange', 'Callback', 'Child requested instrument change modal.');
-                this.instrumentModal.show({ soundPacks: this.state.manifest.soundPacks });
+                
+                // Generate instrument definitions from sound packs
+                const instrumentDefs = this._generateInstrumentDefs(this.state.manifest.soundPacks);
+                logEvent('debug', 'EditorView', 'onRequestInstrumentChange', 'Data', 'Generated instrumentDefs:', instrumentDefs);
+                
+                this.instrumentModal.show({ 
+                    instrumentDefs: instrumentDefs,
+                    soundPacks: this.state.manifest.soundPacks 
+                });
             }
         });
 

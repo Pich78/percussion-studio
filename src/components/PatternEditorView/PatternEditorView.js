@@ -5,15 +5,17 @@ import { logEvent } from '/percussion-studio/lib/Logger.js';
 import { MeasureEditorView } from '/percussion-studio/src/components/MeasureEditorView/MeasureEditorView.js';
 import { EditorCursor } from '/percussion-studio/src/components/EditorCursor/EditorCursor.js';
 import { RadialSoundSelector } from '/percussion-studio/src/components/RadialSoundSelector/RadialSoundSelector.js';
-import { InstrumentSelectionModalView } from '/percussion-studio/src/components/InstrumentSelectionModalView/InstrumentSelectionModalView.js';
 
 const HOLD_DURATION_MS = 200;
 const DEFAULT_PATTERN_NAME = 'New Pattern';
 
 export class PatternEditorView {
-    constructor(container, { soundPacks, onSave }) {
+    constructor(container, { soundPacks, onSave, onRequestInstrumentChange }) {
         this.container = container;
-        this.callbacks = { onSave };
+        this.callbacks = { 
+            onSave, 
+            onRequestInstrumentChange // Store the callback from EditorView
+        };
         
         this.rootElement = document.createElement('div');
         this.rootElement.className = 'pattern-editor-view';
@@ -32,14 +34,8 @@ export class PatternEditorView {
         this.radialMenu = new RadialSoundSelector({
             onSoundSelected: this._handleSoundSelected.bind(this)
         });
-        this.instrumentModal = new InstrumentSelectionModalView(
-            document.getElementById('modal-container'), 
-            {
-                onInstrumentSelected: this._handleInstrumentSelected.bind(this),
-                onCancel: this._handleModalCancel.bind(this)
-            }
-        );
 
+        // Remove the modal creation - we'll use the callback instead
         this.modalContext = { mode: 'add', measureId: null, trackId: null };
         this.childInstances = new Map();
         this.holdTimeout = null;
@@ -202,19 +198,39 @@ export class PatternEditorView {
     }
 
     _handleRequestAddInstrument(measureId) {
+        logEvent('debug', 'PatternEditorView', '_handleRequestAddInstrument', 'Action', `Requesting add instrument for measure ${measureId}`);
         this.modalContext = { mode: 'add', measureId, trackId: null };
-        this.instrumentModal.show({ soundPacks: this.state.soundPacks });
+        
+        // Use the callback instead of direct modal call
+        if (this.callbacks.onRequestInstrumentChange) {
+            this.callbacks.onRequestInstrumentChange();
+        } else {
+            logEvent('error', 'PatternEditorView', '_handleRequestAddInstrument', 'Error', 'No onRequestInstrumentChange callback provided');
+        }
     }
 
     _handleRequestChangeInstrument(measureId, instrument) {
+        logEvent('debug', 'PatternEditorView', '_handleRequestChangeInstrument', 'Action', `Requesting change instrument for measure ${measureId}, track ${instrument.trackId}`);
         this.modalContext = { mode: 'replace', measureId, trackId: instrument.trackId };
-        this.instrumentModal.show({ soundPacks: this.state.soundPacks });
+        
+        // Use the callback instead of direct modal call
+        if (this.callbacks.onRequestInstrumentChange) {
+            this.callbacks.onRequestInstrumentChange();
+        } else {
+            logEvent('error', 'PatternEditorView', '_handleRequestChangeInstrument', 'Error', 'No onRequestInstrumentChange callback provided');
+        }
     }
 
-    _handleInstrumentSelected(selection) {
+    // This method will be called by EditorView when the modal selection is made
+    handleInstrumentSelected(selection) {
+        logEvent('debug', 'PatternEditorView', 'handleInstrumentSelected', 'Action', 'Processing instrument selection', { selection, context: this.modalContext });
+        
         const { mode, measureId, trackId } = this.modalContext;
         const measureInstance = this.childInstances.get(measureId);
-        if (!measureInstance) return;
+        if (!measureInstance) {
+            logEvent('error', 'PatternEditorView', 'handleInstrumentSelected', 'Error', `No measure instance found for ID ${measureId}`);
+            return;
+        }
 
         if (mode === 'add') {
             measureInstance.addInstrument(selection);
@@ -285,7 +301,7 @@ export class PatternEditorView {
         this.childInstances.forEach(instance => instance.destroy());
         this.cursor.destroy();
         this.radialMenu.destroy();
-        this.instrumentModal.destroy();
+        // Remove the modal destroy since we're not creating it anymore
         this.container.innerHTML = '';
         logEvent('info', 'PatternEditorView', 'destroy', 'Lifecycle', 'Component destroyed.');
     }
