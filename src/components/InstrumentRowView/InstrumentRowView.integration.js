@@ -3,6 +3,7 @@
 import { InstrumentRowView } from './InstrumentRowView.js';
 import { EditorRowHeaderView } from '/percussion-studio/src/components/EditorRowHeaderView/EditorRowHeaderView.js';
 import { PlaybackRowHeaderView } from '/percussion-studio/src/components/PlaybackRowHeaderView/PlaybackRowHeaderView.js';
+import { GridPanelView } from '/percussion-studio/src/components/GridPanelView/GridPanelView.js';
 import { InstrumentSelectionModalView } from '/percussion-studio/src/components/InstrumentSelectionModalView/InstrumentSelectionModalView.js';
 import { Logger, logEvent } from '/percussion-studio/lib/Logger.js';
 
@@ -19,7 +20,7 @@ let mockState = {
         name: 'Kick', 
         pack: 'Studio Kick', 
         pattern: 'o---o---o---o---', 
-        sounds:[{letter:'o',svg:'<svg/>'}], 
+        sounds:[{letter:'o',svg:'<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" stroke="black" stroke-width="8" fill="none"/></svg>'}], 
         volume: 0.8, 
         muted: false, 
         unmutedVolume: 0.8 
@@ -69,6 +70,14 @@ const callbacks = {
     onRequestInstrumentChange: (instrument) => {
         logCallback('onRequestInstrumentChange', instrument);
         modal.show(mockState.manifest);
+    },
+    onCellMouseDown: ({ tickIndex }) => {
+        logCallback('onCellMouseDown', { tickIndex });
+        // Example of modifying notation state
+        const patternArray = mockState.instrument.pattern.split('');
+        patternArray[tickIndex] = patternArray[tickIndex] === '-' ? 'o' : '-';
+        mockState.instrument.pattern = patternArray.join('');
+        rerender();
     }
 };
 
@@ -78,6 +87,7 @@ const editorRow = new InstrumentRowView(
     { headerPanel: editorHeaderPanel, gridPanel: editorGridPanel }, 
     {
         HeaderComponent: EditorRowHeaderView,
+        GridPanelComponent: GridPanelView, // Inject the real GridPanelView
         headerProps: mockState.instrument,
         callbacks
     }
@@ -88,6 +98,7 @@ const playbackRow = new InstrumentRowView(
     { headerPanel: playbackHeaderPanel, gridPanel: playbackGridPanel }, 
     {
         HeaderComponent: PlaybackRowHeaderView,
+        GridPanelComponent: GridPanelView, // Inject the real GridPanelView
         headerProps: {
             id: mockState.instrument.id,
             name: mockState.instrument.name,

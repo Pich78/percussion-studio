@@ -5,7 +5,7 @@ import { MockLogger } from '/percussion-studio/lib/MockLogger.js';
 import { logEvent } from '/percussion-studio/lib/Logger.js';
 import { InstrumentRowView } from './InstrumentRowView.js';
 
-// --- Mocks for Headers ---
+// --- Mocks for Children ---
 let headerRenderCount = 0;
 let lastHeaderProps = null;
 class MockHeader {
@@ -19,6 +19,21 @@ class MockHeader {
     destroy() {}
 }
 
+let gridRenderCount = 0;
+let lastGridProps = null;
+class MockGridPanel {
+    constructor(container, callbacks) {
+        // Test that callbacks are passed
+        this.callbacks = callbacks;
+    }
+    render(props) {
+        gridRenderCount++;
+        lastGridProps = props;
+    }
+    destroy() {}
+}
+
+
 export async function run() {
     const runner = new TestRunner();
     MockLogger.clearLogs();
@@ -31,17 +46,20 @@ export async function run() {
         notation: 'o---',
         metrics: { beatGrouping: 4, feel: 'duple' },
         HeaderComponent: MockHeader,
-        headerProps: { name: 'Test Kick' }, // The generic props object
-        callbacks: {},
+        GridPanelComponent: MockGridPanel, // Add mock grid panel
+        headerProps: { name: 'Test Kick' },
+        callbacks: { onTest: () => {} },
     });
 
-    runner.describe('InstrumentRowView Rendering', () => {
+    runner.describe('InstrumentRowView Orchestration Logic', () => {
         let view, headerPanel, gridPanel;
         
         runner.beforeEach(() => {
             headerRenderCount = 0;
             lastHeaderProps = null;
-            // Create the two panel elements that the parent would provide
+            gridRenderCount = 0;
+            lastGridProps = null;
+
             testContainer.innerHTML = `
                 <div id="header-panel-test"></div>
                 <div id="grid-panel-test"></div>
@@ -54,17 +72,16 @@ export async function run() {
             if(view) view.destroy();
         });
 
-        runner.it('should pass headerProps to the injected header component', () => {
+        runner.it('should pass headerProps to the injected header component on construction', () => {
             const props = getMockProps();
             view = new InstrumentRowView({ headerPanel, gridPanel }, props);
             runner.expect(lastHeaderProps.name).toBe('Test Kick');
         });
-
-        runner.it('should render the correct number of grid cells', () => {
+        
+        runner.it('should pass callbacks to the injected grid panel component on construction', () => {
             const props = getMockProps();
             view = new InstrumentRowView({ headerPanel, gridPanel }, props);
-            view.render(props);
-            runner.expect(gridPanel.querySelectorAll('.grid-cell').length).toBe(4);
+            runner.expect(typeof view.gridComponent.callbacks.onTest).toBe('function');
         });
 
         runner.it('should call render on its header component with updated props', () => {
@@ -76,6 +93,18 @@ export async function run() {
 
             runner.expect(headerRenderCount).toBe(1);
             runner.expect(lastHeaderProps.name).toBe('New Name');
+        });
+
+        runner.it('should call render on its grid panel component with the correct props', () => {
+            const props = getMockProps();
+            view = new InstrumentRowView({ headerPanel, gridPanel }, props);
+            
+            const newRenderProps = { ...props, notation: 'x-x-' };
+            view.render(newRenderProps);
+            
+            runner.expect(gridRenderCount).toBe(1);
+            runner.expect(lastGridProps.notation).toBe('x-x-');
+            runner.expect(lastGridProps.instrument.symbol).toBe('KCK');
         });
     });
 

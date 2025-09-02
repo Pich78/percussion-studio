@@ -20,36 +20,3 @@
 .density-low { --row-height: var(--row-height-low); }
 .density-medium { --row-height: var(--row-height-medium); }
 .density-high { --row-height: var(--row-height-high); }
-
-
-/* --- Grid Cells --- */
-.grid-cell {
-    flex-shrink: 0;
-    flex-grow: 0;
-    width: var(--cell-width);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-left: 1px solid #e9ecef;
-    box-sizing: border-box;
-    position: relative;
-    height: 100%;
-}
-
-.grid-cell:first-child {
-    border-left: none;
-}
-
-/* Rhythmic Shading */
-.cell-weak-beat { background-color: #ffffff; }
-.cell-strong-beat { background-color: #f8f9fa; }
-.cell-downbeat { background-color: #e9ecef; }
-
-/* Triplet Shading */
-.cell-triplet-1 { background-color: #f1f3f5; }
-.cell-triplet-2 { background-color: #f8f9fa; }
-.cell-triplet-3 { background-color: #f8f9fa; }
-
-/* Note SVG Styling */
-.note { width: 80%; height: 80%; }
-.note svg { width: 100%; height: 100%; }
