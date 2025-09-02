@@ -3,6 +3,16 @@
 :root {
     --cell-width: 2.5rem; /* Approx 40px on a standard screen */
     --row-height: 3.125rem; /* Approx 50px */
+    
+    /* Duple Shading Palette */
+    --duple-downbeat-bg: #ced4da;     /* Darkest */
+    --duple-strong-beat-bg: #e9ecef;  /* Medium */
+    --duple-weak-beat-bg: #ffffff;    /* Lightest */
+
+    /* Triplet Shading Palette */
+    --triplet-1-bg: #d0ebff; /* Strongest beat (e.g., 1st note of a beat) */
+    --triplet-2-bg: #e7f5ff; /* Secondary beat (e.g., 2nd or 3rd note of simple triplet, or secondary downbeat) */
+    --triplet-3-bg: #f8f9fa; /* Weakest beat (e.g., off-beats) */
 }
 
 .grid-panel {
@@ -10,6 +20,7 @@
     align-items: stretch;
     height: var(--row-height);
     background-color: #fff;
+    margin-bottom: 4px; /* Add a small gap between rows */
 }
 
 .grid-cell {
@@ -23,22 +34,24 @@
     box-sizing: border-box;
     position: relative;
     height: 100%;
-    cursor: pointer; /* Add pointer to indicate interactivity */
+    cursor: pointer;
 }
 
 .grid-cell:first-child {
     border-left: none;
 }
 
-/* Rhythmic Shading */
-.cell-weak-beat { background-color: #ffffff; }
-.cell-strong-beat { background-color: #f8f9fa; } /* Note: this class is not currently used but kept for future use */
-.cell-downbeat { background-color: #e9ecef; }
+/* --- Advanced Rhythmic Shading --- */
+
+/* Duple Shading */
+.cell-downbeat { background-color: var(--duple-downbeat-bg); }
+.cell-strong-beat { background-color: var(--duple-strong-beat-bg); }
+.cell-weak-beat { background-color: var(--duple-weak-beat-bg); }
 
 /* Triplet Shading */
-.cell-triplet-1 { background-color: #f1f3f5; }
-.cell-triplet-2 { background-color: #f8f9fa; }
-.cell-triplet-3 { background-color: #f8f9fa; }
+.cell-triplet-1 { background-color: var(--triplet-1-bg); }
+.cell-triplet-2 { background-color: var(--triplet-2-bg); }
+.cell-triplet-3 { background-color: var(--triplet-3-bg); }
 
 /* Note SVG Styling */
 .note { width: 80%; height: 80%; }

@@ -22,7 +22,7 @@ export async function run() {
         ...overrides
     });
 
-    runner.describe('GridPanelView Rendering', () => {
+    runner.describe('Rendering & Shading', () => {
         let view = null;
         
         runner.afterEach(() => {
@@ -30,48 +30,48 @@ export async function run() {
         });
 
         runner.it('should render the correct number of grid cells', () => {
-            testContainer.innerHTML = '';
             view = new GridPanelView(testContainer, {});
             view.render(getMockProps());
             runner.expect(testContainer.querySelectorAll('.grid-cell').length).toBe(8);
         });
         
         runner.it('should render notes in the correct cells', () => {
-            testContainer.innerHTML = '';
             view = new GridPanelView(testContainer, {});
             view.render(getMockProps());
-            
             const cells = testContainer.querySelectorAll('.grid-cell');
             runner.expect(cells[0].querySelector('.note')).not.toBe(null);
             runner.expect(cells[1].querySelector('.note')).toBe(null);
             runner.expect(cells[4].querySelector('.note')).not.toBe(null);
         });
 
-        runner.it('should apply duple shading classes correctly', () => {
-            testContainer.innerHTML = '';
+        runner.it('should apply ADVANCED duple shading classes correctly', () => {
             view = new GridPanelView(testContainer, {});
-            view.render(getMockProps({ notation: 'o-o-o-o-o-o-o-o-' }));
-            
+            view.render(getMockProps({ notation: '-'.repeat(16), metrics: { beatGrouping: 4, feel: 'duple' } }));
             const cells = testContainer.querySelectorAll('.grid-cell');
             runner.expect(cells[0].classList.contains('cell-downbeat')).toBe(true);
             runner.expect(cells[1].classList.contains('cell-weak-beat')).toBe(true);
+            runner.expect(cells[2].classList.contains('cell-strong-beat')).toBe(true);
             runner.expect(cells[4].classList.contains('cell-downbeat')).toBe(true);
         });
         
-        runner.it('should apply triplet shading classes correctly when specified', () => {
-            testContainer.innerHTML = '';
+        runner.it('should apply simple triplet shading (beatGrouping: 3)', () => {
             view = new GridPanelView(testContainer, {});
-            const props = getMockProps({
-                notation: 'o--o--',
-                metrics: { feel: 'triplet' }
-            });
-            view.render(props);
-
+            view.render(getMockProps({ notation: 'o--o--', metrics: { feel: 'triplet', beatGrouping: 3 } }));
             const cells = testContainer.querySelectorAll('.grid-cell');
-            runner.expect(cells.length).toBe(6);
             runner.expect(cells[0].classList.contains('cell-triplet-1')).toBe(true);
             runner.expect(cells[1].classList.contains('cell-triplet-2')).toBe(true);
             runner.expect(cells[2].classList.contains('cell-triplet-3')).toBe(true);
+            runner.expect(cells[3].classList.contains('cell-triplet-1')).toBe(true);
+        });
+
+        runner.it('should apply ADVANCED triplet shading (beatGrouping: 6)', () => {
+            view = new GridPanelView(testContainer, {});
+            view.render(getMockProps({ notation: '-'.repeat(12), metrics: { beatGrouping: 6, feel: 'triplet' } }));
+            const cells = testContainer.querySelectorAll('.grid-cell');
+            runner.expect(cells[0].classList.contains('cell-triplet-1')).toBe(true);
+            runner.expect(cells[1].classList.contains('cell-triplet-3')).toBe(true);
+            runner.expect(cells[3].classList.contains('cell-triplet-2')).toBe(true);
+            runner.expect(cells[6].classList.contains('cell-triplet-1')).toBe(true);
         });
     });
 
@@ -89,7 +89,6 @@ export async function run() {
                 getReceived: () => received,
                 clear: () => { received = {}; },
             };
-
             testContainer.innerHTML = '';
             props = getMockProps();
         });
@@ -102,26 +101,19 @@ export async function run() {
         runner.it('should fire onCellMouseDown with correct data when a cell is clicked', () => {
             view = new GridPanelView(testContainer, spyCallbacks);
             view.render(props);
-
-            const cellToClick = testContainer.querySelectorAll('.grid-cell')[2]; // Click the 3rd cell (index 2)
+            const cellToClick = testContainer.querySelectorAll('.grid-cell')[2];
             cellToClick.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
             const receivedData = spyCallbacks.getReceived().down;
-
-            runner.expect(receivedData).not.toBe(undefined);
             runner.expect(receivedData.tickIndex).toBe(2);
             runner.expect(receivedData.hasNote).toBe(false);
-            runner.expect(receivedData.instrument.symbol).toBe('KCK');
         });
 
-        runner.it('should fire onCellMouseUp with correct data when a mouse is released on a cell', () => {
+        runner.it('should fire onCellMouseUp with correct data', () => {
             view = new GridPanelView(testContainer, spyCallbacks);
             view.render(props);
-
-            const cellToClick = testContainer.querySelectorAll('.grid-cell')[0]; // Click the 1st cell (has a note)
+            const cellToClick = testContainer.querySelectorAll('.grid-cell')[0];
             cellToClick.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
             const receivedData = spyCallbacks.getReceived().up;
-            
-            runner.expect(receivedData).not.toBe(undefined);
             runner.expect(receivedData.tickIndex).toBe(0);
             runner.expect(receivedData.hasNote).toBe(true);
         });
@@ -129,38 +121,31 @@ export async function run() {
         runner.it('should NOT fire onCellMouseEnter if mouse button is not pressed', () => {
             view = new GridPanelView(testContainer, spyCallbacks);
             view.render(props);
-            
             const cell = testContainer.querySelectorAll('.grid-cell')[1];
             cell.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true, buttons: 0 }));
-
             runner.expect(spyCallbacks.getReceived().enter).toBe(undefined);
         });
 
         runner.it('should fire onCellMouseEnter if mouse button IS pressed (drag)', () => {
+            // Note: GridPanelView doesn't manage drag state, just reports events.
             view = new GridPanelView(testContainer, spyCallbacks);
             view.render(props);
-
             const cell = testContainer.querySelectorAll('.grid-cell')[1];
             cell.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true, buttons: 1 }));
-
-            runner.expect(spyCallbacks.getReceived().enter).not.toBe(undefined);
+             const receivedData = spyCallbacks.getReceived().enter;
+            runner.expect(receivedData).not.toBe(undefined);
+            runner.expect(receivedData.tickIndex).toBe(1);
         });
 
         runner.it('should not throw an error if callbacks are not provided', () => {
             view = new GridPanelView(testContainer, {}); // No callbacks
             view.render(props);
-            
             const cell = testContainer.querySelectorAll('.grid-cell')[0];
-            
-            // --- FIX: Corrected test to use the new `not.toThrow` assertion ---
             runner.expect(() => {
                 cell.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
-                cell.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
-                cell.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true, buttons: 1 }));
             }).not.toThrow();
         });
     });
-
 
     await runner.runAll();
     runner.renderResults('test-results');

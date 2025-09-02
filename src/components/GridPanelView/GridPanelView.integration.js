@@ -2,17 +2,17 @@
 
 import { GridPanelView } from './GridPanelView.js';
 import { Logger, logEvent } from '/percussion-studio/lib/Logger.js';
+import { METRICS_CONFIG } from '/percussion-studio/src/config/MetricsConfiguration.js';
 
 // --- INITIALIZATION ---
 Logger.init({ level: 'debug' });
 Logger.setTarget('log-output');
 
 // --- DOM REFERENCES ---
-const gridContainer = document.getElementById('grid-container');
+const gridWrapper = document.getElementById('grid-wrapper');
+const timeSignatureSelect = document.getElementById('time-signature-select');
+const subdivisionSelect = document.getElementById('subdivision-select');
 const notationInput = document.getElementById('notation-input');
-const feelSelect = document.getElementById('feel-select');
-const groupingInput = document.getElementById('grouping-input');
-const callbackLogOutput = document.getElementById('callback-log-output');
 
 // --- MOCK DATA ---
 const mockInstrument = { 
@@ -22,54 +22,85 @@ const mockInstrument = {
     ] 
 };
 
-// --- FAKE CALLBACKS for MANUAL TESTING ---
-function logCallback(eventName, data) {
-    const logEntry = document.createElement('div');
-    const simpleData = { 
-        tickIndex: data.tickIndex, 
-        hasNote: data.hasNote,
-        instrument: data.instrument.symbol,
-    };
-    logEntry.textContent = `[${eventName}] - ${JSON.stringify(simpleData)}`;
-    callbackLogOutput.appendChild(logEntry);
-    callbackLogOutput.scrollTop = callbackLogOutput.scrollHeight;
-}
-
+// --- FAKE CALLBACKS ---
 const interactiveCallbacks = {
-    onCellMouseDown: (data) => logCallback('onCellMouseDown', data),
-    onCellMouseUp: (data) => logCallback('onCellMouseUp', data),
-    onCellMouseEnter: (data) => logCallback('onCellMouseEnter', data),
+    onCellMouseDown: (data) => {
+        logEvent('info', 'Workbench', 'onCellMouseDown', 'Callback', `Clicked cell ${data.tickIndex}`);
+    },
 };
 
-// --- COMPONENT INSTANCE ---
-// Pass the fake callbacks to the constructor
-const gridView = new GridPanelView(gridContainer, interactiveCallbacks);
+// --- UI LOGIC ---
+function populateTimeSignatures() {
+    Object.keys(METRICS_CONFIG).forEach(ts => {
+        const option = document.createElement('option');
+        option.value = ts;
+        option.textContent = METRICS_CONFIG[ts].label;
+        timeSignatureSelect.appendChild(option);
+    });
+    timeSignatureSelect.value = '4/4'; // Default
+}
 
-// --- CORE LOGIC ---
+function populateSubdivisions() {
+    const selectedTs = timeSignatureSelect.value;
+    const subdivisions = METRICS_CONFIG[selectedTs]?.subdivisions || {};
+    subdivisionSelect.innerHTML = '';
+
+    Object.keys(subdivisions).forEach(sub => {
+        const option = document.createElement('option');
+        option.value = sub;
+        option.textContent = subdivisions[sub].label;
+        subdivisionSelect.appendChild(option);
+    });
+    rerender();
+}
+
+// --- CORE RENDER LOGIC ---
 function rerender() {
-    const notation = notationInput.value;
-    const feel = feelSelect.value;
-    const beatGrouping = parseInt(groupingInput.value, 10) || 4;
+    gridWrapper.innerHTML = '';
     
-    const props = {
-        instrument: mockInstrument,
-        notation: notation,
-        metrics: {
-            feel: feel,
-            beatGrouping: beatGrouping
-        }
-    };
+    const tsKey = timeSignatureSelect.value;
+    const subKey = subdivisionSelect.value;
+    const metrics = METRICS_CONFIG[tsKey]?.subdivisions[subKey];
 
-    logEvent('info', 'Workbench', 'rerender', 'Props', 'Rendering with new props:', props);
-    gridView.render(props);
+    if (!metrics) {
+        logEvent('error', 'Workbench', 'rerender', 'Config', 'Could not find metrics config for', {tsKey, subKey});
+        return;
+    }
+
+    logEvent('info', 'Workbench', 'rerender', 'Config', 'Rendering with metrics:', metrics);
+    
+    // Adjust the raw notation string to fit the required length
+    const rawNotation = notationInput.value;
+    const expectedLength = metrics.totalBoxes;
+    const finalNotation = rawNotation.padEnd(expectedLength, '-').slice(0, expectedLength);
+
+    let notationCursor = 0;
+    // For each row defined in the grouping pattern...
+    metrics.groupingPattern.forEach((rowLength) => {
+        const rowContainer = document.createElement('div');
+        gridWrapper.appendChild(rowContainer);
+        const gridView = new GridPanelView(rowContainer, interactiveCallbacks);
+
+        const notationForRow = finalNotation.substring(notationCursor, notationCursor + rowLength);
+        notationCursor += rowLength;
+
+        gridView.render({
+            instrument: mockInstrument,
+            notation: notationForRow,
+            metrics: {
+                beatGrouping: metrics.beatGrouping,
+                feel: metrics.feel,
+            },
+        });
+    });
 }
 
 // --- UI EVENT BINDINGS ---
-[notationInput, feelSelect, groupingInput].forEach(el => {
-    el.addEventListener('change', rerender);
-    el.addEventListener('input', rerender);
-});
+timeSignatureSelect.addEventListener('change', populateSubdivisions);
+subdivisionSelect.addEventListener('change', rerender);
+notationInput.addEventListener('input', rerender); // Re-render on notation change
 
 // --- INITIAL RENDER ---
-rerender();
+populateTimeSignatures();
+populateSubdivisions();
 logEvent('info', 'Workbench', 'init', 'Lifecycle', 'Workbench initialized.');

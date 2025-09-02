@@ -36,51 +36,35 @@ export class GridPanelView {
         cellEl.className = 'grid-cell';
         cellEl.dataset.tickIndex = index;
         
+        const { feel, beatGrouping } = metrics;
         const hasNote = soundLetter && soundLetter !== '-';
 
-        // --- Event Handling ---
-        const createEventData = (event) => ({
-            instrument,
-            tickIndex: index,
-            hasNote,
-            event,
-        });
-
-        cellEl.addEventListener('mousedown', (e) => {
-            if (this.callbacks.onCellMouseDown) {
-                logEvent('debug', 'GridPanelView', '_createCell', 'Event', `mousedown fired for tick ${index}.`);
-                this.callbacks.onCellMouseDown(createEventData(e));
-            }
-        });
-
-        cellEl.addEventListener('mouseup', (e) => {
-            if (this.callbacks.onCellMouseUp) {
-                logEvent('debug', 'GridPanelView', '_createCell', 'Event', `mouseup fired for tick ${index}.`);
-                this.callbacks.onCellMouseUp(createEventData(e));
-            }
-        });
-
-        cellEl.addEventListener('mouseenter', (e) => {
-            // Only fire for drag events (when primary mouse button is pressed)
-            if (e.buttons === 1 && this.callbacks.onCellMouseEnter) {
-                logEvent('debug', 'GridPanelView', '_createCell', 'Event', `mouseenter (drag) fired for tick ${index}.`);
-                this.callbacks.onCellMouseEnter(createEventData(e));
-            }
-        });
-
-        // Rhythmic Shading Logic
-        const isTriplet = metrics.feel === 'triplet';
-        if (isTriplet) {
-            const tripletPos = index % 3;
-            cellEl.classList.add(`cell-triplet-${tripletPos + 1}`);
-        } else {
-            const beatGrouping = metrics.beatGrouping || 4;
-            const isDownbeat = (index % beatGrouping === 0);
-            
-            if (isDownbeat) {
-                 cellEl.classList.add('cell-downbeat');
+        // --- Rhythmic Shading Logic (Upgraded) ---
+        if (feel === 'triplet') {
+            if (beatGrouping === 3) {
+                const positionInBeat = index % beatGrouping;
+                cellEl.classList.add(`cell-triplet-${positionInBeat + 1}`);
             } else {
-                 cellEl.classList.add('cell-weak-beat');
+                const positionInInnerTriplet = index % 3;
+                if (positionInInnerTriplet === 0) {
+                    const positionInOuterBeat = index % beatGrouping;
+                    if (positionInOuterBeat === 0) {
+                        cellEl.classList.add('cell-triplet-1');
+                    } else {
+                        cellEl.classList.add('cell-triplet-2');
+                    }
+                } else {
+                    cellEl.classList.add('cell-triplet-3');
+                }
+            }
+        } else { // Duple feel
+            const positionInBeat = index % beatGrouping;
+            if (positionInBeat === 0) {
+                cellEl.classList.add('cell-downbeat');
+            } else if (beatGrouping > 2 && positionInBeat === beatGrouping / 2) {
+                cellEl.classList.add('cell-strong-beat');
+            } else {
+                cellEl.classList.add('cell-weak-beat');
             }
         }
 
@@ -90,6 +74,27 @@ export class GridPanelView {
                 cellEl.innerHTML = `<div class="note">${sound.svg}</div>`;
             }
         }
+        
+        // --- Event Handling ---
+        const createEventData = (event) => ({ instrument, tickIndex: index, hasNote, event });
+
+        cellEl.addEventListener('mousedown', (e) => {
+            if (this.callbacks.onCellMouseDown) {
+                this.callbacks.onCellMouseDown(createEventData(e));
+            }
+        });
+
+        cellEl.addEventListener('mouseup', (e) => {
+            if (this.callbacks.onCellMouseUp) {
+                this.callbacks.onCellMouseUp(createEventData(e));
+            }
+        });
+
+        cellEl.addEventListener('mouseenter', (e) => {
+            if (e.buttons === 1 && this.callbacks.onCellMouseEnter) {
+                this.callbacks.onCellMouseEnter(createEventData(e));
+            }
+        });
         
         return cellEl;
     }
