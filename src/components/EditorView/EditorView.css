@@ -35,7 +35,54 @@
     transition: box-shadow 0.2s ease-in-out;
 }
 
+.editor-view-main {/* file: src/components/EditorView/EditorView.css */
+
+.editor-view {
+    position: relative;
+    height: 100%;
+    width: 100%;
+    background-color: #f8f9fa;
+    display: flex;
+    flex-direction: column;
+}
+
+.editor-view-topbar {
+    padding: 0.5rem;
+    background-color: #fff;
+    border-bottom: 1px solid #dee2e6;
+    flex-shrink: 0;
+    z-index: 20;
+}
+
+.editor-view-content {
+    flex: 1;
+    position: relative;
+    display: flex;
+    min-height: 0;
+}
+
+.editor-view-sidepanel {
+    width: 15rem; /* ~240px */
+    flex-shrink: 0;
+    height: 100%;
+    border-right: 1px solid #dee2e6;
+    background-color: #fff;
+    z-index: 10;
+    overflow-y: auto;
+}
+
 .editor-view-main {
+    flex-grow: 1;
+    height: 100%;
+    overflow-y: auto;
+    padding: 1rem;
+    box-sizing: border-box;
+}
+
+/* Modal container needs to be part of the layout flow if not using a global portal */
+#modal-container {
+    position: absolute;
+}
     height: 100%;
     overflow-y: auto;
     /* FIX: Adjust padding-left to account for the new sidepanel offset and maintain the visual gap. */

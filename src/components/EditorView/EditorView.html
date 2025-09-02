@@ -5,60 +5,36 @@
     <meta charset="UTF-8">
     <title>Live View Workbench: EditorView</title>
     <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
-    <link rel="stylesheet" href="/percussion-studio/css/global.css">
-
-    <!-- Load CSS for ALL required components and sub-components -->
-    <link rel="stylesheet" href="./EditorView.css">
-    <!-- FIX: Add CSS for the new playback controls component -->
+    
+    <!-- Load CSS for ALL required dependencies -->
     <link rel="stylesheet" href="/percussion-studio/src/components/EditorPlaybackControlsView/EditorPlaybackControlsView.css">
     <link rel="stylesheet" href="/percussion-studio/src/components/FlowPanel/FlowPanel.css">
-    <link rel="stylesheet" href="/percussion-studio/src/components/FlowPanel/PatternItemView/PatternItemView.css">
     <link rel="stylesheet" href="/percussion-studio/src/components/PatternEditorView/PatternEditorView.css">
     <link rel="stylesheet" href="/percussion-studio/src/components/MeasureEditorView/MeasureEditorView.css">
+    <link rel="stylesheet" href="/percussion-studio/src/components/MeasureLayoutView/MeasureLayoutView.css">
+    <link rel="stylesheet" href="/percussion-studio/src/components/BeatChunkPanel/BeatChunkPanel.css">
+    <link rel="stylesheet" href="/percussion-studio/src/components/BeatRulerView/BeatRulerView.css">
     <link rel="stylesheet" href="/percussion-studio/src/components/InstrumentRowView/InstrumentRowView.css">
+    <link rel="stylesheet" href="/percussion-studio/src/components/EditorRowHeaderView/EditorRowHeaderView.css">
     <link rel="stylesheet" href="/percussion-studio/src/components/InstrumentSelectionModalView/InstrumentSelectionModalView.css">
     <link rel="stylesheet" href="/percussion-studio/src/components/EditorCursor/EditorCursor.css">
     <link rel="stylesheet" href="/percussion-studio/src/components/RadialSoundSelector/RadialSoundSelector.css">
+    <link rel="stylesheet" href="./EditorView.css">
     
     <style>
-        html, body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-        }
-        .workbench-wrapper {
-            display: flex;
-            height: 100vh;
-        }
-        .main-content {
-            flex: 1;
-            position: relative;
-        }
-        .log-panel {
-            width: 30%;
-            max-width: 450px;
-            background-color: #1a1a1a;
-            color: #f0f0f0;
-            padding: 1rem;
-            display: flex;
-            flex-direction: column;
-        }
-        #log-output {
-            flex: 1;
-            font-family: monospace;
-            font-size: 0.8rem;
-            line-height: 1.4;
-            white-space: pre-wrap;
-            overflow-y: auto;
-        }
+        html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; font-size: calc(12px + 0.5vw); }
+        :root { --cell-width: 2.5rem; }
+        .workbench-wrapper { display: flex; height: 100vh; }
+        .main-content { flex: 1; position: relative; }
+        .log-panel { width: 30%; max-width: 450px; background-color: #282c34; color: #abb2bf; padding: 1rem; display: flex; flex-direction: column; }
+        #log-output { flex: 1; font-family: monospace; font-size: 0.8rem; line-height: 1.4; white-space: pre-wrap; overflow-y: auto; }
     </style>
 </head>
 <body>
 
     <div class="workbench-wrapper">
         <div class="main-content" id="editor-container">
-            <!-- The EditorView component will render here -->
+            <!-- The EditorView component will render its full-page layout here -->
         </div>
         <div class="log-panel">
             <h2 class="f4 b bb pb2 mb2" style="border-bottom-color: #444;">Execution Log</h2>
