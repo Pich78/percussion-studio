@@ -1,0 +1,62 @@
+<!-- file: src/components/RowLayout/RowLayout.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Live View Workbench: RowLayout</title>
+    <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
+    <style> 
+        body { 
+            font-family: sans-serif; 
+            font-size: calc(12px + 0.5vw);
+        }
+        .log-panel {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .log-box {
+            flex: 1;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body class="bg-light-gray pa4">
+
+    <div class="flex">
+        <div class="w-70 pr3">
+            <h1 class="f2 b mb3 bb pb2">Live View Workbench: RowLayout</h1>
+            
+            <div class="bg-white shadow-2 pa3 mb3">
+                <h3 class="f4 b mt0">Controls</h3>
+                <p class="f6">Select which header component to display in the left column.</p>
+                <div class="flex">
+                    <div class="mr3">
+                        <input type="radio" id="header-editor" name="header-type" value="editor" checked>
+                        <label for="header-editor" class="lh-copy pointer">EditorRowHeaderView</label>
+                    </div>
+                    <div>
+                        <input type="radio" id="header-playback" name="header-type" value="playback">
+                        <label for="header-playback" class="lh-copy pointer">PlaybackRowHeaderView</label>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="f4 b mt0">Rendered Component</h3>
+            <div id="row-layout-wrapper" class="bg-white shadow-2 pa3">
+                <!-- The RowLayout component and its children will be rendered here -->
+            </div>
+            
+        </div>
+        <div class="w-30 pl3">
+            <div class="bg-near-black near-white pa3 br2 log-panel">
+                <h2 class="f4 b bb pb2 mb2">Execution Log</h2>
+                <div id="log-output" class="f7 lh-copy log-box" style="height: 80vh;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="./RowLayout.integration.js"></script>
+</body>
+</html>

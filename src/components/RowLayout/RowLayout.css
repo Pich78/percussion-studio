@@ -1,0 +1,32 @@
+/* file: src/components/RowLayout/RowLayout.css */
+
+.row-layout {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch; /* Make children fill the height */
+    width: 100%;
+    min-height: 5rem; /* A sensible minimum height */
+    box-sizing: border-box;
+    border: 1px solid #dee2e6;
+    background-color: #fff;
+    border-radius: 4px;
+    overflow: hidden; /* Ensures child border-radius is respected */
+}
+
+.row-layout__header-area {
+    flex-shrink: 0;
+    flex-grow: 0;
+    flex-basis: 20%;
+    min-width: 160px; /* Prevent the header from becoming too narrow */
+    box-sizing: border-box;
+    position: relative; /* Allows absolute positioning for children if needed */
+    border-right: 1px solid #dee2e6;
+}
+
+.row-layout__grid-area {
+    flex-shrink: 1;
+    flex-grow: 1;
+    box-sizing: border-box;
+    position: relative;
+    overflow-x: auto; /* Allow grid to scroll if it's too wide */
+}
