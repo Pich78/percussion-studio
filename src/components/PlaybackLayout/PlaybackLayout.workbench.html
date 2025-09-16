@@ -1,0 +1,68 @@
+<!-- file: src/components/PlaybackLayout/PlaybackLayout.workbench.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Workbench: PlaybackLayout</title>
+    <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: sans-serif;
+        }
+        .workbench-container {
+            padding: 2rem;
+            background-color: #f1f3f5;
+        }
+        .component-wrapper {
+            height: 70vh; /* Give the component a defined height to fill */
+            border: 1px solid #adb5bd;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: white;
+            box-sizing: border-box;
+            border: 2px dashed rgba(255,255,255,0.5);
+            transition: all 0.2s ease-in-out;
+        }
+        .top-placeholder { background-color: #17a2b8; min-height: 80px; }
+        .bottom-placeholder { background-color: #6f42c1; }
+
+        .area-highlight {
+            outline: 4px solid #fd7e14;
+            outline-offset: -4px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            transform: scale(1.005);
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="workbench-container">
+        <h1 class="f2 b mb2">Workbench: PlaybackLayout</h1>
+        <p class="f6 gray mt0 mb3">This page displays the standalone <code>&lt;playback-layout&gt;</code>. Hover over the colored areas to visualize the slots.</p>
+        
+        <div class="component-wrapper">
+            <playback-layout>
+                <div slot="top" class="placeholder top-placeholder">
+                    SLOT: top (For Controls Panel)
+                </div>
+                <div slot="bottom" class="placeholder bottom-placeholder">
+                    SLOT: bottom (For TUBS Grid Area)
+                </div>
+            </playback-layout>
+        </div>
+    </div>
+
+    <script type="module" src="./PlaybackLayout.workbench.js"></script>
+</body>
+</html>
