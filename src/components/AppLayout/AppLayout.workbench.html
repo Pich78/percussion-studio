@@ -1,0 +1,55 @@
+<!-- file: src/components/AppLayout/AppLayout.workbench.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Workbench: AppLayout (Dynamic)</title>
+    <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
+    <style>
+        body, html { margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; }
+        .placeholder {
+            display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;
+            font-size: 1.2em; font-weight: bold; color: white; box-sizing: border-box;
+            border: 2px dashed rgba(255,255,255,0.5); transition: all 0.2s ease-in-out;
+        }
+        .header-placeholder { background-color: #007bff; height: 60px; }
+        .footer-placeholder { background-color: #6c757d; height: 40px; }
+        .area-highlight {
+            outline: 4px solid #ffc107; outline-offset: -4px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5); z-index: 100;
+        }
+        .controls-panel {
+            position: absolute; top: 80px; left: 20px; background: white;
+            padding: 1rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 20; border: 1px solid #dee2e6;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="controls-panel">
+        <h3 class="f5 b mt0">App Mode</h3>
+        <p class="f7 gray mt0 mb2">Select which view to display in the main content area.</p>
+        <div>
+            <input type="radio" id="mode-playback" name="app-mode" value="playback" checked>
+            <label for="mode-playback" class="lh-copy pointer">Playback</label>
+        </div>
+        <div>
+            <input type="radio" id="mode-editor" name="app-mode" value="editor">
+            <label for="mode-editor" class="lh-copy pointer">Editor</label>
+        </div>
+    </div>
+
+    <app-layout id="app-shell">
+        <div slot="header" class="placeholder header-placeholder">
+            SLOT: header
+        </div>
+        <!-- The main slot starts empty. AppLayout.js will add views here. -->
+        <div slot="footer" class="placeholder footer-placeholder">
+            SLOT: footer
+        </div>
+    </app-layout>
+
+    <script type="module" src="./AppLayout.workbench.js"></script>
+</body>
+</html>
