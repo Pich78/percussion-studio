@@ -1,0 +1,33 @@
+<!-- file: src/components/InstrumentRow/PlaybackInstrumentHeader.test.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Runner: PlaybackInstrumentHeader</title>
+    <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
+</head>
+<body class="bg-light-gray pa4">
+    <div class="flex">
+        <div class="w-70 pr3">
+            <h1 class="f2 b mb3 bb pb2">Automated Tests for PlaybackInstrumentHeader</h1>
+            <button id="run-tests-btn" class="pv2 ph3 bn br2 bg-blue white pointer hover-bg-dark-blue mb3">Run Tests</button>
+            <div id="test-results"></div>
+        </div>
+        <div class="w-30 pl3">
+            <div class="bg-near-black near-white pa3 br2 h-100">
+                <h2 class="f4 b bb pb2 mb2">Execution Log</h2>
+                <div id="log-output" class="f7 lh-copy" style="white-space: pre-wrap; height: 80vh; overflow-y: auto;"></div>
+            </div>
+        </div>
+    </div>
+    <div id="test-sandbox" style="position: absolute; visibility: hidden;"></div>
+    <script type="module">
+        import { run } from './PlaybackInstrumentHeader.test.js';
+        import { Logger } from '/percussion-studio/lib/Logger.js';
+        Logger.init({ level: 'debug' });
+        Logger.setTarget('log-output');
+        document.getElementById('run-tests-btn').addEventListener('click', run);
+        run();
+    </script>
+</body>
+</html>

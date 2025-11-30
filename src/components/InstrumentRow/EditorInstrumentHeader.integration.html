@@ -1,0 +1,26 @@
+<!-- file: src/components/InstrumentRow/EditorInstrumentHeader.integration.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Integration: EditorInstrumentHeader</title>
+    <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
+</head>
+<body class="bg-light-gray pa4">
+    <h1 class="f2 b mb3 bb pb2">Integration: EditorInstrumentHeader</h1>
+    <div class="flex">
+        <div class="w-50 pr3">
+            <h3 class="f4 b mt0">Rendered Component</h3>
+            <p>Click the component below to fire an event.</p>
+            <div id="component-container" style="width: 150px; height: 4rem; border: 1px solid #ccc;">
+                <editor-instrument-header></editor-instrument-header>
+            </div>
+        </div>
+        <div class="w-50 pl3">
+            <h3 class="f4 b mt0">Dispatched Events Log</h3>
+            <pre id="log-output" class="bg-white pa2" style="height: 50vh; overflow-y: auto;"></pre>
+        </div>
+    </div>
+    <script type="module" src="./EditorInstrumentHeader.integration.js"></script>
+</body>
+</html>
