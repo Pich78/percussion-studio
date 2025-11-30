@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Material Flow Panel Demo - Optimized</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            height: 80vh;
+            display: flex;
+        }
+
+        .demo-content {
+            flex: 1;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .demo-title {
+            font-size: 2rem;
+            font-weight: 500;
+            color: #1d1b20;
+            margin-bottom: 8px;
+        }
+
+        .demo-subtitle {
+            font-size: 1rem;
+            color: #49454f;
+            margin-bottom: 24px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .control-button {
+            padding: 8px 16px;
+            border: 1px solid #6750a4;
+            background: transparent;
+            color: #6750a4;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .control-button:hover {
+            background: #6750a4;
+            color: white;
+        }
+
+        .control-button.active {
+            background: #6750a4;
+            color: white;
+        }
+
+        .panel-container {
+            position: relative;
+            height: 500px;
+            background: #faf7fd;
+            border: 1px solid #e6e0e9;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .event-log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+
+        .event-entry {
+            margin: 2px 0;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        .event-entry.info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .event-entry.drag {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        /* Flow Item Styles */
+        .flow-item {
+            background: white;
+            border: 1px solid #e6e0e9;
+            border-radius: 12px;
+            padding: 16px;
+            margin: 4px 0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s;
+            cursor: grab;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .flow-item:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            transform: translateY(-1px);
+        }
+
+        .flow-item:active {
+            cursor: grabbing;
+        }
+
+        .flow-item.selected {
+            border-color: #6750a4;
+            background: #f7f2ff;
+        }
+
+        .drag-handle {
+            color: #9ca3af;
+            cursor: grab;
+            font-size: 18px;
+        }
+
+        .drag-handle:hover {
+            color: #6b7280;
+        }
+
+        .item-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .item-title {
+            font-weight: 500;
+            color: #1d1b20;
+            font-size: 16px;
+        }
+
+        .item-subtitle {
+            color: #49454f;
+            font-size: 14px;
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 8px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .flow-item:hover .item-actions {
+            opacity: 1;
+        }
+
+        .action-button {
+            background: none;
+            border: none;
+            color: #49454f;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .action-button:hover {
+            background: #e6e0e9;
+            color: #1d1b20;
+        }
+
+        .action-button.delete:hover {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        /* Custom header and footer styles */
+        .custom-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e6e0e9;
+            margin-bottom: 8px;
+        }
+
+        .custom-header h2 {
+            font-size: 18px;
+            font-weight: 500;
+            color: #1d1b20;
+            margin: 0;
+        }
+
+        .header-badge {
+            background: #6750a4;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .custom-footer {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .add-button {
+            width: 100%;
+            padding: 12px 16px;
+            background: linear-gradient(135deg, #6750a4, #7c4dff);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-family: inherit;
+            font-weight: 500;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(103, 80, 164, 0.3);
+        }
+
+        .add-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(103, 80, 164, 0.4);
+        }
+
+        .add-button:active {
+            transform: translateY(0);
+        }
+
+        .footer-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #49454f;
+            padding: 0 4px;
+        }
+
+        md-icon, .material-icons {
+            font-family: 'Material Icons';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 20px;
+            line-height: 1;
+            letter-spacing: normal;
+            text-transform: none;
+            display: inline-block;
+            white-space: nowrap;
+            word-wrap: normal;
+            direction: ltr;
+            -webkit-font-feature-settings: 'liga';
+            -webkit-font-smoothing: antialiased;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-content">
+            <div>
+                <h1 class="demo-title">Material Flow Panel - Optimized</h1>
+                <p class="demo-subtitle">Enhanced drag-and-drop performance with consolidated state management</p>
+            </div>
+
+            <div class="controls">
+                <button class="control-button" id="toggle-pin">Toggle Pin</button>
+                <button class="control-button" id="add-random">Add Random Item</button>
+                <button class="control-button" id="clear-all">Clear All</button>
+                <button class="control-button" id="toggle-threshold">Overlap: 25%</button>
+                <button class="control-button" id="select-random">Select Random</button>
+                <button class="control-button" id="debug-state">Debug State</button>
+            </div>
+
+            <div class="panel-container">
+                <material-flow-panel 
+                    id="demo-panel"
+                    title="Rhythm Flow"
+                    collapsed-width="64px"
+                    expanded-width="340px"
+                    overlap-threshold="0.25"
+                >
+                    <!-- Custom Header -->
+                    <div slot="header" class="custom-header">
+                        <h2>Pattern Flow</h2>
+                        <span class="header-badge" id="item-count">0</span>
+                    </div>
+
+                    <!-- Flow Items will be inserted here dynamically -->
+
+                    <!-- Custom Footer -->
+                    <div slot="footer" class="custom-footer">
+                        <div class="footer-stats">
+                            <span>Total Duration: <span id="total-duration">0:00</span></span>
+                            <span>BPM: <span id="avg-bpm">120</span></span>
+                        </div>
+                        <button class="add-button" id="custom-add">
+                            <md-icon>add</md-icon>
+                            <span>Add Pattern</span>
+                        </button>
+                    </div>
+                </material-flow-panel>
+            </div>
+
+            <div>
+                <h3>Event Log</h3>
+                <div class="event-log" id="event-log"></div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import the Optimized Web Component
+        import './MaterialFlowPanel.js';
+
+        class FlowItemElement extends HTMLElement {
+            constructor(data = {}) {
+                super();
+                this.data = {
+                    id: data.id || Math.random().toString(36).substr(2, 9),
+                    title: data.title || 'New Pattern',
+                    subtitle: data.subtitle || 'Untitled pattern',
+                    bpm: data.bpm || 120,
+                    duration: data.duration || 30,
+                    selected: data.selected || false,
+                    ...data
+                };
+                this.render();
+            }
+
+            render() {
+                this.slot = 'flow-items';
+                this.draggable = true;
+                this.className = `flow-item${this.data.selected ? ' selected' : ''}`;
+                
+                this.innerHTML = `
+                    <div class="drag-handle">
+                        <md-icon>drag_indicator</md-icon>
+                    </div>
+                    <div class="item-content">
+                        <div class="item-title">${this.data.title}</div>
+                        <div class="item-subtitle">${this.data.subtitle} • ${this.data.bpm} BPM • ${this.data.duration}s</div>
+                    </div>
+                    <div class="item-actions">
+                        <button class="action-button edit" onclick="editItem('${this.data.id}')">
+                            <md-icon>edit</md-icon>
+                        </button>
+                        <button class="action-button delete" onclick="deleteItem('${this.data.id}')">
+                            <md-icon>delete</md-icon>
+                        </button>
+                    </div>
+                `;
+            }
+
+            setSelected(selected) {
+                this.data.selected = selected;
+                this.className = `flow-item${selected ? ' selected' : ''}`;
+            }
+
+            updateData(newData) {
+                this.data = { ...this.data, ...newData };
+                this.render();
+            }
+        }
+
+        customElements.define('flow-item', FlowItemElement);
+
+        // Demo state
+        let itemIdCounter = 1;
+        let selectedItemId = null;
+        const flowPanel = document.getElementById('demo-panel');
+        const eventLog = document.getElementById('event-log');
+
+        // Sample pattern names and types
+        const patternNames = [
+            'Basic Rock', 'Jazz Swing', 'Latin Groove', 'Funk Beat', 'Reggae One Drop',
+            'Hip Hop Trap', 'Electronic Dance', 'Country Shuffle', 'Metal Blast',
+            'Ambient Pad', 'Breakbeat Loop', 'Afrobeat Rhythm'
+        ];
+
+        const patternTypes = [
+            'Drums', 'Percussion', 'Bass', 'Melody', 'Harmony', 'Effects'
+        ];
+
+        // Utility functions
+        function logEvent(type, message, data = null) {
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = `event-entry ${type}`;
+            entry.textContent = `[${timestamp}] ${message}`;
+            if (data) {
+                entry.textContent += ` ${JSON.stringify(data)}`;
+            }
+            eventLog.appendChild(entry);
+            eventLog.scrollTop = eventLog.scrollHeight;
+            
+            // Keep only last 50 entries for performance
+            while (eventLog.children.length > 50) {
+                eventLog.removeChild(eventLog.firstChild);
+            }
+        }
+
+        function updateStats() {
+            const items = flowPanel.getItems();
+            document.getElementById('item-count').textContent = items.length;
+            
+            const totalDuration = items.reduce((sum, item) => sum + (item.data?.duration || 30), 0);
+            const minutes = Math.floor(totalDuration / 60);
+            const seconds = totalDuration % 60;
+            document.getElementById('total-duration').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            
+            const avgBpm = items.length > 0 
+                ? Math.round(items.reduce((sum, item) => sum + (item.data?.bpm || 120), 0) / items.length)
+                : 120;
+            document.getElementById('avg-bpm').textContent = avgBpm;
+        }
+
+        function createRandomItem() {
+            const name = patternNames[Math.floor(Math.random() * patternNames.length)];
+            const type = patternTypes[Math.floor(Math.random() * patternTypes.length)];
+            const bpm = 80 + Math.floor(Math.random() * 140);
+            const duration = 15 + Math.floor(Math.random() * 45);
+            
+            return new FlowItemElement({
+                id: `item-${itemIdCounter++}`,
+                title: `${name} ${itemIdCounter}`,
+                subtitle: `${type} pattern`,
+                bpm: bpm,
+                duration: duration
+            });
+        }
+
+        function selectItem(itemId) {
+            const items = flowPanel.getItems();
+            items.forEach(item => {
+                item.setSelected(item.data.id === itemId);
+            });
+            selectedItemId = itemId;
+            logEvent('info', `Selected item: ${itemId}`);
+        }
+
+        // Global functions for item actions
+        window.editItem = function(itemId) {
+            const newTitle = prompt('Enter new title:');
+            if (newTitle) {
+                const items = flowPanel.getItems();
+                const item = items.find(i => i.data.id === itemId);
+                if (item) {
+                    item.updateData({ title: newTitle });
+                    updateStats();
+                    logEvent('info', `Edited item: ${itemId} -> ${newTitle}`);
+                }
+            }
+        };
+
+        window.deleteItem = function(itemId) {
+            if (confirm('Delete this item?')) {
+                const items = flowPanel.getItems();
+                const itemIndex = items.findIndex(i => i.data.id === itemId);
+                if (itemIndex !== -1) {
+                    flowPanel.removeItem(itemIndex);
+                    updateStats();
+                    logEvent('info', `Deleted item: ${itemId}`);
+                }
+            }
+        };
+
+        // Event listeners for the flow panel
+        flowPanel.addEventListener('pin-change', (event) => {
+            logEvent('info', `Pin changed: ${event.detail.pinned}`);
+        });
+
+        flowPanel.addEventListener('add-item', (event) => {
+            const newItem = createRandomItem();
+            flowPanel.addItem(newItem);
+            updateStats();
+            logEvent('info', 'Added new item via default button');
+        });
+
+        flowPanel.addEventListener('drag-start', (event) => {
+            logEvent('drag', `Drag started: index ${event.detail.draggedIndex}`);
+        });
+
+        flowPanel.addEventListener('drag-collision', (event) => {
+            logEvent('drag', `Collision detected: ${event.detail.collisionDirection} at Y=${event.detail.mouseY}`);
+        });
+
+        flowPanel.addEventListener('item-reorder', (event) => {
+            logEvent('info', `Reordered: ${event.detail.fromIndex} → ${event.detail.toIndex}`);
+            updateStats();
+        });
+
+        flowPanel.addEventListener('drag-end', (event) => {
+            logEvent('drag', 'Drag ended');
+        });
+
+        // Control button handlers
+        document.getElementById('toggle-pin').addEventListener('click', () => {
+            flowPanel.pinned = !flowPanel.pinned;
+            event.target.classList.toggle('active', flowPanel.pinned);
+        });
+
+        document.getElementById('add-random').addEventListener('click', () => {
+            const newItem = createRandomItem();
+            flowPanel.addItem(newItem);
+            updateStats();
+            logEvent('info', 'Added random item');
+        });
+
+        document.getElementById('clear-all').addEventListener('click', () => {
+            if (confirm('Clear all items?')) {
+                const items = flowPanel.getItems();
+                items.forEach((_, index) => flowPanel.removeItem(0));
+                selectedItemId = null;
+                updateStats();
+                logEvent('info', 'Cleared all items');
+            }
+        });
+
+        document.getElementById('toggle-threshold').addEventListener('click', (event) => {
+            const currentThreshold = flowPanel.overlapThreshold;
+            const newThreshold = currentThreshold === 0.25 ? 0.5 : 0.25;
+            flowPanel.setOverlapThreshold(newThreshold);
+            event.target.textContent = `Overlap: ${Math.round(newThreshold * 100)}%`;
+            logEvent('info', `Changed overlap threshold to ${newThreshold}`);
+        });
+
+        document.getElementById('select-random').addEventListener('click', () => {
+            const items = flowPanel.getItems();
+            if (items.length > 0) {
+                const randomItem = items[Math.floor(Math.random() * items.length)];
+                selectItem(randomItem.data.id);
+            }
+        });
+
+        // New debug button to show optimized state
+        document.getElementById('debug-state').addEventListener('click', () => {
+            const dragState = flowPanel.currentDragState;
+            const dragConfig = flowPanel.dragConfig || {};
+            
+            console.group('🔧 Material Flow Panel Debug State');
+            console.log('Drag State:', dragState);
+            console.log('Drag Config:', dragConfig);
+            console.log('Items Count:', flowPanel.getItems().length);
+            console.log('Pinned:', flowPanel.pinned);
+            console.log('Overlap Threshold:', flowPanel.overlapThreshold);
+            console.groupEnd();
+            
+            logEvent('info', `Debug: ${JSON.stringify({
+                itemsCount: flowPanel.getItems().length,
+                pinned: flowPanel.pinned,
+                isDragging: dragState.draggedIndex !== null,
+                threshold: flowPanel.overlapThreshold
+            })}`);
+        });
+
+        document.getElementById('custom-add').addEventListener('click', () => {
+            const newItem = createRandomItem();
+            flowPanel.addItem(newItem);
+            updateStats();
+            logEvent('info', 'Added new item via custom button');
+        });
+
+        // Click handler for item selection
+        flowPanel.addEventListener('click', (event) => {
+            const flowItem = event.target.closest('.flow-item');
+            if (flowItem && !event.target.closest('.item-actions')) {
+                selectItem(flowItem.data.id);
+            }
+        });
+
+        // Initialize with some sample data
+        function initializeSampleData() {
+            const sampleItems = [
+                { title: 'Intro Beat', subtitle: 'Drums pattern', bpm: 120, duration: 16 },
+                { title: 'Main Groove', subtitle: 'Full arrangement', bpm: 120, duration: 64, selected: true },
+                { title: 'Bridge Section', subtitle: 'Breakdown', bpm: 100, duration: 32 },
+                { title: 'Outro Fill', subtitle: 'Drums pattern', bpm: 120, duration: 8 }
+            ];
+
+            sampleItems.forEach(itemData => {
+                const item = new FlowItemElement({
+                    id: `item-${itemIdCounter++}`,
+                    ...itemData
+                });
+                flowPanel.addItem(item);
+                if (itemData.selected) {
+                    selectedItemId = item.data.id;
+                }
+            });
+
+            updateStats();
+            logEvent('info', 'Initialized with sample data - Optimized version loaded');
+        }
+
+        // Initialize the demo
+        setTimeout(initializeSampleData, 100);
+    </script>
+</body>
+</html>

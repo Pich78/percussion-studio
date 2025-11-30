@@ -1,0 +1,94 @@
+<!-- file: src/components/FlowPanel/FlowPanel.integration.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Integration Harness: FlowPanel Web Component</title>
+    <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
+    <style>
+        body { background-color: #f8f9fa; }
+        .workbench { height: 70vh; }
+    </style>
+</head>
+<body class="pa4">
+    <div class="flex">
+        <div class="w-70 pr3">
+            <h1 class="f2 b mb3 bb pb2 b--black-10">Integration Workbench for <code>&lt;flow-panel&gt;</code></h1>
+            <p class="f6 gray mb3">Drag the colored boxes to swap their positions. Empty slots are valid drop targets. The component will emit a `reorder-complete` event, and this harness will update the state and re-render.</p>
+            <div class="w-100 bg-white shadow-2 workbench">
+                <flow-panel id="main-panel"></flow-panel>
+            </div>
+            <div class="mt3">
+                <h3 class="f5 b">Current Application State (Array):</h3>
+                <pre id="current-state-display" class="f6 code pa2 bg-washed-yellow br2"></pre>
+            </div>
+        </div>
+        <div class="w-30 pl3">
+            <div class="bg-near-black near-white pa3 br2 h-100">
+                <h2 class="f4 b bb pb2 mb2 b--white-10">Execution Log</h2>
+                <div id="log-output" class="f7 lh-copy" style="white-space: pre-wrap; height: 80vh; overflow-y: auto;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { FlowPanel } from './FlowPanel.js';
+        import { Logger, logEvent } from '/percussion-studio/lib/Logger.js';
+        
+        Logger.init({ level: 'debug' });
+        Logger.setTarget('log-output');
+
+        // --- APPLICATION STATE ---
+        let currentState = [
+            { id: 'A', color: '#dc3545' },
+            { id: 'B', color: '#28a745' },
+            null, // Represents an empty slot
+            { id: 'C', color: '#007bff' },
+            { id: 'D', color: '#ffc107' },
+            null,
+            { id: 'E', color: '#17a2b8' },
+            { id: 'F', color: '#6f42c1' }
+        ];
+
+        const flowPanel = document.getElementById('main-panel');
+        const stateDisplay = document.getElementById('current-state-display');
+
+        // --- RENDER FUNCTION ---
+        const rerender = () => {
+            logEvent('info', 'Harness', 'rerender', 'State', 'Rerendering component with new state.');
+            flowPanel.render(currentState);
+            stateDisplay.textContent = JSON.stringify(currentState, null, 2);
+        };
+
+        // --- EVENT LISTENER ---
+        flowPanel.addEventListener('reorder-complete', (event) => {
+            // FIX: Use the more reliable targetIndex provided by the component event.
+            const { sourceId, targetId, targetIndex } = event.detail;
+            const timestamp = new Date().toISOString();
+            const logMessage = `Received reorder event: move '${sourceId}' to slot ${targetIndex} (contains '${targetId || 'empty'}')`;
+            console.log(`[${timestamp}][Harness][onReorder][Event] ${logMessage}`);
+            logEvent('info', 'Harness', 'onReorder', 'Event', logMessage);
+
+            const sourceIndex = currentState.findIndex(item => item && item.id === sourceId);
+            
+            if (sourceIndex === -1) {
+                console.error(`[${timestamp}][Harness][onReorder][Error] Could not find source item with id ${sourceId} in state.`);
+                logEvent('error', 'Harness', 'onReorder', 'State Error', `Could not find source item with id ${sourceId}`);
+                return;
+            }
+
+            // Simple and robust swap logic
+            const sourceItem = currentState[sourceIndex];
+            const targetItem = currentState[targetIndex];
+
+            currentState[targetIndex] = sourceItem;
+            currentState[sourceIndex] = targetItem;
+            
+            rerender();
+        });
+
+        // --- INITIAL RENDER ---
+        rerender();
+    </script>
+</body>
+</html>

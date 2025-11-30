@@ -6,9 +6,13 @@
     overflow: hidden;
     transition: background-color 0.2s ease, color 0.2s ease;
     display: grid;
+    /* GOOD CHILD RULE: Internal spacing is handled by padding, not margin. */
     padding: 0.4rem 0;
+    /* GOOD CHILD RULE: box-sizing allows width/height to include padding and border. */
     box-sizing: border-box;
+    /* GOOD CHILD RULE: width is 100%, so it adapts to any parent container. */
     width: 100%;
+    /* GOOD CHILD RULE: height is 100%, so it stretches to fill the parent's height. */
     height: 100%;
 }
 

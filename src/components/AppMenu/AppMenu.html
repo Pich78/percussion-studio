@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AppMenu Component Demo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #fef7ff 0%, #f3edf7 100%);
+            color: #1d1b20;
+            min-height: 100vh;
+            padding: 24px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+        
+        .header h1 {
+            font-size: 36px;
+            font-weight: 400;
+            color: #6750a4;
+            margin-bottom: 8px;
+        }
+        
+        .header p {
+            font-size: 16px;
+            color: #49454f;
+        }
+        
+        .demo-section {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 32px;
+            box-shadow: 
+                0 1px 2px rgba(0, 0, 0, 0.3),
+                0 1px 3px 1px rgba(0, 0, 0, 0.15);
+            transition: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .demo-section:hover {
+            box-shadow: 
+                0 2px 6px 2px rgba(0, 0, 0, 0.15),
+                0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        
+        .demo-section h2 {
+            font-size: 24px;
+            font-weight: 500;
+            color: #6750a4;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #f3edf7;
+        }
+        
+        .controls-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        
+        .control-group {
+            background: #f7f2fa;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #e7e0ec;
+        }
+        
+        .control-group h3 {
+            font-size: 16px;
+            font-weight: 500;
+            color: #1d1b20;
+            margin-bottom: 12px;
+        }
+        
+        .control-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        
+        .control-row:last-child {
+            margin-bottom: 0;
+        }
+        
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 24px;
+        }
+        
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #e7e0ec;
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 24px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 2px;
+            bottom: 2px;
+            background: white;
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        input:checked + .slider {
+            background: #6750a4;
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+        
+        .action-button {
+            background: #6750a4;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px 1px rgba(0, 0, 0, 0.15);
+            margin: 4px;
+        }
+        
+        .action-button:hover {
+            box-shadow: 0 2px 6px 2px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.3);
+            transform: translateY(-1px);
+        }
+        
+        .action-button.secondary {
+            background: #e7e0ec;
+            color: #1d1b20;
+        }
+        
+        .select-control {
+            padding: 8px 12px;
+            border: 1px solid #cac4d0;
+            border-radius: 8px;
+            background: white;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .event-log {
+            background: #1d1b20;
+            color: #e6e0e9;
+            padding: 20px;
+            border-radius: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            height: 200px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        
+        .event-entry {
+            margin-bottom: 4px;
+            padding: 4px 0;
+            border-bottom: 1px solid #49454f;
+        }
+        
+        .event-entry:last-child {
+            border-bottom: none;
+        }
+        
+        .event-timestamp {
+            color: #cac4d0;
+        }
+        
+        .event-type {
+            color: #a0c4ff;
+            font-weight: bold;
+        }
+        
+        .current-state {
+            background: #e8f5e8;
+            border: 1px solid #4caf50;
+            border-radius: 8px;
+            padding: 16px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            margin-top: 20px;
+        }
+        
+        .menu-demo-container {
+            margin: 24px 0;
+            min-height: 120px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        app-menu {
+            display: block;
+            margin: 20px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .controls-panel {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 16px;
+            }
+            
+            .demo-section {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>AppMenu Component</h1>
+            <p>Interactive demonstration of the Material Design 3 AppMenu web component</p>
+        </header>
+        
+        <section class="demo-section">
+            <h2>Live Component Demo</h2>
+            
+            <div class="controls-panel">
+                <div class="control-group">
+                    <h3>Component State</h3>
+                    <div class="control-row">
+                        <label class="switch">
+                            <input type="checkbox" id="dirtyToggle">
+                            <span class="slider"></span>
+                        </label>
+                        <label for="dirtyToggle">Is Dirty (unsaved changes)</label>
+                    </div>
+                    <div class="control-row">
+                        <label for="viewSelect">App View:</label>
+                        <select id="viewSelect" class="select-control">
+                            <option value="playing">Playing</option>
+                            <option value="editing">Editing</option>
+                        </select>
+                    </div>
+                    <div class="control-row">
+                        <label class="switch">
+                            <input type="checkbox" id="menuToggle">
+                            <span class="slider"></span>
+                        </label>
+                        <label for="menuToggle">Menu Open</label>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h3>Actions</h3>
+                    <button id="openMenuBtn" class="action-button">Open Menu</button>
+                    <button id="closeMenuBtn" class="action-button secondary">Close Menu</button>
+                    <button id="toggleMenuBtn" class="action-button">Toggle Menu</button>
+                    <br>
+                    <button id="clearLogBtn" class="action-button secondary">Clear Event Log</button>
+                    <button id="resetStateBtn" class="action-button secondary">Reset State</button>
+                </div>
+            </div>
+            
+            <div class="menu-demo-container">
+                <app-menu id="demoMenu"></app-menu>
+            </div>
+            
+            <div class="current-state" id="currentState">
+                Current State: Loading...
+            </div>
+            
+            <div class="event-log" id="eventLog">
+                <div class="event-entry">
+                    <span class="event-timestamp">Ready</span> - 
+                    <span class="event-type">SYSTEM</span>: 
+                    Component initialized, waiting for events...
+                </div>
+            </div>
+        </section>
+        
+        <section class="demo-section">
+            <h2>Component Features</h2>
+            <div class="controls-panel">
+                <div class="control-group">
+                    <h3>Material Design 3</h3>
+                    <p>• Dynamic color system with light/dark mode support</p>
+                    <p>• Smooth transitions and micro-interactions</p>
+                    <p>• Elevated surfaces with proper shadows</p>
+                    <p>• Responsive design principles</p>
+                </div>
+                <div class="control-group">
+                    <h3>Web Component</h3>
+                    <p>• Fully encapsulated with Shadow DOM</p>
+                    <p>• Custom events for all interactions</p>
+                    <p>• Reactive properties and attributes</p>
+                    <p>• Framework-agnostic implementation</p>
+                </div>
+                <div class="control-group">
+                    <h3>Interactive Features</h3>
+                    <p>• Context-aware menu items</p>
+                    <p>• Outside click detection</p>
+                    <p>• Keyboard accessibility</p>
+                    <p>• State-dependent button states</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script type="module" src="./AppMenu.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const menu = document.getElementById('demoMenu');
+            const dirtyToggle = document.getElementById('dirtyToggle');
+            const viewSelect = document.getElementById('viewSelect');
+            const menuToggle = document.getElementById('menuToggle');
+            const currentState = document.getElementById('currentState');
+            const eventLog = document.getElementById('eventLog');
+            
+            const openMenuBtn = document.getElementById('openMenuBtn');
+            const closeMenuBtn = document.getElementById('closeMenuBtn');
+            const toggleMenuBtn = document.getElementById('toggleMenuBtn');
+            const clearLogBtn = document.getElementById('clearLogBtn');
+            const resetStateBtn = document.getElementById('resetStateBtn');
+            
+            // Initialize component
+            function updateState() {
+                menu.isDirty = dirtyToggle.checked;
+                menu.appView = viewSelect.value;
+                menu.isMenuOpen = menuToggle.checked;
+                
+                currentState.textContent = `Current State: { isDirty: ${menu.isDirty}, appView: "${menu.appView}", isMenuOpen: ${menu.isMenuOpen} }`;
+            }
+            
+            function logEvent(type, detail = '') {
+                const timestamp = new Date().toLocaleTimeString();
+                const entry = document.createElement('div');
+                entry.className = 'event-entry';
+                entry.innerHTML = `
+                    <span class="event-timestamp">${timestamp}</span> - 
+                    <span class="event-type">${type.toUpperCase()}</span>: 
+                    ${detail}
+                `;
+                eventLog.appendChild(entry);
+                eventLog.scrollTop = eventLog.scrollHeight;
+            }
+            
+            // Control event listeners
+            dirtyToggle.addEventListener('change', updateState);
+            viewSelect.addEventListener('change', updateState);
+            
+            menuToggle.addEventListener('change', () => {
+                menu.isMenuOpen = menuToggle.checked;
+            });
+            
+            // Action button listeners
+            openMenuBtn.addEventListener('click', () => {
+                menu.openMenu();
+                menuToggle.checked = true;
+            });
+            
+            closeMenuBtn.addEventListener('click', () => {
+                menu.closeMenu();
+                menuToggle.checked = false;
+            });
+            
+            toggleMenuBtn.addEventListener('click', () => {
+                menu.toggleMenu();
+                menuToggle.checked = menu.isMenuOpen;
+            });
+            
+            clearLogBtn.addEventListener('click', () => {
+                eventLog.innerHTML = '<div class="event-entry"><span class="event-timestamp">Cleared</span> - <span class="event-type">SYSTEM</span>: Event log cleared</div>';
+            });
+            
+            resetStateBtn.addEventListener('click', () => {
+                dirtyToggle.checked = false;
+                viewSelect.value = 'playing';
+                menuToggle.checked = false;
+                updateState();
+                logEvent('SYSTEM', 'State reset to defaults');
+            });
+            
+            // Component event listeners
+            menu.addEventListener('menu-toggle', (e) => {
+                menuToggle.checked = menu.isMenuOpen;
+                logEvent('MENU_TOGGLE', `Menu ${menu.isMenuOpen ? 'opened' : 'closed'}`);
+            });
+            
+            menu.addEventListener('menu-open', () => {
+                logEvent('MENU_OPEN', 'Menu opened programmatically');
+            });
+            
+            menu.addEventListener('menu-close', () => {
+                logEvent('MENU_CLOSE', 'Menu closed programmatically');
+            });
+            
+            menu.addEventListener('new-project', (e) => {
+                logEvent('NEW_PROJECT', `Action triggered from ${e.detail.state.appView} view`);
+                // Simulate making the app dirty after creating new project
+                setTimeout(() => {
+                    dirtyToggle.checked = true;
+                    updateState();
+                    logEvent('STATE_CHANGE', 'Project marked as dirty after creating new rhythm');
+                }, 500);
+            });
+            
+            menu.addEventListener('load-project', (e) => {
+                logEvent('LOAD_PROJECT', `Action triggered from ${e.detail.state.appView} view`);
+            });
+            
+            menu.addEventListener('save-project', (e) => {
+                logEvent('SAVE_PROJECT', `Saving project (was dirty: ${e.detail.state.isDirty})`);
+                // Simulate clearing dirty state after save
+                setTimeout(() => {
+                    dirtyToggle.checked = false;
+                    updateState();
+                    logEvent('STATE_CHANGE', 'Project marked as clean after saving');
+                }, 500);
+            });
+            
+            menu.addEventListener('view-toggle', (e) => {
+                const newView = e.detail.state.appView === 'playing' ? 'editing' : 'playing';
+                logEvent('VIEW_TOGGLE', `Switching from ${e.detail.state.appView} to ${newView} view`);
+                
+                // Update the select control and component
+                viewSelect.value = newView;
+                menu.appView = newView;
+                
+                // Clear dirty state when switching to playing mode
+                if (newView === 'playing') {
+                    dirtyToggle.checked = false;
+                    menu.isDirty = false;
+                }
+                
+                updateState();
+            });
+            
+            // Initialize the component state
+            updateState();
+            logEvent('SYSTEM', 'Component demo initialized and ready');
+        });
+    </script>
+</body>
+</html>

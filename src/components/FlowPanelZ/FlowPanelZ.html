@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FlowPanel Web Component Demo</title>
+  <script src="FlowPanelZ.js" type="module"></script>
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      overflow: hidden;
+      height: 600px;
+    }
+    
+    .pattern-item {
+      display: flex;
+      align-items: center;
+      padding: 12px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      margin-bottom: 8px;
+    }
+    
+    .pattern-item .drag-handle {
+      margin-right: 12px;
+      cursor: grab;
+    }
+    
+    .pattern-item .content {
+      flex: 1;
+    }
+    
+    .pattern-item .title {
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+    
+    .pattern-item .details {
+      font-size: 14px;
+      color: #666;
+    }
+    
+    .add-button {
+      width: 100%;
+      padding: 12px;
+      background-color: #6750A4;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    .add-button:hover {
+      background-color: #5140A0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <flow-panel id="flowPanel">
+      <div class="pattern-item" draggable="true">
+        <div class="drag-handle">⋮⋮</div>
+        <div class="content">
+          <div class="title">Pattern 1</div>
+          <div class="details">4/4 Time • 120 BPM</div>
+        </div>
+      </div>
+      
+      <div class="pattern-item" draggable="true">
+        <div class="drag-handle">⋮⋮</div>
+        <div class="content">
+          <div class="title">Pattern 2</div>
+          <div class="details">3/4 Time • 100 BPM</div>
+        </div>
+      </div>
+      
+      <div class="pattern-item" draggable="true">
+        <div class="drag-handle">⋮⋮</div>
+        <div class="content">
+          <div class="title">Pattern 3</div>
+          <div class="details">6/8 Time • 140 BPM</div>
+        </div>
+      </div>
+      
+      <button class="add-button" slot="add-button">+ Add Pattern</button>
+    </flow-panel>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const flowPanel = document.getElementById('flowPanel');
+      
+      // Listen for reorder events
+      flowPanel.addEventListener('reorder', (event) => {
+        console.log('Items reordered:', event.detail);
+        // Here you would update your data model
+      });
+      
+      // Handle add button click
+      const addButton = flowPanel.querySelector('button[slot="add-button"]');
+      addButton.addEventListener('click', () => {
+        console.log('Add button clicked');
+        // Here you would add a new pattern to your data model
+      });
+    });
+  </script>
+</body>
+</html>

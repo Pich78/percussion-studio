@@ -5,88 +5,51 @@
     <meta charset="UTF-8">
     <title>Workbench: RowLayout</title>
     <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
-    <style> 
-        body { 
-            font-family: sans-serif; 
-            font-size: calc(12px + 0.5vw);
+    <style>
+        body { font-family: sans-serif; }
+        .workbench-container { padding: 2rem; background-color: #f1f3f5; }
+        .component-wrapper {
+            height: 10rem;
+            border: 1px solid #adb5bd;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
-        .log-panel {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
+        .placeholder {
+            display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;
+            font-size: 1.2em; font-weight: bold; color: white; box-sizing: border-box;
+            border: 2px dashed rgba(255,255,255,0.5); transition: all 0.2s ease-in-out;
         }
-        .log-box {
-            flex: 1;
-            overflow-y: auto;
-            white-space: pre-wrap;
-        }
-        
-        /* --- UPDATED: Styles for visualizing the layout areas and rules --- */
-        .area-placeholder {
-            display: flex;
-            flex-direction: column; /* Stack content vertically */
-            justify-content: center;
-            align-items: center;
-            width: 100%;
-            height: 100%;
-            box-sizing: border-box;
-            border: 2px dashed;
-            font-size: 0.9em;
-            text-align: center;
-            padding: 1rem;
-        }
-        .header-area-viz {
-            border-color: #007bff;
-            background-color: rgba(0, 123, 255, 0.05);
-            color: #0056b3;
-        }
-        .grid-area-viz {
-            border-color: #28a745;
-            background-color: rgba(40, 167, 69, 0.05);
-            color: #155724;
-        }
-        .rules-panel {
-            font-size: 0.8em;
-            margin-top: 1rem;
-            padding-top: 0.5rem;
-            border-top: 1px solid currentColor;
-            opacity: 0.8;
-            width: 100%;
-        }
-        .live-dims {
-            font-weight: bold;
-            font-family: monospace;
-            background-color: rgba(255, 255, 255, 0.7);
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-        }
+        .header-placeholder { background-color: #343a40; }
+        .grid-placeholder { background-color: #007bff; }
+        .area-highlight { outline: 4px solid #ffc107; outline-offset: -4px; z-index: 100; }
     </style>
 </head>
-<body class="bg-light-gray pa4">
+<body>
 
-    <div class="flex">
-        <div class="w-70 pr3">
-            <h1 class="f2 b mb3 bb pb2">Standalone Workbench: RowLayout</h1>
-            <p class="f6 gray mb3">This page tests the <code class="bg-white pa1 br2">RowLayout</code> component in isolation. The colored, dashed borders show the actual DOM elements that the component exposes. Resize the browser window to see the live dimensions update.</p>
-            
-            <div class="bg-white shadow-2 pa3 mb3">
-                <h3 class="f4 b mt0">Lifecycle Controls</h3>
-                <p class="f6">Use these buttons to instantiate and destroy the component.</p>
-                <button id="create-btn" class="pv2 ph3 bn br2 bg-blue white pointer hover-bg-dark-blue">Create/Reset Layout</button>
-                <button id="destroy-btn" class="pv2 ph3 bn br2 bg-red white pointer hover-bg-dark-red">Destroy Layout</button>
+    <div class="workbench-container">
+        <h1 class="f2 b mb2">Workbench: RowLayout</h1>
+        <p class="f6 gray mt0 mb3">This component's header width is controlled by the <code>header-width</code> attribute.</p>
+        
+        <div class="bg-white pa3 shadow-2 mb4">
+            <h3 class="f4 b mt0">Live Controls</h3>
+            <label for="width-input" class="f6 b db mb2">Set <code>header-width</code> attribute:</label>
+            <div class="flex">
+                <input type="text" id="width-input" class="w-100 mr2" value="150px">
+                <button id="apply-btn" class="pv2 ph3 bn br2 bg-blue white pointer hover-bg-dark-blue">Apply</button>
             </div>
-
-            <h3 class="f4 b mt0">Rendered Component</h3>
-            <div id="layout-wrapper" class="bg-white shadow-2 pa3 min-vh-25">
-                <!-- The RowLayout component will be rendered here -->
-            </div>
-            
+             <p class="f7 gray mt2">Try values like <code>200px</code>, <code>25%</code>, or <code>12rem</code>.</p>
         </div>
-        <div class="w-30 pl3">
-            <div class="bg-near-black near-white pa3 br2 log-panel">
-                <h2 class="f4 b bb pb2 mb2">Execution Log</h2>
-                <div id="log-output" class="f7 lh-copy log-box" style="height: 80vh;"></div>
-            </div>
+
+        <h3 class="f4 b mt3">Rendered Component</h3>
+        <div class="component-wrapper">
+            <!-- The header-width is now set via attribute -->
+            <row-layout id="interactive-layout" header-width="150px">
+                <div slot="header" class="placeholder header-placeholder">
+                    SLOT: header
+                </div>
+                <div slot="grid" class="placeholder grid-placeholder">
+                    SLOT: grid
+                </div>
+            </row-layout>
         </div>
     </div>
 

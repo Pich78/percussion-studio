@@ -2,18 +2,15 @@
 
 import { loadCSS } from '/percussion-studio/lib/dom.js';
 import { logEvent } from '/percussion-studio/lib/Logger.js';
-import { BeatRulerView } from '/percussion-studio/src/components/BeatRulerView/BeatRulerView.js';
-import { InstrumentRowView } from '/percussion-studio/src/components/InstrumentRowView/InstrumentRowView.js';
+import { BeatRulerView as RealBeatRulerView } from '/percussion-studio/src/components/BeatRulerView/BeatRulerView.js';
+import { InstrumentRowView as RealInstrumentRowView } from '/percussion-studio/src/components/InstrumentRowView/InstrumentRowView.js';
 import { PlaybackRowHeaderView } from '/percussion-studio/src/components/PlaybackRowHeaderView/PlaybackRowHeaderView.js';
 
 export class BeatChunkPanel {
-    constructor(container, callbacks, dependencies = {}) {
+    constructor(container, callbacks) {
         this.container = container;
         this.callbacks = callbacks || {};
         
-        this.BeatRulerView = dependencies.BeatRulerView || BeatRulerView;
-        this.InstrumentRowView = dependencies.InstrumentRowView || InstrumentRowView;
-
         this.childInstances = {
             ruler: null,
             rows: new Map(),
@@ -26,8 +23,17 @@ export class BeatChunkPanel {
         logEvent('debug', 'BeatChunkPanel', 'constructor', 'Lifecycle', 'Component created.');
     }
 
-    render({ beatNumber, boxesInChunk, instruments, metrics, HeaderComponent }) {
-        this.lastRenderProps = { beatNumber, boxesInChunk, instruments, metrics, HeaderComponent };
+    render({ 
+        beatNumber, 
+        boxesInChunk, 
+        instruments, 
+        metrics, 
+        HeaderComponent,
+        // Dependencies are now injected via the public render method, with defaults for the application
+        BeatRulerView = RealBeatRulerView, 
+        InstrumentRowView = RealInstrumentRowView 
+    }) {
+        this.lastRenderProps = { beatNumber, boxesInChunk, instruments, metrics, HeaderComponent, BeatRulerView, InstrumentRowView };
         logEvent('debug', 'BeatChunkPanel', 'render', 'State', `Rendering Beat Chunk starting at beat #${beatNumber}`);
 
         this.destroyChildren();
@@ -52,7 +58,7 @@ export class BeatChunkPanel {
         rulerArea.className = 'beat-chunk-panel__ruler-area';
         panelEl.appendChild(rulerArea);
         
-        const rulerView = new this.BeatRulerView(rulerArea);
+        const rulerView = new BeatRulerView(rulerArea);
         rulerView.render({ 
             groupingPattern: [boxesInChunk], 
             beatGrouping: metrics.beatGrouping,
@@ -76,8 +82,8 @@ export class BeatChunkPanel {
                 headerProps = instrument;
             }
 
-            const rowView = new this.InstrumentRowView(
-                { headerPanel, gridPanel }, // Pass the two panel elements
+            const rowView = new InstrumentRowView(
+                { headerPanel, gridPanel },
                 { HeaderComponent, headerProps, callbacks: this.callbacks }
             );
             

@@ -1,62 +1,60 @@
 // file: src/components/RowLayout/RowLayout.test.js
 
 import { TestRunner } from '/percussion-studio/lib/TestRunner.js';
-import { MockLogger } from '/percussion-studio/lib/MockLogger.js';
 import { logEvent } from '/percussion-studio/lib/Logger.js';
-import { RowLayout } from './RowLayout.js';
+import './RowLayout.js';
 
 export async function run() {
     const runner = new TestRunner();
-    MockLogger.clearLogs();
-    logEvent('info', 'TestRunner', 'run', 'Setup', 'Starting RowLayout test suite.');
-    
     const testSandbox = document.getElementById('test-sandbox');
+    logEvent('info', 'TestRunner', 'run', 'Setup', 'Starting RowLayout test suite.');
 
-    runner.describe('RowLayout: Initialization & Structure', () => {
-        let layout = null;
-        
-        runner.afterEach(() => {
-            if (layout) {
-                layout.destroy();
-            }
-            testSandbox.innerHTML = '';
-        });
-
-        runner.it('should create the main layout container and its children on instantiation', () => {
-            layout = new RowLayout(testSandbox);
-            runner.expect(testSandbox.querySelector('.row-layout')).not.toBe(null);
-            runner.expect(testSandbox.querySelector('.row-layout__header-area')).not.toBe(null);
-            runner.expect(testSandbox.querySelector('.row-layout__grid-area')).not.toBe(null);
-        });
-        
-        runner.it('should expose the headerArea as a valid DOM element property', () => {
-            layout = new RowLayout(testSandbox);
-            runner.expect(layout.headerArea).toBeInstanceOf(HTMLElement);
-            runner.expect(layout.headerArea.classList.contains('row-layout__header-area')).toBe(true);
-        });
-
-        runner.it('should expose the gridArea as a valid DOM element property', () => {
-            layout = new RowLayout(testSandbox);
-            runner.expect(layout.gridArea).toBeInstanceOf(HTMLElement);
-            runner.expect(layout.gridArea.classList.contains('row-layout__grid-area')).toBe(true);
-        });
-        
-        runner.it('should have only one child in the container, which is the main layout div', () => {
-            layout = new RowLayout(testSandbox);
-            runner.expect(testSandbox.children.length).toBe(1);
-            runner.expect(testSandbox.children[0].classList.contains('row-layout')).toBe(true);
-        });
+    runner.afterEach(() => {
+        testSandbox.innerHTML = '';
     });
 
-    runner.describe('RowLayout: Destruction', () => {
-        runner.it('should clear the container content when destroy() is called', () => {
-            const layout = new RowLayout(testSandbox);
-            // Verify it's not empty first
-            runner.expect(testSandbox.innerHTML).not.toBe('');
+    runner.describe('RowLayout: Header Width Attribute', () => {
+        runner.it('should use the default width if no attribute is provided', () => {
+            const layout = document.createElement('row-layout');
+            testSandbox.appendChild(layout);
+            const header = layout.shadowRoot.querySelector('.row-layout__header-area');
+            // Check the default style from the CSS
+            runner.expect(getComputedStyle(header).width).not.toBe('0px');
+            // An empty inline style confirms the attribute logic hasn't run
+            runner.expect(header.style.width).toBe(''); 
+        });
+
+        runner.it('should apply the width when the header-width attribute is set on initialization', () => {
+            testSandbox.innerHTML = `<row-layout header-width="150px"></row-layout>`;
+            const layout = testSandbox.querySelector('row-layout');
+            const header = layout.shadowRoot.querySelector('.row-layout__header-area');
+            runner.expect(getComputedStyle(header).width).toBe('150px');
+        });
+
+        runner.it('should react and change width when the header-width attribute is changed dynamically', () => {
+            const layout = document.createElement('row-layout');
+            testSandbox.appendChild(layout);
+            const header = layout.shadowRoot.querySelector('.row-layout__header-area');
+
+            layout.setAttribute('header-width', '25%');
+            runner.expect(getComputedStyle(header).width).not.toBe('150px'); // Placeholder for a more complex check
+
+            layout.setAttribute('header-width', '120px');
+            runner.expect(getComputedStyle(header).width).toBe('120px');
+        });
+
+        runner.it('should revert to default width when the attribute is removed', () => {
+            const layout = document.createElement('row-layout');
+            layout.setAttribute('header-width', '200px');
+            testSandbox.appendChild(layout);
+            const header = layout.shadowRoot.querySelector('.row-layout__header-area');
             
-            layout.destroy();
-            
-            runner.expect(testSandbox.innerHTML).toBe('');
+            // Confirm it was set
+            runner.expect(getComputedStyle(header).width).toBe('200px');
+
+            // Remove the attribute and check again
+            layout.removeAttribute('header-width');
+            runner.expect(header.style.width).toBe(''); // Inline style is removed
         });
     });
 

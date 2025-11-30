@@ -1,0 +1,50 @@
+<!-- file: src/components/PatternItemViewMD3/PatternItemViewMD3.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Integration Harness: PatternItemViewMD3</title>
+    <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
+    <!-- Link to a potential MD3 theme file -->
+    <link rel="stylesheet" href="/percussion-studio/css/md3-theme.css">
+    <style> 
+        body { 
+            background-color: var(--md-sys-color-surface-dim);
+            color: var(--md-sys-color-on-surface);
+            font-family: 'Roboto', sans-serif;
+        }
+        .workbench {
+            max-width: 400px;
+            margin: auto;
+            background-color: var(--md-sys-color-surface-container-low);
+            padding: 2rem;
+            border-radius: 12px;
+        }
+    </style>
+</head>
+<body class="pa4">
+    <div class="flex">
+        <div class="w-70 pr3">
+            <h1 class="f2 b mb3 bb pb2 b--black-10">Integration Workbench for <code>PatternItemViewMD3</code></h1>
+            <p class="f6 gray mb3">Interact with the component below. Changes will be logged and the component will be re-rendered with the new state.</p>
+            <div class="workbench">
+                <div id="view-container">
+                    <!-- PatternItemViewMD3 will be rendered here by the script -->
+                </div>
+            </div>
+            <div id="current-state-display" class="f6 code pa2 bg-washed-yellow mt3"></div>
+        </div>
+        <div class="w-30 pl3">
+            <div class="bg-near-black near-white pa3 br2 h-100">
+                <h2 class="f4 b bb pb2 mb2 b--white-10">Execution Log</h2>
+                <div id="log-output" class="f7 lh-copy" style="white-space: pre-wrap; height: 80vh; overflow-y: auto;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { manualTest } from './PatternItemViewMD3.integration.js';
+        manualTest();
+    </script>
+</body>
+</html>

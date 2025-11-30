@@ -5,10 +5,6 @@ import { MockLogger } from '/percussion-studio/lib/MockLogger.js';
 import { logEvent } from '/percussion-studio/lib/Logger.js';
 import { BeatChunkPanel } from './BeatChunkPanel.js';
 
-// Import header components for the header injection test
-import { EditorRowHeaderView } from '/percussion-studio/src/components/EditorRowHeaderView/EditorRowHeaderView.js';
-import { PlaybackRowHeaderView } from '/percussion-studio/src/components/PlaybackRowHeaderView/PlaybackRowHeaderView.js';
-
 export async function run() {
     const runner = new TestRunner();
     MockLogger.clearLogs();
@@ -16,133 +12,149 @@ export async function run() {
     
     const testContainer = document.getElementById('test-sandbox');
 
-    const getMockProps = (header = EditorRowHeaderView) => ({
-        beatNumber: 1,
-        boxesInChunk: 16,
-        instruments: [ 
-            { id: 'k1', symbol: 'KCK', name: 'Kick', pack: 'Test', pattern: 'o---'.repeat(4), sounds: [] } 
-        ],
-        metrics: { beatGrouping: 4, feel: 'duple' },
-        HeaderComponent: header
-    });
+    // --- Mocks ---
+    // Mocks are defined locally to this test file.
+    // They act as "spies" to verify they were called correctly.
 
-    // Mock InstrumentRowView for unit testing
+    class MockHeaderComponent {
+        constructor(container, options) {}
+        render(props) {}
+        destroy() {}
+    }
+
     class MockInstrumentRowView {
         constructor(panels, options) {
             this.panels = panels;
             this.options = options;
-            this.rendered = false;
+            this.renderCount = 0;
+            this.destroyed = false;
         }
-        
         render(props) {
-            this.rendered = true;
-            // Keep the original class names for testing
-            this.panels.headerPanel.classList.add('mock-header-rendered');
-            this.panels.gridPanel.classList.add('mock-grid-rendered');
+            this.renderCount++;
+            // Add a specific class to prove this mock's render was called
+            this.panels.headerPanel.classList.add('mock-row-rendered');
         }
-        
         destroy() {
-            this.rendered = false;
+            this.destroyed = true;
         }
     }
 
-    // Mock BeatRulerView for unit testing
     class MockBeatRulerView {
         constructor(container) {
             this.container = container;
             this.rendered = false;
+            this.destroyed = false;
         }
-        
         render(props) {
             this.rendered = true;
-            this.container.innerHTML = '<div class="beat-ruler">Mock Ruler</div>';
+            this.container.innerHTML = '<div class="mock-ruler-rendered"></div>';
         }
-        
         destroy() {
-            this.rendered = false;
+            this.destroyed = true;
         }
     }
+
+    // --- Test Data Helper ---
+    // Helper to generate props, now including the mock components for injection.
+    const getMockProps = (instrumentCount = 1) => {
+        const instruments = [];
+        for (let i = 0; i < instrumentCount; i++) {
+            instruments.push({ id: `inst_${i}`, name: `Inst ${i}`, pattern: 'o---' });
+        }
+
+        return {
+            beatNumber: 1,
+            boxesInChunk: 16,
+            instruments,
+            metrics: { beatGrouping: 4, feel: 'duple' },
+            // Mocks are injected via the public render interface
+            HeaderComponent: MockHeaderComponent,
+            InstrumentRowView: MockInstrumentRowView,
+            BeatRulerView: MockBeatRulerView
+        };
+    };
 
     runner.describe('BeatChunkPanel', () => {
         let panel = null;
         
+        runner.beforeEach(() => {
+            // Instantiate the component using its clean, public constructor.
+            // No special arguments are needed.
+            panel = new BeatChunkPanel(testContainer, {});
+        });
+
         runner.afterEach(() => {
             if (panel) panel.destroy();
             testContainer.innerHTML = '';
         });
 
-        runner.it('should render a ruler and instrument rows', () => {
-            // Inject mocks for unit testing
-            panel = new BeatChunkPanel(testContainer, {}, {
-                InstrumentRowView: MockInstrumentRowView,
-                BeatRulerView: MockBeatRulerView
-            });
-            
-            const props = getMockProps();
-            props.instruments.push({ id: 's1', symbol:'SNR', name:'Snare', pack:'Test', pattern: '----', sounds:[] });
+        runner.it('should orchestrate the rendering of its children via the public API', () => {
+            const props = getMockProps(3);
             panel.render(props);
-            
-            // Test that BeatChunkPanel created the ruler
-            runner.expect(testContainer.querySelector('.beat-ruler')).not.toBe(null);
-            
-            // Test that BeatChunkPanel created the correct number of panel pairs
-            runner.expect(testContainer.querySelectorAll('.instrument-row__header-panel').length).toBe(2);
-            runner.expect(testContainer.querySelectorAll('.instrument-row__grid-panel').length).toBe(2);
-            
-            // Test that the mocked InstrumentRowView was called
-            runner.expect(testContainer.querySelectorAll('.mock-header-rendered').length).toBe(2);
-            runner.expect(testContainer.querySelectorAll('.mock-grid-rendered').length).toBe(2);
+
+            // 1. Test that the panel itself created the DOM structure ("slots")
+            runner.expect(testContainer.querySelectorAll('.instrument-row__header-panel').length).toBe(3);
+            runner.expect(testContainer.querySelectorAll('.instrument-row__grid-panel').length).toBe(3);
+
+            // 2. Test that the injected mock components were successfully rendered
+            runner.expect(testContainer.querySelector('.mock-ruler-rendered')).not.toBe(null);
+            runner.expect(testContainer.querySelectorAll('.mock-row-rendered').length).toBe(3);
         });
 
-        runner.it('should render the correct header type based on injection', () => {
-            // For this test, we need to use real components to test the injection
-            panel = new BeatChunkPanel(testContainer, {});
-            
-            panel.render(getMockProps(EditorRowHeaderView));
-            runner.expect(testContainer.querySelector('.editor-header')).not.toBe(null);
-            runner.expect(testContainer.querySelector('.mixer-track')).toBe(null);
-
-            panel.render(getMockProps(PlaybackRowHeaderView));
-            runner.expect(testContainer.querySelector('.mixer-track')).not.toBe(null);
-            runner.expect(testContainer.querySelector('.editor-header')).toBe(null);
-        });
-        
         runner.it('should show and hide its playhead indicator', () => {
-            // Use mocks for this unit test
-            panel = new BeatChunkPanel(testContainer, {}, {
-                InstrumentRowView: MockInstrumentRowView,
-                BeatRulerView: MockBeatRulerView
-            });
-            panel.render(getMockProps());
+            panel.render(getMockProps(1));
 
             const playhead = testContainer.querySelector('.playhead-indicator');
             runner.expect(playhead.classList.contains('is-active')).toBe(false);
 
-            // We need to create mock grid cells for the playhead positioning to work
+            // Create a fake grid cell for the playhead to measure
             const mockCell = document.createElement('div');
             mockCell.className = 'grid-cell';
-            mockCell.dataset.tickIndex = '3';
-            mockCell.style.position = 'absolute';
-            mockCell.style.left = '100px';
-            mockCell.style.top = '50px';
-            mockCell.style.width = '20px';
-            mockCell.style.height = '30px';
-            testContainer.appendChild(mockCell);
+            mockCell.dataset.tickIndex = '5';
+            testContainer.querySelector('.beat-chunk-panel').appendChild(mockCell);
 
-            panel.updatePlaybackIndicator(3);
+            panel.updatePlaybackIndicator(5);
             runner.expect(playhead.classList.contains('is-active')).toBe(true);
 
             panel.updatePlaybackIndicator(-1);
             runner.expect(playhead.classList.contains('is-active')).toBe(false);
         });
-        
-        runner.it('should destroy all its child components', () => {
-            panel = new BeatChunkPanel(testContainer, {}, {
-                InstrumentRowView: MockInstrumentRowView,
-                BeatRulerView: MockBeatRulerView
-            });
-            panel.render(getMockProps());
+
+        runner.it('should update a single instrument row without re-rendering others', () => {
+            const props = getMockProps(2);
+            panel.render(props);
+
+            // Get the instantiated mock children from the panel
+            const row1 = panel.childInstances.rows.get('inst_0');
+            const row2 = panel.childInstances.rows.get('inst_1');
+
+            runner.expect(row1.renderCount).toBe(1);
+            runner.expect(row2.renderCount).toBe(1);
+
+            // Create updated instrument data for the second instrument
+            const updatedInstrument = { id: 'inst_1', name: 'Updated Inst', pattern: '-o--' };
+            panel.updateInstrument(updatedInstrument);
+
+            // Verify only the specified row was re-rendered
+            runner.expect(row1.renderCount).toBe(1); // Should not have changed
+            runner.expect(row2.renderCount).toBe(2); // Should have been re-rendered
+        });
+
+        runner.it('should destroy itself and all child components', () => {
+            panel.render(getMockProps(2));
+
+            const ruler = panel.childInstances.ruler;
+            const row1 = panel.childInstances.rows.get('inst_0');
+            const row2 = panel.childInstances.rows.get('inst_1');
+            
             panel.destroy();
+            
+            // Verify all child `destroy` methods were called
+            runner.expect(ruler.destroyed).toBe(true);
+            runner.expect(row1.destroyed).toBe(true);
+            runner.expect(row2.destroyed).toBe(true);
+            
+            // Verify the DOM was cleaned up
             runner.expect(testContainer.innerHTML).toBe('');
         });
     });

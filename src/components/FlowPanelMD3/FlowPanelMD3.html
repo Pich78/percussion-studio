@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Manual Test Harness: FlowPanelMD3</title>
+    <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
+    <link rel="stylesheet" href="/percussion-studio/css/md3-theme.css">
+    <style>
+        body {
+            background-color: var(--md-sys-color-surface-dim);
+            color: var(--md-sys-color-on-surface);
+        }
+    </style>
+</head>
+<body class="bg-light-gray pa4">
+    <div class="flex">
+        <div class="w-70 pr3">
+            <h1 class="f2 b mb3 bb pb2">Live View Workbench for <code>FlowPanelMD3</code></h1>
+            <div class="relative w-100 bg-white shadow-2" style="height: 80vh;">
+                <!-- The component will be placed here -->
+                <div id="view-container"></div>
+            </div>
+            <div id="current-state-display" class="f6 code pa2 bg-washed-yellow mt3"></div>
+        </div>
+        <div class="w-30 pl3">
+            <div class="bg-near-black near-white pa3 br2 h-100">
+                <h2 class="f4 b bb pb2 mb2">Execution Log</h2>
+                <div id="log-output" class="f7 lh-copy" style="white-space: pre-wrap; height: 85vh; overflow-y: auto;"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script type="module">
+        import './FlowPanelMD3.js';
+        import { Logger, logEvent } from '/percussion-studio/lib/Logger.js';
+        
+        Logger.init({ level: 'debug' });
+        Logger.setTarget('log-output');
+
+        let currentState = {
+            flow: Array.from({length: 8}, (_, i) => ({ pattern: `Pattern ${i+1}`, repetitions: (i % 4 + 1) })),
+            availablePatterns: Array.from({length: 12}, (_, i) => `Pattern ${i+1}`),
+            currentPatternId: 'Pattern 2', 
+            isExpanded: true,
+            globalBPM: 120,
+        };
+
+        const container = document.getElementById('view-container');
+        const stateDisplay = document.getElementById('current-state-display');
+        let view; // Keep a reference to the component
+
+        const rerender = () => {
+            logEvent('info', 'Harness', 'rerender', 'State', 'Rerendering component...', currentState);
+
+            if (!view) {
+                view = document.createElement('flow-panel-md3');
+                container.appendChild(view);
+                addEventListeners();
+            }
+
+            // Update component properties/attributes
+            view.flowData = currentState.flow;
+            view.currentPatternId = currentState.currentPatternId;
+            view.globalBPM = currentState.globalBPM;
+            view.patternList = currentState.availablePatterns;
+
+            if (currentState.isExpanded) {
+                view.setAttribute('expanded', '');
+            } else {
+                view.removeAttribute('expanded');
+            }
+
+            stateDisplay.textContent = `Current State: ${JSON.stringify(currentState, null, 2)}`;
+        };
+
+        const addEventListeners = () => {
+             view.addEventListener('expansion-change', e => {
+                currentState.isExpanded = e.detail.expanded;
+                rerender();
+            });
+            view.addEventListener('pattern-select', e => {
+                currentState.currentPatternId = e.detail.patternId;
+                rerender();
+            });
+            view.addEventListener('add-pattern', () => {
+                const newId = `Pattern ${currentState.flow.length + 1}`;
+                if (!currentState.availablePatterns.includes(newId)) {
+                    currentState.availablePatterns.push(newId);
+                }
+                currentState.flow.push({ pattern: newId, repetitions: 1 });
+                rerender();
+            });
+            view.addEventListener('delete-flow-item', e => {
+                currentState.flow.splice(e.detail.index, 1);
+                rerender();
+            });
+            view.addEventListener('reorder-flow', e => {
+                const { fromIndex, toIndex } = e.detail;
+                const [item] = currentState.flow.splice(fromIndex, 1);
+                currentState.flow.splice(toIndex, 0, item);
+                rerender();
+            });
+            view.addEventListener('pattern-property-change', e => {
+                const { index, property, value } = e.detail;
+                if (currentState.flow[index]) {
+                    currentState.flow[index][property] = value;
+                    rerender();
+                }
+            });
+        }
+
+        rerender();
+    </script>
+</body>
+</html>

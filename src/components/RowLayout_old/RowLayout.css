@@ -5,7 +5,7 @@
     flex-direction: row;
     align-items: stretch; /* Make children fill the height */
     width: 100%;
-    min-height: 5rem; /* A sensible minimum height */
+    height: 5rem; 
     box-sizing: border-box;
     border: 1px solid #dee2e6;
     background-color: #fff;
@@ -14,12 +14,18 @@
 }
 
 .row-layout__header-area {
+    display: flex; 
+    
     flex-shrink: 0;
     flex-grow: 0;
     flex-basis: 20%;
-    min-width: 160px; /* Prevent the header from becoming too narrow */
+    
+    /* --- FIX: Override the default browser algorithm. --- */
+    /* This forces the container to obey flex-basis, even if its content is rigid. */
+    min-width: 0; 
+
     box-sizing: border-box;
-    position: relative; /* Allows absolute positioning for children if needed */
+    position: relative; 
     border-right: 1px solid #dee2e6;
 }
 
@@ -30,3 +36,4 @@
     position: relative;
     overflow-x: auto; /* Allow grid to scroll if it's too wide */
 }
+

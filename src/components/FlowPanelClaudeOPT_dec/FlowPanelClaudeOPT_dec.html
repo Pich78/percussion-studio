@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Material Flow Panel - Drag Drop Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+        }
+
+        .test-panel {
+            width: 320px;
+            height: 500px;
+            margin: 20px auto;
+            background: #fef7ff;
+            border: 1px solid #e6e0e9;
+            border-radius: 12px;
+            padding: 16px;
+            position: relative;
+        }
+
+        .flow-item {
+            background: white;
+            border: 1px solid #e6e0e9;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin: 6px 0;
+            cursor: grab;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .flow-item:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            transform: translateY(-1px);
+        }
+
+        .flow-item:active {
+            cursor: grabbing;
+        }
+
+        .drag-handle {
+            color: #9ca3af;
+            cursor: grab;
+            font-size: 18px;
+            line-height: 1;
+        }
+
+        .item-content {
+            flex: 1;
+        }
+
+        .item-title {
+            font-weight: 500;
+            color: #1d1b20;
+        }
+
+        .item-subtitle {
+            color: #49454f;
+            font-size: 14px;
+        }
+
+        /* Drag placeholder styles */
+        .drag-placeholder {
+            opacity: 0.5 !important;
+            background-color: #f5eff7 !important;
+            border: 2px dashed #7a757f !important;
+        }
+
+        .drag-placeholder * {
+            visibility: hidden !important;
+        }
+
+        .event-log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+            margin-top: 20px;
+        }
+
+        .event-entry {
+            margin: 2px 0;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        .event-entry.drag {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .event-entry.info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: 1px solid #6750a4;
+            background: transparent;
+            color: #6750a4;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            background: #6750a4;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Material Flow Panel - Drag Drop Test</h1>
+        <p>Simplified test to verify drag and drop functionality</p>
+
+        <div class="controls">
+            <button class="btn" id="add-item">Add Item</button>
+            <button class="btn" id="clear-items">Clear All</button>
+            <button class="btn" id="debug-state">Debug State</button>
+            <button class="btn" id="test-modules">Test Modules</button>
+        </div>
+
+        <div class="test-panel" id="test-panel">
+            <!-- Items will be added here -->
+        </div>
+
+        <div>
+            <h3>Event Log</h3>
+            <div class="event-log" id="event-log"></div>
+        </div>
+    </div>
+
+    <script>
+        // AutoScroller.js - Handles auto-scrolling during drag
+        class AutoScroller {
+            constructor(config = {}) {
+                this.config = {
+                    scrollZoneSize: 60,
+                    scrollSpeed: 5,
+                    ...config
+                };
+            }
+
+            handleAutoScroll(mouseY, container) {
+                const containerBounds = container.getBoundingClientRect();
+                const { scrollZoneSize, scrollSpeed } = this.config;
+                
+                const distanceFromTop = mouseY - containerBounds.top;
+                const distanceFromBottom = containerBounds.bottom - mouseY;
+                
+                if (distanceFromTop < scrollZoneSize) {
+                    const scrollIntensity = (scrollZoneSize - distanceFromTop) / scrollZoneSize;
+                    container.scrollTop -= scrollSpeed * scrollIntensity;
+                    return 'up';
+                } else if (distanceFromBottom < scrollZoneSize) {
+                    const scrollIntensity = (scrollZoneSize - distanceFromBottom) / scrollZoneSize;
+                    container.scrollTop += scrollSpeed * scrollIntensity;
+                    return 'down';
+                }
+                
+                return null;
+            }
+        }
+
+        // CollisionDetector.js - Pure collision detection logic
+        class CollisionDetector {
+            constructor(config = {}) {
+                this.config = {
+                    overlapThreshold: 0.25,
+                    hysteresisThreshold: 2,
+                    ...config
+                };
+            }
+
+            updateConfig(newConfig) {
+                Object.assign(this.config, newConfig);
+            }
+
+            calculateDragBounds(mouseY, startOffset, itemHeight) {
+                return {
+                    top: mouseY - startOffset,
+                    bottom: mouseY - startOffset + itemHeight,
+                    center: mouseY - startOffset + (itemHeight / 2)
+                };
+            }
+
+            updateDirection(currentMouseY, lastMouseY, lastDirection) {
+                const { hysteresisThreshold } = this.config;
+                
+                if (Math.abs(currentMouseY - lastMouseY) < hysteresisThreshold) {
+                    return { direction: lastDirection, changed: false };
+                }
+                
+                const newDirection = currentMouseY < lastMouseY ? 'up' : 'down';
+                return { 
+                    direction: newDirection, 
+                    changed: newDirection !== lastDirection 
+                };
+            }
+
+            detectCollision(dragBounds, direction, elements, itemHeight) {
+                const overlapThreshold = itemHeight * this.config.overlapThreshold;
+                const elementsToCheck = direction === 'down' ? [...elements].reverse() : elements;
+                
+                for (const element of elementsToCheck) {
+                    const elementBounds = element.getBoundingClientRect();
+                    let collision = null;
+                    
+                    if (direction === 'up') {
+                        if (dragBounds.top <= (elementBounds.bottom - overlapThreshold)) {
+                            collision = { element, direction: 'up', insertBefore: element };
+                        }
+                    } else {
+                        if (dragBounds.bottom >= (elementBounds.top + overlapThreshold)) {
+                            const nextSibling = this._getNextValidSibling(element);
+                            collision = { element, direction: 'down', insertBefore: nextSibling };
+                        }
+                    }
+                    
+                    if (collision) return collision;
+                }
+                
+                return null;
+            }
+
+            _getNextValidSibling(element) {
+                let next = element.nextElementSibling;
+                while (next && next.classList.contains('drag-placeholder')) {
+                    next = next.nextElementSibling;
+                }
+                return next;
+            }
+        }
+
+        // DragVisualFeedback.js - Handles drag visual states
+        class DragVisualFeedback {
+            constructor(config = {}) {
+                this.config = {
+                    placeholderClass: 'drag-placeholder',
+                    ...config
+                };
+                this.lastAfterElement = null;
+            }
+
+            showDragStart(element) {
+                // Create placeholder from the dragged element
+                const placeholder = element.cloneNode(true);
+                placeholder.classList.add(this.config.placeholderClass);
+                element.parentNode.insertBefore(placeholder, element);
+                
+                // Hide the original element
+                element.style.display = 'none';
+                
+                return placeholder;
+            }
+
+            updatePlaceholderPosition(placeholder, afterElement, container) {
+                if (afterElement !== this.lastAfterElement) {
+                    this.lastAfterElement = afterElement;
+                    
+                    if (afterElement === null) {
+                        container.appendChild(placeholder);
+                    } else {
+                        container.insertBefore(placeholder, afterElement);
+                    }
+                }
+            }
+
+            hideDragEnd(placeholder, originalElement) {
+                if (placeholder && placeholder.parentNode) {
+                    // Replace placeholder with original element
+                    placeholder.parentNode.insertBefore(originalElement, placeholder);
+                    placeholder.remove();
+                    originalElement.style.display = '';
+                }
+                this.lastAfterElement = null;
+            }
+
+            reset() {
+                this.lastAfterElement = null;
+            }
+        }
+
+        // DragDropController.js - Main drag and drop coordination
+        class DragDropController {
+            constructor(config = {}) {
+                this.collisionDetector = new CollisionDetector(config.collision);
+                this.visualFeedback = new DragVisualFeedback(config.visual);
+                this.autoScroller = new AutoScroller(config.scroll);
+                
+                this.dragState = {
+                    draggedIndex: null,
+                    draggedElement: null,
+                    placeholder: null,
+                    startOffset: 0,
+                    itemHeight: 0,
+                    lastCollision: null,
+                    lastMouseY: 0,
+                    lastDirection: null
+                };
+
+                // Bind event handlers
+                this.handleDragStart = this.handleDragStart.bind(this);
+                this.handleDragOver = this.handleDragOver.bind(this);
+                this.handleDrop = this.handleDrop.bind(this);
+                this.handleDragEnd = this.handleDragEnd.bind(this);
+            }
+
+            attachTo(element, container, itemsGetter) {
+                this.element = element;
+                this.container = container;
+                this.getItems = itemsGetter;
+                
+                element.addEventListener('dragstart', this.handleDragStart);
+                element.addEventListener('dragover', this.handleDragOver);
+                element.addEventListener('drop', this.handleDrop);
+                element.addEventListener('dragend', this.handleDragEnd);
+                
+                // Prevent default dragover on container
+                container.addEventListener('dragover', (e) => e.preventDefault());
+            }
+
+            detach() {
+                if (this.element) {
+                    this.element.removeEventListener('dragstart', this.handleDragStart);
+                    this.element.removeEventListener('dragover', this.handleDragOver);
+                    this.element.removeEventListener('drop', this.handleDrop);
+                    this.element.removeEventListener('dragend', this.handleDragEnd);
+                }
+                if (this.container) {
+                    this.container.removeEventListener('dragover', (e) => e.preventDefault());
+                }
+                this.reset();
+            }
+
+            handleDragStart(event) {
+                const item = event.target.closest('[draggable="true"]');
+                if (!item) return;
+                
+                const items = this.getItems();
+                const draggedIndex = items.indexOf(item);
+                
+                if (draggedIndex === -1) return;
+
+                // Initialize drag state
+                this.dragState.draggedIndex = draggedIndex;
+                this.dragState.draggedElement = item;
+                this.dragState.lastMouseY = event.clientY;
+                this.dragState.lastDirection = null;
+
+                // Calculate item dimensions
+                const rect = item.getBoundingClientRect();
+                this.dragState.startOffset = event.clientY - rect.top;
+                this.dragState.itemHeight = rect.height;
+
+                event.dataTransfer.effectAllowed = 'move';
+                event.dataTransfer.setData('text/html', item.outerHTML);
+
+                // Create visual feedback
+                requestAnimationFrame(() => {
+                    this.dragState.placeholder = this.visualFeedback.showDragStart(item);
+                });
+
+                this._emitEvent('drag-start', { draggedElement: item, draggedIndex });
+            }
+
+            handleDragOver(event) {
+                event.preventDefault();
+                
+                if (this.dragState.draggedIndex === null || !this.dragState.placeholder) return;
+
+                const currentMouseY = event.clientY;
+                
+                // Handle auto-scrolling
+                this.autoScroller.handleAutoScroll(currentMouseY, this.container);
+                
+                // Update direction
+                const directionResult = this.collisionDetector.updateDirection(
+                    currentMouseY, 
+                    this.dragState.lastMouseY, 
+                    this.dragState.lastDirection
+                );
+                
+                if (!directionResult.direction) return;
+                
+                // Reset collision on direction change
+                if (directionResult.changed) {
+                    this.dragState.lastCollision = null;
+                }
+                
+                this.dragState.lastDirection = directionResult.direction;
+                this.dragState.lastMouseY = currentMouseY;
+
+                // Calculate drag bounds
+                const dragBounds = this.collisionDetector.calculateDragBounds(
+                    currentMouseY, 
+                    this.dragState.startOffset, 
+                    this.dragState.itemHeight
+                );
+
+                // Get resting elements (exclude placeholder and original dragged element)
+                const restingElements = this.getItems().filter(el => 
+                    !el.classList.contains('drag-placeholder') && 
+                    el.style.display !== 'none'
+                );
+
+                // Detect collision
+                const collision = this.collisionDetector.detectCollision(
+                    dragBounds, 
+                    directionResult.direction, 
+                    restingElements, 
+                    this.dragState.itemHeight
+                );
+
+                if (collision) {
+                    // Emit collision event if new
+                    if (collision.element !== this.dragState.lastCollision) {
+                        this._emitEvent('drag-collision', {
+                            collidedElement: collision.element,
+                            collisionDirection: collision.direction
+                        });
+                        this.dragState.lastCollision = collision.element;
+                    }
+
+                    // Update placeholder position
+                    this.visualFeedback.updatePlaceholderPosition(
+                        this.dragState.placeholder, 
+                        collision.insertBefore, 
+                        this.container
+                    );
+                }
+            }
+
+            handleDrop(event) {
+                event.preventDefault();
+                
+                if (this.dragState.draggedIndex !== null && this.dragState.placeholder) {
+                    const items = this.getItems();
+                    const newIndex = items.indexOf(this.dragState.placeholder);
+                    
+                    if (this.dragState.draggedIndex !== newIndex && newIndex !== -1) {
+                        this._emitEvent('item-reorder', {
+                            fromIndex: this.dragState.draggedIndex,
+                            toIndex: newIndex,
+                            draggedElement: this.dragState.draggedElement
+                        });
+                    }
+                }
+            }
+
+            handleDragEnd() {
+                if (this.dragState.placeholder && this.dragState.draggedElement) {
+                    this.visualFeedback.hideDragEnd(this.dragState.placeholder, this.dragState.draggedElement);
+                }
+
+                this._emitEvent('drag-end');
+                this.reset();
+            }
+
+            reset() {
+                this.dragState = {
+                    draggedIndex: null,
+                    draggedElement: null,
+                    placeholder: null,
+                    startOffset: 0,
+                    itemHeight: 0,
+                    lastCollision: null,
+                    lastMouseY: 0,
+                    lastDirection: null
+                };
+                this.visualFeedback.reset();
+            }
+
+            getCurrentState() {
+                return { ...this.dragState };
+            }
+
+            _emitEvent(eventType, additionalData = {}) {
+                const baseData = {
+                    draggedIndex: this.dragState.draggedIndex,
+                    mouseY: this.dragState.lastMouseY,
+                    direction: this.dragState.lastDirection,
+                    ...additionalData
+                };
+                
+                this.element.dispatchEvent(new CustomEvent(eventType, {
+                    detail: baseData,
+                    bubbles: true
+                }));
+            }
+        }
+
+        // Test implementation
+        class DragDropTest {
+            constructor() {
+                this.container = document.getElementById('test-panel');
+                this.eventLog = document.getElementById('event-log');
+                this.itemCounter = 1;
+                this.dragController = null;
+                
+                this.init();
+            }
+
+            init() {
+                // Initialize drag controller
+                this.dragController = new DragDropController({
+                    collision: { overlapThreshold: 0.25 },
+                    scroll: { scrollZoneSize: 60, scrollSpeed: 5 }
+                });
+
+                this.dragController.attachTo(
+                    this.container,
+                    this.container,
+                    () => Array.from(this.container.children)
+                );
+
+                // Setup event listeners
+                this.setupEventListeners();
+                
+                // Add initial items
+                this.addSampleItems();
+            }
+
+            setupEventListeners() {
+                // Drag events
+                this.container.addEventListener('drag-start', (e) => {
+                    this.log('drag', `Drag started: index ${e.detail.draggedIndex}`);
+                });
+
+                this.container.addEventListener('drag-collision', (e) => {
+                    this.log('drag', `Collision: ${e.detail.collisionDirection}`);
+                });
+
+                this.container.addEventListener('item-reorder', (e) => {
+                    this.log('info', `Reordered: ${e.detail.fromIndex} → ${e.detail.toIndex}`);
+                });
+
+                this.container.addEventListener('drag-end', (e) => {
+                    this.log('drag', 'Drag ended');
+                });
+
+                // Button events
+                document.getElementById('add-item').addEventListener('click', () => this.addItem());
+                document.getElementById('clear-items').addEventListener('click', () => this.clearItems());
+                document.getElementById('debug-state').addEventListener('click', () => this.debugState());
+                document.getElementById('test-modules').addEventListener('click', () => this.testModules());
+            }
+
+            addItem(title = null, subtitle = null) {
+                const item = document.createElement('div');
+                item.className = 'flow-item';
+                item.draggable = true;
+                
+                item.innerHTML = `
+                    <div class="drag-handle">⋮⋮</div>
+                    <div class="item-content">
+                        <div class="item-title">${title || `Test Item ${this.itemCounter}`}</div>
+                        <div class="item-subtitle">${subtitle || `Item ${this.itemCounter} description`}</div>
+                    </div>
+                `;
+                
+                this.container.appendChild(item);
+                this.itemCounter++;
+                
+                this.log('info', `Added item: ${item.querySelector('.item-title').textContent}`);
+            }
+
+            addSampleItems() {
+                this.addItem('First Item', 'This is the first item');
+                this.addItem('Second Item', 'This is the second item');
+                this.addItem('Third Item', 'This is the third item');
+                this.addItem('Fourth Item', 'This is the fourth item');
+            }
+
+            clearItems() {
+                this.container.innerHTML = '';
+                this.itemCounter = 1;
+                this.log('info', 'Cleared all items');
+            }
+
+            debugState() {
+                const state = this.dragController.getCurrentState();
+                console.group('Drag Controller State');
+                console.log('Current State:', state);
+                console.log('Items Count:', this.container.children.length);
+                console.log('Container:', this.container);
+                console.groupEnd();
+                
+                this.log('info', `Debug: ${this.container.children.length} items, drag active: ${state.draggedIndex !== null}`);
+            }
+
+            testModules() {
+                const modules = [
+                    { name: 'AutoScroller', class: AutoScroller },
+                    { name: 'CollisionDetector', class: CollisionDetector },
+                    { name: 'DragVisualFeedback', class: DragVisualFeedback },
+                    { name: 'DragDropController', class: DragDropController }
+                ];
+
+                this.log('info', 'Testing modules...');
+                
+                modules.forEach(module => {
+                    try {
+                        const instance = new module.class();
+                        this.log('info', `✓ ${module.name}: OK`);
+                    } catch (error) {
+                        this.log('info', `✗ ${module.name}: ${error.message}`);
+                    }
+                });
+            }
+
+            log(type, message) {
+                const timestamp = new Date().toLocaleTimeString();
+                const entry = document.createElement('div');
+                entry.className = `event-entry ${type}`;
+                entry.textContent = `[${timestamp}] ${message}`;
+                
+                this.eventLog.appendChild(entry);
+                this.eventLog.scrollTop = this.eventLog.scrollHeight;
+                
+                // Keep only last 50 entries
+                while (this.eventLog.children.length > 50) {
+                    this.eventLog.removeChild(this.eventLog.firstChild);
+                }
+            }
+        }
+
+        // Initialize test when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new DragDropTest();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,263 @@
+// file: flow-panel.js
+
+const template = document.createElement('template');
+template.innerHTML = `
+    <style>
+        :host {
+            display: block;
+            height: 100%;
+            overflow: hidden;
+            /* M3 Expressive Theme Colors (Tokens) */
+            --md-sys-color-surface-container: #f3f0f4;
+            --md-sys-color-outline-variant: #cac4d0;
+            --md-sys-color-primary-container: #eaddff;
+            --md-sys-color-on-primary-container: #21005d;
+        }
+
+        .flow-list {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow-y: auto;
+            position: relative;
+            /* M3 recommended gap for lists */
+            gap: 8px; 
+            padding: 8px;
+            box-sizing: border-box;
+            background-color: var(--md-sys-color-surface-container);
+        }
+
+        /* Hide scrollbar, as is common in modern UI */
+        .flow-list::-webkit-scrollbar { 
+            display: none;
+            width: 0;
+        }
+        
+        /* This targets direct children placed in the slot */
+        ::slotted(*) {
+            user-select: none; /* Prevents text selection during drag */
+        }
+
+        /* 
+         * The placeholder is not a slotted item, but a direct child 
+         * of the shadow DOM's .flow-list.
+         */
+        .drag-placeholder {
+            background-color: transparent;
+            border-radius: 12px; /* M3 Large Corner Radius */
+            border: 2px dashed var(--md-sys-color-outline-variant);
+            box-sizing: border-box;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+        
+        /* This class is applied to the actual slotted item being dragged */
+        ::slotted(.is-dragging) {
+            opacity: 0.1; /* Make original item nearly disappear */
+        }
+
+    </style>
+    <div class="flow-list" part="list-container">
+        <slot></slot>
+    </div>
+`;
+
+class FlowPanel extends HTMLElement {
+    // --- Configurable Properties ---
+    draggedIndex = null;
+    dragStartOffset = 0;
+    draggedItemHeight = 0;
+    
+    lastAfterElement = null;
+    lastMouseY = 0;
+    lastDirection = null;
+
+    // --- Public Configurable Attributes ---
+    overlapThresholdPercent = 0.25;
+    scrollZoneSize = 60;
+    scrollSpeed = 5;
+
+    constructor() {
+        super();
+        this.attachShadow({ mode: 'open' });
+        this.shadowRoot.appendChild(template.content.cloneNode(true));
+
+        // Bind 'this' to maintain context in event handlers
+        this._handleDragStart = this._handleDragStart.bind(this);
+        this._handleDragOver = this._handleDragOver.bind(this);
+        this._handleDrop = this._handleDrop.bind(this);
+        this._handleDragEnd = this._handleDragEnd.bind(this);
+    }
+
+    connectedCallback() {
+        this.shadowRoot.addEventListener('dragstart', this._handleDragStart);
+        this.shadowRoot.addEventListener('dragover', this._handleDragOver);
+        this.shadowRoot.addEventListener('drop', this._handleDrop);
+        this.shadowRoot.addEventListener('dragend', this._handleDragEnd);
+        
+        this._upgradeProperties();
+    }
+
+    disconnectedCallback() {
+        this.shadowRoot.removeEventListener('dragstart', this._handleDragStart);
+        this.shadowRoot.removeEventListener('dragover', this._handleDragOver);
+        this.shadowRoot.removeEventListener('drop', this._handleDrop);
+        this.shadowRoot.removeEventListener('dragend', this._handleDragEnd);
+    }
+    
+    _getSlottedItems() {
+        const slot = this.shadowRoot.querySelector('slot');
+        // Get assigned elements, filter out any text nodes
+        return slot.assignedElements().filter(el => el.nodeType === Node.ELEMENT_NODE);
+    }
+
+    _handleDragStart(event) {
+        const draggedItem = event.target;
+        const slottedItems = this._getSlottedItems();
+        this.draggedIndex = slottedItems.indexOf(draggedItem);
+
+        if (this.draggedIndex === -1) return; // Not a draggable child
+
+        event.dataTransfer.effectAllowed = 'move';
+        this.lastMouseY = event.clientY;
+
+        const rect = draggedItem.getBoundingClientRect();
+        this.dragStartOffset = event.clientY - rect.top;
+        this.draggedItemHeight = rect.height;
+
+        this.lastAfterElement = draggedItem.nextElementSibling;
+        
+        // Use a short delay to allow the browser to paint the drag ghost
+        setTimeout(() => {
+            draggedItem.classList.add('is-dragging');
+            
+            // Create and insert the placeholder
+            const placeholder = document.createElement('div');
+            placeholder.className = 'drag-placeholder';
+            placeholder.style.height = `${this.draggedItemHeight}px`;
+            
+            const listContainer = this.shadowRoot.querySelector('.flow-list');
+            listContainer.insertBefore(placeholder, draggedItem);
+        }, 0);
+    }
+
+    _handleDragOver(event) {
+        event.preventDefault(); // Necessary to allow dropping
+        
+        const listContainer = this.shadowRoot.querySelector('.flow-list');
+        const placeholder = this.shadowRoot.querySelector('.drag-placeholder');
+        
+        if (!listContainer || !placeholder || this.draggedIndex === null) return;
+        
+        // --- Automatic Scrolling ---
+        const listRect = listContainer.getBoundingClientRect();
+        if (event.clientY < listRect.top + this.scrollZoneSize) {
+            listContainer.scrollTop -= this.scrollSpeed;
+        } else if (event.clientY > listRect.bottom - this.scrollZoneSize) {
+            listContainer.scrollTop += this.scrollSpeed;
+        }
+        
+        // --- Directional Collision Detection ---
+        const direction = event.clientY < this.lastMouseY ? 'up' : (event.clientY > this.lastMouseY ? 'down' : this.lastDirection);
+        const overlapThreshold = this.draggedItemHeight * this.overlapThresholdPercent;
+        const draggedTop = event.clientY - this.dragStartOffset;
+        const draggedBottom = draggedTop + this.draggedItemHeight;
+
+        const restingElements = this._getSlottedItems().filter(el => !el.classList.contains('is-dragging'));
+        
+        let afterElement = this.lastAfterElement;
+
+        if (direction === 'up') {
+            for (const child of restingElements) {
+                const childBox = child.getBoundingClientRect();
+                if (draggedTop <= (childBox.bottom - overlapThreshold)) {
+                    afterElement = child;
+                    break;
+                }
+            }
+        } else if (direction === 'down') {
+            // Iterate backwards for downward drag
+            afterElement = null; // Default to end of list
+            for (const child of [...restingElements].reverse()) {
+                const childBox = child.getBoundingClientRect();
+                if (draggedBottom >= (childBox.top + overlapThreshold)) {
+                    afterElement = child.nextElementSibling;
+                    break;
+                }
+            }
+        }
+        
+        // --- Optimized DOM Manipulation ---
+        if (afterElement !== this.lastAfterElement) {
+            this.lastAfterElement = afterElement;
+            listContainer.insertBefore(placeholder, afterElement);
+        }
+
+        this.lastMouseY = event.clientY;
+        this.lastDirection = direction;
+    }
+
+    _handleDrop(event) {
+        event.preventDefault();
+        const placeholder = this.shadowRoot.querySelector('.drag-placeholder');
+        if (this.draggedIndex === null || !placeholder) return;
+        
+        // Children of the list container include slotted items AND our placeholder
+        const newIndex = Array.from(placeholder.parentNode.children)
+            .filter(el => !el.matches('slot')) // Exclude the slot element itself
+            .indexOf(placeholder);
+
+        // We correct the index because the original item is still in the list of slotted elements
+        const finalNewIndex = (this.draggedIndex < newIndex) ? newIndex -1 : newIndex;
+        
+        if (this.draggedIndex !== finalNewIndex) {
+            this.dispatchEvent(new CustomEvent('flow-reorder', {
+                bubbles: true,
+                composed: true,
+                detail: {
+                    from: this.draggedIndex,
+                    to: finalNewIndex
+                }
+            }));
+        }
+    }
+
+    _handleDragEnd() {
+        const draggedItem = this._getSlottedItems()[this.draggedIndex];
+        if (draggedItem) {
+            draggedItem.classList.remove('is-dragging');
+        }
+
+        const placeholder = this.shadowRoot.querySelector('.drag-placeholder');
+        if (placeholder) {
+            placeholder.remove();
+        }
+
+        // Reset all state variables
+        this.draggedIndex = null;
+        this.dragStartOffset = 0;
+        this.draggedItemHeight = 0;
+        this.lastAfterElement = null;
+        this.lastMouseY = 0;
+        this.lastDirection = null;
+    }
+    
+    // Allows setting properties from attributes, e.g., <flow-panel scroll-speed="10">
+    _upgradeProperties() {
+        const attrs = {
+            overlapThresholdPercent: 'overlap-threshold-percent',
+            scrollZoneSize: 'scroll-zone-size',
+            scrollSpeed: 'scroll-speed'
+        };
+        for (const [prop, attr] of Object.entries(attrs)) {
+            if (this.hasAttribute(attr)) {
+                const value = parseFloat(this.getAttribute(attr));
+                if (!isNaN(value)) {
+                    this[prop] = value;
+                }
+            }
+        }
+    }
+}
+
+customElements.define('flow-panel', FlowPanel);

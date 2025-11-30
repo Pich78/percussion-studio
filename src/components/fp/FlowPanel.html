@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Integration Test: FlowPanel Web Component</title>
+    <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+        .workbench-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+            height: 90vh;
+        }
+        .live-view {
+            border: 1px solid #ccc;
+            height: 100%;
+        }
+        .log-container {
+            background-color: #333;
+            color: #f4f4f4;
+            padding: 1rem;
+            border-radius: 5px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        #log-output {
+            flex: 1;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        /* Style for the monochromatic boxes projected into the slots */
+        .color-box {
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            user-select: none; /* Prevent text selection during drag */
+            cursor: grab;
+        }
+    </style>
+</head>
+<body class="pa4">
+    <h1 class="f2 b mb3 bb pb2">Integration Test: <code>&lt;flow-panel&gt;</code> Web Component</h1>
+    <div class="workbench-container">
+        <!-- Live View of the Component -->
+        <div class="live-view">
+            <flow-panel id="flow-panel-harness">
+                <!-- Content will be projected here by the script -->
+            </flow-panel>
+        </div>
+        
+        <!-- Logging and State Display -->
+        <div class="log-container">
+            <h2 class="f4 b bb pb2 mb2">Execution Log</h2>
+            <div id="log-output" class="f7 lh-copy"></div>
+            <h2 class="f4 b bb pb2 mt3 mb2">Current State (Item Order)</h2>
+            <div id="current-state-display" class="f6 code"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { FlowPanel } from './FlowPanel.js';
+        import { Logger, logEvent } from '/percussion-studio/lib/Logger.js';
+        
+        Logger.init({ level: 'debug' });
+        Logger.setTarget('log-output');
+
+        let currentItems = [
+            { id: 1, color: '#ff6b6b', text: 'A' },
+            { id: 2, color: '#f06595', text: 'B' },
+            { id: 3, color: '#cc5de8', text: 'C' },
+            { id: 4, color: '#845ef7', text: 'D' },
+            { id: 5, color: '#5c7cfa', text: 'E' },
+            { id: 6, color: '#339af0', text: 'F' },
+            { id: 7, color: '#22b8cf', text: 'G' },
+            { id: 8, color: '#20c997', text: 'H' },
+        ];
+
+        const flowPanel = document.getElementById('flow-panel-harness');
+        const stateDisplay = document.getElementById('current-state-display');
+
+        const render = () => {
+            logEvent('info', 'Harness', 'render', 'State', 'Rendering component with new item order.');
+            
+            // 1. Clear previous projected content
+            flowPanel.innerHTML = '';
+            
+            // 2. Set the 'items' property on the web component.
+            // This triggers its internal render of the slots.
+            flowPanel.items = currentItems;
+
+            // 3. Create the monochromatic boxes and project them into the named slots
+            currentItems.forEach(item => {
+                const box = document.createElement('div');
+                box.className = 'color-box';
+                box.style.backgroundColor = item.color;
+                box.textContent = item.text;
+                // Assign the 'slot' attribute to match the slot name created inside the component
+                box.setAttribute('slot', `item-${item.id}`);
+                flowPanel.appendChild(box);
+            });
+            
+            // 4. Update the state display
+            stateDisplay.textContent = JSON.stringify(currentItems.map(i => i.text), null, 2);
+        };
+        
+        // Listen for the custom event dispatched by the component
+        flowPanel.addEventListener('flow-reordered', (event) => {
+            const { from, to } = event.detail;
+            logEvent('info', 'Harness', 'flow-reordered', 'Event', `Reorder event received. From ${from} to ${to}.`);
+
+            // Update the application's state
+            const [movedItem] = currentItems.splice(from, 1);
+            currentItems.splice(to, 0, movedItem);
+
+            // Re-render with the new state
+            render();
+        });
+
+        // Initial render
+        render();
+
+    </script>
+</body>
+</html>

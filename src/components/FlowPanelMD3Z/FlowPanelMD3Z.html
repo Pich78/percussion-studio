@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Material Expressive 3 Flow Panel Demo</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', sans-serif;
+            background-color: #f5f5f5;
+            min-height: 100vh;
+        }
+        
+        .demo-container {
+            display: flex;
+            height: 100vh;
+        }
+        
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            margin-bottom: 2rem;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 400;
+            color: #1c1b1f;
+            margin: 0 0 0.5rem 0;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            color: #49454e;
+            margin: 0;
+        }
+        
+        .workspace {
+            flex: 1;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+        }
+        
+        .sidebar {
+            width: 300px;
+            background: #f8f9fa;
+            border-left: 1px solid #e0e0e0;
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+        
+        .sidebar h3 {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: #1c1b1f;
+            margin: 0 0 1rem 0;
+        }
+        
+        .control-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .control-group label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #49454e;
+            margin-bottom: 0.5rem;
+        }
+        
+        .control-group input,
+        .control-group select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            background: white;
+        }
+        
+        .control-group button {
+            width: 100%;
+            padding: 0.75rem;
+            background: #6750a4;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .control-group button:hover {
+            background: #5141a0;
+        }
+        
+        .event-log {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 1rem;
+            height: 200px;
+            overflow-y: auto;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 0.8rem;
+            line-height: 1.4;
+        }
+        
+        .event-log h4 {
+            margin: 0 0 0.5rem 0;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #1c1b1f;
+        }
+        
+        .log-entry {
+            margin-bottom: 0.25rem;
+            padding: 0.25rem;
+            border-radius: 4px;
+        }
+        
+        .log-entry.info {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+        
+        .log-entry.success {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+        
+        .log-entry.warning {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+        
+        .flow-panel-container {
+            position: relative;
+            height: 100%;
+        }
+        
+        flow-panel-md3z {
+            height: 100%;
+        }
+        
+        @media (max-width: 768px) {
+            .demo-container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                border-left: none;
+                border-top: 1px solid #e0e0e0;
+            }
+            
+            .main-content {
+                padding: 1rem;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="main-content">
+            <div class="header">
+                <h1>Material Expressive 3 Flow Panel</h1>
+                <p>Interactive demo showcasing the FlowPanelMD3Z and PatternItemViewMD3Z Web Components</p>
+            </div>
+            
+            <div class="workspace">
+                <div class="flow-panel-container">
+                    <flow-panel-md3z id="flowPanel"></flow-panel-md3z>
+                </div>
+                
+                <div class="sidebar">
+                    <h3>Controls</h3>
+                    
+                    <div class="control-group">
+                        <label for="globalBpm">Global BPM</label>
+                        <input type="number" id="globalBpm" value="120" min="60" max="200">
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="pinState">Panel State</label>
+                        <select id="pinState">
+                            <option value="false">Collapsed</option>
+                            <option value="true">Pinned</option>
+                        </select>
+                    </div>
+                    
+                    <div class="control-group">
+                        <button onclick="addSamplePattern()">Add Sample Pattern</button>
+                    </div>
+                    
+                    <div class="control-group">
+                        <button onclick="clearAllPatterns()">Clear All Patterns</button>
+                    </div>
+                    
+                    <div class="control-group">
+                        <button onclick="toggleLogging()">Toggle Logging</button>
+                    </div>
+                    
+                    <div class="event-log">
+                        <h4>Event Log</h4>
+                        <div id="logContainer"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { FlowPanelMD3Z } from './FlowPanelMD3Z.js';
+        import { PatternItemViewMD3Z } from '../PatternItemViewMD3Z/PatternItemViewMD3Z.js';
+        
+        // Initialize the demo
+        const flowPanel = document.getElementById('flowPanel');
+        const globalBpmInput = document.getElementById('globalBpm');
+        const pinStateSelect = document.getElementById('pinState');
+        const logContainer = document.getElementById('logContainer');
+        
+        let loggingEnabled = true;
+        
+        // Sample patterns for demo
+        const samplePatterns = [
+            'Kick Drum',
+            'Snare Pattern',
+            'Hi-Hat Groove',
+            'Bass Line',
+            'Synth Lead',
+            'Pad Layer',
+            'Percussion',
+            'Crash Cymbal'
+        ];
+        
+        // Initialize with some sample data
+        function initializeDemo() {
+            const initialFlow = [
+                { pattern: 'Kick Drum', repetitions: 4, bpm: 120, bpm_accel_cents: 100 },
+                { pattern: 'Snare Pattern', repetitions: 2, bpm: 120, bpm_accel_cents: 100 },
+                { pattern: 'Hi-Hat Groove', repetitions: 8, bpm: 120, bpm_accel_cents: 100 }
+            ];
+            
+            flowPanel.setFlow(initialFlow);
+            flowPanel.setAttribute('global-bpm', '120');
+            
+            logEvent('Demo initialized with sample patterns', 'success');
+        }
+        
+        // Event listeners for the flow panel
+        flowPanel.addEventListener('pattern-added', (e) => {
+            logEvent(`Pattern added: ${e.detail.pattern}`, 'success');
+        });
+        
+        flowPanel.addEventListener('pattern-removed', (e) => {
+            logEvent(`Pattern removed at index ${e.detail.index}`, 'warning');
+        });
+        
+        flowPanel.addEventListener('flow-reordered', (e) => {
+            logEvent(`Flow reordered: ${e.detail.from} → ${e.detail.to}`, 'info');
+        });
+        
+        flowPanel.addEventListener('pattern-property-changed', (e) => {
+            logEvent(`Property changed: ${e.detail.property} = ${e.detail.value}`, 'info');
+        });
+        
+        flowPanel.addEventListener('pattern-selected', (e) => {
+            logEvent(`Pattern selected: ${e.detail.patternId}`, 'success');
+        });
+        
+        flowPanel.addEventListener('pin-toggled', (e) => {
+            logEvent(`Panel ${e.detail.isPinned ? 'pinned' : 'unpinned'}`, 'info');
+            pinStateSelect.value = e.detail.isPinned.toString();
+        });
+        
+        // Control event listeners
+        globalBpmInput.addEventListener('change', (e) => {
+            const bpm = parseInt(e.target.value, 10);
+            flowPanel.setAttribute('global-bpm', bpm.toString());
+            logEvent(`Global BPM changed to ${bpm}`, 'info');
+        });
+        
+        pinStateSelect.addEventListener('change', (e) => {
+            const isPinned = e.target.value === 'true';
+            flowPanel.setAttribute('is-pinned', isPinned.toString());
+        });
+        
+        // Demo functions
+        window.addSamplePattern = function() {
+            const availablePatterns = samplePatterns.filter(pattern => 
+                !flowPanel.getFlow().some(item => item.pattern === pattern)
+            );
+            
+            if (availablePatterns.length > 0) {
+                const randomPattern = availablePatterns[Math.floor(Math.random() * availablePatterns.length)];
+                flowPanel.addPattern(randomPattern);
+            } else {
+                logEvent('All sample patterns already added', 'warning');
+            }
+        };
+        
+        window.clearAllPatterns = function() {
+            flowPanel.setFlow([]);
+            logEvent('All patterns cleared', 'warning');
+        };
+        
+        window.toggleLogging = function() {
+            loggingEnabled = !loggingEnabled;
+            logEvent(`Logging ${loggingEnabled ? 'enabled' : 'disabled'}`, 'info');
+        };
+        
+        // Utility functions
+        function logEvent(message, type = 'info') {
+            if (!loggingEnabled) return;
+            
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${type}`;
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+            
+            // Keep only last 50 entries
+            while (logContainer.children.length > 50) {
+                logContainer.removeChild(logContainer.firstChild);
+            }
+        }
+        
+        // Initialize the demo when the page loads
+        document.addEventListener('DOMContentLoaded', initializeDemo);
+    </script>
+</body>
+</html>

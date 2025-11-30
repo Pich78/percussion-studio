@@ -1,52 +1,88 @@
 // file: src/components/RowLayout/RowLayout.js
 
-import { loadCSS } from '/percussion-studio/lib/dom.js';
-import { logEvent } from '/percussion-studio/lib/Logger.js';
+const template = document.createElement('template');
+template.innerHTML = `
+    <style>
+        :host {
+            display: block;
+            height: 100%;
+            width: 100%;
+        }
 
-/**
- * A layout component that creates a two-column row.
- * - A fixed-width header area on the left.
- * - A flexible grid area on the right.
- * It exposes the container elements for these areas as public properties.
- */
-export class RowLayout {
-    /**
-     * @param {HTMLElement} container - The DOM element to render the layout into.
-     */
-    constructor(container) {
-        logEvent('debug', 'RowLayout', 'constructor', 'Lifecycle', 'Creating RowLayout component.');
-        this.container = container;
+        .row-layout {
+            display: flex;
+            flex-direction: row;
+            align-items: stretch;
+            height: 100%;
+            width: 100%;
+        }
 
-        /** @type {HTMLElement|null} The container element for the header component. */
-        this.headerArea = null;
-        /** @type {HTMLElement|null} The container element for the grid component. */
-        this.gridArea = null;
+        .row-layout__header-area {
+            flex-shrink: 0;
+            flex-grow: 0;
+            /* Default width, can be overridden by the header-width attribute */
+            width: 10rem; 
+        }
+        
+        .row-layout__grid-area {
+            flex-grow: 1;
+            min-width: 0; 
+        }
+    </style>
+    <div class="row-layout">
+        <div class="row-layout__header-area">
+            <slot name="header"></slot>
+        </div>
+        <div class="row-layout__grid-area">
+            <slot name="grid"></slot>
+        </div>
+    </div>
+`;
 
-        loadCSS('/percussion-studio/src/components/RowLayout/RowLayout.css');
-        this._render();
+export class RowLayout extends HTMLElement {
+    /** @private */
+    #headerArea;
+
+    constructor() {
+        super();
+        this.attachShadow({ mode: 'open' });
+        this.shadowRoot.appendChild(template.content.cloneNode(true));
+        
+        // Store a private reference to the internal element for efficiency
+        this.#headerArea = this.shadowRoot.querySelector('.row-layout__header-area');
     }
 
     /**
-     * Creates the component's DOM structure and assigns area properties.
-     * @private
+     * Specifies which attributes to observe for changes.
+     * @returns {string[]} An array of attribute names.
      */
-    _render() {
-        this.container.innerHTML = `
-            <div class="row-layout">
-                <div class="row-layout__header-area"></div>
-                <div class="row-layout__grid-area"></div>
-            </div>
-        `;
-        this.headerArea = this.container.querySelector('.row-layout__header-area');
-        this.gridArea = this.container.querySelector('.row-layout__grid-area');
-        logEvent('debug', 'RowLayout', '_render', 'DOM', 'RowLayout DOM structure created and areas assigned.');
+    static get observedAttributes() {
+        return ['header-width'];
     }
 
     /**
-     * Clears the component's content from the container.
+     * Called when an observed attribute has been added, removed, or changed.
+     * @param {string} name - The name of the attribute that changed.
+     * @param {string|null} oldValue - The attribute's old value.
+     * @param {string|null} newValue - The attribute's new value.
      */
-    destroy() {
-        this.container.innerHTML = '';
-        logEvent('debug', 'RowLayout', 'destroy', 'Lifecycle', 'RowLayout component destroyed.');
+    attributeChangedCallback(name, oldValue, newValue) {
+        if (name === 'header-width' && oldValue !== newValue) {
+            this.#setHeaderWidth(newValue);
+        }
+    }
+
+    /**
+     * Private method to apply the width style to the header element.
+     * @param {string|null} widthValue - The CSS width value (e.g., '150px', '25%').
+     */
+    #setHeaderWidth(widthValue) {
+        if (this.#headerArea) {
+            // If the attribute is removed (newValue is null), it will revert to the default CSS.
+            // Otherwise, it sets the specified width.
+            this.#headerArea.style.width = widthValue || '';
+        }
     }
 }
+
+customElements.define('row-layout', RowLayout);

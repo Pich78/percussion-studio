@@ -5,15 +5,22 @@ import { logEvent } from '/percussion-studio/lib/Logger.js';
 
 export class EditorRowHeaderView {
     constructor(container, { instrument, callbacks }) {
-        this.container = container;
+        // The container is the parent-provided area to mount into.
+        this.container = container; 
         this.instrument = instrument;
         this.callbacks = callbacks || {};
 
         loadCSS('/percussion-studio/src/components/EditorRowHeaderView/EditorRowHeaderView.css');
         
+        // --- YOUR SOLUTION: Create the component's own root element (the "box") ---
+        this.rootElement = document.createElement('div');
+        this.container.appendChild(this.rootElement);
+
         this._boundHandleClick = this._handleClick.bind(this);
-        this.container.addEventListener('click', this._boundHandleClick);
-        logEvent('debug', 'EditorRowHeaderView', 'constructor', 'Lifecycle', 'Component created.');
+        // Attach the listener to the component's own root element.
+        this.rootElement.addEventListener('click', this._boundHandleClick);
+
+        logEvent('debug', 'EditorRowHeaderView', 'constructor', 'Lifecycle', 'Component created with its own root element.');
     }
 
     render(instrument) {
@@ -21,10 +28,12 @@ export class EditorRowHeaderView {
             this.instrument = instrument;
         }
         
-        this.container.className = 'editor-header';
-        this.container.setAttribute('title', `Click to change instrument: ${this.instrument.name} - ${this.instrument.pack}`);
+        // Apply the component's main class to its own root element.
+        this.rootElement.className = 'editor-header';
+        this.rootElement.setAttribute('title', `Click to change instrument: ${this.instrument.name} - ${this.instrument.pack}`);
         
-        this.container.innerHTML = `
+        // Render the content *inside* the component's root element.
+        this.rootElement.innerHTML = `
             <strong class="editor-header__instrument-name">${this.instrument.name}</strong>
             <span class="editor-header__pack-name">${this.instrument.pack}</span>
         `;
@@ -36,7 +45,9 @@ export class EditorRowHeaderView {
     }
     
     destroy() {
-        this.container.removeEventListener('click', this._boundHandleClick);
+        // Clean up the listener from the root element.
+        this.rootElement.removeEventListener('click', this._boundHandleClick);
+        // Destroy the component by clearing the parent container.
         this.container.innerHTML = '';
         logEvent('debug', 'EditorRowHeaderView', 'destroy', 'Lifecycle', 'Component destroyed.');
     }

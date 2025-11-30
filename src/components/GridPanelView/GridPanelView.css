@@ -2,7 +2,6 @@
 
 :root {
     --cell-width: 2.5rem; /* Approx 40px on a standard screen */
-    --row-height: 3.125rem; /* Approx 50px */
     
     /* Duple Shading Palette */
     --duple-downbeat-bg: #ced4da;     /* Darkest */
@@ -18,9 +17,12 @@
 .grid-panel {
     display: flex;
     align-items: stretch;
-    height: var(--row-height);
+    /* GOOD CHILD RULE: height is 100%, allowing the parent layout to define the row's height. */
+    height: 100%; 
     background-color: #fff;
-    margin-bottom: 4px; /* Add a small gap between rows */
+    /* GOOD CHILD RULE: box-sizing is applied to the main container. */
+    box-sizing: border-box;
+    /* GOOD CHILD RULE: Removed `margin-bottom`. The parent is responsible for spacing between elements. */
 }
 
 .grid-cell {
@@ -31,6 +33,7 @@
     justify-content: center;
     align-items: center;
     border-left: 1px solid #e9ecef;
+    /* GOOD CHILD RULE: border-box is essential for predictable sizing. */
     box-sizing: border-box;
     position: relative;
     height: 100%;

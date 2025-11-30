@@ -1,0 +1,58 @@
+<!-- file: src/components/GridPanel/GridPanel.workbench.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Workbench: GridPanel</title>
+    <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
+    <style> 
+        body { font-family: sans-serif; }
+        .wrapper { border: 1px solid #ccc; background-color: #f0f0f0; min-height: 4rem; display: flex; align-items: stretch; }
+        .log-panel { display: flex; flex-direction: column; height: 100%; }
+        .log-box { flex: 1; overflow-y: auto; white-space: pre-wrap; }
+        .controls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; align-items: end; }
+        .legend-item { display: flex; align-items: center; padding: 0.25rem; }
+        .legend-svg { width: 2rem; height: 2rem; margin-right: 0.5rem; }
+    </style>
+</head>
+<body class="bg-light-gray pa4">
+    <div class="flex">
+        <div class="w-70 pr3">
+            <h1 class="f2 b mb3 bb pb2">Workbench: GridPanel (Fluid)</h1>
+            <div class="bg-white shadow-2 pa3 mb3">
+                <h3 class="f4 b mt0">Controls</h3>
+                <div class="controls-grid">
+                    <div>
+                        <label class="f6 b db mb2">Time Signature</label>
+                        <select id="time-signature-select" class="w-100"></select>
+                    </div>
+                    <div>
+                        <label class="f6 b db mb2">Subdivision</label>
+                        <select id="subdivision-select" class="w-100"></select>
+                    </div>
+                </div>
+                <div class="mt3">
+                    <label for="notation-input" class="f6 b db mb2">Notation String</label>
+                    <input id="notation-input" type="text" value="o-x-s-x-o-x-t-x-" class="w-100 code">
+                </div>
+            </div>
+            <div class="bg-white shadow-2 pa3 mb3">
+                <h3 class="f4 b mt0">Available Sounds</h3>
+                <div id="legend-container" class="flex flex-wrap"></div>
+            </div>
+            <h3 class="f4 b mt0">Rendered Component</h3>
+            <p class="f6 gray mt0 mb3">Resize your browser window to see the grid cells scale fluidly.</p>
+            <div id="grid-container" class="wrapper">
+                <!-- A container for each line rendered by the groupingPattern -->
+            </div>
+        </div>
+        <div class="w-30 pl3">
+            <div class="bg-near-black near-white pa3 br2 log-panel">
+                <h2 class="f4 b bb pb2 mb2">Execution Log</h2>
+                <div id="log-output" class="f7 lh-copy log-box" style="height: 80vh;"></div>
+            </div>
+        </div>
+    </div>
+    <script type="module" src="./GridPanel.workbench.js"></script>
+</body>
+</html>
