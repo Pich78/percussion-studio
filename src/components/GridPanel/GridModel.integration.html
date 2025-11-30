@@ -1,0 +1,41 @@
+<!-- file: src/components/GridPanel/GridModel.integration.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Integration: GridModel</title>
+    <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
+    <style>
+        .interactive-grid { display: flex; border: 1px solid #ccc; height: 4rem; }
+        .interactive-cell { flex: 1; border-left: 1px solid #ccc; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .interactive-cell svg { width: 50%; height: 50%; }
+        pre { background-color: #f0f0f0; padding: 1rem; border-radius: 4px; white-space: pre-wrap; word-break: break-all; }
+    </style>
+</head>
+<body class="bg-light-gray pa4">
+    <h1 class="f2 b mb3 bb pb2">Integration Harness: GridModel</h1>
+    <div class="flex">
+        <div class="w-50 pr3">
+            <h3 class="f4 b mt0">1. Controls (Inputs)</h3>
+            <p class="f6 gray mt0 mb3">Change these to create a new GridModel instance.</p>
+            <div>
+                <label class="f6 b db mb2">Notation String</label>
+                <input id="notation-input" type="text" value="o---x---" class="w-100 code">
+            </div>
+            
+            <h3 class="f4 b mt4">2. Interactive View (Calls `updateCell`)</h3>
+            <p class="f6 gray mt0 mb3">Click a cell to toggle its state.</p>
+            <div id="interactive-grid-container" class="interactive-grid"></div>
+
+        </div>
+        <div class="w-50 pl3">
+            <h3 class="f4 b mt0">3. View Model Output (from `get cells()`)</h3>
+            <pre><code id="cells-output"></code></pre>
+            
+            <h3 class="f4 b mt3">4. Raw State Output (from `getCurrentState()`)</h3>
+            <pre><code id="state-output"></code></pre>
+        </div>
+    </div>
+    <script type="module" src="./GridModel.integration.js"></script>
+</body>
+</html>
