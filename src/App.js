@@ -1,191 +1,134 @@
-// file: src/App.js
-import { DataAccessLayer } from './dal/DataAccessLayer.js';
-import { AudioPlayer } from './audio/AudioPlayer.js';
-import { AudioScheduler } from './audio/AudioScheduler.js';
-import { PlaybackController } from './controller/PlaybackController.js';
-import { ProjectController } from './controller/ProjectController.js';
+// file: src/js/app.js
 
-import { PlaybackApp } from './PlaybackApp.js';
-import { EditingApp } from './EditingApp.js';
+// Main application logic
+function initializeApp() {
+    console.log('Initializing App...');
 
-// --- IMPORT YOUR COMPONENT ---
-import { AppMenuView } from './components/AppMenuView/AppMenuView.js';
-import { ConfirmationDialogView } from './view/ConfirmationDialogView.js';
-import { ErrorModalView } from './view/ErrorModalView.js';
-
-export class App {
-    constructor(container, testConfig = {}) {
-        this.container = container;
-        this.activeSubApp = null;
-
-        this.state = {
-            appView: 'playing',
-            isLoading: true,
-            currentRhythm: null,
-            error: null,
-            confirmation: null,
-            // --- NEW: Track menu state in App shell (optional but cleaner) ---
-            isMenuOpen: false
-        };
-
-        this.subApps = testConfig.subApps || {
-            PlaybackApp: PlaybackApp,
-            EditingApp: EditingApp
-        };
-
-        const controllers = testConfig.controllers || this.createRealControllers();
-        this.audioPlayer = controllers.audioPlayer;
-        this.audioScheduler = controllers.audioScheduler;
-        this.playbackController = controllers.playbackController;
-        this.projectController = controllers.projectController;
-
-        // Initialize Global Views
-        const appMenuContainer = document.getElementById('app-menu-container');
-        if (appMenuContainer) {
-            this.appMenuView = new AppMenuView(appMenuContainer, {
-                onToggleView: this.toggleView.bind(this),
-                onLoadProject: () => {
-                    // Close menu then load
-                    this.setState({ isMenuOpen: false });
-                    this.loadProject('test_rhythm');
-                },
-                onNewProject: () => {
-                    this.setState({ isMenuOpen: false });
-                    console.log("New Project Requested");
-                    // TODO: Implement new project logic
-                },
-                onSaveProject: () => {
-                    this.setState({ isMenuOpen: false });
-                    console.log("Save Requested");
-                    // TODO: Implement save logic
-                },
-                // --- NEW: Handle menu toggle ---
-                onToggleMenu: (forceState) => {
-                    const newState = typeof forceState === 'boolean'
-                        ? forceState
-                        : !this.state.isMenuOpen;
-                    this.setState({ isMenuOpen: newState });
-                }
-            });
-        }
-
-        this.errorModalView = new ErrorModalView(document.body, {});
-        this.confirmationDialogView = new ConfirmationDialogView(document.body, {});
+    // Safety check
+    if (typeof AudioPlayer === 'undefined' || typeof AudioScheduler === 'undefined' || typeof SoundGenerator === 'undefined') {
+        console.warn('Dependencies not ready. Retrying...');
+        setTimeout(initializeApp, 100);
+        return;
     }
 
-    createRealControllers() {
-        const audioPlayer = new AudioPlayer();
-        const audioScheduler = new AudioScheduler(audioPlayer);
-        const playbackController = new PlaybackController(audioScheduler, audioPlayer);
-        // Ensure DataAccessLayer is passed correctly (assuming it's a static class or singleton)
-        const projectController = new ProjectController(DataAccessLayer, audioPlayer, audioScheduler);
-        return { audioPlayer, audioScheduler, playbackController, projectController };
-    }
+    // DOM elements
+    const playBtn = document.getElementById('playBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const bpmSlider = document.getElementById('bpmSlider');
+    const bpmValue = document.getElementById('bpmValue');
+    const statusMessage = document.getElementById('statusMessage');
+    const beatBars = document.querySelectorAll('.beat-bar');
 
-    setState(newState) {
-        const oldAppView = this.state.appView;
-        this.state = { ...this.state, ...newState };
+    // Initialize audio components
+    const audioPlayer = new AudioPlayer();
+    const scheduler = new AudioScheduler(audioPlayer);
 
-        // Render Global Views
-        if (this.appMenuView) {
-            // Pass the minimal necessary state to the menu
-            this.appMenuView.render({
-                appView: this.state.appView,
-                isMenuOpen: this.state.isMenuOpen,
-                isDirty: false // TODO: hook up real dirty state from EditingApp
-            });
-        }
+    // UI Callbacks
+    scheduler.onUpdateCallback = (tickInMeasure, measure) => {
+        // Update beat indicator (visualize 4 beats per measure)
+        // Assuming 16th note resolution, a beat is every 4 ticks
+        const currentBeat = Math.floor(tickInMeasure / 4);
 
-        this.errorModalView.render(this.state);
-        this.confirmationDialogView.render(this.state);
-
-        // Pass updates to Sub-App
-        if (this.activeSubApp) {
-            this.activeSubApp.props.isLoading = this.state.isLoading;
-            this.activeSubApp.props.rhythm = this.state.currentRhythm;
-            // Only re-render sub-app if necessary (optimization)
-            if (typeof this.activeSubApp.update === 'function') {
-                this.activeSubApp.update(this.activeSubApp.props);
+        beatBars.forEach((bar, index) => {
+            if (index === currentBeat) {
+                bar.classList.add('active');
             } else {
-                this.activeSubApp.render();
+                bar.classList.remove('active');
             }
-        }
-
-        if (oldAppView !== this.state.appView) {
-            this.renderApp();
-        }
-    }
-
-    toggleView() {
-        const newView = this.state.appView === 'playing' ? 'editing' : 'playing';
-        this.setState({ appView: newView, isMenuOpen: false });
-    }
-
-    async loadProject(id) {
-        this.setState({ isLoading: true });
-        try {
-            const rhythm = await this.projectController.loadRhythm(id);
-            this.setState({ currentRhythm: rhythm, isLoading: false });
-            this.renderApp();
-        } catch (error) {
-            this.setState({
-                error: { message: `Failed to load rhythm: ${id}`, details: error.message },
-                isLoading: false
-            });
-        }
-    }
-
-    handleRhythmUpdate(newRhythm) {
-        this.setState({ currentRhythm: newRhythm });
-        this.audioScheduler.setRhythm(newRhythm);
-    }
-
-    renderApp() {
-        if (this.activeSubApp && typeof this.activeSubApp.destroy === 'function') {
-            this.activeSubApp.destroy();
-        }
-
-        if (!this.state.currentRhythm) {
-            // Simple loading state
-            this.container.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100%;">Loading...</div>';
-            return;
-        }
-
-        const subAppProps = {
-            rhythm: this.state.currentRhythm,
-            isLoading: this.state.isLoading,
-            audioPlayer: this.audioPlayer,
-            audioScheduler: this.audioScheduler,
-            playbackController: this.playbackController,
-            onRhythmUpdate: this.handleRhythmUpdate.bind(this),
-        };
-
-        if (this.state.appView === 'playing') {
-            this.activeSubApp = new this.subApps.PlaybackApp(this.container, subAppProps);
-        } else {
-            this.activeSubApp = new this.subApps.EditingApp(this.container, subAppProps);
-        }
-
-        if (this.activeSubApp) {
-            this.activeSubApp.render();
-        }
-    }
-
-    async init() {
-        // Initial render of the menu
-        if (this.appMenuView) this.appMenuView.render({
-            appView: this.state.appView,
-            isMenuOpen: this.state.isMenuOpen,
-            isDirty: false
         });
+    };
 
-        await this.projectController.loadManifest();
-        const defaultRhythmId = this.projectController.manifest?.rhythms[0];
+    scheduler.onPlaybackEndedCallback = () => {
+        statusMessage.textContent = 'Playback ended';
+        beatBars.forEach(bar => bar.classList.remove('active'));
+    };
 
-        if (defaultRhythmId) {
-            await this.loadProject(defaultRhythmId);
-        } else {
-            this.setState({ error: { message: "No rhythms found in manifest." }, isLoading: false });
+    // Generate Sounds
+    const kickUrl = SoundGenerator.generateKickWAV(0.2);
+    const snareUrl = SoundGenerator.generateSnareWAV(0.15);
+    const highPitchUrl = SoundGenerator.generateBeepWAV(880, 0.05);
+
+    // Rhythm Data
+    const rhythmData = {
+        global_bpm: 120,
+        sound_kit: { KCK: {}, SNR: {}, HIH: {} },
+        patterns: {
+            main_pattern: {
+                metadata: { resolution: 16, metric: '4/4' },
+                pattern_data: [{
+                    KCK: 'x---x---x---x---',
+                    SNR: '----x-------x---',
+                    HIH: 'x-x-x-x-x-x-x-x-'
+                }]
+            }
+        },
+        playback_flow: [{ pattern: 'main_pattern', repetitions: 4 }] // 4 reps to have time to change BPM
+    };
+
+    const soundList = [
+        { id: 'KCK_x', path: kickUrl },
+        { id: 'SNR_x', path: snareUrl },
+        { id: 'HIH_x', path: highPitchUrl }
+    ];
+
+    // Initialization Sequence
+    async function initializeAudio() {
+        try {
+            statusMessage.textContent = 'Generating & Loading sounds...';
+            await audioPlayer.loadSounds(soundList);
+            scheduler.setRhythm(rhythmData);
+
+            // Sync slider to data
+            bpmSlider.value = rhythmData.global_bpm;
+            bpmValue.textContent = rhythmData.global_bpm;
+
+            statusMessage.textContent = 'Ready';
+        } catch (error) {
+            statusMessage.textContent = `Error: ${error.message}`;
+            console.error(error);
         }
     }
+
+    // Controls
+    playBtn.addEventListener('click', () => {
+        scheduler.play();
+        statusMessage.textContent = `Playing at ${scheduler.bpm} BPM`;
+    });
+
+    pauseBtn.addEventListener('click', () => {
+        scheduler.pause();
+        statusMessage.textContent = 'Paused';
+    });
+
+    stopBtn.addEventListener('click', () => {
+        scheduler.stop();
+        statusMessage.textContent = 'Stopped';
+        beatBars.forEach(bar => bar.classList.remove('active'));
+    });
+
+    // Real-time BPM Slider
+    bpmSlider.addEventListener('input', (e) => {
+        const newBPM = parseInt(e.target.value, 10);
+
+        // Update UI
+        bpmValue.textContent = newBPM;
+
+        // Update Logic
+        scheduler.setBPM(newBPM);
+
+        if (scheduler.isPlaying) {
+            statusMessage.textContent = `Playing at ${newBPM} BPM`;
+        } else {
+            statusMessage.textContent = `BPM set to ${newBPM}`;
+        }
+    });
+
+    initializeAudio();
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeApp);
+} else {
+    initializeApp();
 }

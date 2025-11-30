@@ -1,15 +1,13 @@
-// file: src/audio/AudioScheduler.js (Corrected and Regenerated)
-
+// file: src/audio/AudioScheduler.js
+console.log('AudioScheduler.js loaded');
 const getTime = () => new Date().toISOString();
 
-export class AudioScheduler {
-    // --- MODIFICATION: Remove callbacks from constructor ---
+class AudioScheduler {
     constructor(audioPlayer) {
         this.audioPlayer = audioPlayer;
-        
-        // --- MODIFICATION: Initialize callbacks as public, empty properties ---
-        this.onUpdateCallback = () => {};
-        this.onPlaybackEndedCallback = () => {};
+
+        this.onUpdateCallback = () => { };
+        this.onPlaybackEndedCallback = () => { };
 
         this.rhythm = null;
         this.isPlaying = false;
@@ -17,9 +15,8 @@ export class AudioScheduler {
 
         this.currentTick = 0;
         this.tickMap = [];
-
         this.nextNoteTime = 0.0;
-        this.loop = false;
+        this.loop = true;
         this.timerID = null;
 
         this.scheduleAheadTime = 0.1;
@@ -27,18 +24,18 @@ export class AudioScheduler {
     }
 
     setBPM(newBPM) {
-        console.log(`[${getTime()}][AudioScheduler][setBPM][BPM] Received new BPM value: ${newBPM}.`);
+        // OPTIMIZATION: We no longer rebuild the map here.
+        // We just update the value. The next 'advanceTick' will 
+        // automatically use this new speed.
         this.bpm = newBPM;
-        if (this.rhythm) {
-            console.log(`[${getTime()}][AudioScheduler][setBPM][BPM] Rhythm is loaded, rebuilding tick map to apply new BPM.`);
-            this.rebuildTickMap();
-        }
     }
 
     setRhythm(resolvedRhythm) {
         this.rhythm = resolvedRhythm;
+        // Only set BPM from rhythm if we haven't set one manually, 
+        // or strictly reset it on load.
         this.bpm = this.rhythm.global_bpm || this.bpm;
-        console.log(`[${getTime()}][AudioScheduler][setRhythm][BPM] Setting initial BPM from loaded rhythm file: ${this.bpm}.`);
+
         this.rebuildTickMap();
         this.resetPosition();
     }
@@ -48,25 +45,32 @@ export class AudioScheduler {
         if (!this.rhythm?.playback_flow?.length || !this.rhythm.patterns) {
             return;
         }
-        console.log(`[${getTime()}][AudioScheduler][rebuildTickMap][BPM] Rebuilding tick map using current BPM: ${this.bpm}.`);
 
-        const secondsPerBeat = 60.0 / this.bpm;
+        // We no longer calculate 'secondsPerTick' here because that depends on BPM.
+        // Instead, we calculate 'beatMultiplier' (how many beats does one tick represent?)
 
         this.rhythm.playback_flow.forEach(flowItem => {
             const pattern = this.rhythm.patterns[flowItem.pattern];
             if (!pattern || !pattern.pattern_data) return;
 
             const repetitions = flowItem.repetitions || 1;
+
             for (let r = 0; r < repetitions; r++) {
                 pattern.pattern_data.forEach(measureData => {
                     const resolution = pattern.metadata.resolution || 16;
                     const metric = pattern.metadata.metric || '4/4';
+
+                    // Simple logic: BPM is based on quarter notes (denominator 4).
                     const beatsPerMeasure = parseInt(metric.split('/')[0], 10) || 4;
-                    const secondsPerMeasure = secondsPerBeat * beatsPerMeasure;
-                    const secondsPerTick = secondsPerMeasure / resolution;
-                    
+
+                    // Calculate the mathematical fraction of a beat this tick represents.
+                    // Example: 4/4 time, resolution 16. 
+                    // beatsPerMeasure (4) / resolution (16) = 0.25 beats per tick.
+                    const beatMultiplier = beatsPerMeasure / resolution;
+
                     for (let t = 0; t < resolution; t++) {
                         const instrumentsToPlay = [];
+
                         for (const instrumentSymbol in measureData) {
                             if (Object.prototype.hasOwnProperty.call(this.rhythm.sound_kit, instrumentSymbol)) {
                                 const noteString = measureData[instrumentSymbol].replace(/\|/g, '');
@@ -77,16 +81,28 @@ export class AudioScheduler {
                                 }
                             }
                         }
-                        this.tickMap.push({ instrumentsToPlay, secondsPerTick, tickInMeasure: t });
+
+                        this.tickMap.push({
+                            instrumentsToPlay,
+                            beatMultiplier, // STORE RATIO, NOT SECONDS
+                            tickInMeasure: t
+                        });
                     }
                 });
             }
         });
-        console.log(`[${getTime()}][AudioScheduler][rebuildTickMap][BPM] Tick map rebuild complete. Total ticks: ${this.tickMap.length}. Calculated secondsPerTick: ${this.tickMap[0]?.secondsPerTick || 'N/A'}`);
+
+        console.log(`[AudioScheduler] Map built. Total ticks: ${this.tickMap.length}`);
     }
 
     play() {
         if (this.isPlaying || this.tickMap.length === 0) return;
+
+        // Resume AudioContext if needed (browser policy)
+        if (this.audioPlayer.audioContext.state === 'suspended') {
+            this.audioPlayer.audioContext.resume();
+        }
+
         this.isPlaying = true;
         this.nextNoteTime = this.audioPlayer.getAudioClockTime();
         this.scheduler();
@@ -108,10 +124,12 @@ export class AudioScheduler {
     }
 
     scheduler() {
+        // While there are notes that will need to play before the next interval
         while (this.nextNoteTime < this.audioPlayer.getAudioClockTime() + this.scheduleAheadTime) {
             this.scheduleTick();
             this.advanceTick();
         }
+
         if (this.isPlaying) {
             this.timerID = setTimeout(() => this.scheduler(), this.lookahead);
         }
@@ -128,16 +146,25 @@ export class AudioScheduler {
 
     advanceTick() {
         if (this.currentTick >= this.tickMap.length) return;
-        
+
         const tickData = this.tickMap[this.currentTick];
 
-        const resolution = this.rhythm.patterns[this.rhythm.playback_flow[0].pattern].metadata.resolution;
+        // --- REAL-TIME CALCULATION ---
+        // Calculate the duration of this specific tick based on the CURRENT BPM.
+        // This allows smooth accelerando/ritardando.
+        const secondsPerBeat = 60.0 / this.bpm;
+        const secondsPerTick = secondsPerBeat * tickData.beatMultiplier;
+
+        // UI Callback
+        const resolution = 16; // Simplified for demo
         const currentMeasure = Math.floor(this.currentTick / resolution);
-        
         this.onUpdateCallback(tickData.tickInMeasure, currentMeasure);
-        this.nextNoteTime += tickData.secondsPerTick;
+
+        // Advance time
+        this.nextNoteTime += secondsPerTick;
         this.currentTick++;
 
+        // Loop Logic
         if (this.currentTick >= this.tickMap.length) {
             if (this.loop) {
                 this.currentTick = 0;
@@ -148,3 +175,5 @@ export class AudioScheduler {
         }
     }
 }
+
+window.AudioScheduler = AudioScheduler;
