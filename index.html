@@ -1,26 +1,51 @@
 <!-- file: index.html -->
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Percussion Studio</title>
-    <!-- 1. Add Tailwind CSS via CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 2. Link to the global custom stylesheet -->
-    <link rel="stylesheet" href="/percussion-studio/css/main.css">
+
+    <!-- 1. Fonts: Roboto (Text) and Material Symbols (Icons) -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+        rel="stylesheet" />
+
+    <!-- 2. Material Web Components (Import Map) -->
+    <script type="importmap">
+      {
+        "imports": {
+          "@material/web/": "https://esm.run/@material/web/"
+        }
+      }
+    </script>
+    <script type="module">
+        import '@material/web/all.js';
+        import { styles as typescaleStyles } from '@material/web/typography/md-typescale-styles.js';
+        document.adoptedStyleSheets.push(typescaleStyles.styleSheet);
+    </script>
+
+    <!-- 3. Global Styles -->
+    <link rel="stylesheet" href="css/main.css">
 </head>
-<body class="bg-slate-100 text-slate-800 flex flex-col h-screen">
 
-    <header id="app-menu-container" class="bg-white shadow-md z-20 h-16 flex items-center px-4"></header>
+<body>
 
-    <main id="app-main-container" class="flex-grow relative overflow-hidden"></main>
-    
+    <header id="app-menu-container"></header>
+
+    <main id="app-main-container"></main>
+
     <script type="module">
         import { App } from './src/App.js';
-        
-        const mainContainer = document.getElementById('app-main-container');
-        const app = new App(mainContainer);
-        app.init();
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const mainContainer = document.getElementById('app-main-container');
+            const app = new App(mainContainer);
+            app.init();
+        });
     </script>
 </body>
+
 </html>

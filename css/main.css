@@ -1,0 +1,58 @@
+/* file: css/main.css */
+
+:root {
+    /* --- Material Design 3 Color Tokens --- */
+    /* Surface Colors */
+    --md-sys-color-surface: #fdfcff;
+    --md-sys-color-on-surface: #1a1c1e;
+    --md-sys-color-surface-container: #f0f4f8;
+
+    /* Primary Colors */
+    --md-sys-color-primary: #006492;
+    --md-sys-color-on-primary: #ffffff;
+
+    /* Utility Colors */
+    --md-sys-color-outline: #747775;
+    --md-sys-color-error: #ba1a1a;
+
+    /* --- Typography & Global Settings --- */
+    font-family: 'Roboto', sans-serif;
+}
+
+/* Reset & Body Layout */
+body {
+    margin: 0;
+    height: 100vh;
+    /* Full viewport height */
+    display: flex;
+    flex-direction: column;
+    background-color: var(--md-sys-color-surface);
+    color: var(--md-sys-color-on-surface);
+    overflow: hidden;
+    /* Prevent body scroll, let containers scroll */
+}
+
+/* --- App Shell Layout --- */
+
+/* Replaces Tailwind: h-16 shadow-md z-20 flex items-center px-4 bg-white */
+#app-menu-container {
+    height: 64px;
+    z-index: 20;
+    background-color: var(--md-sys-color-surface-container);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    flex-shrink: 0;
+    /* Prevent header from shrinking */
+}
+
+/* Replaces Tailwind: flex-grow relative overflow-hidden */
+#app-main-container {
+    flex-grow: 1;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}

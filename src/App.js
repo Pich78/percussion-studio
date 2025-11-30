@@ -1,4 +1,4 @@
-// file: src/App.js (Corrected and Regenerated)
+// file: src/App.js
 import { DataAccessLayer } from './dal/DataAccessLayer.js';
 import { AudioPlayer } from './audio/AudioPlayer.js';
 import { AudioScheduler } from './audio/AudioScheduler.js';
@@ -8,7 +8,8 @@ import { ProjectController } from './controller/ProjectController.js';
 import { PlaybackApp } from './PlaybackApp.js';
 import { EditingApp } from './EditingApp.js';
 
-import { AppMenuView } from './view/AppMenuView.js';
+// --- IMPORT YOUR COMPONENT ---
+import { AppMenuView } from './components/AppMenuView/AppMenuView.js';
 import { ConfirmationDialogView } from './view/ConfirmationDialogView.js';
 import { ErrorModalView } from './view/ErrorModalView.js';
 
@@ -23,53 +24,91 @@ export class App {
             currentRhythm: null,
             error: null,
             confirmation: null,
+            // --- NEW: Track menu state in App shell (optional but cleaner) ---
+            isMenuOpen: false
         };
 
         this.subApps = testConfig.subApps || {
             PlaybackApp: PlaybackApp,
             EditingApp: EditingApp
         };
-        const controllers = testConfig.controllers || this.createRealControllers();
 
+        const controllers = testConfig.controllers || this.createRealControllers();
         this.audioPlayer = controllers.audioPlayer;
         this.audioScheduler = controllers.audioScheduler;
         this.playbackController = controllers.playbackController;
         this.projectController = controllers.projectController;
 
+        // Initialize Global Views
         const appMenuContainer = document.getElementById('app-menu-container');
         if (appMenuContainer) {
             this.appMenuView = new AppMenuView(appMenuContainer, {
                 onToggleView: this.toggleView.bind(this),
-                onLoadProject: this.loadProject.bind(this, 'test_rhythm'),
+                onLoadProject: () => {
+                    // Close menu then load
+                    this.setState({ isMenuOpen: false });
+                    this.loadProject('test_rhythm');
+                },
+                onNewProject: () => {
+                    this.setState({ isMenuOpen: false });
+                    console.log("New Project Requested");
+                    // TODO: Implement new project logic
+                },
+                onSaveProject: () => {
+                    this.setState({ isMenuOpen: false });
+                    console.log("Save Requested");
+                    // TODO: Implement save logic
+                },
+                // --- NEW: Handle menu toggle ---
+                onToggleMenu: (forceState) => {
+                    const newState = typeof forceState === 'boolean'
+                        ? forceState
+                        : !this.state.isMenuOpen;
+                    this.setState({ isMenuOpen: newState });
+                }
             });
         }
+
         this.errorModalView = new ErrorModalView(document.body, {});
         this.confirmationDialogView = new ConfirmationDialogView(document.body, {});
     }
 
     createRealControllers() {
         const audioPlayer = new AudioPlayer();
-        // --- MODIFICATION: Use the new, simpler constructor ---
         const audioScheduler = new AudioScheduler(audioPlayer);
         const playbackController = new PlaybackController(audioScheduler, audioPlayer);
+        // Ensure DataAccessLayer is passed correctly (assuming it's a static class or singleton)
         const projectController = new ProjectController(DataAccessLayer, audioPlayer, audioScheduler);
-        return { audioPlayer, audioScheduler, playbackController, projectController, dal: DataAccessLayer };
+        return { audioPlayer, audioScheduler, playbackController, projectController };
     }
 
     setState(newState) {
         const oldAppView = this.state.appView;
         this.state = { ...this.state, ...newState };
 
+        // Render Global Views
         if (this.appMenuView) {
-            this.appMenuView.render(this.state);
+            // Pass the minimal necessary state to the menu
+            this.appMenuView.render({
+                appView: this.state.appView,
+                isMenuOpen: this.state.isMenuOpen,
+                isDirty: false // TODO: hook up real dirty state from EditingApp
+            });
         }
+
         this.errorModalView.render(this.state);
         this.confirmationDialogView.render(this.state);
-        
+
+        // Pass updates to Sub-App
         if (this.activeSubApp) {
             this.activeSubApp.props.isLoading = this.state.isLoading;
             this.activeSubApp.props.rhythm = this.state.currentRhythm;
-            this.activeSubApp.render();
+            // Only re-render sub-app if necessary (optimization)
+            if (typeof this.activeSubApp.update === 'function') {
+                this.activeSubApp.update(this.activeSubApp.props);
+            } else {
+                this.activeSubApp.render();
+            }
         }
 
         if (oldAppView !== this.state.appView) {
@@ -79,7 +118,7 @@ export class App {
 
     toggleView() {
         const newView = this.state.appView === 'playing' ? 'editing' : 'playing';
-        this.setState({ appView: newView });
+        this.setState({ appView: newView, isMenuOpen: false });
     }
 
     async loadProject(id) {
@@ -89,7 +128,10 @@ export class App {
             this.setState({ currentRhythm: rhythm, isLoading: false });
             this.renderApp();
         } catch (error) {
-            this.setState({ error: { message: `Failed to load rhythm: ${id}`, details: error.message }, isLoading: false });
+            this.setState({
+                error: { message: `Failed to load rhythm: ${id}`, details: error.message },
+                isLoading: false
+            });
         }
     }
 
@@ -104,7 +146,8 @@ export class App {
         }
 
         if (!this.state.currentRhythm) {
-            this.container.innerHTML = '<div>Loading Rhythm...</div>';
+            // Simple loading state
+            this.container.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100%;">Loading...</div>';
             return;
         }
 
@@ -129,13 +172,20 @@ export class App {
     }
 
     async init() {
-        if (this.appMenuView) this.appMenuView.render(this.state);
+        // Initial render of the menu
+        if (this.appMenuView) this.appMenuView.render({
+            appView: this.state.appView,
+            isMenuOpen: this.state.isMenuOpen,
+            isDirty: false
+        });
+
         await this.projectController.loadManifest();
         const defaultRhythmId = this.projectController.manifest?.rhythms[0];
+
         if (defaultRhythmId) {
             await this.loadProject(defaultRhythmId);
         } else {
-            this.setState({ error: { message: "No rhythms found." }, isLoading: false });
+            this.setState({ error: { message: "No rhythms found in manifest." }, isLoading: false });
         }
     }
 }
