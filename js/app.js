@@ -530,9 +530,16 @@ const setupEventListeners = () => {
             state.uiState.modalOpen = true;
             refreshGrid();
         }
-        if (action === 'close-modal' || action === 'close-modal-bg') {
+        if (action === 'close-modal') {
             state.uiState.modalOpen = false;
             refreshGrid();
+        }
+        if (action === 'close-modal-bg') {
+            // Only close if we clicked the background itself, not a child (bubbled event)
+            if (e.target === target) {
+                state.uiState.modalOpen = false;
+                refreshGrid();
+            }
         }
         if (action === 'select-instrument') {
             const inst = target.dataset.instrument;
