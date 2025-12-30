@@ -63,6 +63,106 @@ class AudioEngine {
     }
 
     /**
+     * Check if an instrument is a Batá drum
+     */
+    isBataDrum(instrumentSymbol) {
+        return ['IYA', 'ITO', 'OKO'].includes(instrumentSymbol);
+    }
+
+    /**
+     * Play a sound with shortened duration (for Presionado emulation)
+     */
+    playShortenedSound(buffer, time, volume, cutRatio = 0.3) {
+        const playTime = Math.max(time, this.ctx.currentTime);
+
+        const source = this.ctx.createBufferSource();
+        source.buffer = buffer;
+
+        const gainNode = this.ctx.createGain();
+        gainNode.gain.value = volume;
+
+        source.connect(gainNode);
+        gainNode.connect(this.masterGain);
+
+        source.start(playTime);
+        // Cut the sound short
+        source.stop(playTime + (buffer.duration * cutRatio));
+    }
+
+    /**
+     * Play multiple sounds layered together
+     */
+    playLayeredSounds(buffers, time, volume) {
+        const playTime = Math.max(time, this.ctx.currentTime);
+
+        buffers.forEach(buffer => {
+            if (!buffer) return;
+
+            const source = this.ctx.createBufferSource();
+            source.buffer = buffer;
+
+            const gainNode = this.ctx.createGain();
+            gainNode.gain.value = volume;
+
+            source.connect(gainNode);
+            gainNode.connect(this.masterGain);
+
+            source.start(playTime);
+        });
+    }
+
+    /**
+     * Emulate missing Batá drum sounds using available samples
+     */
+    emulateStroke(instrumentSymbol, stroke, time, volume) {
+        const instBuffers = this.buffers[instrumentSymbol];
+        if (!instBuffers) return;
+
+        const openBuffer = instBuffers['O'];
+        const slapBuffer = instBuffers['S'];
+        const presionadoBuffer = instBuffers['P'];
+
+        switch (stroke) {
+            case 'R': // Mordito = Slap + Open
+                if (slapBuffer && openBuffer) {
+                    console.log(`[Emulation] ${instrumentSymbol} Mordito: Slap + Open`);
+                    this.playLayeredSounds([slapBuffer, openBuffer], time, volume);
+                }
+                break;
+
+            case 'P': // Presionado = Shortened Open
+                if (openBuffer) {
+                    console.log(`[Emulation] ${instrumentSymbol} Presionado: Shortened Open`);
+                    this.playShortenedSound(openBuffer, time, volume, 0.3);
+                }
+                break;
+
+            case 'H': // Half Mordito = Slap + Presionado (or Slap + Shortened Open)
+                if (slapBuffer) {
+                    if (presionadoBuffer) {
+                        console.log(`[Emulation] ${instrumentSymbol} Half Mordito: Slap + Presionado`);
+                        this.playLayeredSounds([slapBuffer, presionadoBuffer], time, volume);
+                    } else if (openBuffer) {
+                        console.log(`[Emulation] ${instrumentSymbol} Half Mordito: Slap + Shortened Open`);
+                        // Play slap normally
+                        const playTime = Math.max(time, this.ctx.currentTime);
+                        const slapSource = this.ctx.createBufferSource();
+                        slapSource.buffer = slapBuffer;
+                        const slapGain = this.ctx.createGain();
+                        slapGain.gain.value = volume;
+                        slapSource.connect(slapGain);
+                        slapGain.connect(this.masterGain);
+                        slapSource.start(playTime);
+
+                        // Play shortened open
+                        this.playShortenedSound(openBuffer, time, volume, 0.3);
+                    }
+                }
+                break;
+        }
+    }
+
+    /**
      * Plays a specific stroke for an instrument.
      * @param {string} instrumentSymbol - e.g. 'ITO'
      * @param {string} stroke - The stroke letter (e.g. 'O', 'S', or StrokeType enum value)
@@ -74,7 +174,7 @@ class AudioEngine {
         if (!this.ctx || !this.masterGain) return;
 
         // Normalize stroke (handle Rest and Case)
-        if (!stroke || stroke === StrokeType.None || stroke === '.') return;
+        if (!stroke || stroke === StrokeType.None || stroke === '.' || stroke === ' ') return;
         const strokeKey = stroke.toUpperCase();
 
         // Check if instrument and sample exist
@@ -86,6 +186,11 @@ class AudioEngine {
 
         const buffer = instBuffers[strokeKey];
         if (!buffer) {
+            // Try emulation for Batá drums
+            if (this.isBataDrum(instrumentSymbol)) {
+                this.emulateStroke(instrumentSymbol, strokeKey, time, volume);
+                return;
+            }
             // console.warn(`No sample found for ${instrumentSymbol} stroke: ${strokeKey}`);
             return;
         }
