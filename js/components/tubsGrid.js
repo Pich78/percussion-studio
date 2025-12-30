@@ -19,6 +19,7 @@ import { ChartBarIcon } from '../icons/chartBarIcon.js';
 import { TrashIcon } from '../icons/trashIcon.js';
 import { PlusIcon } from '../icons/plusIcon.js';
 import { XMarkIcon } from '../icons/xMarkIcon.js';
+import { FolderOpenIcon } from '../icons/folderOpenIcon.js';
 
 export const TubsGrid = ({
   section,
@@ -242,42 +243,77 @@ export const TubsGrid = ({
   const renderModal = () => {
     if (!uiState.modalOpen) return '';
 
-    // DYNAMIC INSTRUMENT LIST FROM MANIFEST
-    // If manifest not loaded yet, show empty or loading
-    const instruments = dataLoader.manifest && dataLoader.manifest.instruments
-      ? Object.keys(dataLoader.manifest.instruments).map(symbol => {
-        const colorClass = INSTRUMENT_COLORS[symbol] || 'border-gray-700';
-        return `
+    let title = '';
+    let content = '';
+
+    if (uiState.modalType === 'rhythm') {
+      title = 'Load Rhythm';
+      const rhythms = dataLoader.manifest && dataLoader.manifest.rhythms
+        ? Object.keys(dataLoader.manifest.rhythms).map(id => {
+          // Prettify ID
+          const name = id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+          return `
                   <button
-                      data-action="select-instrument"
-                      data-instrument="${symbol}"
+                      data-action="select-rhythm-confirm"
+                      data-rhythm-id="${id}"
                       class="
-                          flex items-center gap-3 px-3 py-2 rounded-lg border bg-gray-900/50 hover:bg-gray-800 transition-all text-left
-                          ${colorClass}
-                          border-l-[6px] 
+                          flex items-center gap-3 px-3 py-3 rounded-lg border border-gray-700 bg-gray-900/50 hover:bg-gray-800 transition-all text-left group
                       "
                   >
-                      <span class="font-medium text-gray-200 pointer-events-none">${symbol}</span>
+                      ${FolderOpenIcon('w-5 h-5 text-amber-500 group-hover:text-amber-400')}
+                      <span class="font-medium text-gray-200 pointer-events-none group-hover:text-white">${name}</span>
                   </button>
                 `;
-      }).join('')
-      : '<div class="col-span-3 text-center text-gray-500">Loading instruments...</div>';
+        }).join('')
+        : '<div class="col-span-3 text-center text-gray-500">No rhythms found.</div>';
+
+      content = `
+            <div class="p-6 grid grid-cols-1 sm:grid-cols-2 gap-3 overflow-y-auto max-h-[60vh]">
+                ${rhythms}
+            </div>
+        `;
+    } else {
+      // INSTRUMENT MODAL
+      title = uiState.editingTrackIndex !== null ? 'Change Instrument' : 'Add Instrument';
+      const instruments = dataLoader.manifest && dataLoader.manifest.instruments
+        ? Object.keys(dataLoader.manifest.instruments).map(symbol => {
+          const colorClass = INSTRUMENT_COLORS[symbol] || 'border-gray-700';
+          return `
+                      <button
+                          data-action="select-instrument"
+                          data-instrument="${symbol}"
+                          class="
+                              flex items-center gap-3 px-3 py-2 rounded-lg border bg-gray-900/50 hover:bg-gray-800 transition-all text-left
+                              ${colorClass}
+                              border-l-[6px] 
+                          "
+                      >
+                          <span class="font-medium text-gray-200 pointer-events-none">${symbol}</span>
+                      </button>
+                    `;
+        }).join('')
+        : '<div class="col-span-3 text-center text-gray-500">Loading instruments...</div>';
+
+      content = `
+            <div class="p-6 grid grid-cols-2 sm:grid-cols-3 gap-3 overflow-y-auto max-h-[60vh]">
+                ${instruments}
+            </div>
+        `;
+    }
 
     return `
       <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" data-action="close-modal-bg">
           <div class="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl max-w-lg w-full flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
               <div class="p-4 border-b border-gray-800 flex justify-between items-center bg-gray-950">
                   <h3 class="text-lg font-bold text-white">
-                      ${uiState.editingTrackIndex !== null ? 'Change Instrument' : 'Add Instrument'}
+                      ${title}
                   </h3>
                   <button data-action="close-modal" class="text-gray-500 hover:text-white">
                       ${XMarkIcon('w-6 h-6')}
                   </button>
               </div>
               
-              <div class="p-6 grid grid-cols-2 sm:grid-cols-3 gap-3 overflow-y-auto max-h-[60vh]">
-                  ${instruments}
-              </div>
+              ${content}
               
               <div class="p-4 border-t border-gray-800 bg-gray-950 flex justify-end">
                   <button 

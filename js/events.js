@@ -30,7 +30,8 @@ export const setupEventListeners = () => {
             renderApp();
         }
         if (action === 'load-rhythm') {
-            alert("Not implemented yet.");
+            state.uiState.modalType = 'rhythm';
+            state.uiState.modalOpen = true;
             state.uiState.isMenuOpen = false;
             renderApp();
         }
@@ -60,11 +61,13 @@ export const setupEventListeners = () => {
         // Modals
         if (action === 'open-add-modal') {
             state.uiState.editingTrackIndex = null;
+            state.uiState.modalType = 'instrument';
             state.uiState.modalOpen = true;
             refreshGrid();
         }
         if (action === 'open-edit-modal') {
             state.uiState.editingTrackIndex = parseInt(target.dataset.trackIndex);
+            state.uiState.modalType = 'instrument';
             state.uiState.modalOpen = true;
             refreshGrid();
         }
@@ -88,6 +91,15 @@ export const setupEventListeners = () => {
             }
             state.uiState.modalOpen = false;
             refreshGrid();
+        }
+        if (action === 'select-rhythm-confirm') {
+            const rhythmId = target.dataset.rhythmId;
+            if (confirm("Load this rhythm? Unsaved changes will be lost.")) {
+                actions.loadRhythm(rhythmId).then(() => {
+                    state.uiState.modalOpen = false;
+                    renderApp();
+                });
+            }
         }
 
         // Settings
