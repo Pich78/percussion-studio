@@ -46,12 +46,14 @@ export const STROKE_COLORS = {
     [StrokeType.Touch]: 'bg-gray-800 text-gray-400',
     [StrokeType.Mordito]: 'bg-purple-600 text-white',
     [StrokeType.HalfMordito]: 'bg-pink-500 text-white',
+    [StrokeType.Presionado]: 'bg-orange-600 text-white',
 };
 
 export const STROKE_PALETTE = [
-    { type: StrokeType.None, label: 'Rest', svg: null },
+    { type: StrokeType.None, label: 'Rest', svg: 'rest.svg' },
     { type: StrokeType.Open, label: 'Open', svg: 'open.svg' },
     { type: StrokeType.Slap, label: 'Slap', svg: 'slap.svg' },
     { type: StrokeType.Mordito, label: 'Mordito', svg: 'mordito.svg' },
     { type: StrokeType.HalfMordito, label: 'Half Mord.', svg: 'half_mordito.svg' },
+    { type: StrokeType.Presionado, label: 'Presionado', svg: 'presionado.svg' },
 ];
