@@ -16,6 +16,7 @@ export const state = {
     uiState: {
         isMenuOpen: false,
         modalOpen: false,
+        modalType: 'instrument', // 'instrument' | 'rhythm'
         editingTrackIndex: null
     }
 };
