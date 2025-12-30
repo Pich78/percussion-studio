@@ -1,6 +1,7 @@
 {
   "instruments": {
     "ITO": "data/instruments/ITO.yaml",
+    "IYA": "data/instruments/IYA.yaml",
     "OKO": "data/instruments/OKO.yaml"
   },
   "sound_packs": {
