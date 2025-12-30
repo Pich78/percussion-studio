@@ -265,7 +265,7 @@ export const TubsGrid = ({
 
     return `
       <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" data-action="close-modal-bg">
-          <div class="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl max-w-lg w-full flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200" onclick="event.stopPropagation()">
+          <div class="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl max-w-lg w-full flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
               <div class="p-4 border-b border-gray-800 flex justify-between items-center bg-gray-950">
                   <h3 class="text-lg font-bold text-white">
                       ${uiState.editingTrackIndex !== null ? 'Change Instrument' : 'Add Instrument'}
