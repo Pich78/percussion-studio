@@ -1,5 +1,3 @@
-// Mimicking TypeScript Enums using frozen Objects
-
 export const InstrumentName = Object.freeze({
     // Batá
     Iya: 'Iya',
@@ -14,9 +12,8 @@ export const InstrumentName = Object.freeze({
     // Small Percussion
     Clave: 'Clave',
     Cata: 'Cata', // Guagua
-    Cowbell: 'Cowbell',
-    Agogo: 'Agogo',
-    Shaker: 'Shaker',
+    Campana: 'Campana',
+    Chekere: 'Chekere',
     Maraca: 'Maraca',
 
     // Others
@@ -25,15 +22,15 @@ export const InstrumentName = Object.freeze({
 });
 
 export const StrokeType = Object.freeze({
-    None: '.',
+    None: ' ',
     Open: 'O',
-    Slap: 'S',
-    Bass: 'B',
-    Muff: 'X',
-    Touch: 'T',
-    Mordito: 'M',
-    HalfMordito: 'H',
     Presionado: 'P'
+    Slap: 'S',
+    Mordito: 'R',
+    HalfMordito: 'H',
+    Bass: 'B',
+    Dedo: 'D',
+    Muff: 'M'
 });
 
 // TimeSignature type is just a string '4/4' | '6/8' | '12/8' in JS
