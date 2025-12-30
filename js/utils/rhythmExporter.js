@@ -34,19 +34,51 @@ export const exportRhythmToYAML = (state) => {
     // Sound Kit - build track ID mappings
     yaml += `sound_kit:\n`;
     const trackIdMap = {}; // Maps track.id to track_key
+    const keyConfigs = {}; // key -> { instrument, pack }
 
     toque.sections.forEach((section, sectionIdx) => {
         section.measures.forEach((measure, measureIdx) => {
-            measure.tracks.forEach((track, trackIdx) => {
-                // Generate a unique track key if not already mapped
-                if (!trackIdMap[track.id]) {
-                    const trackKey = `${track.instrument.toLowerCase()}_${Object.keys(trackIdMap).length + 1}`;
-                    trackIdMap[track.id] = trackKey;
+            const currentMeasureKeys = new Set();
 
-                    yaml += `  ${trackKey}:\n`;
-                    yaml += `    instrument: "${track.instrument}"\n`;
-                    yaml += `    pack: "${track.pack || 'basic_bata'}"\n`;
+            measure.tracks.forEach((track, trackIdx) => {
+                const trackPack = track.pack || 'basic_bata';
+                let assignedKey = null;
+
+                // 1. Try to find a reusable key
+                for (const [key, config] of Object.entries(keyConfigs)) {
+                    if (config.instrument === track.instrument &&
+                        config.pack === trackPack &&
+                        !currentMeasureKeys.has(key)) {
+                        assignedKey = key;
+                        break;
+                    }
                 }
+
+                // 2. If no key found, create a new one
+                if (!assignedKey) {
+                    const base = track.instrument.toLowerCase();
+                    let key = base;
+
+                    // Collision check
+                    if (keyConfigs[key]) {
+                        let counter = 2;
+                        while (keyConfigs[`${base}_${counter}`]) {
+                            counter++;
+                        }
+                        key = `${base}_${counter}`;
+                    }
+
+                    assignedKey = key;
+                    keyConfigs[key] = { instrument: track.instrument, pack: trackPack };
+
+                    // Append to YAML
+                    yaml += `  ${assignedKey}:\n`;
+                    yaml += `    instrument: "${track.instrument}"\n`;
+                    yaml += `    pack: "${trackPack}"\n`;
+                }
+
+                trackIdMap[track.id] = assignedKey;
+                currentMeasureKeys.add(assignedKey);
             });
         });
     });
