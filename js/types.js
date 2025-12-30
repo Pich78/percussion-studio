@@ -13,6 +13,8 @@ export const InstrumentName = Object.freeze({
     Clave: 'Clave',
     Cata: 'Cata', // Guagua
     Campana: 'Campana',
+
+    // Shakers
     Chekere: 'Chekere',
     Maraca: 'Maraca',
 
