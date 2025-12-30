@@ -1,6 +1,6 @@
 import { state, playback } from './store.js';
 import { StrokeType } from './types.js';
-import { renderApp, refreshGrid } from './ui/renderer.js';
+import { renderApp, refreshGrid, scrollToMeasure } from './ui/renderer.js';
 import { stopPlayback } from './services/sequencer.js';
 import { audioEngine } from './services/audioEngine.js';
 import { dataLoader } from './services/dataLoader.js';
@@ -366,8 +366,12 @@ export const actions = {
             });
         }
 
+        const newIndex = section.measures.length;
         section.measures.push(newMeasure);
         refreshGrid();
+
+        // Scroll to the new measure
+        scrollToMeasure(newIndex);
     },
 
     /**
