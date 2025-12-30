@@ -1,0 +1,5 @@
+name: "Okonkolo (Basic Batá)"
+description: "Standard Okonkolo recorded in a dry studio environment."
+files:
+  O: "oko_open.wav"
+  S: "oko_slap.wav"

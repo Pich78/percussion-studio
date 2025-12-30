@@ -1,0 +1,13 @@
+name: "Itotele"
+symbol: "ITO"
+description: "The middle drum of the Batá set."
+sounds:
+  - letter: "O"
+    name: "Open Tone (Enu)"
+    svg: "open.svg" # Application will look in data/icons/open.svg
+  - letter: "S"
+    name: "Slap (Chacha)"
+    svg: "slap.svg"
+  - letter: "P"
+    name: "Presionado (Enu)"
+    svg: "presionado.svg"

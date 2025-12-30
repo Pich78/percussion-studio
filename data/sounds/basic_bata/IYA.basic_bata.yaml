@@ -1,0 +1,5 @@
+name: "Iya (Basic Batá)"
+description: "Standard Iya recorded in a dry studio environment with low tuning."
+files:
+  O: "iya_open.wav"
+  S: "iya_slap.wav"
