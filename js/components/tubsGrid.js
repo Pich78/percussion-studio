@@ -1,6 +1,14 @@
-import { InstrumentName, StrokeType } from '../types.js';
-import { INSTRUMENT_COLORS, VALID_INSTRUMENT_STROKES } from '../constants.js';
+/* 
+  js/components/tubsGrid.js
+  Renders the main grid and the Add/Edit Instrument Modal.
+  Updated to support Dynamic Data Loading.
+*/
+
+import { StrokeType } from '../types.js';
+import { INSTRUMENT_COLORS } from '../constants.js'; // Colors still hardcoded for now
 import { TubsCell } from './tubsCell.js';
+import { state } from '../store.js';
+import { dataLoader } from '../services/dataLoader.js'; // To access manifest
 
 // Icons
 import { SpeakerXMarkIcon } from '../icons/speakerXMarkIcon.js';
@@ -13,18 +21,21 @@ import { PlusIcon } from '../icons/plusIcon.js';
 import { XMarkIcon } from '../icons/xMarkIcon.js';
 
 export const TubsGrid = ({
-    section,
-    globalBpm,
-    currentStep,
-    selectedStroke,
-    uiState // { modalOpen, editingTrackIndex }
+  section,
+  globalBpm,
+  currentStep,
+  selectedStroke,
+  uiState
 }) => {
-    const groupSize = section.subdivision || 4;
-    const isCustomBpm = section.bpm !== undefined;
+  // Safety check: if section is null (e.g. before load), return placeholder
+  if (!section) return `<div class="p-8 text-center text-gray-500">No active section loaded.</div>`;
 
-    // -- HTML GENERATION HELPERS --
+  const groupSize = section.subdivision || 4;
+  const isCustomBpm = section.bpm !== undefined;
 
-    const renderSectionSettings = () => `
+  // -- HTML GENERATION HELPERS --
+
+  const renderSectionSettings = () => `
     <div class="sticky left-0 z-30 flex items-center gap-6 mb-2 px-4 py-2 bg-gray-950/95 backdrop-blur border border-gray-800 w-fit rounded-lg shadow-lg">
       <!-- Name -->
       <div class="flex flex-col">
@@ -132,7 +143,7 @@ export const TubsGrid = ({
     </div>
   `;
 
-    const renderTimelineHeader = () => `
+  const renderTimelineHeader = () => `
     <div class="flex min-w-max">
       <!-- Sticky Label Spacer -->
       <div class="sticky left-0 z-20 w-36 flex-shrink-0 bg-gray-950 border-r border-gray-800 shadow-[4px_0_10px_rgba(0,0,0,0.5)]"></div> 
@@ -154,13 +165,22 @@ export const TubsGrid = ({
     </div>
   `;
 
-    const renderTracks = () => section.tracks.map((track, trackIdx) => {
-        // Check validity of current global stroke selection for this track
-        const allowedStrokes = VALID_INSTRUMENT_STROKES[track.instrument] || [];
-        const isStrokeValid = selectedStroke === StrokeType.None || allowedStrokes.includes(selectedStroke);
-        const borderColor = INSTRUMENT_COLORS[track.instrument] || 'border-l-4 border-gray-700';
+  const renderTracks = () => section.tracks.map((track, trackIdx) => {
+    // DYNAMIC VALIDATION: Check loaded definition
+    const instDef = state.instrumentDefinitions[track.instrument];
+    let isStrokeValid = true;
 
-        return `
+    if (instDef && selectedStroke !== StrokeType.None) {
+      // Does this instrument support this letter?
+      isStrokeValid = instDef.sounds.some(s => s.letter.toUpperCase() === selectedStroke.toUpperCase());
+    }
+
+    const borderColor = INSTRUMENT_COLORS[track.instrument] || 'border-l-4 border-gray-700';
+
+    // Get Display Name (from def or fallback to symbol)
+    const displayName = instDef ? instDef.name : track.instrument;
+
+    return `
       <div class="flex items-center group min-w-max transition-opacity duration-300 ${track.muted ? 'opacity-50' : 'opacity-100'}">
         <!-- Instrument Label - Sticky -->
         <div class="sticky left-0 z-20 w-36 flex-shrink-0 pr-2 flex flex-col justify-center ${borderColor} pl-3 bg-gray-950 border-r border-gray-800 py-2 shadow-[4px_0_10px_rgba(0,0,0,0.5)]">
@@ -170,9 +190,9 @@ export const TubsGrid = ({
               class="font-bold text-sm cursor-pointer select-none hover:text-cyan-400 hover:underline text-left truncate w-20 ${track.muted ? 'text-gray-500 line-through' : 'text-gray-200'}"
               data-action="open-edit-modal"
               data-track-index="${trackIdx}"
-              title="Change Instrument"
+              title="Change Instrument (${displayName})"
             >
-              ${track.instrument}
+              ${displayName}
             </button>
             
             <div class="flex items-center gap-1">
@@ -204,40 +224,47 @@ export const TubsGrid = ({
           ${track.strokes.map((stroke, stepIdx) => `
             <div class="${stepIdx % groupSize === 0 && stepIdx !== 0 ? "ml-1" : ""}"> 
               ${TubsCell({
-            stroke,
-            isCurrentStep: currentStep === stepIdx,
-            isValid: isStrokeValid,
-            trackIndex: trackIdx,
-            stepIndex: stepIdx,
-            isActive: stroke !== StrokeType.None
-        })}
+      stroke,
+      isCurrentStep: currentStep === stepIdx,
+      isValid: isStrokeValid,
+      trackIndex: trackIdx,
+      stepIndex: stepIdx,
+      isActive: stroke !== StrokeType.None
+    })}
             </div>
           `).join('')}
         </div>
       </div>
     `;
-    }).join('');
+  }).join('');
 
-    const renderModal = () => {
-        if (!uiState.modalOpen) return '';
+  const renderModal = () => {
+    if (!uiState.modalOpen) return '';
 
-        const instruments = Object.values(InstrumentName).map(inst => `
-      <button
-          data-action="select-instrument"
-          data-instrument="${inst}"
-          class="
-              flex items-center gap-3 px-3 py-2 rounded-lg border bg-gray-900/50 hover:bg-gray-800 transition-all text-left
-              ${INSTRUMENT_COLORS[inst] || 'border-gray-700'}
-              border-l-[6px] 
-          "
-      >
-          <span class="font-medium text-gray-200 pointer-events-none">${inst}</span>
-      </button>
-    `).join('');
-
+    // DYNAMIC INSTRUMENT LIST FROM MANIFEST
+    // If manifest not loaded yet, show empty or loading
+    const instruments = dataLoader.manifest && dataLoader.manifest.instruments
+      ? Object.keys(dataLoader.manifest.instruments).map(symbol => {
+        const colorClass = INSTRUMENT_COLORS[symbol] || 'border-gray-700';
         return `
+                  <button
+                      data-action="select-instrument"
+                      data-instrument="${symbol}"
+                      class="
+                          flex items-center gap-3 px-3 py-2 rounded-lg border bg-gray-900/50 hover:bg-gray-800 transition-all text-left
+                          ${colorClass}
+                          border-l-[6px] 
+                      "
+                  >
+                      <span class="font-medium text-gray-200 pointer-events-none">${symbol}</span>
+                  </button>
+                `;
+      }).join('')
+      : '<div class="col-span-3 text-center text-gray-500">Loading instruments...</div>';
+
+    return `
       <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" data-action="close-modal-bg">
-          <div class="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl max-w-lg w-full flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+          <div class="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl max-w-lg w-full flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200" onclick="event.stopPropagation()">
               <div class="p-4 border-b border-gray-800 flex justify-between items-center bg-gray-950">
                   <h3 class="text-lg font-bold text-white">
                       ${uiState.editingTrackIndex !== null ? 'Change Instrument' : 'Add Instrument'}
@@ -262,10 +289,10 @@ export const TubsGrid = ({
           </div>
       </div>
     `;
-    };
+  };
 
-    // -- MAIN RETURN --
-    return `
+  // -- MAIN RETURN --
+  return `
     <div 
       id="tubs-scroll-container"
       class="flex flex-col gap-4 overflow-x-auto pb-8 w-full custom-scrollbar relative bg-gray-900/20 p-4 rounded-xl border border-gray-800"
@@ -292,27 +319,27 @@ export const TubsGrid = ({
 
 // -- HELPER FOR AUTO-SCROLL --
 export const autoScrollGrid = (currentStep) => {
-    const container = document.getElementById('tubs-scroll-container');
-    if (!container) return;
+  const container = document.getElementById('tubs-scroll-container');
+  if (!container) return;
 
-    const stepElement = container.querySelector(`[data-step-marker="${currentStep}"]`);
+  const stepElement = container.querySelector(`[data-step-marker="${currentStep}"]`);
 
-    if (stepElement) {
-        if (container.scrollWidth <= container.clientWidth) return;
+  if (stepElement) {
+    if (container.scrollWidth <= container.clientWidth) return;
 
-        const containerRect = container.getBoundingClientRect();
-        const stepRect = stepElement.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+    const stepRect = stepElement.getBoundingClientRect();
 
-        const stickyHeaderWidth = 144; // w-36
-        const viewableWidth = containerRect.width - stickyHeaderWidth;
-        const viewableCenter = stickyHeaderWidth + (viewableWidth / 2);
+    const stickyHeaderWidth = 144; // w-36
+    const viewableWidth = containerRect.width - stickyHeaderWidth;
+    const viewableCenter = stickyHeaderWidth + (viewableWidth / 2);
 
-        const currentStepLeftPos = (stepRect.left - containerRect.left) + container.scrollLeft;
-        const targetScrollLeft = currentStepLeftPos - viewableCenter + (stepRect.width / 2);
+    const currentStepLeftPos = (stepRect.left - containerRect.left) + container.scrollLeft;
+    const targetScrollLeft = currentStepLeftPos - viewableCenter + (stepRect.width / 2);
 
-        container.scrollTo({
-            left: targetScrollLeft,
-            behavior: 'smooth'
-        });
-    }
+    container.scrollTo({
+      left: targetScrollLeft,
+      behavior: 'smooth'
+    });
+  }
 };

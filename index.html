@@ -5,6 +5,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Percussion Studio</title>
+
+    <!-- YAML Parser Library (Required for Data Loading) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -60,6 +64,9 @@
 <body class="bg-gray-950 text-white overflow-hidden">
     <div id="root" class="h-screen w-screen flex flex-col">
         <!-- App content will be injected here by js/app.js -->
+        <div class="flex h-full items-center justify-center text-gray-500">
+            Loading Application...
+        </div>
     </div>
 
     <!-- Main Application Entry Point -->

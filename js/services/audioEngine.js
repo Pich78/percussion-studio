@@ -1,9 +1,17 @@
-import { InstrumentName, StrokeType } from '../types.js';
+/* 
+  js/services/audioEngine.js
+  Handles AudioContext, sample loading, and playback.
+  Replaces synthesis with sample-based playback from loaded Sound Packs.
+*/
+
+import { StrokeType } from '../types.js';
 
 class AudioEngine {
     constructor() {
         this.ctx = null;
         this.masterGain = null;
+        // Cache structure: { 'ITO': { 'O': AudioBuffer, 'S': AudioBuffer, ... }, 'OKO': { ... } }
+        this.buffers = {};
     }
 
     init() {
@@ -22,148 +30,82 @@ class AudioEngine {
         }
     }
 
-    playStroke(instrument, stroke, time = 0, volume = 1.0) {
+    /**
+     * Loads audio samples for a specific instrument based on a Sound Pack config.
+     * @param {string} symbol - The instrument symbol (e.g., 'ITO')
+     * @param {object} soundConfig - The parsed YAML object from dataLoader (contains .files and ._basePath)
+     */
+    async loadSoundPack(symbol, soundConfig) {
+        this.init();
+        if (!this.buffers[symbol]) {
+            this.buffers[symbol] = {};
+        }
+
+        const promises = Object.entries(soundConfig.files).map(async ([letter, filename]) => {
+            // Normalize letter to uppercase for consistency
+            const strokeKey = letter.toUpperCase();
+            const url = `${soundConfig._basePath}${filename}`;
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const arrayBuffer = await response.arrayBuffer();
+                const audioBuffer = await this.ctx.decodeAudioData(arrayBuffer);
+
+                this.buffers[symbol][strokeKey] = audioBuffer;
+            } catch (error) {
+                console.error(`Failed to load sample for ${symbol} [${strokeKey}]: ${url}`, error);
+            }
+        });
+
+        await Promise.all(promises);
+        console.log(`🔊 Loaded samples for ${symbol}`);
+    }
+
+    /**
+     * Plays a specific stroke for an instrument.
+     * @param {string} instrumentSymbol - e.g. 'ITO'
+     * @param {string} stroke - The stroke letter (e.g. 'O', 'S', or StrokeType enum value)
+     * @param {number} time - AudioContext time to play
+     * @param {number} volume - 0.0 to 1.0
+     */
+    playStroke(instrumentSymbol, stroke, time = 0, volume = 1.0) {
         this.init();
         if (!this.ctx || !this.masterGain) return;
+
+        // Normalize stroke (handle Rest and Case)
+        if (!stroke || stroke === StrokeType.None || stroke === '.') return;
+        const strokeKey = stroke.toUpperCase();
+
+        // Check if instrument and sample exist
+        const instBuffers = this.buffers[instrumentSymbol];
+        if (!instBuffers) {
+            // console.warn(`No buffers loaded for instrument: ${instrumentSymbol}`);
+            return;
+        }
+
+        const buffer = instBuffers[strokeKey];
+        if (!buffer) {
+            // console.warn(`No sample found for ${instrumentSymbol} stroke: ${strokeKey}`);
+            return;
+        }
 
         // Safety check for invalid time
         const playTime = Math.max(time, this.ctx.currentTime);
 
-        if (stroke === StrokeType.None) return;
+        // Create Source
+        const source = this.ctx.createBufferSource();
+        source.buffer = buffer;
 
-        // --- INSTRUMENT BASE FREQUENCIES ---
-        // Approximate pitches for synthesis
-        let baseFreq = 200;
-        let type = 'drum'; // 'drum' | 'wood' | 'metal' | 'shaker'
+        // Individual Gain (Volume)
+        const gainNode = this.ctx.createGain();
+        gainNode.gain.value = volume;
 
-        switch (instrument) {
-            case InstrumentName.Iya: baseFreq = 100; break;
-            case InstrumentName.Itotele: baseFreq = 160; break;
-            case InstrumentName.Okonkolo: baseFreq = 260; break;
+        // Graph: Source -> Gain -> Master
+        source.connect(gainNode);
+        gainNode.connect(this.masterGain);
 
-            case InstrumentName.Tumbadora: baseFreq = 130; break;
-            case InstrumentName.Conga: baseFreq = 190; break;
-            case InstrumentName.Quinto: baseFreq = 280; break;
-
-            case InstrumentName.Bongo: baseFreq = 350; break;
-            case InstrumentName.Timbales: baseFreq = 300; type = 'metal'; break;
-
-            case InstrumentName.Clave: baseFreq = 2200; type = 'wood'; break;
-            case InstrumentName.Cata: baseFreq = 800; type = 'wood'; break;
-
-            case InstrumentName.Cowbell: baseFreq = 600; type = 'metal'; break;
-            case InstrumentName.Agogo: baseFreq = 900; type = 'metal'; break;
-
-            case InstrumentName.Shaker:
-            case InstrumentName.Maraca:
-                type = 'shaker';
-                break;
-        }
-
-        // --- SYNTHESIS LOGIC ---
-
-        if (type === 'shaker') {
-            this.playNoise(0.05, playTime, volume * 0.7);
-            return;
-        }
-
-        if (type === 'wood') {
-            // Clave sound: Sharp sine with quick decay
-            this.playTone(baseFreq, 0.1, 'sine', playTime, volume);
-            return;
-        }
-
-        if (type === 'metal') {
-            if (instrument === InstrumentName.Cowbell || instrument === InstrumentName.Agogo) {
-                // Metallic: Square/Triangle mix
-                this.playTone(baseFreq, 0.3, 'square', playTime, volume * 0.4);
-                this.playTone(baseFreq * 1.5, 0.2, 'triangle', playTime, volume * 0.3);
-            } else {
-                // Timbales (shell or head)
-                if (stroke === StrokeType.Slap || stroke === StrokeType.Open) {
-                    this.playTone(baseFreq, 0.15, 'triangle', playTime, volume);
-                    this.playNoise(0.05, playTime, volume * 0.3);
-                } else {
-                    // Shell sound (Touch/Muff)
-                    this.playTone(baseFreq * 2, 0.05, 'square', playTime, volume * 0.5);
-                }
-            }
-            return;
-        }
-
-        // DRUMS (Congas, Bata, Bongo)
-        switch (stroke) {
-            case StrokeType.Open:
-                this.playTone(baseFreq, 0.4, 'sine', playTime, volume);
-                this.playTone(baseFreq * 1.5, 0.2, 'triangle', playTime, volume * 0.5); // overtone
-                break;
-            case StrokeType.Bass:
-                if (instrument === InstrumentName.Iya || instrument === InstrumentName.Tumbadora) {
-                    this.playTone(60, 0.6, 'sine', playTime, volume); // Deep bass
-                } else {
-                    this.playTone(baseFreq * 0.8, 0.5, 'sine', playTime, volume);
-                }
-                break;
-            case StrokeType.Slap:
-                this.playNoise(0.08, playTime, volume * 0.8);
-                this.playTone(baseFreq * 2.8, 0.1, 'square', playTime, volume * 0.6);
-                break;
-            case StrokeType.Muff:
-                this.playTone(baseFreq, 0.05, 'triangle', playTime, volume); // Very short
-                break;
-            case StrokeType.Touch:
-                this.playNoise(0.02, playTime, volume * 0.4); // Tiny click
-                break;
-        }
-    }
-
-    playTone(freq, duration, type, startTime, volume) {
-        if (!this.ctx || !this.masterGain) return;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-
-        osc.type = type;
-        osc.frequency.setValueAtTime(freq, startTime);
-
-        // Envelope
-        gain.gain.setValueAtTime(0.5 * volume, startTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
-
-        osc.connect(gain);
-        gain.connect(this.masterGain);
-
-        osc.start(startTime);
-        osc.stop(startTime + duration + 0.1);
-    }
-
-    playNoise(duration, startTime, volume) {
-        if (!this.ctx || !this.masterGain) return;
-        const bufferSize = this.ctx.sampleRate * duration;
-        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-        const data = buffer.getChannelData(0);
-
-        for (let i = 0; i < bufferSize; i++) {
-            data[i] = Math.random() * 2 - 1;
-        }
-
-        const noise = this.ctx.createBufferSource();
-        noise.buffer = buffer;
-
-        const gain = this.ctx.createGain();
-        // Bandpass filter to make it sound more like a skin hit
-        const filter = this.ctx.createBiquadFilter();
-        filter.type = 'bandpass';
-        filter.frequency.value = 1000;
-
-        // Scale amplitude by volume
-        gain.gain.setValueAtTime(0.5 * volume, startTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
-
-        noise.connect(filter);
-        filter.connect(gain);
-        gain.connect(this.masterGain);
-
-        noise.start(startTime);
+        source.start(playTime);
     }
 }
 
