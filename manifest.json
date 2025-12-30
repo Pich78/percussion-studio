@@ -8,6 +8,6 @@
     "basic_bata": "data/sounds/basic_bata/"
   },
   "rhythms": {
-    "iyakota_1": "data/rhythms/iyakota_1.yaml"
+    "iyakota_base": "data/rhythms/iyakota_base.yaml"
   }
 }

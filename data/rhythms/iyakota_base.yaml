@@ -1,0 +1,23 @@
+name: "Iyakota Base"
+global_bpm: 120
+
+sound_kit:
+  oko_1:
+    instrument: "OKO"
+    pack: "basic_bata"
+  ito_2:
+    instrument: "ITO"
+    pack: "basic_bata"
+  iya_3:
+    instrument: "IYA"
+    pack: "basic_bata"
+
+playback_flow:
+  - name: "Marcha"
+    repetitions: 1
+    time_signature: "6/8"
+    steps: 12
+    pattern:
+      oko_1: "||S--|-O-|S--|-O-||"
+      ito_2: "||O--|S--|O--|S--||"
+      iya_3: "||--S|---|--O|-O-||"
