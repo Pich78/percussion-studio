@@ -77,20 +77,19 @@ export const setupEventListeners = () => {
         }
         if (action === 'select-instrument') {
             const inst = target.dataset.instrument;
-            const section = state.toque.sections.find(s => s.id === state.activeSectionId);
             if (state.uiState.editingTrackIndex === null) {
-                section.tracks.push({
-                    id: crypto.randomUUID(),
-                    instrument: inst,
-                    volume: 1.0,
-                    muted: false,
-                    strokes: Array(section.steps).fill(StrokeType.None)
+                // Add new track - use actions.addTrack to properly load definitions
+                actions.addTrack(inst).then(() => {
+                    state.uiState.modalOpen = false;
+                    renderApp();
                 });
             } else {
-                section.tracks[state.uiState.editingTrackIndex].instrument = inst;
+                // Edit existing track - use actions.updateTrackInstrument to properly load definitions
+                actions.updateTrackInstrument(state.uiState.editingTrackIndex, inst).then(() => {
+                    state.uiState.modalOpen = false;
+                    renderApp();
+                });
             }
-            state.uiState.modalOpen = false;
-            refreshGrid();
         }
         if (action === 'select-rhythm-confirm') {
             const rhythmId = target.dataset.rhythmId;
