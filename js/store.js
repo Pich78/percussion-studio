@@ -1,12 +1,18 @@
-import { INITIAL_TOQUE } from './constants.js';
 import { StrokeType } from './types.js';
 
 export const state = {
-    toque: JSON.parse(JSON.stringify(INITIAL_TOQUE)),
-    activeSectionId: INITIAL_TOQUE.sections[0].id,
+    // The active rhythm data. 
+    // Will be populated by actions.loadRhythm() via the dataLoader.
+    toque: null,
+
+    // Cache for loaded Instrument YAML definitions.
+    // Key: Symbol (e.g. "ITO"), Value: The parsed YAML object with .sounds, .name, etc.
+    instrumentDefinitions: {},
+
+    activeSectionId: null,
     isPlaying: false,
     currentStep: -1,
-    selectedStroke: StrokeType.Open,
+    selectedStroke: StrokeType.Open, // Default selected tool
     uiState: {
         isMenuOpen: false,
         modalOpen: false,
@@ -19,6 +25,6 @@ export const playback = {
     timeoutId: null,
     currentStep: -1,
     repetitionCounter: 1,
-    currentPlayheadBpm: state.toque.globalBpm,
-    activeSectionId: state.activeSectionId
+    currentPlayheadBpm: 120, // Default safe value
+    activeSectionId: null
 };
