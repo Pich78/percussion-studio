@@ -146,7 +146,9 @@ export const setupEventListeners = () => {
         if (action === 'clear-pattern') {
             if (confirm("Clear all notes in this section?")) {
                 const section = state.toque.sections.find(s => s.id === state.activeSectionId);
-                section.tracks.forEach(t => t.strokes.fill(StrokeType.None));
+                section.measures.forEach(measure => {
+                    measure.tracks.forEach(t => t.strokes.fill(StrokeType.None));
+                });
                 stopPlayback();
                 refreshGrid();
             }
@@ -247,9 +249,7 @@ export const setupEventListeners = () => {
             section.tempoAcceleration = parseFloat(target.value);
             renderApp();
         }
-        if (action === 'update-volume') {
-            section.tracks[parseInt(target.dataset.trackIndex)].volume = parseFloat(target.value);
-        }
+
         if (action === 'update-rhythm-name') {
             state.toque.name = target.value;
         }
