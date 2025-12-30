@@ -63,7 +63,7 @@ const renderHeader = () => {
         <div class="flex items-center gap-3 bg-gray-900 px-3 py-2 rounded-lg border border-gray-800">
           <div class="flex flex-col items-end leading-none">
               <span class="text-[9px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">Global</span>
-              <span class="text-xs font-mono font-bold text-cyan-400">${state.toque.globalBpm} <span class="text-[9px] text-gray-600">BPM</span></span>
+              <span class="text-xs font-mono font-bold text-cyan-400" id="header-global-bpm">${state.toque.globalBpm} <span class="text-[9px] text-gray-600">BPM</span></span>
           </div>
           <input type="range" min="40" max="240" value="${state.toque.globalBpm}" data-action="update-global-bpm" class="w-24 h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-500 hover:accent-cyan-400" />
         </div>

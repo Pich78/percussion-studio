@@ -132,6 +132,40 @@ export const setupEventListeners = () => {
         }
     });
 
+    root.addEventListener('input', (e) => {
+        const target = e.target;
+        const action = target.dataset.action;
+        if (!action) return;
+
+        // Safety check for state.toque
+        if (!state.toque) return;
+
+        const section = state.toque.sections.find(s => s.id === state.activeSectionId);
+        if (!section) return;
+
+        if (action === 'update-global-bpm') {
+            state.toque.globalBpm = Number(target.value);
+            if (!section.bpm) playback.currentPlayheadBpm = state.toque.globalBpm;
+
+            // Direct DOM update for performance
+            const display = document.getElementById('header-global-bpm');
+            if (display) display.innerHTML = `${state.toque.globalBpm} <span class="text-[9px] text-gray-600">BPM</span>`;
+        }
+
+        if (action === 'update-volume') {
+            section.tracks[parseInt(target.dataset.trackIndex)].volume = parseFloat(target.value);
+        }
+
+        if (action === 'update-bpm') {
+            section.bpm = Number(target.value);
+            playback.currentPlayheadBpm = section.bpm;
+        }
+
+        if (action === 'update-acceleration') {
+            section.tempoAcceleration = parseFloat(target.value);
+        }
+    });
+
     root.addEventListener('change', (e) => {
         const target = e.target;
         const action = target.dataset.action;
