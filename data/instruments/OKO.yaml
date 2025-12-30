@@ -11,6 +11,3 @@ sounds:
   - letter: "R"
     name: "Mordito"
     svg: "mordito.svg"
-  - letter: "H"
-    name: "Half Mordito"
-    svg: "half_mordito.svg"
