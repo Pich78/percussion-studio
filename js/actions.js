@@ -290,13 +290,15 @@ export const actions = {
 
     resizeTracks: (section) => {
         const newSteps = section.steps;
-        section.tracks.forEach(track => {
-            if (newSteps > track.strokes.length) {
-                const diff = newSteps - track.strokes.length;
-                for (let i = 0; i < diff; i++) track.strokes.push(StrokeType.None);
-            } else {
-                track.strokes.length = newSteps;
-            }
+        section.measures.forEach(measure => {
+            measure.tracks.forEach(track => {
+                if (newSteps > track.strokes.length) {
+                    const diff = newSteps - track.strokes.length;
+                    for (let i = 0; i < diff; i++) track.strokes.push(StrokeType.None);
+                } else {
+                    track.strokes.length = newSteps;
+                }
+            });
         });
     },
 
