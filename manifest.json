@@ -1,0 +1,9 @@
+{
+  "instruments": {
+    "ITO": "data\\instruments\\ITO.yaml"
+  },
+  "sound_packs": {},
+  "rhythms": {
+    "iyakota_1": "data\\rhythms\\iyakota_1.yaml"
+  }
+}

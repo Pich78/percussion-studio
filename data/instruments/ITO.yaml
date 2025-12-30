@@ -8,6 +8,3 @@ sounds:
   - letter: "S"
     name: "Slap (Chacha)"
     svg: "slap.svg"
-  - letter: "P"
-    name: "Presionado (Enu)"
-    svg: "presionado.svg"
