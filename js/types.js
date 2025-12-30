@@ -30,7 +30,9 @@ export const StrokeType = Object.freeze({
     Slap: 'S',
     Bass: 'B',
     Muff: 'X',
-    Touch: 'T'
+    Touch: 'T',
+    Mordito: 'M',
+    HalfMordito: 'H'
 });
 
 // TimeSignature type is just a string '4/4' | '6/8' | '12/8' in JS

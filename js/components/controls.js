@@ -3,33 +3,39 @@ import { TrashIcon } from '../icons/trashIcon.js';
 
 export const Controls = ({ selectedStroke }) => {
 
-    const renderPalette = () => {
-        return STROKE_PALETTE.map((item) => {
-            const isSelected = selectedStroke === item.type;
-            const colorClass = STROKE_COLORS[item.type];
+  const renderPalette = () => {
+    return STROKE_PALETTE.map((item) => {
+      const isSelected = selectedStroke === item.type;
+      const colorClass = STROKE_COLORS[item.type];
 
-            const activeClass = isSelected
-                ? 'ring-2 ring-white scale-110 z-10 shadow-lg opacity-100 grayscale-0'
-                : 'opacity-60 hover:opacity-100 grayscale hover:grayscale-0';
+      const activeClass = isSelected
+        ? 'ring-2 ring-white scale-105 z-10 shadow-lg opacity-100 grayscale-0 bg-gray-800'
+        : 'opacity-60 hover:opacity-100 grayscale hover:grayscale-0 hover:bg-gray-800';
 
-            return `
+      const content = item.svg
+        ? `<img src="data/assets/icons/${item.svg}" class="w-6 h-6 mb-1 pointer-events-none select-none" alt="${item.label}" />`
+        : `<span class="text-lg font-bold mb-1 pointer-events-none select-none">${item.type}</span>`;
+
+      return `
         <button
           data-action="select-stroke"
           data-stroke="${item.type}"
           class="
-            w-10 h-10 rounded flex items-center justify-center font-bold text-sm transition-all
-            ${colorClass}
+            flex flex-col items-center justify-center w-16 h-16 rounded-lg transition-all border border-transparent
             ${activeClass}
           "
           title="${item.label}"
         >
-          ${item.type}
+          <div class="w-8 h-8 flex items-center justify-center rounded-full ${item.svg ? '' : colorClass}">
+             ${content}
+          </div>
+          <span class="text-[10px] font-bold uppercase text-gray-400 tracking-wider">${item.label}</span>
         </button>
       `;
-        }).join('');
-    };
+    }).join('');
+  };
 
-    return `
+  return `
     <div class="bg-gray-950 border-t border-gray-800 p-3 flex items-center justify-between gap-4 shadow-[0_-5px_15px_rgba(0,0,0,0.3)] z-20">
       
       <!-- Left: Clear -->
