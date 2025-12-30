@@ -92,7 +92,8 @@ files:
     *   `pack`: Must match a Sound Pack folder name (in `data/sounds/`).
     *   *Logic:* The app will look for the sound config at: `data/sounds/{pack}/{instrument}.{pack}.yaml`.
 *   **`playback_flow`**: An ordered list of musical sections.
-    *   **`pattern`**: A mapping of Track IDs to ASCII pattern strings.
+    *   **`measures`**: An ordered list of measures within the section.
+        *   **`pattern`**: A mapping of Track IDs to ASCII pattern strings.
 
 ```yaml
 name: "Iyakota Sequence 1"
@@ -112,9 +113,13 @@ playback_flow:
     repetitions: 1
     time_signature: "4/4"
     steps: 16
-    pattern:
-      itotele_main:  "||O-S-|P---|O---|----||"
-      okonkolo_main: "||--T-|--T-|--T-|--T-||"
+    measures:
+      - pattern:
+          itotele_main:  "||O-S-|P---|O---|----||"
+          okonkolo_main: "||--T-|--T-|--T-|--T-||"
+      - pattern:
+          itotele_main:  "||O-S-|----|O---|P---||"
+          okonkolo_main: "||--T-|--T-|--T-|--T-||"
 ```
 
 ---
