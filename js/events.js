@@ -26,6 +26,8 @@ export const setupEventListeners = () => {
         }
         if (action === 'new-rhythm') {
             if (confirm("Create new rhythm? Unsaved changes lost.")) actions.createNewRhythm();
+            state.uiState.isMenuOpen = false;
+            renderApp();
         }
         if (action === 'load-rhythm') {
             alert("Not implemented yet.");
