@@ -8,7 +8,7 @@ sounds:
   - letter: "S"
     name: "Slap (Chacha)"
     svg: "slap.svg"
-  - letter: "M"
+  - letter: "R"
     name: "Mordito"
     svg: "mordito.svg"
   - letter: "H"
