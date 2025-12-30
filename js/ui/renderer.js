@@ -137,7 +137,7 @@ export const refreshGrid = () => {
   }
 };
 
-export const updateVisualStep = (step) => {
+export const updateVisualStep = (step, measureIndex = 0) => {
   document.querySelectorAll('.ring-2.ring-white').forEach(el => {
     el.classList.remove('ring-2', 'ring-white', 'z-10', 'scale-105', 'shadow-lg', 'shadow-cyan-500/50');
   });
@@ -149,7 +149,8 @@ export const updateVisualStep = (step) => {
     el.classList.add('text-gray-500');
   });
 
-  const cells = document.querySelectorAll(`[data-step-index="${step}"]`);
+  // Select cells matching BOTH step index AND measure index
+  const cells = document.querySelectorAll(`[data-step-index="${step}"][data-measure-index="${measureIndex}"]`);
   cells.forEach(cell => {
     cell.classList.add('ring-2', 'ring-white', 'z-10', 'scale-105', 'shadow-lg', 'shadow-cyan-500/50');
     if (cell.innerText.trim() === '') cell.classList.add('bg-gray-800');

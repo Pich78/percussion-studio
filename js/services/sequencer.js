@@ -77,7 +77,7 @@ export const tick = () => {
     playback.currentMeasureIndex = nextMeasure;
     state.currentStep = nextStep;
 
-    updateVisualStep(nextStep);
+    updateVisualStep(nextStep, nextMeasure);
 
     // Auto-scroll to current measure
     scrollToMeasure(nextMeasure);
