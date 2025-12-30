@@ -229,7 +229,8 @@ export const TubsGrid = ({
       isValid: isStrokeValid,
       trackIndex: trackIdx,
       stepIndex: stepIdx,
-      isActive: stroke !== StrokeType.None
+      isActive: stroke !== StrokeType.None,
+      instrumentDef: instDef
     })}
             </div>
           `).join('')}
