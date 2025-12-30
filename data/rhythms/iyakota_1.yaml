@@ -1,0 +1,20 @@
+name: "Iyakota Sequence 1"
+global_bpm: 108
+
+sound_kit:
+  itotele_main:        # Track ID
+    instrument: "ITO"  # Refers to data/instruments/ITO.yaml
+    pack: "basic_bata"   # Refers to data/sounds/new_bata/
+  
+  okonkolo_main:       # Track ID
+    instrument: "OKO"
+    pack: "basic_bata"
+
+playback_flow:
+  - name: "Intro"
+    repetitions: 1
+    time_signature: "4/4"
+    steps: 16
+    pattern:
+      itotele_main:  "||O-S-|O---|O---|---S||"
+      okonkolo_main: "||--S-|--S-|--S-|--S-||"
