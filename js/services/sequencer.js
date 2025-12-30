@@ -1,6 +1,6 @@
 import { state, playback } from '../store.js';
 import { audioEngine } from './audioEngine.js';
-import { renderApp, updateVisualStep } from '../ui/renderer.js';
+import { renderApp, updateVisualStep, scrollToMeasure } from '../ui/renderer.js';
 
 const playSectionStep = (section, measureIndex, stepIndex) => {
     const measure = section.measures[measureIndex];
@@ -88,27 +88,7 @@ export const tick = () => {
     playback.timeoutId = setTimeout(tick, intervalMs);
 };
 
-// Scroll the current measure to the center of the viewport
-const scrollToMeasure = (measureIndex) => {
-    const scrollContainer = document.getElementById('tubs-scroll-container');
-    if (!scrollContainer) return;
 
-    const measureElement = document.querySelector(`[data-measure-index="${measureIndex}"]`);
-    if (!measureElement) return;
-
-    // Calculate position to center the measure
-    const containerHeight = scrollContainer.clientHeight;
-    const measureTop = measureElement.offsetTop;
-    const measureHeight = measureElement.offsetHeight;
-
-    // Scroll to center the measure
-    const scrollTo = measureTop - (containerHeight / 2) + (measureHeight / 2);
-
-    scrollContainer.scrollTo({
-        top: scrollTo,
-        behavior: 'smooth'
-    });
-};
 
 export const stopPlayback = () => {
     state.isPlaying = false;

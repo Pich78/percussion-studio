@@ -163,3 +163,28 @@ export const updateVisualStep = (step, measureIndex = 0) => {
   }
   autoScrollGrid(step);
 };
+
+// Scroll the current measure to the center of the viewport
+export const scrollToMeasure = (measureIndex) => {
+  const scrollContainer = document.getElementById('tubs-scroll-container');
+  if (!scrollContainer) return;
+
+  // Allow DOM to update first if needed
+  setTimeout(() => {
+    const measureElement = document.querySelector(`[data-measure-index="${measureIndex}"]`);
+    if (!measureElement) return;
+
+    // Calculate position to center the measure
+    const containerHeight = scrollContainer.clientHeight;
+    const measureTop = measureElement.offsetTop;
+    const measureHeight = measureElement.offsetHeight;
+
+    // Scroll to center the measure
+    const scrollTo = measureTop - (containerHeight / 2) + (measureHeight / 2);
+
+    scrollContainer.scrollTo({
+      top: scrollTo,
+      behavior: 'smooth'
+    });
+  }, 10);
+};
