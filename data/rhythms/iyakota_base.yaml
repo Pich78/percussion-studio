@@ -1,5 +1,5 @@
 name: "Iyakota Base"
-global_bpm: 120
+global_bpm: 90
 
 sound_kit:
   oko_1:
@@ -11,13 +11,32 @@ sound_kit:
   iya_3:
     instrument: "IYA"
     pack: "basic_bata"
+  oko_4:
+    instrument: "OKO"
+    pack: "basic_bata"
+  ito_5:
+    instrument: "ITO"
+    pack: "basic_bata"
+  iya_6:
+    instrument: "IYA"
+    pack: "basic_bata"
 
 playback_flow:
-  - name: "Marcha"
+  - name: "LLamada"
     repetitions: 1
     time_signature: "6/8"
     steps: 12
-    pattern:
-      oko_1: "||S--|-O-|S--|-O-||"
-      ito_2: "||O--|S--|O--|S--||"
-      iya_3: "||--S|---|--O|-O-||"
+    measures:
+      - pattern:
+          oko_1: "||---|---|---|---||"
+          ito_2: "||---|---|---|---||"
+          iya_3: "||S-S|-S-|S-R|-O-||"
+  - name: "Marcha"
+    repetitions: 10
+    time_signature: "6/8"
+    steps: 12
+    measures:
+      - pattern:
+          oko_4: "||S--|-O-|S--|-O-||"
+          ito_5: "||O--|S--|O--|S--||"
+          iya_6: "||--S|---|--R|-O-||"
