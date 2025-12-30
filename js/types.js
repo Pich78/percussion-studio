@@ -26,7 +26,7 @@ export const InstrumentName = Object.freeze({
 export const StrokeType = Object.freeze({
     None: ' ',
     Open: 'O',
-    Presionado: 'P'
+    Presionado: 'P',
     Slap: 'S',
     Mordito: 'R',
     HalfMordito: 'H',
