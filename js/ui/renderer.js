@@ -115,6 +115,11 @@ export const refreshGrid = () => {
   const activeSection = state.toque.sections.find(s => s.id === state.activeSectionId) || state.toque.sections[0];
   const container = document.getElementById('grid-container');
   if (container) {
+    // Save scroll position
+    const scrollContainer = document.getElementById('tubs-scroll-container');
+    const scrollTop = scrollContainer ? scrollContainer.scrollTop : 0;
+    const scrollLeft = scrollContainer ? scrollContainer.scrollLeft : 0;
+
     container.innerHTML = TubsGrid({
       section: activeSection,
       globalBpm: state.toque.globalBpm,
@@ -122,6 +127,13 @@ export const refreshGrid = () => {
       selectedStroke: state.selectedStroke,
       uiState: state.uiState
     });
+
+    // Restore scroll position
+    const newScrollContainer = document.getElementById('tubs-scroll-container');
+    if (newScrollContainer) {
+      newScrollContainer.scrollTop = scrollTop;
+      newScrollContainer.scrollLeft = scrollLeft;
+    }
   }
 };
 

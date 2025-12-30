@@ -7,6 +7,7 @@ export const TubsCell = ({
   isValid = true,
   trackIndex,
   stepIndex,
+  measureIndex,
   instrumentDef
 }) => {
   const baseClasses = "w-10 h-10 border border-gray-700 flex items-center justify-center text-sm select-none transition-all duration-75 relative";
@@ -31,6 +32,7 @@ export const TubsCell = ({
       data-role="tubs-cell"
       data-track-index="${trackIndex}"
       data-step-index="${stepIndex}"
+      data-measure-index="${measureIndex || 0}"
       data-stroke="${stroke}"
       title="${!isValid ? "Stroke not allowed for this instrument" : ""}"
     >

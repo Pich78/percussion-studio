@@ -42,24 +42,50 @@ export const setupEventListeners = () => {
             renderApp();
         }
 
+        if (action === 'add-measure') {
+            actions.addMeasure();
+        }
+        if (action === 'delete-measure') {
+            actions.deleteMeasure(parseInt(target.dataset.measureIndex));
+        }
+        if (action === 'duplicate-measure') {
+            actions.duplicateMeasure(parseInt(target.dataset.measureIndex));
+        }
+
         if (action === 'add-section') actions.addSection();
         if (action === 'delete-section') actions.deleteSection(target.dataset.id);
         if (action === 'duplicate-section') actions.duplicateSection(target.dataset.id);
 
         if (target.dataset.role === 'tubs-cell') {
-            actions.handleUpdateStroke(parseInt(target.dataset.trackIndex), parseInt(target.dataset.stepIndex));
+            actions.handleUpdateStroke(
+                parseInt(target.dataset.trackIndex),
+                parseInt(target.dataset.stepIndex),
+                parseInt(target.dataset.measureIndex || 0)
+            );
         }
 
         if (action === 'toggle-mute') {
             const section = state.toque.sections.find(s => s.id === state.activeSectionId);
             const tIdx = parseInt(target.dataset.trackIndex);
-            section.tracks[tIdx].muted = !section.tracks[tIdx].muted;
+            const mIdx = parseInt(target.dataset.measureIndex || 0);
+            const track = section.measures[mIdx].tracks[tIdx];
+            track.muted = !track.muted;
+            // Apply to all measures
+            section.measures.forEach(measure => {
+                if (measure.tracks[tIdx]) {
+                    measure.tracks[tIdx].muted = track.muted;
+                }
+            });
             refreshGrid();
         }
         if (action === 'remove-track') {
             if (confirm("Remove track?")) {
                 const section = state.toque.sections.find(s => s.id === state.activeSectionId);
-                section.tracks.splice(parseInt(target.dataset.trackIndex), 1);
+                const tIdx = parseInt(target.dataset.trackIndex);
+                // Remove from all measures
+                section.measures.forEach(measure => {
+                    measure.tracks.splice(tIdx, 1);
+                });
                 refreshGrid();
             }
         }
@@ -158,7 +184,15 @@ export const setupEventListeners = () => {
         }
 
         if (action === 'update-volume') {
-            section.tracks[parseInt(target.dataset.trackIndex)].volume = parseFloat(target.value);
+            const tIdx = parseInt(target.dataset.trackIndex);
+            const mIdx = parseInt(target.dataset.measureIndex || 0);
+            const newVolume = parseFloat(target.value);
+            // Apply to all measures
+            section.measures.forEach(measure => {
+                if (measure.tracks[tIdx]) {
+                    measure.tracks[tIdx].volume = newVolume;
+                }
+            });
         }
 
         if (action === 'update-bpm') {

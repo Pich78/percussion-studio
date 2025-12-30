@@ -36,16 +36,18 @@ export const exportRhythmToYAML = (state) => {
     const trackIdMap = {}; // Maps track.id to track_key
 
     toque.sections.forEach((section, sectionIdx) => {
-        section.tracks.forEach((track, trackIdx) => {
-            // Generate a unique track key if not already mapped
-            if (!trackIdMap[track.id]) {
-                const trackKey = `${track.instrument.toLowerCase()}_${Object.keys(trackIdMap).length + 1}`;
-                trackIdMap[track.id] = trackKey;
+        section.measures.forEach((measure, measureIdx) => {
+            measure.tracks.forEach((track, trackIdx) => {
+                // Generate a unique track key if not already mapped
+                if (!trackIdMap[track.id]) {
+                    const trackKey = `${track.instrument.toLowerCase()}_${Object.keys(trackIdMap).length + 1}`;
+                    trackIdMap[track.id] = trackKey;
 
-                yaml += `  ${trackKey}:\n`;
-                yaml += `    instrument: "${track.instrument}"\n`;
-                yaml += `    pack: "${track.pack || 'basic_bata'}"\n`;
-            }
+                    yaml += `  ${trackKey}:\n`;
+                    yaml += `    instrument: "${track.instrument}"\n`;
+                    yaml += `    pack: "${track.pack || 'basic_bata'}"\n`;
+                }
+            });
         });
     });
 
@@ -69,11 +71,15 @@ export const exportRhythmToYAML = (state) => {
             yaml += `    tempo_acceleration: ${section.tempoAcceleration}\n`;
         }
 
-        yaml += `    pattern:\n`;
-        section.tracks.forEach((track) => {
-            const trackKey = trackIdMap[track.id];
-            const patternStr = strokesToPatternString(track.strokes, section.subdivision);
-            yaml += `      ${trackKey}: "${patternStr}"\n`;
+        // Export measures
+        yaml += `    measures:\n`;
+        section.measures.forEach((measure) => {
+            yaml += `      - pattern:\n`;
+            measure.tracks.forEach((track) => {
+                const trackKey = trackIdMap[track.id];
+                const patternStr = strokesToPatternString(track.strokes, section.subdivision);
+                yaml += `          ${trackKey}: "${patternStr}"\n`;
+            });
         });
     });
 
