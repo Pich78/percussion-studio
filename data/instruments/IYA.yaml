@@ -1,0 +1,16 @@
+name: "Iya"
+symbol: "IYA"
+description: "The bigger drum of the Batá set."
+sounds:
+  - letter: "O"
+    name: "Open Tone (Enu)"
+    svg: "open.svg" # Application will look in data/icons/open.svg
+  - letter: "S"
+    name: "Slap (Chacha)"
+    svg: "slap.svg"
+  - letter: "M"
+    name: "Mordito"
+    svg: "mordito.svg"
+  - letter: "H"
+    name: "Half Mordito"
+    svg: "half_mordito.svg"
