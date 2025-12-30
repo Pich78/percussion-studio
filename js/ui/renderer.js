@@ -14,9 +14,9 @@ import { FolderOpenIcon } from '../icons/folderOpenIcon.js';
 const root = document.getElementById('root');
 
 const renderHeader = () => {
-    const activeSection = state.toque.sections.find(s => s.id === state.activeSectionId) || state.toque.sections[0];
+  const activeSection = state.toque.sections.find(s => s.id === state.activeSectionId) || state.toque.sections[0];
 
-    return `
+  return `
     <header class="h-16 px-4 border-b border-gray-800 flex justify-between items-center bg-gray-950 flex-shrink-0 z-40 gap-4">
       <div class="flex items-center gap-4 flex-1 min-w-0">
         <div class="relative">
@@ -73,27 +73,32 @@ const renderHeader = () => {
 };
 
 export const renderApp = () => {
-    const activeSection = state.toque.sections.find(s => s.id === state.activeSectionId) || state.toque.sections[0];
+  if (!state.toque) {
+    root.innerHTML = '<div class="flex h-full items-center justify-center text-gray-500">Loading Rhythm...</div>';
+    return;
+  }
 
-    root.innerHTML = `
+  const activeSection = state.toque.sections.find(s => s.id === state.activeSectionId) || state.toque.sections[0];
+
+  root.innerHTML = `
     <div class="flex flex-col h-full bg-gray-950 text-gray-100 font-sans selection:bg-cyan-500 selection:text-black">
       ${renderHeader()}
       <div class="flex flex-1 overflow-hidden">
         ${Timeline({
-        sections: state.toque.sections,
-        globalBpm: state.toque.globalBpm,
-        activeSectionId: state.activeSectionId,
-        rhythmName: state.toque.name
-    })}
+    sections: state.toque.sections,
+    globalBpm: state.toque.globalBpm,
+    activeSectionId: state.activeSectionId,
+    rhythmName: state.toque.name
+  })}
         <main class="flex-1 overflow-hidden relative flex flex-col justify-center items-center bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-900 via-gray-950 to-gray-950">
           <div id="grid-container" class="w-full max-w-7xl px-4 py-8 flex flex-col items-center justify-center overflow-hidden h-full">
             ${TubsGrid({
-        section: activeSection,
-        globalBpm: state.toque.globalBpm,
-        currentStep: state.currentStep,
-        selectedStroke: state.selectedStroke,
-        uiState: state.uiState
-    })}
+    section: activeSection,
+    globalBpm: state.toque.globalBpm,
+    currentStep: state.currentStep,
+    selectedStroke: state.selectedStroke,
+    uiState: state.uiState
+  })}
           </div>
         </main>
       </div>
@@ -103,41 +108,41 @@ export const renderApp = () => {
 };
 
 export const refreshGrid = () => {
-    const activeSection = state.toque.sections.find(s => s.id === state.activeSectionId) || state.toque.sections[0];
-    const container = document.getElementById('grid-container');
-    if (container) {
-        container.innerHTML = TubsGrid({
-            section: activeSection,
-            globalBpm: state.toque.globalBpm,
-            currentStep: state.currentStep,
-            selectedStroke: state.selectedStroke,
-            uiState: state.uiState
-        });
-    }
+  const activeSection = state.toque.sections.find(s => s.id === state.activeSectionId) || state.toque.sections[0];
+  const container = document.getElementById('grid-container');
+  if (container) {
+    container.innerHTML = TubsGrid({
+      section: activeSection,
+      globalBpm: state.toque.globalBpm,
+      currentStep: state.currentStep,
+      selectedStroke: state.selectedStroke,
+      uiState: state.uiState
+    });
+  }
 };
 
 export const updateVisualStep = (step) => {
-    document.querySelectorAll('.ring-2.ring-white').forEach(el => {
-        el.classList.remove('ring-2', 'ring-white', 'z-10', 'scale-105', 'shadow-lg', 'shadow-cyan-500/50');
-    });
-    document.querySelectorAll('.bg-gray-800').forEach(el => {
-        if (el.innerText === '' || el.innerText === '.') el.classList.remove('bg-gray-800');
-    });
-    document.querySelectorAll('[data-step-marker]').forEach(el => {
-        el.classList.remove('text-cyan-400', 'font-bold', 'scale-110');
-        el.classList.add('text-gray-500');
-    });
+  document.querySelectorAll('.ring-2.ring-white').forEach(el => {
+    el.classList.remove('ring-2', 'ring-white', 'z-10', 'scale-105', 'shadow-lg', 'shadow-cyan-500/50');
+  });
+  document.querySelectorAll('.bg-gray-800').forEach(el => {
+    if (el.innerText === '' || el.innerText === '.') el.classList.remove('bg-gray-800');
+  });
+  document.querySelectorAll('[data-step-marker]').forEach(el => {
+    el.classList.remove('text-cyan-400', 'font-bold', 'scale-110');
+    el.classList.add('text-gray-500');
+  });
 
-    const cells = document.querySelectorAll(`[data-step-index="${step}"]`);
-    cells.forEach(cell => {
-        cell.classList.add('ring-2', 'ring-white', 'z-10', 'scale-105', 'shadow-lg', 'shadow-cyan-500/50');
-        if (cell.innerText.trim() === '') cell.classList.add('bg-gray-800');
-    });
+  const cells = document.querySelectorAll(`[data-step-index="${step}"]`);
+  cells.forEach(cell => {
+    cell.classList.add('ring-2', 'ring-white', 'z-10', 'scale-105', 'shadow-lg', 'shadow-cyan-500/50');
+    if (cell.innerText.trim() === '') cell.classList.add('bg-gray-800');
+  });
 
-    const marker = document.querySelector(`[data-step-marker="${step}"]`);
-    if (marker) {
-        marker.classList.remove('text-gray-500');
-        marker.classList.add('text-cyan-400', 'font-bold', 'scale-110');
-    }
-    autoScrollGrid(step);
+  const marker = document.querySelector(`[data-step-marker="${step}"]`);
+  if (marker) {
+    marker.classList.remove('text-gray-500');
+    marker.classList.add('text-cyan-400', 'font-bold', 'scale-110');
+  }
+  autoScrollGrid(step);
 };

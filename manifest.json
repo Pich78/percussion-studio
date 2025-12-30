@@ -1,9 +1,12 @@
 {
   "instruments": {
-    "ITO": "data\\instruments\\ITO.yaml"
+    "ITO": "data/instruments/ITO.yaml",
+    "OKO": "data/instruments/OKO.yaml"
   },
-  "sound_packs": {},
+  "sound_packs": {
+    "basic_bata": "data/sounds/basic_bata/"
+  },
   "rhythms": {
-    "iyakota_1": "data\\rhythms\\iyakota_1.yaml"
+    "iyakota_1": "data/rhythms/iyakota_1.yaml"
   }
 }

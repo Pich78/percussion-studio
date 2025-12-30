@@ -1,0 +1,13 @@
+name: "Okonkolo"
+symbol: "OKO"
+description: "The smallest drum of the Batá set."
+sounds:
+  - letter: "O"
+    name: "Open Tone (Enu)"
+    svg: "open.svg"
+  - letter: "S"
+    name: "Slap (Enu)"
+    svg: "slap.svg"
+  - letter: "K"
+    name: "KiLa (ChaCha)"
+    svg: "touch.svg"
