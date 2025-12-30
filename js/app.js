@@ -8,6 +8,10 @@ import { setupEventListeners } from './events.js';
 import { dataLoader } from './services/dataLoader.js';
 import { actions } from './actions.js';
 
+// Expose actions to global scope for inline onclick handlers
+window.actions = actions;
+window.dataLoader = dataLoader;
+
 const init = async () => {
     // 1. Setup global event listeners (Event Delegation)
     // We do this first so the UI is responsive as soon as it renders.

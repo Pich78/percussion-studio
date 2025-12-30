@@ -14,11 +14,9 @@ def scan_instruments():
     
     for f in os.listdir(path):
         if f.endswith(".yaml") or f.endswith(".yml"):
-            # ID is the filename without extension (e.g., 'ITO')
             inst_id = os.path.splitext(f)[0]
-            # We open the file to get the human-readable name if needed, 
-            # but for the manifest, the ID (filename) is enough for the app to fetch it.
-            instruments[inst_id] = os.path.join(DATA_DIR, "instruments", f)
+            # Force URL-style forward slashes
+            instruments[inst_id] = f"{DATA_DIR}/instruments/{f}"
             
     return instruments
 
@@ -31,11 +29,9 @@ def scan_sound_packs():
     for folder_name in os.listdir(base_path):
         folder_path = os.path.join(base_path, folder_name)
         if os.path.isdir(folder_path):
-            # Look for pack.yaml inside
-            pack_def = os.path.join(folder_path, "pack.yaml")
-            if os.path.exists(pack_def):
-                # The Pack ID is the folder name (e.g., 'new_bata')
-                packs[folder_name] = pack_def
+            # Assume any folder in sounds is a pack
+            # Force URL-style forward slashes
+            packs[folder_name] = f"{DATA_DIR}/sounds/{folder_name}/"
                 
     return packs
 
@@ -48,7 +44,8 @@ def scan_rhythms():
     for f in os.listdir(path):
         if f.endswith(".yaml") or f.endswith(".yml"):
             r_id = os.path.splitext(f)[0]
-            rhythms[r_id] = os.path.join(DATA_DIR, "rhythms", f)
+            # Force URL-style forward slashes
+            rhythms[r_id] = f"{DATA_DIR}/rhythms/{f}"
             
     return rhythms
 

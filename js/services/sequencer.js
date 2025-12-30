@@ -75,7 +75,7 @@ export const stopPlayback = () => {
     state.currentStep = -1;
     playback.repetitionCounter = 1;
 
-    if (state.toque.sections.length > 0) {
+    if (state.toque && state.toque.sections && state.toque.sections.length > 0) {
         const first = state.toque.sections[0];
         state.activeSectionId = first.id;
         playback.activeSectionId = first.id;
