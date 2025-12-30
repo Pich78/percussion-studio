@@ -69,20 +69,56 @@ export const actions = {
             const sections = rhythmDef.playback_flow.map(flow => {
                 const sub = flow.time_signature === '6/8' || flow.time_signature === '12/8' ? 3 : 4;
 
-                // Build Tracks
-                const tracks = [];
-                for (const [trackKey, patternStr] of Object.entries(flow.pattern)) {
-                    const conf = trackConfig[trackKey];
-                    if (!conf) continue; // Should not happen if YAML is valid
+                // Check if new format (measures array) or old format (single pattern)
+                const hasMeasures = flow.measures && Array.isArray(flow.measures);
 
-                    tracks.push({
-                        id: crypto.randomUUID(),
-                        instrument: conf.instrument, // Symbol: 'ITO'
-                        pack: conf.pack,             // Pack: 'basic_bata'
-                        volume: 1.0,
-                        muted: false,
-                        strokes: parsePatternString(patternStr, flow.steps)
+                let measures = [];
+
+                if (hasMeasures) {
+                    // New format: multiple measures
+                    measures = flow.measures.map(measureDef => {
+                        const tracks = [];
+                        for (const [trackKey, patternStr] of Object.entries(measureDef.pattern)) {
+                            const conf = trackConfig[trackKey];
+                            if (!conf) continue;
+
+                            tracks.push({
+                                id: crypto.randomUUID(),
+                                instrument: conf.instrument,
+                                pack: conf.pack,
+                                volume: 1.0,
+                                muted: false,
+                                strokes: parsePatternString(patternStr, flow.steps)
+                            });
+                        }
+
+                        return {
+                            id: crypto.randomUUID(),
+                            tracks: tracks
+                        };
                     });
+                } else {
+                    // Old format: single pattern (backward compatibility)
+                    const tracks = [];
+                    for (const [trackKey, patternStr] of Object.entries(flow.pattern)) {
+                        const conf = trackConfig[trackKey];
+                        if (!conf) continue; // Should not happen if YAML is valid
+
+                        tracks.push({
+                            id: crypto.randomUUID(),
+                            instrument: conf.instrument, // Symbol: 'ITO'
+                            pack: conf.pack,             // Pack: 'basic_bata'
+                            volume: 1.0,
+                            muted: false,
+                            strokes: parsePatternString(patternStr, flow.steps)
+                        });
+                    }
+
+                    // Wrap in measures array
+                    measures = [{
+                        id: crypto.randomUUID(),
+                        tracks: tracks
+                    }];
                 }
 
                 return {
@@ -92,7 +128,7 @@ export const actions = {
                     steps: flow.steps,
                     subdivision: sub,
                     repetitions: flow.repetitions,
-                    tracks: tracks,
+                    measures: measures,
                     bpm: flow.bpm, // Optional override
                     tempoAcceleration: flow.tempo_acceleration || 0
                 };
@@ -141,7 +177,10 @@ export const actions = {
                 steps: 16,
                 subdivision: 4,
                 repetitions: 1,
-                tracks: []
+                measures: [{
+                    id: crypto.randomUUID(),
+                    tracks: []
+                }]
             }]
         };
         actions.updateActiveSection(newId);
@@ -149,6 +188,8 @@ export const actions = {
 
     addSection: () => {
         if (!state.toque) return;
+
+        // Create new section structure
         const newSec = {
             id: crypto.randomUUID(),
             name: `Section ${state.toque.sections.length + 1}`,
@@ -156,8 +197,31 @@ export const actions = {
             steps: 16,
             subdivision: 4,
             repetitions: 1,
-            tracks: [] // Empty tracks initially
+            measures: [{
+                id: crypto.randomUUID(),
+                tracks: []
+            }]
         };
+
+        // If there are existing sections with tracks, copy the instrument structure
+        if (state.toque.sections.length > 0) {
+            const firstSection = state.toque.sections[0];
+            if (firstSection.measures && firstSection.measures.length > 0) {
+                const firstMeasure = firstSection.measures[0];
+                if (firstMeasure.tracks && firstMeasure.tracks.length > 0) {
+                    // Copy track structure (instrument, pack, volume, muted) but with empty strokes
+                    newSec.measures[0].tracks = firstMeasure.tracks.map(track => ({
+                        id: crypto.randomUUID(),
+                        instrument: track.instrument,
+                        pack: track.pack,
+                        volume: track.volume,
+                        muted: track.muted,
+                        strokes: Array(newSec.steps).fill(StrokeType.None)
+                    }));
+                }
+            }
+        }
+
         state.toque.sections.push(newSec);
         actions.updateActiveSection(newSec.id);
     },
@@ -178,16 +242,20 @@ export const actions = {
             const copy = JSON.parse(JSON.stringify(src));
             copy.id = crypto.randomUUID();
             copy.name = `${src.name} (Copy)`;
-            // Regenerate track IDs to avoid reference issues
-            copy.tracks.forEach(t => t.id = crypto.randomUUID());
+            // Regenerate measure and track IDs to avoid reference issues
+            copy.measures.forEach(measure => {
+                measure.id = crypto.randomUUID();
+                measure.tracks.forEach(t => t.id = crypto.randomUUID());
+            });
             state.toque.sections.push(copy);
             actions.updateActiveSection(copy.id);
         }
     },
 
-    handleUpdateStroke: (trackIdx, stepIdx) => {
+    handleUpdateStroke: (trackIdx, stepIdx, measureIdx = 0) => {
         const section = state.toque.sections.find(s => s.id === state.activeSectionId);
-        const track = section.tracks[trackIdx];
+        const measure = section.measures[measureIdx];
+        const track = measure.tracks[trackIdx];
         const nextStroke = track.strokes[stepIdx] === state.selectedStroke ? StrokeType.None : state.selectedStroke;
 
         // Dynamic Validation against Loaded Instrument Definition
@@ -255,22 +323,98 @@ export const actions = {
             await audioEngine.loadSoundPack(instrumentSymbol, soundConfig);
         }
 
-        // 3. Add to state
-        section.tracks.push({
-            id: crypto.randomUUID(),
-            instrument: instrumentSymbol,
-            pack: pack,
-            volume: 1.0,
-            muted: false,
-            strokes: Array(section.steps).fill(StrokeType.None)
+        // 3. Add to all measures in section
+        section.measures.forEach(measure => {
+            measure.tracks.push({
+                id: crypto.randomUUID(),
+                instrument: instrumentSymbol,
+                pack: pack,
+                volume: 1.0,
+                muted: false,
+                strokes: Array(section.steps).fill(StrokeType.None)
+            });
         });
 
         refreshGrid();
     },
 
+    /**
+     * Adds a new measure to the active section
+     */
+    addMeasure: () => {
+        const section = state.toque.sections.find(s => s.id === state.activeSectionId);
+        if (!section) return;
+
+        // Create new measure with tracks matching existing ones
+        const newMeasure = {
+            id: crypto.randomUUID(),
+            tracks: []
+        };
+
+        // If there are existing measures, clone track structure from first measure
+        if (section.measures.length > 0) {
+            const firstMeasure = section.measures[0];
+            firstMeasure.tracks.forEach(track => {
+                newMeasure.tracks.push({
+                    id: crypto.randomUUID(),
+                    instrument: track.instrument,
+                    pack: track.pack,
+                    volume: track.volume,
+                    muted: track.muted,
+                    strokes: Array(section.steps).fill(StrokeType.None)
+                });
+            });
+        }
+
+        section.measures.push(newMeasure);
+        refreshGrid();
+    },
+
+    /**
+     * Deletes a measure from the active section
+     */
+    deleteMeasure: (measureIdx) => {
+        const section = state.toque.sections.find(s => s.id === state.activeSectionId);
+        if (!section || section.measures.length <= 1) {
+            alert("Cannot delete the last measure");
+            return;
+        }
+
+        if (confirm("Delete this measure?")) {
+            section.measures.splice(measureIdx, 1);
+            refreshGrid();
+        }
+    },
+
+    /**
+     * Duplicates a measure in the active section
+     */
+    duplicateMeasure: (measureIdx) => {
+        const section = state.toque.sections.find(s => s.id === state.activeSectionId);
+        if (!section) return;
+
+        const sourceMeasure = section.measures[measureIdx];
+        const newMeasure = {
+            id: crypto.randomUUID(),
+            tracks: sourceMeasure.tracks.map(track => ({
+                id: crypto.randomUUID(),
+                instrument: track.instrument,
+                pack: track.pack,
+                volume: track.volume,
+                muted: track.muted,
+                strokes: [...track.strokes] // Copy strokes array
+            }))
+        };
+
+        // Insert after the source measure
+        section.measures.splice(measureIdx + 1, 0, newMeasure);
+        refreshGrid();
+    },
+
     updateTrackInstrument: async (trackIdx, newSymbol) => {
         const section = state.toque.sections.find(s => s.id === state.activeSectionId);
-        const track = section.tracks[trackIdx];
+        if (!section || !section.measures[0]) return;
+
         const pack = "basic_bata"; // Default
 
         // Load resources
@@ -278,10 +422,18 @@ export const actions = {
             state.instrumentDefinitions[newSymbol] = await dataLoader.loadInstrumentDefinition(newSymbol);
         }
         const soundConfig = await dataLoader.loadSoundPackConfig(pack, newSymbol);
-        await audioEngine.loadSoundPack(newSymbol, soundConfig);
+        if (soundConfig) {
+            await audioEngine.loadSoundPack(newSymbol, soundConfig);
+        }
 
-        track.instrument = newSymbol;
-        track.pack = pack;
+        // Update all measures
+        section.measures.forEach(measure => {
+            if (measure.tracks[trackIdx]) {
+                measure.tracks[trackIdx].instrument = newSymbol;
+                measure.tracks[trackIdx].pack = pack;
+            }
+        });
+
         refreshGrid();
     }
 };

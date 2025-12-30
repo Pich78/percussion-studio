@@ -20,6 +20,7 @@ import { TrashIcon } from '../icons/trashIcon.js';
 import { PlusIcon } from '../icons/plusIcon.js';
 import { XMarkIcon } from '../icons/xMarkIcon.js';
 import { FolderOpenIcon } from '../icons/folderOpenIcon.js';
+import { DocumentDuplicateIcon } from '../icons/documentDuplicateIcon.js';
 
 export const TubsGrid = ({
   section,
@@ -166,79 +167,143 @@ export const TubsGrid = ({
     </div>
   `;
 
-  const renderTracks = () => section.tracks.map((track, trackIdx) => {
-    // DYNAMIC VALIDATION: Check loaded definition
-    const instDef = state.instrumentDefinitions[track.instrument];
-    let isStrokeValid = true;
+  const renderMeasures = () => section.measures.map((measure, measureIdx) => {
+    const measureLabel = `Measure ${measureIdx + 1}`;
 
-    if (instDef && selectedStroke !== StrokeType.None) {
-      // Does this instrument support this letter?
-      isStrokeValid = instDef.sounds.some(s => s.letter.toUpperCase() === selectedStroke.toUpperCase());
-    }
+    const renderTracksForMeasure = () => measure.tracks.map((track, trackIdx) => {
+      // DYNAMIC VALIDATION: Check loaded definition
+      const instDef = state.instrumentDefinitions[track.instrument];
+      let isStrokeValid = true;
 
-    const borderColor = INSTRUMENT_COLORS[track.instrument] || 'border-l-4 border-gray-700';
+      if (instDef && selectedStroke !== StrokeType.None) {
+        // Does this instrument support this letter?
+        isStrokeValid = instDef.sounds.some(s => s.letter.toUpperCase() === selectedStroke.toUpperCase());
+      }
 
-    // Get Display Name (from def or fallback to symbol)
-    const displayName = instDef ? instDef.name : track.instrument;
+      const borderColor = INSTRUMENT_COLORS[track.instrument] || 'border-l-4 border-gray-700';
+
+      // Get Display Name (from def or fallback to symbol)
+      const displayName = instDef ? instDef.name : track.instrument;
+
+      return `
+        <div class="flex items-center group min-w-max transition-opacity duration-300 ${track.muted ? 'opacity-50' : 'opacity-100'}">
+          <!-- Instrument Label - Sticky -->
+          <div class="sticky left-0 z-20 w-36 flex-shrink-0 pr-2 flex flex-col justify-center ${borderColor} pl-3 bg-gray-950 border-r border-gray-800 py-2 shadow-[4px_0_10px_rgba(0,0,0,0.5)]">
+            
+            <div class="flex items-center justify-between mb-1">
+              <button 
+                class="font-bold text-sm cursor-pointer select-none hover:text-cyan-400 hover:underline text-left truncate w-20 ${track.muted ? 'text-gray-500 line-through' : 'text-gray-200'}"
+                data-action="open-edit-modal"
+                data-track-index="${trackIdx}"
+                data-measure-index="${measureIdx}"
+                title="Change Instrument (${displayName})"
+              >
+                ${displayName}
+              </button>
+              
+              <div class="flex items-center gap-1">
+                 <button data-action="toggle-mute" data-track-index="${trackIdx}" data-measure-index="${measureIdx}" class="text-gray-500 hover:text-white" title="${track.muted ? "Unmute" : "Mute"}">
+                  ${track.muted ? SpeakerXMarkIcon('w-3.5 h-3.5') : SpeakerWaveIcon('w-3.5 h-3.5')}
+                </button>
+                <button data-action="remove-track" data-track-index="${trackIdx}" data-measure-index="${measureIdx}" class="text-gray-600 hover:text-red-500" title="Remove Track">
+                  ${TrashIcon('w-3.5 h-3.5')}
+                </button>
+              </div>
+            </div>
+            
+            <!-- Volume Slider -->
+            <input 
+              type="range" 
+              min="0" 
+              max="1" 
+              step="0.01" 
+              value="${track.volume ?? 1.0}" 
+              data-action="update-volume"
+              data-track-index="${trackIdx}"
+              data-measure-index="${measureIdx}"
+              class="w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-gray-400 hover:accent-cyan-400"
+              title="Volume"
+            />
+          </div>
+
+          <!-- Grid Cells -->
+          <div class="flex gap-1 bg-gray-900/30 p-1 rounded-r-md ml-1">
+            ${track.strokes.map((stroke, stepIdx) => `
+              <div class="${stepIdx % groupSize === 0 && stepIdx !== 0 ? "ml-1" : ""}"> 
+                ${TubsCell({
+        stroke,
+        isCurrentStep: currentStep === stepIdx,
+        isValid: isStrokeValid,
+        trackIndex: trackIdx,
+        stepIndex: stepIdx,
+        measureIndex: measureIdx,
+        isActive: stroke !== StrokeType.None,
+        instrumentDef: instDef
+      })}
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }).join('');
 
     return `
-      <div class="flex items-center group min-w-max transition-opacity duration-300 ${track.muted ? 'opacity-50' : 'opacity-100'}">
-        <!-- Instrument Label - Sticky -->
-        <div class="sticky left-0 z-20 w-36 flex-shrink-0 pr-2 flex flex-col justify-center ${borderColor} pl-3 bg-gray-950 border-r border-gray-800 py-2 shadow-[4px_0_10px_rgba(0,0,0,0.5)]">
-          
-          <div class="flex items-center justify-between mb-1">
-            <button 
-              class="font-bold text-sm cursor-pointer select-none hover:text-cyan-400 hover:underline text-left truncate w-20 ${track.muted ? 'text-gray-500 line-through' : 'text-gray-200'}"
-              data-action="open-edit-modal"
-              data-track-index="${trackIdx}"
-              title="Change Instrument (${displayName})"
-            >
-              ${displayName}
-            </button>
-            
-            <div class="flex items-center gap-1">
-               <button data-action="toggle-mute" data-track-index="${trackIdx}" class="text-gray-500 hover:text-white" title="${track.muted ? "Unmute" : "Mute"}">
-                ${track.muted ? SpeakerXMarkIcon('w-3.5 h-3.5') : SpeakerWaveIcon('w-3.5 h-3.5')}
-              </button>
-              <button data-action="remove-track" data-track-index="${trackIdx}" class="text-gray-600 hover:text-red-500" title="Remove Track">
-                ${TrashIcon('w-3.5 h-3.5')}
-              </button>
-            </div>
+      <div class="measure-container mb-6" data-measure-index="${measureIdx}">
+        <!-- Measure Label with Actions -->
+        <div class="sticky left-0 z-20 mb-2 flex items-center gap-2">
+          <div class="px-2 py-1 bg-gray-800/80 backdrop-blur border-l-4 border-cyan-500 rounded">
+            <span class="text-xs font-bold text-cyan-400 uppercase tracking-wide">${measureLabel}</span>
           </div>
-          
-          <!-- Volume Slider -->
-          <input 
-            type="range" 
-            min="0" 
-            max="1" 
-            step="0.01" 
-            value="${track.volume ?? 1.0}" 
-            data-action="update-volume"
-            data-track-index="${trackIdx}"
-            class="w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-gray-400 hover:accent-cyan-400"
-            title="Volume"
-          />
+          <div class="flex items-center gap-1">
+            <button 
+              data-action="duplicate-measure" 
+              data-measure-index="${measureIdx}"
+              class="p-1 text-gray-500 hover:text-cyan-400 transition-colors"
+              title="Duplicate Measure"
+            >
+              ${DocumentDuplicateIcon('w-3.5 h-3.5')}
+            </button>
+            <button 
+              data-action="delete-measure" 
+              data-measure-index="${measureIdx}"
+              class="p-1 text-gray-500 hover:text-red-500 transition-colors"
+              title="Delete Measure"
+            >
+              ${TrashIcon('w-3.5 h-3.5')}
+            </button>
+          </div>
         </div>
-
-        <!-- Grid Cells -->
-        <div class="flex gap-1 bg-gray-900/30 p-1 rounded-r-md ml-1">
-          ${track.strokes.map((stroke, stepIdx) => `
-            <div class="${stepIdx % groupSize === 0 && stepIdx !== 0 ? "ml-1" : ""}"> 
-              ${TubsCell({
-      stroke,
-      isCurrentStep: currentStep === stepIdx,
-      isValid: isStrokeValid,
-      trackIndex: trackIdx,
-      stepIndex: stepIdx,
-      isActive: stroke !== StrokeType.None,
-      instrumentDef: instDef
-    })}
-            </div>
-          `).join('')}
+        
+        <!-- Tracks for this measure -->
+        ${renderTracksForMeasure()}
+        
+        <!-- Add Track Button (per measure) -->
+        <div class="sticky left-0 z-20 w-36 pt-2">
+          <button 
+            data-action="open-add-modal"
+            class="w-full py-2 border border-dashed border-gray-700 rounded text-gray-500 hover:text-white hover:border-gray-500 hover:bg-gray-900 flex items-center justify-center gap-2 text-xs font-bold transition-all uppercase tracking-wide"
+          >
+            ${PlusIcon('w-4 h-4')}
+            Add Track
+          </button>
         </div>
+        
+        <!-- Measure Separator -->
+        ${measureIdx < section.measures.length - 1 ? '<div class="h-px bg-gray-700/50 my-4"></div>' : ''}
       </div>
     `;
-  }).join('');
+  }).join('') + `
+    <!-- Add Measure Button -->
+    <div class="sticky left-0 z-20 mt-4 w-fit">
+      <button 
+        data-action="add-measure"
+        class="px-4 py-2 border border-dashed border-cyan-700 rounded text-cyan-500 hover:text-white hover:border-cyan-500 hover:bg-cyan-900/20 flex items-center gap-2 text-xs font-bold transition-all uppercase tracking-wide"
+      >
+        ${PlusIcon('w-4 h-4')}
+        Add Measure
+      </button>
+    </div>
+  `;
 
   const renderModal = () => {
     if (!uiState.modalOpen) return '';
@@ -332,22 +397,11 @@ export const TubsGrid = ({
   return `
     <div 
       id="tubs-scroll-container"
-      class="flex flex-col gap-4 overflow-x-auto pb-8 w-full custom-scrollbar relative bg-gray-900/20 p-4 rounded-xl border border-gray-800"
+      class="flex flex-col gap-4 overflow-x-auto overflow-y-auto pb-8 w-full custom-scrollbar relative bg-gray-900/20 p-4 rounded-xl border border-gray-800"
     >
       ${renderSectionSettings()}
       ${renderTimelineHeader()}
-      ${renderTracks()}
-      
-      <!-- Add Instrument Button -->
-      <div class="sticky left-0 z-20 w-36 pt-2">
-          <button 
-              data-action="open-add-modal"
-              class="w-full py-2 border border-dashed border-gray-700 rounded text-gray-500 hover:text-white hover:border-gray-500 hover:bg-gray-900 flex items-center justify-center gap-2 text-xs font-bold transition-all uppercase tracking-wide"
-          >
-              ${PlusIcon('w-4 h-4')}
-              Add Track
-          </button>
-      </div>
+      ${renderMeasures()}
     </div>
     
     ${renderModal()}

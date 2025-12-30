@@ -13,6 +13,7 @@ export const state = {
     isPlaying: false,
     currentStep: -1,
     selectedStroke: StrokeType.Open, // Default selected tool
+    clipboard: null, // For copy/paste measures
     uiState: {
         isMenuOpen: false,
         modalOpen: false,
@@ -25,6 +26,7 @@ export const state = {
 export const playback = {
     timeoutId: null,
     currentStep: -1,
+    currentMeasureIndex: 0, // Track current measure within section
     repetitionCounter: 1,
     currentPlayheadBpm: 120, // Default safe value
     activeSectionId: null
