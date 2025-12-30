@@ -225,6 +225,8 @@ export const setupEventListeners = () => {
         if (item) {
             draggedIndex = parseInt(item.dataset.index);
             e.dataTransfer.effectAllowed = 'move';
+        } else {
+            e.preventDefault();
         }
     });
     root.addEventListener('dragover', (e) => e.preventDefault());

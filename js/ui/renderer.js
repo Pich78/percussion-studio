@@ -81,7 +81,7 @@ export const renderApp = () => {
   const activeSection = state.toque.sections.find(s => s.id === state.activeSectionId) || state.toque.sections[0];
 
   root.innerHTML = `
-    <div class="flex flex-col h-full bg-gray-950 text-gray-100 font-sans selection:bg-cyan-500 selection:text-black">
+    <div class="flex flex-col h-full bg-gray-950 text-gray-100 font-sans selection:bg-cyan-500 selection:text-black select-none">
       ${renderHeader()}
       <div class="flex flex-1 overflow-hidden">
         ${Timeline({
