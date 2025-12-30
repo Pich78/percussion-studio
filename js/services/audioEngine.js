@@ -72,7 +72,7 @@ class AudioEngine {
     /**
      * Play a sound with shortened duration (for Presionado emulation)
      */
-    playShortenedSound(buffer, time, volume, cutRatio = 0.3) {
+    playShortenedSound(buffer, time, volume, cutRatio = 0.08) {
         const playTime = Math.max(time, this.ctx.currentTime);
 
         const source = this.ctx.createBufferSource();
@@ -133,7 +133,7 @@ class AudioEngine {
             case 'P': // Presionado = Shortened Open
                 if (openBuffer) {
                     console.log(`[Emulation] ${instrumentSymbol} Presionado: Shortened Open`);
-                    this.playShortenedSound(openBuffer, time, volume, 0.3);
+                    this.playShortenedSound(openBuffer, time, volume, 0.08);
                 }
                 break;
 
@@ -155,7 +155,7 @@ class AudioEngine {
                         slapSource.start(playTime);
 
                         // Play shortened open
-                        this.playShortenedSound(openBuffer, time, volume, 0.3);
+                        this.playShortenedSound(openBuffer, time, volume, 0.08);
                     }
                 }
                 break;
