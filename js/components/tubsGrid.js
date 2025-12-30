@@ -21,6 +21,7 @@ import { PlusIcon } from '../icons/plusIcon.js';
 import { XMarkIcon } from '../icons/xMarkIcon.js';
 import { FolderOpenIcon } from '../icons/folderOpenIcon.js';
 import { DocumentDuplicateIcon } from '../icons/documentDuplicateIcon.js';
+import { MusicalNoteIcon } from '../icons/musicalNoteIcon.js';
 
 export const TubsGrid = ({
   section,
@@ -328,27 +329,76 @@ export const TubsGrid = ({
 
     if (uiState.modalType === 'rhythm') {
       title = 'Load Rhythm';
+
+      // 1. Build Tree
+      const buildTree = (ids) => {
+        const tree = {};
+        ids.forEach(id => {
+          const parts = id.split('/');
+          let current = tree;
+          parts.forEach((part, idx) => {
+            if (!current[part]) {
+              current[part] = idx === parts.length - 1 ? id : {}; // Leaf = id (string), Node = object
+            }
+            if (typeof current[part] === 'object') {
+              current = current[part];
+            }
+          });
+        });
+        return tree;
+      };
+
+      // 2. Recursive Render
+      const renderTree = (node, depth = 0) => {
+        return Object.entries(node).map(([key, value]) => {
+          const isLeaf = typeof value === 'string';
+          const paddingLeft = depth * 1.5; // indentation in rem
+
+          // ... (inside component)
+          // ... (inside component)
+
+          if (isLeaf) {
+            // It's a rhythm button
+            // Prettify name
+            const name = key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+            return `
+              <button
+                  data-action="select-rhythm-confirm"
+                  data-rhythm-id="${value}"
+                  class="
+                      flex items-center gap-3 px-3 py-3 rounded-lg border border-gray-700 bg-gray-900/50 hover:bg-gray-800 transition-all text-left group w-full mb-2
+                  "
+                  style="margin-left: ${paddingLeft}rem; width: calc(100% - ${paddingLeft}rem);"
+              >
+                  ${MusicalNoteIcon('w-5 h-5 text-amber-500 group-hover:text-amber-400')}
+                  <span class="font-medium text-gray-200 pointer-events-none group-hover:text-white">${name}</span>
+              </button>
+            `;
+          } else {
+            // It's a Folder
+            const folderName = key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+            return `
+              <div class="mb-2">
+                <div 
+                  class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-2"
+                  style="margin-left: ${paddingLeft}rem;"
+                >
+                  ${FolderOpenIcon('w-4 h-4 text-gray-600')}
+                  ${folderName}
+                </div>
+                ${renderTree(value, depth + 1)}
+              </div>
+            `;
+          }
+        }).join('');
+      };
+
       const rhythms = dataLoader.manifest && dataLoader.manifest.rhythms
-        ? Object.keys(dataLoader.manifest.rhythms).map(id => {
-          // Prettify ID
-          const name = id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-          return `
-                  <button
-                      data-action="select-rhythm-confirm"
-                      data-rhythm-id="${id}"
-                      class="
-                          flex items-center gap-3 px-3 py-3 rounded-lg border border-gray-700 bg-gray-900/50 hover:bg-gray-800 transition-all text-left group
-                      "
-                  >
-                      ${FolderOpenIcon('w-5 h-5 text-amber-500 group-hover:text-amber-400')}
-                      <span class="font-medium text-gray-200 pointer-events-none group-hover:text-white">${name}</span>
-                  </button>
-                `;
-        }).join('')
-        : '<div class="col-span-3 text-center text-gray-500">No rhythms found.</div>';
+        ? renderTree(buildTree(Object.keys(dataLoader.manifest.rhythms)))
+        : '<div class="text-center text-gray-500 py-8">No rhythms found.</div>';
 
       content = `
-            <div class="p-6 grid grid-cols-1 sm:grid-cols-2 gap-3 overflow-y-auto max-h-[60vh]">
+            <div class="p-6 overflow-y-auto max-h-[60vh]">
                 ${rhythms}
             </div>
         `;

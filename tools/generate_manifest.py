@@ -36,16 +36,22 @@ def scan_sound_packs():
     return packs
 
 def scan_rhythms():
-    """Scans data/rhythms for .yaml files"""
+    """Scans data/rhythms for .yaml files recursively"""
     rhythms = {}
-    path = os.path.join(DATA_DIR, "rhythms")
-    if not os.path.exists(path): return rhythms
+    base_path = os.path.join(DATA_DIR, "rhythms")
+    if not os.path.exists(base_path): return rhythms
     
-    for f in os.listdir(path):
-        if f.endswith(".yaml") or f.endswith(".yml"):
-            r_id = os.path.splitext(f)[0]
-            # Force URL-style forward slashes
-            rhythms[r_id] = f"{DATA_DIR}/rhythms/{f}"
+    for root, dirs, files in os.walk(base_path):
+        for f in files:
+            if f.endswith(".yaml") or f.endswith(".yml"):
+                full_path = os.path.join(root, f)
+                # Get path relative to data/rhythms
+                rel_path = os.path.relpath(full_path, base_path)
+                # Remove extension for ID
+                r_id = os.path.splitext(rel_path)[0]
+                # Force URL-style forward slashes for cross-platform consistency
+                r_id = r_id.replace(os.path.sep, "/")
+                rhythms[r_id] = f"{DATA_DIR}/rhythms/{rel_path}".replace(os.path.sep, "/")
             
     return rhythms
 
