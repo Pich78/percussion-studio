@@ -10,6 +10,7 @@ import { StopIcon } from '../icons/stopIcon.js';
 import { Bars3Icon } from '../icons/bars3Icon.js';
 import { DocumentPlusIcon } from '../icons/documentPlusIcon.js';
 import { FolderOpenIcon } from '../icons/folderOpenIcon.js';
+import { ArrowDownTrayIcon } from '../icons/arrowDownTrayIcon.js';
 
 const root = document.getElementById('root');
 
@@ -29,8 +30,11 @@ const renderHeader = () => {
                     <button data-action="new-rhythm" class="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition-colors border-b border-gray-800 flex items-center gap-2">
                         ${DocumentPlusIcon('w-4 h-4 text-cyan-500 pointer-events-none')} New Rhythm
                     </button>
-                    <button data-action="load-rhythm" class="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition-colors flex items-center gap-2">
+                    <button data-action="load-rhythm" class="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition-colors flex items-center gap-2 border-b border-gray-800">
                         ${FolderOpenIcon('w-4 h-4 text-amber-500 pointer-events-none')} Load Rhythm...
+                    </button>
+                    <button data-action="download-rhythm" class="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition-colors flex items-center gap-2">
+                        ${ArrowDownTrayIcon('w-4 h-4 text-green-500 pointer-events-none')} Download Rhythm
                     </button>
                 </div>
             </div>

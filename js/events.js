@@ -4,6 +4,7 @@ import { togglePlay, stopPlayback } from './services/sequencer.js';
 import { renderApp, refreshGrid } from './ui/renderer.js';
 import { Controls } from './components/controls.js';
 import { StrokeType } from './types.js';
+import { downloadRhythm } from './utils/rhythmExporter.js';
 
 export const setupEventListeners = () => {
     const root = document.getElementById('root');
@@ -32,6 +33,11 @@ export const setupEventListeners = () => {
         if (action === 'load-rhythm') {
             state.uiState.modalType = 'rhythm';
             state.uiState.modalOpen = true;
+            state.uiState.isMenuOpen = false;
+            renderApp();
+        }
+        if (action === 'download-rhythm') {
+            downloadRhythm(state);
             state.uiState.isMenuOpen = false;
             renderApp();
         }
