@@ -151,18 +151,24 @@ export const TubsGrid = ({
       <div class="sticky left-0 z-20 w-36 flex-shrink-0 bg-gray-950 border-r border-gray-800 shadow-[4px_0_10px_rgba(0,0,0,0.5)]"></div> 
       
       <div class="flex gap-1 pl-1 ml-1">
-        ${Array.from({ length: section.steps }).map((_, i) => `
+        ${Array.from({ length: section.steps }).map((_, i) => {
+    const isGroupStart = i % groupSize === 0 && i !== 0;
+    const separator = isGroupStart
+      ? `<div class="w-px bg-gray-700 h-5 mt-3 flex-shrink-0"></div>`
+      : '';
+
+    return `
+          ${separator}
           <div 
             data-step-marker="${i}"
             class="w-10 text-center text-xs font-mono mb-1 pt-2 transition-transform duration-75 flex-shrink-0
               ${i === currentStep ? 'text-cyan-400 font-bold scale-110' : 'text-gray-500'}
-              ${i % groupSize === 0 ? 'border-l border-gray-700' : ''}
-              ${i % groupSize === 0 && i !== 0 ? 'ml-1' : ''} 
             "
           >
             ${i + 1}
           </div>
-        `).join('')}
+        `;
+  }).join('')}
       </div>
     </div>
   `;
@@ -228,20 +234,29 @@ export const TubsGrid = ({
 
           <!-- Grid Cells -->
           <div class="flex gap-1 bg-gray-900/30 p-1 rounded-r-md ml-1">
-            ${track.strokes.map((stroke, stepIdx) => `
-              <div class="${stepIdx % groupSize === 0 && stepIdx !== 0 ? "ml-1" : ""}"> 
+            ${track.strokes.map((stroke, stepIdx) => {
+        const isGroupStart = stepIdx % groupSize === 0 && stepIdx !== 0;
+        // Invisible separator to maintain alignment with header
+        const separator = isGroupStart
+          ? `<div class="w-px bg-transparent h-10 flex-shrink-0"></div>`
+          : '';
+
+        return `
+              ${separator}
+              <div> 
                 ${TubsCell({
-        stroke,
-        isCurrentStep: currentStep === stepIdx,
-        isValid: isStrokeValid,
-        trackIndex: trackIdx,
-        stepIndex: stepIdx,
-        measureIndex: measureIdx,
-        isActive: stroke !== StrokeType.None,
-        instrumentDef: instDef
-      })}
+          stroke,
+          isCurrentStep: currentStep === stepIdx,
+          isValid: isStrokeValid,
+          trackIndex: trackIdx,
+          stepIndex: stepIdx,
+          measureIndex: measureIdx,
+          isActive: stroke !== StrokeType.None,
+          instrumentDef: instDef
+        })}
               </div>
-            `).join('')}
+            `;
+      }).join('')}
           </div>
         </div>
       `;
