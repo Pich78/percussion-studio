@@ -28,6 +28,9 @@ export const TubsCell = ({
   return `
     <div 
       class="${baseClasses} ${colorClass} ${activeClass} ${stepHighlight} ${cursorClass} ${hoverClass}"
+      data-role="tubs-cell"
+      data-track-index="${trackIndex}"
+      data-step-index="${stepIndex}"
       data-stroke="${stroke}"
       title="${!isValid ? "Stroke not allowed for this instrument" : ""}"
     >

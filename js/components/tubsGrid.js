@@ -6,7 +6,7 @@
 
 import { StrokeType } from '../types.js';
 import { INSTRUMENT_COLORS } from '../constants.js'; // Colors still hardcoded for now
-import { TubsCell } from './tubsCell.js';
+import { TubsCell } from './tubsCell.js?v=2';
 import { state } from '../store.js';
 import { dataLoader } from '../services/dataLoader.js'; // To access manifest
 

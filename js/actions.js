@@ -192,11 +192,24 @@ export const actions = {
 
         // Dynamic Validation against Loaded Instrument Definition
         if (nextStroke !== StrokeType.None) {
+            console.log(`[Action] Validating stroke '${nextStroke}' for instrument '${track.instrument}'`);
+
             const instDef = state.instrumentDefinitions[track.instrument];
             if (instDef) {
                 // Check if this instrument has this letter defined
                 const isValid = instDef.sounds.some(s => s.letter.toUpperCase() === nextStroke.toUpperCase());
-                if (!isValid) return; // Ignore invalid stroke
+
+                if (!isValid) {
+                    console.error(`[Validation Failed] Stroke '${nextStroke}' not found for '${track.instrument}'.`);
+                    console.error(`Valid strokes: ${instDef.sounds.map(s => s.letter).join(', ')}`);
+                    // Log definition deep copy to verify content
+                    try { console.error('Instrument Definition:', JSON.parse(JSON.stringify(instDef))); } catch (e) { }
+                    return; // Ignore invalid stroke
+                } else {
+                    console.log(`[Validation Passed] Stroke '${nextStroke}' is valid.`);
+                }
+            } else {
+                console.error(`[Validation Error] No instrument definition found for '${track.instrument}'`);
             }
         }
 
