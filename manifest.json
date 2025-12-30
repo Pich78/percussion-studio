@@ -8,6 +8,7 @@
     "basic_bata": "data/sounds/basic_bata/"
   },
   "rhythms": {
-    "iyakota_base": "data/rhythms/iyakota_base.yaml"
+    "iyakota_base": "data/rhythms/iyakota_base.yaml",
+    "oggun_base": "data/rhythms/oggun_base.yaml"
   }
 }
