@@ -311,6 +311,17 @@ export const setupEventListeners = () => {
         }
     });
 
+    // Handle Enter key for rhythm name input
+    root.addEventListener('keydown', (e) => {
+        const target = e.target;
+        const action = target.dataset.action;
+
+        if (action === 'update-rhythm-name' && e.key === 'Enter') {
+            e.preventDefault();
+            target.blur(); // Trigger the change event by blurring the input
+        }
+    });
+
     document.addEventListener('timeline-select', (e) => actions.updateActiveSection(e.detail));
 
     // Drag and Drop
