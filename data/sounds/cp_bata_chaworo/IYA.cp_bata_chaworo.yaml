@@ -1,0 +1,7 @@
+name: "Iya (Chaworo CP Batá)"
+description: "Standard Iya with chaworo recorded in a dry studio environment with low tuning."
+files:
+  O: "iya_chaworo_open.wav"
+  S: "iya_chaworo_slap.wav" 
+  R: "iya_chaworo_mordito.wav"
+  M: "iya_chaworo_muff.wav"
