@@ -17,3 +17,6 @@ sounds:
   - letter: "H"
     name: "Half Mordito"
     svg: "half_mordito.svg"
+  - letter: "M"
+    name: "Muff"
+    svg: "muff.svg"
