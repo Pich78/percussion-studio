@@ -1,0 +1,33 @@
+name: "Iya Mase (variante)"
+global_bpm: 120
+
+sound_kit:
+  oko:
+    instrument: "OKO"
+    pack: "basic_bata"
+  ito:
+    instrument: "ITO"
+    pack: "basic_bata"
+  iya:
+    instrument: "IYA"
+    pack: "basic_bata"
+
+playback_flow:
+  - name: "LLamada"
+    repetitions: 1
+    time_signature: "6/8"
+    steps: 12
+    measures:
+      - pattern:
+          oko: "||---|---|---|---||"
+          ito: "||---|---|--O|-O-||"
+          iya: "||---|-R-|OOS|-S-||"
+  - name: "Base"
+    repetitions: 10
+    time_signature: "6/8"
+    steps: 12
+    measures:
+      - pattern:
+          oko: "||O-O|S--|O-O|S--||"
+          ito: "||S--|---|S-O|-O-||"
+          iya: "||--S|--S|-OS|-S-||"

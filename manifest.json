@@ -10,6 +10,7 @@
   "rhythms": {
     "iyakota_base": "data/rhythms/iyakota_base.yaml",
     "iya_mase": "data/rhythms/iya_mase.yaml",
+    "iya_mase_(variante)": "data/rhythms/iya_mase_(variante).yaml",
     "oggun_base": "data/rhythms/oggun_base.yaml"
   }
 }
