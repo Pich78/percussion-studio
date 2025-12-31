@@ -20,6 +20,7 @@ export const state = {
         modalType: 'instrument', // 'instrument' | 'rhythm'
         modalStep: 'instrument', // 'instrument' | 'soundpack'
         pendingInstrument: null, // Intermediate state for 2-step selection
+        pendingSoundPack: null, // Selected sound pack before confirmation
         editingTrackIndex: null
     }
 };

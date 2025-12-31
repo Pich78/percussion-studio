@@ -95,6 +95,7 @@ export const setupEventListeners = () => {
             state.uiState.editingTrackIndex = null;
             state.uiState.modalType = 'instrument';
             state.uiState.pendingInstrument = null; // Reset selection
+            state.uiState.pendingSoundPack = null; // Reset sound pack selection
             state.uiState.modalOpen = true;
 
             // Pre-load all instrument definitions for display names
@@ -117,6 +118,7 @@ export const setupEventListeners = () => {
             state.uiState.editingTrackIndex = parseInt(target.dataset.trackIndex);
             state.uiState.modalType = 'instrument';
             state.uiState.pendingInstrument = null; // Reset selection
+            state.uiState.pendingSoundPack = null; // Reset sound pack selection
             state.uiState.modalOpen = true;
 
             // Pre-load all instrument definitions for display names
@@ -137,6 +139,8 @@ export const setupEventListeners = () => {
         }
         if (action === 'close-modal' || (action === 'close-modal-bg' && e.target === target)) {
             state.uiState.modalOpen = false;
+            state.uiState.pendingInstrument = null; // Reset selections
+            state.uiState.pendingSoundPack = null;
             refreshGrid();
         }
         if (action === 'select-instrument') {
@@ -147,18 +151,30 @@ export const setupEventListeners = () => {
         }
         if (action === 'select-sound-pack') {
             const pack = target.dataset.pack;
+            // Store selected sound pack and refresh to show it as selected
+            state.uiState.pendingSoundPack = pack;
+            refreshGrid(); // Re-render modal to highlight selection and enable OK button
+        }
+        if (action === 'confirm-instrument-selection') {
             const inst = state.uiState.pendingInstrument;
+            const pack = state.uiState.pendingSoundPack;
+
+            if (!inst || !pack) return; // Safety check
 
             if (state.uiState.editingTrackIndex === null) {
                 // Add new track
                 actions.addTrack(inst, pack).then(() => {
                     state.uiState.modalOpen = false;
+                    state.uiState.pendingInstrument = null;
+                    state.uiState.pendingSoundPack = null;
                     renderApp();
                 });
             } else {
                 // Edit existing track
                 actions.updateTrackInstrument(state.uiState.editingTrackIndex, inst, pack).then(() => {
                     state.uiState.modalOpen = false;
+                    state.uiState.pendingInstrument = null;
+                    state.uiState.pendingSoundPack = null;
                     renderApp();
                 });
             }
