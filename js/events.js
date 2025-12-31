@@ -322,6 +322,25 @@ export const setupEventListeners = () => {
         }
     });
 
+    // Global keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+        // Spacebar: Toggle play/pause
+        if (e.code === 'Space' || e.key === ' ') {
+            // Don't trigger if user is typing in an input field
+            const activeElement = document.activeElement;
+            const isInputField = activeElement && (
+                activeElement.tagName === 'INPUT' ||
+                activeElement.tagName === 'TEXTAREA' ||
+                activeElement.isContentEditable
+            );
+
+            if (!isInputField) {
+                e.preventDefault(); // Prevent page scroll
+                togglePlay();
+            }
+        }
+    });
+
     document.addEventListener('timeline-select', (e) => actions.updateActiveSection(e.detail));
 
     // Drag and Drop
