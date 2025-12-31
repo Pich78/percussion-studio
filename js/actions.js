@@ -52,8 +52,14 @@ export const actions = {
             for (const [trackKey, config] of Object.entries(trackConfig)) {
                 // A. Load Instrument Definition (for UI names/icons)
                 if (!state.instrumentDefinitions[config.instrument]) {
+                    console.log(`[LoadRhythm] Loading instrument definition for '${config.instrument}'`);
                     const instDef = await dataLoader.loadInstrumentDefinition(config.instrument);
+                    console.log(`[LoadRhythm] Loaded definition for '${config.instrument}':`, instDef);
+                    console.log(`[LoadRhythm] Available sounds for '${config.instrument}':`, instDef?.sounds?.map(s => s.letter).join(', '));
                     state.instrumentDefinitions[config.instrument] = instDef;
+                } else {
+                    console.log(`[LoadRhythm] Using cached definition for '${config.instrument}'`);
+                    console.log(`[LoadRhythm] Cached sounds for '${config.instrument}':`, state.instrumentDefinitions[config.instrument]?.sounds?.map(s => s.letter).join(', '));
                 }
 
                 // B. Load Audio Samples
@@ -261,9 +267,18 @@ export const actions = {
         // Dynamic Validation against Loaded Instrument Definition
         if (nextStroke !== StrokeType.None) {
             console.log(`[Action] Validating stroke '${nextStroke}' for instrument '${track.instrument}'`);
+            console.log(`[Action] Track pack: '${track.pack}'`);
 
             const instDef = state.instrumentDefinitions[track.instrument];
             if (instDef) {
+                console.log(`[Action] Found instrument definition for '${track.instrument}'`);
+                console.log(`[Action] Definition has ${instDef.sounds?.length || 0} sounds defined`);
+                console.log(`[Action] Checking each sound:`);
+                instDef.sounds?.forEach((s, idx) => {
+                    const matches = s.letter.toUpperCase() === nextStroke.toUpperCase();
+                    console.log(`  [${idx}] letter='${s.letter}' (uppercase='${s.letter.toUpperCase()}') vs stroke='${nextStroke}' (uppercase='${nextStroke.toUpperCase()}') => ${matches ? 'MATCH' : 'no match'}`);
+                });
+
                 // Check if this instrument has this letter defined
                 const isValid = instDef.sounds.some(s => s.letter.toUpperCase() === nextStroke.toUpperCase());
 
@@ -272,12 +287,14 @@ export const actions = {
                     console.error(`Valid strokes: ${instDef.sounds.map(s => s.letter).join(', ')}`);
                     // Log definition deep copy to verify content
                     try { console.error('Instrument Definition:', JSON.parse(JSON.stringify(instDef))); } catch (e) { }
+                    console.error(`[DEBUG] All loaded instrument definitions:`, Object.keys(state.instrumentDefinitions));
                     return; // Ignore invalid stroke
                 } else {
                     console.log(`[Validation Passed] Stroke '${nextStroke}' is valid.`);
                 }
             } else {
                 console.error(`[Validation Error] No instrument definition found for '${track.instrument}'`);
+                console.error(`[DEBUG] Available definitions:`, Object.keys(state.instrumentDefinitions));
             }
         }
 
@@ -425,7 +442,14 @@ export const actions = {
 
         // Load resources
         if (!state.instrumentDefinitions[newSymbol]) {
-            state.instrumentDefinitions[newSymbol] = await dataLoader.loadInstrumentDefinition(newSymbol);
+            console.log(`[UpdateTrackInstrument] Loading definition for '${newSymbol}'`);
+            const instDef = await dataLoader.loadInstrumentDefinition(newSymbol);
+            console.log(`[UpdateTrackInstrument] Loaded definition for '${newSymbol}':`, instDef);
+            console.log(`[UpdateTrackInstrument] Available sounds:`, instDef?.sounds?.map(s => s.letter).join(', '));
+            state.instrumentDefinitions[newSymbol] = instDef;
+        } else {
+            console.log(`[UpdateTrackInstrument] Using cached definition for '${newSymbol}'`);
+            console.log(`[UpdateTrackInstrument] Cached sounds:`, state.instrumentDefinitions[newSymbol]?.sounds?.map(s => s.letter).join(', '));
         }
         const soundConfig = await dataLoader.loadSoundPackConfig(pack, newSymbol);
         if (soundConfig) {
