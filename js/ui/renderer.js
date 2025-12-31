@@ -53,6 +53,15 @@ const renderHeader = () => {
               <span class="text-gray-600 font-mono">/</span>
               <span class="text-gray-500 font-mono">${activeSection.repetitions || 1}</span>
            </div>
+           ${state.isPlaying ? `
+           <div class="flex items-center gap-1 ml-2 bg-gray-900 px-2 py-0.5 rounded border border-gray-800 flex-shrink-0 border-l-2 border-l-green-500/50">
+              <span class="text-[10px] uppercase font-bold text-gray-500">Live</span>
+              <span class="font-mono font-bold text-green-400" id="header-live-bpm">
+                ${Math.round(playback.currentPlayheadBpm)}
+              </span>
+              <span class="text-[9px] text-gray-600">BPM</span>
+           </div>
+           ` : ''}
         </div>
       </div>
       <div class="flex items-center gap-4 flex-shrink-0">

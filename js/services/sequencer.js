@@ -43,6 +43,10 @@ export const tick = () => {
                 }
                 const repEl = document.getElementById('header-rep-count');
                 if (repEl) repEl.innerText = playback.repetitionCounter;
+
+                const liveBpmEl = document.getElementById('header-live-bpm');
+                if (liveBpmEl) liveBpmEl.innerText = Math.round(playback.currentPlayheadBpm);
+
                 playSectionStep(activeSec, 0, 0);
             } else {
                 // Next Section
