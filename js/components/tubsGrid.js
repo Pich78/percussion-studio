@@ -433,19 +433,21 @@ export const TubsGrid = ({
       // Right Column: Sound Packs
       let soundPacks = '';
       if (selectedInstrument) {
+        const selectedPack = uiState.pendingSoundPack;
         soundPacks = dataLoader.manifest && dataLoader.manifest.sound_packs
           ? Object.keys(dataLoader.manifest.sound_packs).map(pack => {
+            const isSelected = selectedPack === pack;
             return `
               <button
                 data-action="select-sound-pack"
                 data-pack="${pack}"
                 class="
-                  flex items-center gap-3 px-3 py-3 rounded-lg border border-gray-700 bg-gray-900/50 hover:bg-gray-800 transition-all text-left
-                  hover:border-amber-500 hover:shadow-[0_0_10px_rgba(245,158,11,0.2)]
+                  flex items-center gap-3 px-3 py-3 rounded-lg border bg-gray-900/50 hover:bg-gray-800 transition-all text-left
+                  ${isSelected ? 'ring-2 ring-cyan-400 bg-gray-800 border-cyan-400' : 'border-gray-700 hover:border-amber-500 hover:shadow-[0_0_10px_rgba(245,158,11,0.2)]'}
                 "
               >
-                ${SpeakerWaveIcon('w-5 h-5 text-gray-500')}
-                <span class="font-medium text-gray-200 pointer-events-none">${pack}</span>
+                ${SpeakerWaveIcon(`w-5 h-5 ${isSelected ? 'text-cyan-400' : 'text-gray-500'}`)}
+                <span class="font-medium ${isSelected ? 'text-cyan-400' : 'text-gray-200'} pointer-events-none">${pack}</span>
               </button>
             `;
           }).join('')
@@ -489,13 +491,32 @@ export const TubsGrid = ({
               
               ${content}
               
-              <div class="p-4 border-t border-gray-800 bg-gray-950 flex justify-end items-center">
-                  <button 
-                      data-action="close-modal"
-                      class="px-4 py-2 text-gray-400 hover:text-white font-medium"
-                  >
-                      Cancel
-                  </button>
+              <div class="p-4 border-t border-gray-800 bg-gray-950 flex justify-end items-center gap-3">
+                  ${uiState.modalType === 'instrument' ? `
+                    <button 
+                        data-action="close-modal"
+                        class="px-4 py-2 text-gray-400 hover:text-white font-medium transition-colors"
+                    >
+                        Cancel
+                    </button>
+                    <button 
+                        data-action="confirm-instrument-selection"
+                        class="px-4 py-2 rounded font-medium transition-all
+                          ${uiState.pendingInstrument && uiState.pendingSoundPack
+          ? 'bg-cyan-600 hover:bg-cyan-500 text-white cursor-pointer'
+          : 'bg-gray-700 text-gray-500 cursor-not-allowed opacity-50'}"
+                        ${!uiState.pendingInstrument || !uiState.pendingSoundPack ? 'disabled' : ''}
+                    >
+                        OK
+                    </button>
+                  ` : `
+                    <button 
+                        data-action="close-modal"
+                        class="px-4 py-2 text-gray-400 hover:text-white font-medium"
+                    >
+                        Cancel
+                    </button>
+                  `}
               </div>
           </div>
       </div>
