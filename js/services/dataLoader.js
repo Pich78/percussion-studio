@@ -4,6 +4,8 @@
   Requires: js-yaml library loaded in index.html (window.jsyaml)
 */
 
+import { config } from '../config.js';
+
 class DataLoaderService {
     constructor() {
         this.manifest = null;
@@ -28,6 +30,8 @@ class DataLoaderService {
 
     /**
      * Helper: Generic fetcher for YAML files
+     * NOTE: Cache-busting is enabled for development. For production (GitHub Pages),
+     * remove the timestamp parameter to allow proper browser caching.
      */
     async _fetchYaml(url) {
         if (!window.jsyaml) {
@@ -35,10 +39,38 @@ class DataLoaderService {
         }
 
         try {
-            const response = await fetch(url);
+            // Add cache-busting parameter in development mode
+            const cacheBustUrl = config.isDevelopment ? `${url}?_=${Date.now()}` : url;
+
+            if (config.verboseLogging) {
+                console.log(`[DataLoader] Fetching YAML from: ${cacheBustUrl}`);
+            }
+
+            const fetchOptions = config.isDevelopment ? {
+                cache: 'no-store',
+                headers: {
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                }
+            } : {};
+
+            const response = await fetch(cacheBustUrl, fetchOptions);
+
             if (!response.ok) throw new Error(`HTTP ${response.status} for ${url}`);
             const text = await response.text();
-            return window.jsyaml.load(text);
+
+            if (config.verboseLogging) {
+                console.log(`[DataLoader] Loaded ${text.length} bytes from ${url}`);
+            }
+
+            const parsed = window.jsyaml.load(text);
+
+            if (config.verboseLogging) {
+                console.log(`[DataLoader] Parsed YAML from ${url}:`, parsed);
+            }
+
+            return parsed;
         } catch (error) {
             console.error(`Error loading YAML at ${url}:`, error);
             return null;
