@@ -8,6 +8,8 @@
 
 Percussion Studio is a browser-based application for creating, editing, and playing percussion patterns. It features a grid-based sequencer with support for multiple instruments, sound packs, and complex multi-measure compositions.
 
+![Percussion Studio Demo](demo.webp)
+
 ### Key Features
 
 - 🥁 **Multi-track sequencer** with visual grid interface
