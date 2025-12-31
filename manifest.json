@@ -5,9 +5,13 @@
     "OKO": "data/instruments/OKO.yaml"
   },
   "sound_packs": {
-    "basic_bata": "data/sounds/basic_bata/"
+    "basic_bata": "data/sounds/basic_bata/",
+    "cp_bata": "data/sounds/cp_bata/",
+    "cp_bata_chaworo": "data/sounds/cp_bata_chaworo/"
   },
   "rhythms": {
+    "dada_base": "data/rhythms/dada_base.yaml",
+    "dada_y_primera_conversacion": "data/rhythms/dada_y_primera_conversacion.yaml",
     "iyakota_base": "data/rhythms/iyakota_base.yaml",
     "iya_mase": "data/rhythms/iya_mase.yaml",
     "iya_mase_(variante)": "data/rhythms/iya_mase_(variante).yaml",

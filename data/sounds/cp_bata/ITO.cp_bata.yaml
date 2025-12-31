@@ -1,0 +1,7 @@
+name: "Itotele (CP Batá)"
+description: "Standard Itotele recorded in a dry studio environment."
+files:
+  O: "ito_open.wav"
+  P: "ito_presionado.wav"
+  S: "ito_slap.wav"
+  R: "ito_mordito.wav"

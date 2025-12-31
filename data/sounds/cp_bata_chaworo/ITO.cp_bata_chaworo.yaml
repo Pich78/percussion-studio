@@ -1,0 +1,7 @@
+name: "Itotele (CP Chaworo Batá)"
+description: "Standard Itotele recorded in a dry studio environment."
+files:
+  O: "ito_chaworo_open.wav"
+  P: "ito_chaworo_presionado.wav"
+  S: "ito_chaworo_slap.wav"
+  R: "ito_chaworo_mordito.wav"

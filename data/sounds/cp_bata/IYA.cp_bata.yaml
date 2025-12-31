@@ -1,0 +1,7 @@
+name: "Iya (CP Batá)"
+description: "Standard Iya recorded in a dry studio environment with low tuning."
+files:
+  O: "iya_open.wav"
+  S: "iya_slap.wav" 
+  R: "iya_mordito.wav"
+  M: "iya_muff.wav"
