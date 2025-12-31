@@ -174,8 +174,24 @@ export const scrollToMeasure = (measureIndex) => {
     const measureElement = document.querySelector(`[data-measure-index="${measureIndex}"]`);
     if (!measureElement) return;
 
+    // Check if measure is already visible
+    const containerRect = scrollContainer.getBoundingClientRect();
+    const measureRect = measureElement.getBoundingClientRect();
+
+    const isVisible = (
+      measureRect.top >= containerRect.top &&
+      measureRect.bottom <= containerRect.bottom
+    );
+
+    if (isVisible) return;
+
     // Calculate position to center the measure
     const containerHeight = scrollContainer.clientHeight;
+    // We need relative position within the container logic for scrollTo
+    // offsetTop is relative to the offsetParent. Assuming the container is the offsetParent (relative/absolute)
+    // If not, we might need a different approach, but let's stick to the previous calculation logic if it worked for centering,
+    // just applying it conditionally.
+    // Actually, offsetTop is simpler and matches the previous logic.
     const measureTop = measureElement.offsetTop;
     const measureHeight = measureElement.offsetHeight;
 
