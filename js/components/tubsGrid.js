@@ -404,31 +404,60 @@ export const TubsGrid = ({
         `;
     } else {
       // INSTRUMENT MODAL
-      title = uiState.editingTrackIndex !== null ? 'Change Instrument' : 'Add Instrument';
-      const instruments = dataLoader.manifest && dataLoader.manifest.instruments
-        ? Object.keys(dataLoader.manifest.instruments).map(symbol => {
-          const colorClass = INSTRUMENT_COLORS[symbol] || 'border-gray-700';
-          return `
-                      <button
-                          data-action="select-instrument"
-                          data-instrument="${symbol}"
-                          class="
-                              flex items-center gap-3 px-3 py-2 rounded-lg border bg-gray-900/50 hover:bg-gray-800 transition-all text-left
-                              ${colorClass}
-                              border-l-[6px] 
-                          "
-                      >
-                          <span class="font-medium text-gray-200 pointer-events-none">${symbol}</span>
-                      </button>
-                    `;
-        }).join('')
-        : '<div class="col-span-3 text-center text-gray-500">Loading instruments...</div>';
+      if (uiState.modalStep === 'soundpack') {
+        title = `Select Sound Pack for ${uiState.pendingInstrument}`;
+        const soundPacks = dataLoader.manifest && dataLoader.manifest.sound_packs
+          ? Object.keys(dataLoader.manifest.sound_packs).map(pack => {
+            const isSelected = false; // Could track this if we want
+            return `
+              <button
+                  data-action="select-sound-pack"
+                  data-pack="${pack}"
+                  class="
+                      flex items-center gap-3 px-3 py-3 rounded-lg border border-gray-700 bg-gray-900/50 hover:bg-gray-800 transition-all text-left
+                      hover:border-amber-500 hover:shadow-[0_0_10px_rgba(245,158,11,0.2)]
+                  "
+              >
+                  ${FolderOpenIcon('w-5 h-5 text-gray-500')}
+                  <span class="font-medium text-gray-200 pointer-events-none">${pack}</span>
+              </button>
+            `;
+          }).join('')
+          : '<div class="col-span-2 text-center text-gray-500">No sound packs found.</div>';
 
-      content = `
-            <div class="p-6 grid grid-cols-2 sm:grid-cols-3 gap-3 overflow-y-auto max-h-[60vh]">
-                ${instruments}
-            </div>
-        `;
+        content = `
+              <div class="p-6 grid grid-cols-1 gap-3 overflow-y-auto max-h-[60vh]">
+                  ${soundPacks}
+              </div>
+          `;
+      } else {
+        // Step 1: Select Instrument
+        title = uiState.editingTrackIndex !== null ? 'Change Instrument' : 'Add Instrument';
+        const instruments = dataLoader.manifest && dataLoader.manifest.instruments
+          ? Object.keys(dataLoader.manifest.instruments).map(symbol => {
+            const colorClass = INSTRUMENT_COLORS[symbol] || 'border-gray-700';
+            return `
+                        <button
+                            data-action="select-instrument"
+                            data-instrument="${symbol}"
+                            class="
+                                flex items-center gap-3 px-3 py-2 rounded-lg border bg-gray-900/50 hover:bg-gray-800 transition-all text-left
+                                ${colorClass}
+                                border-l-[6px] 
+                            "
+                        >
+                            <span class="font-medium text-gray-200 pointer-events-none">${symbol}</span>
+                        </button>
+                      `;
+          }).join('')
+          : '<div class="col-span-3 text-center text-gray-500">Loading instruments...</div>';
+
+        content = `
+              <div class="p-6 grid grid-cols-2 sm:grid-cols-3 gap-3 overflow-y-auto max-h-[60vh]">
+                  ${instruments}
+              </div>
+          `;
+      }
     }
 
     return `
@@ -445,7 +474,16 @@ export const TubsGrid = ({
               
               ${content}
               
-              <div class="p-4 border-t border-gray-800 bg-gray-950 flex justify-end">
+              <div class="p-4 border-t border-gray-800 bg-gray-950 flex justify-between items-center">
+                  ${uiState.modalStep === 'soundpack' ? `
+                    <button 
+                        data-action="back-to-instruments"
+                        class="px-4 py-2 text-gray-400 hover:text-white font-medium text-sm border border-gray-700 rounded hover:bg-gray-800 transition-colors"
+                    >
+                        &larr; Back
+                    </button>
+                  ` : '<div></div>'}
+
                   <button 
                       data-action="close-modal"
                       class="px-4 py-2 text-gray-400 hover:text-white font-medium"

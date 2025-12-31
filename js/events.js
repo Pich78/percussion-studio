@@ -94,12 +94,14 @@ export const setupEventListeners = () => {
         if (action === 'open-add-modal') {
             state.uiState.editingTrackIndex = null;
             state.uiState.modalType = 'instrument';
+            state.uiState.modalStep = 'instrument'; // Reset step
             state.uiState.modalOpen = true;
             refreshGrid();
         }
         if (action === 'open-edit-modal') {
             state.uiState.editingTrackIndex = parseInt(target.dataset.trackIndex);
             state.uiState.modalType = 'instrument';
+            state.uiState.modalStep = 'instrument'; // Reset step
             state.uiState.modalOpen = true;
             refreshGrid();
         }
@@ -109,15 +111,29 @@ export const setupEventListeners = () => {
         }
         if (action === 'select-instrument') {
             const inst = target.dataset.instrument;
+            // Step 1 Complete: Store instrument and move to Step 2
+            state.uiState.pendingInstrument = inst;
+            state.uiState.modalStep = 'soundpack';
+            refreshGrid(); // Re-render modal to show sound packs
+        }
+        if (action === 'back-to-instruments') {
+            state.uiState.modalStep = 'instrument';
+            state.uiState.pendingInstrument = null;
+            refreshGrid();
+        }
+        if (action === 'select-sound-pack') {
+            const pack = target.dataset.pack;
+            const inst = state.uiState.pendingInstrument;
+
             if (state.uiState.editingTrackIndex === null) {
-                // Add new track - use actions.addTrack to properly load definitions
-                actions.addTrack(inst).then(() => {
+                // Add new track
+                actions.addTrack(inst, pack).then(() => {
                     state.uiState.modalOpen = false;
                     renderApp();
                 });
             } else {
-                // Edit existing track - use actions.updateTrackInstrument to properly load definitions
-                actions.updateTrackInstrument(state.uiState.editingTrackIndex, inst).then(() => {
+                // Edit existing track
+                actions.updateTrackInstrument(state.uiState.editingTrackIndex, inst, pack).then(() => {
                     state.uiState.modalOpen = false;
                     renderApp();
                 });

@@ -306,12 +306,12 @@ export const actions = {
      * Adds a track with a specific instrument symbol.
      * Loads necessary resources on the fly.
      */
-    addTrack: async (instrumentSymbol) => {
+    addTrack: async (instrumentSymbol, soundPack = "basic_bata") => {
         if (!state.toque) return;
         const section = state.toque.sections.find(s => s.id === state.activeSectionId);
         if (!section) return;
 
-        const pack = "basic_bata"; // Default pack for now
+        const pack = soundPack; // Use provided pack
 
         // 1. Load Definition if missing
         if (!state.instrumentDefinitions[instrumentSymbol]) {
@@ -417,11 +417,11 @@ export const actions = {
         refreshGrid();
     },
 
-    updateTrackInstrument: async (trackIdx, newSymbol) => {
+    updateTrackInstrument: async (trackIdx, newSymbol, soundPack = "basic_bata") => {
         const section = state.toque.sections.find(s => s.id === state.activeSectionId);
         if (!section || !section.measures[0]) return;
 
-        const pack = "basic_bata"; // Default
+        const pack = soundPack; // Use provided pack
 
         // Load resources
         if (!state.instrumentDefinitions[newSymbol]) {

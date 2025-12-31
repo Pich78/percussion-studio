@@ -18,6 +18,8 @@ export const state = {
         isMenuOpen: false,
         modalOpen: false,
         modalType: 'instrument', // 'instrument' | 'rhythm'
+        modalStep: 'instrument', // 'instrument' | 'soundpack'
+        pendingInstrument: null, // Intermediate state for 2-step selection
         editingTrackIndex: null
     }
 };
