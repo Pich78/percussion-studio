@@ -94,15 +94,45 @@ export const setupEventListeners = () => {
         if (action === 'open-add-modal') {
             state.uiState.editingTrackIndex = null;
             state.uiState.modalType = 'instrument';
-            state.uiState.modalStep = 'instrument'; // Reset step
+            state.uiState.pendingInstrument = null; // Reset selection
             state.uiState.modalOpen = true;
+
+            // Pre-load all instrument definitions for display names
+            (async () => {
+                const manifest = dataLoader.manifest;
+                if (manifest && manifest.instruments) {
+                    for (const symbol of Object.keys(manifest.instruments)) {
+                        if (!state.instrumentDefinitions[symbol]) {
+                            const instDef = await dataLoader.loadInstrumentDefinition(symbol);
+                            state.instrumentDefinitions[symbol] = instDef;
+                        }
+                    }
+                    refreshGrid(); // Refresh to show full names
+                }
+            })();
+
             refreshGrid();
         }
         if (action === 'open-edit-modal') {
             state.uiState.editingTrackIndex = parseInt(target.dataset.trackIndex);
             state.uiState.modalType = 'instrument';
-            state.uiState.modalStep = 'instrument'; // Reset step
+            state.uiState.pendingInstrument = null; // Reset selection
             state.uiState.modalOpen = true;
+
+            // Pre-load all instrument definitions for display names
+            (async () => {
+                const manifest = dataLoader.manifest;
+                if (manifest && manifest.instruments) {
+                    for (const symbol of Object.keys(manifest.instruments)) {
+                        if (!state.instrumentDefinitions[symbol]) {
+                            const instDef = await dataLoader.loadInstrumentDefinition(symbol);
+                            state.instrumentDefinitions[symbol] = instDef;
+                        }
+                    }
+                    refreshGrid(); // Refresh to show full names
+                }
+            })();
+
             refreshGrid();
         }
         if (action === 'close-modal' || (action === 'close-modal-bg' && e.target === target)) {
@@ -111,15 +141,9 @@ export const setupEventListeners = () => {
         }
         if (action === 'select-instrument') {
             const inst = target.dataset.instrument;
-            // Step 1 Complete: Store instrument and move to Step 2
+            // Store selected instrument and refresh to show sound packs
             state.uiState.pendingInstrument = inst;
-            state.uiState.modalStep = 'soundpack';
-            refreshGrid(); // Re-render modal to show sound packs
-        }
-        if (action === 'back-to-instruments') {
-            state.uiState.modalStep = 'instrument';
-            state.uiState.pendingInstrument = null;
-            refreshGrid();
+            refreshGrid(); // Re-render modal to show sound packs in right column
         }
         if (action === 'select-sound-pack') {
             const pack = target.dataset.pack;
