@@ -19,10 +19,64 @@ class AudioEngine {
             const AudioContextClass = window.AudioContext || window.webkitAudioContext;
             this.ctx = new AudioContextClass();
             this.masterGain = this.ctx.createGain();
-            this.masterGain.connect(this.ctx.destination);
             this.masterGain.gain.value = 0.8;
+
+            // Check if this is iOS
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+            if (isIOS && this.ctx.createMediaStreamDestination) {
+                // iOS: Route Web Audio through an HTML5 audio element for proper speaker output
+                console.log('🍎 iOS detected: routing Web Audio through HTML5 audio element');
+                this.setupiOSAudioRouting();
+            } else {
+                // Non-iOS: Connect directly to destination
+                this.masterGain.connect(this.ctx.destination);
+            }
         }
     }
+
+    /**
+     * Sets up iOS audio routing by connecting Web Audio API to an HTML5 audio element.
+     * HTML5 audio elements on iOS use the "playback" audio session category, 
+     * which properly routes to speakers (unlike Web Audio's default "ambient" category).
+     */
+    setupiOSAudioRouting() {
+        // Create a MediaStreamDestination - this captures Web Audio output as a stream
+        this.mediaStreamDest = this.ctx.createMediaStreamDestination();
+        this.masterGain.connect(this.mediaStreamDest);
+
+        // Create an HTML5 audio element and feed it the stream
+        this.iosAudioBridge = document.createElement('audio');
+        this.iosAudioBridge.setAttribute('playsinline', 'true');
+        this.iosAudioBridge.setAttribute('webkit-playsinline', 'true');
+        this.iosAudioBridge.srcObject = this.mediaStreamDest.stream;
+
+        // Set up the unlock handler for first user interaction
+        const startAudioBridge = async () => {
+            try {
+                if (this.ctx.state === 'suspended') {
+                    await this.ctx.resume();
+                }
+                await this.iosAudioBridge.play();
+                console.log('🔊 iOS audio bridge started - speaker output enabled!');
+
+                // Remove listeners after successful start
+                document.removeEventListener('touchstart', startAudioBridge, true);
+                document.removeEventListener('touchend', startAudioBridge, true);
+                document.removeEventListener('click', startAudioBridge, true);
+            } catch (err) {
+                console.warn('iOS audio bridge start failed, will retry:', err.message);
+            }
+        };
+
+        // Listen for first user interaction to start the audio bridge
+        document.addEventListener('touchstart', startAudioBridge, true);
+        document.addEventListener('touchend', startAudioBridge, true);
+        document.addEventListener('click', startAudioBridge, true);
+    }
+
+
 
     resume() {
         if (this.ctx && this.ctx.state === 'suspended') {
