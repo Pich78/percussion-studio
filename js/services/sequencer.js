@@ -7,7 +7,7 @@ const playSectionStep = (section, measureIndex, stepIndex) => {
     if (!measure) return;
 
     measure.tracks.forEach(track => {
-        if (track.muted) return;
+        if (track.muted || track.volume === 0) return;
         if (stepIndex < track.strokes.length) {
             const stroke = track.strokes[stepIndex];
             audioEngine.playStroke(track.instrument, stroke, 0, track.volume);
