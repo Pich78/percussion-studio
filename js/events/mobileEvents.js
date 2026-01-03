@@ -9,12 +9,7 @@ export const setupMobileEvents = () => {
 
     root.addEventListener('click', (e) => {
         // --- Fullscreen & Wake Lock Logic ---
-        // --- Fullscreen & Wake Lock Logic ---
-        if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
-            document.documentElement.requestFullscreen().catch(() => {
-                // Ignore fullscreen errors silently (user might have blocked it)
-            });
-        }
+        // (Fullscreen removed by user request)
 
         // Resume Audio Context (Mobile Fix)
         audioEngine.init();
