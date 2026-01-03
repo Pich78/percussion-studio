@@ -11,9 +11,9 @@ import { PlayIcon } from '../../icons/playIcon.js';
 import { PauseIcon } from '../../icons/pauseIcon.js';
 
 const renderHeader = () => {
-    const activeSection = state.toque.sections.find(s => s.id === state.activeSectionId) || state.toque.sections[0];
+  const activeSection = state.toque.sections.find(s => s.id === state.activeSectionId) || state.toque.sections[0];
 
-    return `
+  return `
     <header class="h-16 px-4 border-b border-gray-800 flex justify-between items-center bg-gray-950 flex-shrink-0 z-40 gap-4">
       <div class="flex items-center gap-4 flex-1 min-w-0">
         <div class="relative">
@@ -49,15 +49,13 @@ const renderHeader = () => {
               <span class="text-gray-600 font-mono">/</span>
               <span class="text-gray-500 font-mono">${activeSection.repetitions || 1}</span>
            </div>
-           ${state.isPlaying ? `
-           <div class="flex items-center gap-1 ml-2 bg-gray-900 px-2 py-0.5 rounded border border-gray-800 flex-shrink-0 border-l-2 border-l-green-500/50">
+           <div class="flex items-center gap-1 ml-2 bg-gray-900 px-2 py-0.5 rounded border border-gray-800 flex-shrink-0 border-l-2 ${state.isPlaying ? 'border-l-green-500/50' : 'border-l-gray-700'}">
               <span class="text-[10px] uppercase font-bold text-gray-500">Live</span>
-              <span class="font-mono font-bold text-green-400" id="header-live-bpm">
-                ${Math.round(playback.currentPlayheadBpm)}
+              <span class="font-mono font-bold ${state.isPlaying ? 'text-green-400' : 'text-gray-500'}" id="header-live-bpm">
+                ${state.isPlaying ? Math.round(playback.currentPlayheadBpm) : state.toque.globalBpm}
               </span>
               <span class="text-[9px] text-gray-600">BPM</span>
            </div>
-           ` : ''}
         </div>
       </div>
       <div class="flex items-center gap-4 flex-shrink-0">
@@ -82,31 +80,31 @@ const renderHeader = () => {
 };
 
 export const DesktopLayout = () => {
-    const activeSection = state.toque.sections.find(s => s.id === state.activeSectionId) || state.toque.sections[0];
+  const activeSection = state.toque.sections.find(s => s.id === state.activeSectionId) || state.toque.sections[0];
 
-    return `
+  return `
     <div class="flex flex-col h-full bg-gray-950 text-gray-100 font-sans selection:bg-cyan-500 selection:text-black select-none">
       ${renderHeader()}
       <div class="flex flex-1 overflow-hidden">
         <div class="block flex-shrink-0 h-full"> 
             ${Timeline({
-        sections: state.toque.sections,
-        globalBpm: state.toque.globalBpm,
-        activeSectionId: state.activeSectionId,
-        rhythmName: state.toque.name,
-        readOnly: false
-    })}
+    sections: state.toque.sections,
+    globalBpm: state.toque.globalBpm,
+    activeSectionId: state.activeSectionId,
+    rhythmName: state.toque.name,
+    readOnly: false
+  })}
         </div>
         <main class="flex-1 overflow-hidden relative flex flex-col justify-center items-center bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-900 via-gray-950 to-gray-950">
           <div id="grid-container" class="w-full max-w-7xl px-4 py-8 flex flex-col items-center justify-center overflow-hidden h-full">
             ${TubsGrid({
-        section: activeSection,
-        globalBpm: state.toque.globalBpm,
-        currentStep: state.currentStep,
-        selectedStroke: state.selectedStroke,
-        uiState: state.uiState,
-        readOnly: false
-    })}
+    section: activeSection,
+    globalBpm: state.toque.globalBpm,
+    currentStep: state.currentStep,
+    selectedStroke: state.selectedStroke,
+    uiState: state.uiState,
+    readOnly: false
+  })}
           </div>
         </main>
       </div>
