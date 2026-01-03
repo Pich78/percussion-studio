@@ -73,7 +73,15 @@ export const MobileLayout = () => {
 
   // Calculate optimal cell size based on available screen width
   const calculateMobileCellSize = () => {
+    // Get safe area insets from CSS custom properties (set via env() in mobile.html)
+    const computedStyle = getComputedStyle(document.documentElement);
+    const safeAreaLeft = parseInt(computedStyle.getPropertyValue('--safe-area-left') || '0', 10) || 0;
+    const safeAreaRight = parseInt(computedStyle.getPropertyValue('--safe-area-right') || '0', 10) || 0;
+
     const viewportWidth = window.innerWidth;
+    // Subtract safe areas to get usable width (excludes dynamic island area)
+    const usableWidth = viewportWidth - safeAreaLeft - safeAreaRight;
+
     const steps = activeSection?.steps || 12;
     const subdivision = activeSection?.subdivision || 4;
 
@@ -90,7 +98,7 @@ export const MobileLayout = () => {
     const buffer = 15;
 
     const totalOverhead = stickyLabelWidth + containerPadding + buffer + (separatorCount * 2) + (steps * gapPerStep);
-    const availableForCells = viewportWidth - totalOverhead;
+    const availableForCells = usableWidth - totalOverhead;
 
     const optimalCellWidth = Math.floor(availableForCells / steps);
 
@@ -104,7 +112,7 @@ export const MobileLayout = () => {
   const mobileCellSize = calculateMobileCellSize();
 
   return `
-    <div class="flex flex-col h-full bg-gray-950 text-gray-100 font-sans selection:bg-cyan-500 selection:text-black select-none">
+    <div class="flex flex-col h-full bg-gray-950 text-gray-100 font-sans selection:bg-cyan-500 selection:text-black select-none pl-[var(--safe-area-left)] pr-[var(--safe-area-right)]">
       <!-- Portrait Mode Enforcer Overlay -->
       <div class="fixed inset-0 z-[100] bg-gray-950 flex flex-col items-center justify-center p-8 text-center portrait:flex landscape:hidden">
          <div class="animate-pulse mb-6 text-cyan-500">
