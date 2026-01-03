@@ -35,6 +35,8 @@ const renderHeader = (activeSection) => {
                 
                 <div class="h-3 w-px bg-gray-700"></div>
 
+                <div class="h-3 w-px bg-gray-700"></div>
+
                 <!-- Global BPM Control -->
                 <div class="flex items-center gap-1">
                     <input 
@@ -48,14 +50,12 @@ const renderHeader = (activeSection) => {
                     <span class="text-cyan-400 font-bold w-5 text-right" id="header-global-bpm-val">${state.toque.globalBpm}</span>
                 </div>
 
-                <!-- Live BPM Indicator (Only when playing) -->
-                ${state.isPlaying ? `
-                    <div class="h-3 w-px bg-gray-700 animate-pulse"></div>
-                    <span class="flex items-center gap-1 text-green-400 font-bold animate-pulse">
-                        <span>${Math.round(playback.currentPlayheadBpm)}</span>
-                        <span class="text-[8px] opacity-70">LIVE</span>
-                    </span>
-                ` : ''}
+                <!-- Live BPM Indicator -->
+                <div class="h-3 w-px bg-gray-700 ${state.isPlaying ? 'animate-pulse' : 'opacity-50'}"></div>
+                <span class="flex items-center gap-1 ${state.isPlaying ? 'text-green-400 animate-pulse' : 'text-gray-600'} font-bold">
+                    <span>${state.isPlaying ? Math.round(playback.currentPlayheadBpm) : state.toque.globalBpm}</span>
+                    <span class="text-[8px] opacity-70">LIVE</span>
+                </span>
              </div>
         </div>
 
