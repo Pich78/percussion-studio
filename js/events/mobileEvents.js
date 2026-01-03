@@ -12,8 +12,8 @@ export const setupMobileEvents = () => {
         // (Fullscreen removed by user request)
 
         // Resume Audio Context (Mobile Fix)
-        // Resume Audio Context & Unlock for iOS Silent Switch
-        audioEngine.unlockAudio();
+        audioEngine.init();
+        audioEngine.resume();
         // ------------------------------------
         // ------------------------------------
 
