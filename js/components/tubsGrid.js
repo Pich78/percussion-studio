@@ -38,6 +38,31 @@ export const TubsGrid = ({
   const groupSize = section.subdivision || 4;
   const isCustomBpm = section.bpm !== undefined;
 
+  // Calculate cell size for mobile based on step count
+  // More steps = smaller cells to fit screen
+  const getCellSize = () => {
+    if (!isMobile) return 'normal';
+    const steps = section.steps || 12;
+    if (steps >= 17) return 'tiny';   // 24px cells for 17+ steps
+    if (steps >= 12) return 'small';  // 32px cells for 12-16 steps
+    return 'normal';                   // 40px cells for < 12 steps
+  };
+  const cellSize = getCellSize();
+
+  // Get corresponding width class for step headers
+  const stepWidthClass = {
+    normal: 'w-10',
+    small: 'w-8',
+    tiny: 'w-6'
+  }[cellSize];
+
+  // Get corresponding height for separators
+  const separatorHeightClass = {
+    normal: 'h-10',
+    small: 'h-8',
+    tiny: 'h-6'
+  }[cellSize];
+
   // -- HTML GENERATION HELPERS --
 
   const renderSectionSettings = () => {
@@ -228,7 +253,7 @@ export const TubsGrid = ({
         const isGroupStart = stepIdx % groupSize === 0 && stepIdx !== 0;
         // Invisible separator to maintain alignment with header
         const separator = isGroupStart
-          ? `<div class="w-px bg-transparent h-10 flex-shrink-0"></div>`
+          ? `<div class="w-px bg-transparent ${separatorHeightClass} flex-shrink-0"></div>`
           : '';
 
         return `
@@ -242,7 +267,8 @@ export const TubsGrid = ({
           stepIndex: stepIdx,
           measureIndex: measureIdx,
           isActive: stroke !== StrokeType.None,
-          instrumentDef: instDef
+          instrumentDef: instDef,
+          cellSize
         })}
               </div>
             `;
@@ -298,7 +324,7 @@ export const TubsGrid = ({
                         <div 
                           data-step-marker="${i}" 
                           data-measure-index="${measureIdx}"
-                          class="w-10 text-center text-[10px] font-mono p-1 text-gray-500 flex-shrink-0"
+                          class="${stepWidthClass} text-center text-[10px] font-mono p-1 text-gray-500 flex-shrink-0"
                         >
                           ${i + 1}
                         </div>

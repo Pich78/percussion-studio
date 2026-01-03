@@ -8,9 +8,23 @@ export const TubsCell = ({
   trackIndex,
   stepIndex,
   measureIndex,
-  instrumentDef
+  instrumentDef,
+  cellSize = 'normal' // 'normal' (40px), 'small' (32px), 'tiny' (24px)
 }) => {
-  const baseClasses = "w-10 h-10 border border-gray-700 flex items-center justify-center text-sm select-none transition-all duration-75 relative";
+  // Dynamic sizing classes
+  const sizeClasses = {
+    normal: 'w-10 h-10 text-sm',
+    small: 'w-8 h-8 text-xs',
+    tiny: 'w-6 h-6 text-[10px]'
+  };
+
+  const iconSizeClasses = {
+    normal: 'w-8 h-8',
+    small: 'w-6 h-6',
+    tiny: 'w-4 h-4'
+  };
+
+  const baseClasses = `${sizeClasses[cellSize] || sizeClasses.normal} border border-gray-700 flex items-center justify-center select-none transition-all duration-75 relative`;
 
   // Interaction states
   const cursorClass = isValid ? "cursor-pointer" : "cursor-not-allowed opacity-50";
@@ -43,12 +57,8 @@ export const TubsCell = ({
       if (instrumentDef && instrumentDef.sounds) {
         const soundDef = instrumentDef.sounds.find(s => s.letter === stroke);
         if (soundDef && soundDef.svg) {
-          // Determine color class for SVG (using current text color logic or just forcing white/black)
-          // For now, let's just use the SVG image. 
-          // We might want to apply the stroke color to the SVG using CSS filters or mask, 
-          // but for now simple image replacement is the goal.
-          // Assuming SVGs are in data/assets/icons/
-          return `<img src="data/assets/icons/${soundDef.svg}" class="w-8 h-8 pointer-events-none select-none" alt="${stroke}" />`;
+          const iconSize = iconSizeClasses[cellSize] || iconSizeClasses.normal;
+          return `<img src="data/assets/icons/${soundDef.svg}" class="${iconSize} pointer-events-none select-none" alt="${stroke}" />`;
         }
       }
 
