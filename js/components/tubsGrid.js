@@ -28,7 +28,8 @@ export const TubsGrid = ({
   globalBpm,
   currentStep,
   selectedStroke,
-  uiState
+  uiState,
+  readOnly = false
 }) => {
   // Safety check: if section is null (e.g. before load), return placeholder
   if (!section) return `<div class="p-8 text-center text-gray-500">No active section loaded.</div>`;
@@ -38,7 +39,9 @@ export const TubsGrid = ({
 
   // -- HTML GENERATION HELPERS --
 
-  const renderSectionSettings = () => `
+  const renderSectionSettings = () => {
+    if (readOnly) return '';
+    return `
     <div class="sticky left-0 z-30 flex items-center gap-6 mb-2 px-4 py-2 bg-gray-950/95 backdrop-blur border border-gray-800 w-fit rounded-lg shadow-lg">
       <!-- Name -->
       <div class="flex flex-col">
@@ -145,6 +148,7 @@ export const TubsGrid = ({
       </div>
     </div>
   `;
+  };
 
   const renderTimelineHeader = () => `
     <div class="flex min-w-max">
@@ -192,29 +196,41 @@ export const TubsGrid = ({
       // Get Display Name (from def or fallback to symbol)
       const displayName = instDef ? instDef.name : track.instrument;
 
+      // Conditional Track Name Rendering
+      const renderTrackName = () => {
+        if (readOnly) {
+          return `<span class="font-bold text-sm select-none text-left truncate w-20 text-gray-200 ${track.muted ? 'text-gray-500 line-through' : ''}" title="${displayName}">${displayName}</span>`;
+        }
+        return `
+            <button 
+                class="font-bold text-sm cursor-pointer select-none hover:text-cyan-400 hover:underline text-left truncate w-20 ${track.muted ? 'text-gray-500 line-through' : 'text-gray-200'}"
+                data-action="open-edit-modal"
+                data-track-index="${trackIdx}"
+                data-measure-index="${measureIdx}"
+                title="Change Instrument (${displayName})"
+            >
+                ${displayName}
+            </button>
+          `;
+      };
+
       return `
         <div class="flex items-center group min-w-max transition-opacity duration-300 ${track.muted ? 'opacity-50' : 'opacity-100'}">
           <!-- Instrument Label - Sticky -->
           <div class="sticky left-0 z-20 w-36 flex-shrink-0 pr-2 flex flex-col justify-center ${borderColor} pl-3 bg-gray-950 border-r border-gray-800 py-2 shadow-[4px_0_10px_rgba(0,0,0,0.5)]">
             
             <div class="flex items-center justify-between mb-1">
-              <button 
-                class="font-bold text-sm cursor-pointer select-none hover:text-cyan-400 hover:underline text-left truncate w-20 ${track.muted ? 'text-gray-500 line-through' : 'text-gray-200'}"
-                data-action="open-edit-modal"
-                data-track-index="${trackIdx}"
-                data-measure-index="${measureIdx}"
-                title="Change Instrument (${displayName})"
-              >
-                ${displayName}
-              </button>
+              ${renderTrackName()}
               
               <div class="flex items-center gap-1">
                  <button data-action="toggle-mute" data-track-index="${trackIdx}" data-measure-index="${measureIdx}" class="text-gray-500 hover:text-white" title="${track.muted ? "Unmute" : "Mute"}">
                   ${track.muted ? SpeakerXMarkIcon('w-3.5 h-3.5') : SpeakerWaveIcon('w-3.5 h-3.5')}
                 </button>
+                ${!readOnly ? `
                 <button data-action="remove-track" data-track-index="${trackIdx}" data-measure-index="${measureIdx}" class="text-gray-600 hover:text-red-500" title="Remove Track">
                   ${TrashIcon('w-3.5 h-3.5')}
                 </button>
+                ` : ''}
               </div>
             </div>
             
@@ -234,7 +250,7 @@ export const TubsGrid = ({
           </div>
 
           <!-- Grid Cells -->
-          <div class="flex gap-1 bg-gray-900/30 p-1 rounded-r-md ml-1">
+          <div class="flex gap-1 bg-gray-900/30 p-1 rounded-r-md ml-1 ${readOnly ? 'pointer-events-none' : ''}">
             ${track.strokes.map((stroke, stepIdx) => {
         const isGroupStart = stepIdx % groupSize === 0 && stepIdx !== 0;
         // Invisible separator to maintain alignment with header
@@ -270,6 +286,7 @@ export const TubsGrid = ({
           <div class="px-2 py-1 bg-gray-800/80 backdrop-blur border-l-4 border-cyan-500 rounded">
             <span class="text-xs font-bold text-cyan-400 uppercase tracking-wide">${measureLabel}</span>
           </div>
+          ${!readOnly ? `
           <div class="flex items-center gap-1">
             <button 
               data-action="duplicate-measure" 
@@ -288,12 +305,14 @@ export const TubsGrid = ({
               ${TrashIcon('w-3.5 h-3.5')}
             </button>
           </div>
+          ` : ''}
         </div>
         
         <!-- Tracks for this measure -->
         ${renderTracksForMeasure()}
         
         <!-- Add Track Button (per measure) -->
+        ${!readOnly ? `
         <div class="sticky left-0 z-20 w-36 pt-2">
           <button 
             data-action="open-add-modal"
@@ -303,6 +322,7 @@ export const TubsGrid = ({
             Add Track
           </button>
         </div>
+        ` : ''}
         
         <!-- Measure Separator -->
         ${measureIdx < section.measures.length - 1 ? '<div class="h-px bg-gray-700/50 my-4"></div>' : ''}
@@ -310,6 +330,7 @@ export const TubsGrid = ({
     `;
   }).join('') + `
     <!-- Add Measure Button -->
+    ${!readOnly ? `
     <div class="sticky left-0 z-20 mt-4 w-fit">
       <button 
         data-action="add-measure"
@@ -319,6 +340,7 @@ export const TubsGrid = ({
         Add Measure
       </button>
     </div>
+    ` : ''}
   `;
 
   const renderModal = () => {
@@ -353,9 +375,6 @@ export const TubsGrid = ({
         return Object.entries(node).map(([key, value]) => {
           const isLeaf = typeof value === 'string';
           const paddingLeft = depth * 1.5; // indentation in rem
-
-          // ... (inside component)
-          // ... (inside component)
 
           if (isLeaf) {
             // It's a rhythm button
