@@ -1,0 +1,24 @@
+name: "Test 24 steps"
+global_bpm: 120
+
+sound_kit:
+  oko:
+    instrument: "OKO"
+    pack: "cp_bata_chaworo"
+  ito:
+    instrument: "ITO"
+    pack: "cp_bata_chaworo"
+  iya:
+    instrument: "IYA"
+    pack: "cp_bata_chaworo"
+
+playback_flow:
+  - name: "Test"
+    repetitions: 1
+    time_signature: "12/8"
+    steps: 24
+    measures:
+      - pattern:
+          oko: "||O--|O--|O--|O--|O--|O--|O--|O--||"
+          ito: "||-O-|-O-|-O-|-O-|-O-|-O-|-O-|-O-||"
+          iya: "||--O|--O|--O|--O|--O|--O|--O|--O||"
