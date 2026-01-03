@@ -30,7 +30,8 @@ export const TubsGrid = ({
   selectedStroke,
   uiState,
   readOnly = false,
-  isMobile = false
+  isMobile = false,
+  mobileCellSize = null // Pixel value for mobile cell size
 }) => {
   // Safety check: if section is null (e.g. before load), return placeholder
   if (!section) return `<div class="p-8 text-center text-gray-500">No active section loaded.</div>`;
@@ -38,30 +39,25 @@ export const TubsGrid = ({
   const groupSize = section.subdivision || 4;
   const isCustomBpm = section.bpm !== undefined;
 
-  // Calculate cell size for mobile based on step count
-  // More steps = smaller cells to fit screen
-  const getCellSize = () => {
-    if (!isMobile) return 'normal';
-    const steps = section.steps || 12;
-    if (steps >= 17) return 'tiny';   // 24px cells for 17+ steps
-    if (steps >= 12) return 'small';  // 32px cells for 12-16 steps
-    return 'normal';                   // 40px cells for < 12 steps
+  // For mobile: use calculated pixel size
+  // For desktop: use fixed 40px
+  const cellSizePx = isMobile && mobileCellSize ? mobileCellSize : 40;
+
+  // Determine icon size based on cell size
+  const getIconSize = () => {
+    if (cellSizePx >= 36) return 32; // 8x8 = 32px
+    if (cellSizePx >= 28) return 24; // 6x6 = 24px
+    return 16; // 4x4 = 16px
   };
-  const cellSize = getCellSize();
+  const iconSizePx = getIconSize();
 
-  // Get corresponding width class for step headers
-  const stepWidthClass = {
-    normal: 'w-10',
-    small: 'w-8',
-    tiny: 'w-6'
-  }[cellSize];
-
-  // Get corresponding height for separators
-  const separatorHeightClass = {
-    normal: 'h-10',
-    small: 'h-8',
-    tiny: 'h-6'
-  }[cellSize];
+  // Determine font size based on cell size
+  const getFontSize = () => {
+    if (cellSizePx >= 36) return '0.875rem'; // text-sm
+    if (cellSizePx >= 28) return '0.75rem';  // text-xs
+    return '0.625rem'; // text-[10px]
+  };
+  const fontSizePx = getFontSize();
 
   // -- HTML GENERATION HELPERS --
 
@@ -253,7 +249,7 @@ export const TubsGrid = ({
         const isGroupStart = stepIdx % groupSize === 0 && stepIdx !== 0;
         // Invisible separator to maintain alignment with header
         const separator = isGroupStart
-          ? `<div class="w-px bg-transparent ${separatorHeightClass} flex-shrink-0"></div>`
+          ? `<div class="w-px bg-transparent flex-shrink-0" style="height: ${cellSizePx}px"></div>`
           : '';
 
         return `
@@ -268,7 +264,9 @@ export const TubsGrid = ({
           measureIndex: measureIdx,
           isActive: stroke !== StrokeType.None,
           instrumentDef: instDef,
-          cellSize
+          cellSizePx,
+          iconSizePx,
+          fontSizePx
         })}
               </div>
             `;
@@ -324,7 +322,8 @@ export const TubsGrid = ({
                         <div 
                           data-step-marker="${i}" 
                           data-measure-index="${measureIdx}"
-                          class="${stepWidthClass} text-center text-[10px] font-mono p-1 text-gray-500 flex-shrink-0"
+                          class="text-center text-[10px] font-mono p-1 text-gray-500 flex-shrink-0"
+                          style="width: ${cellSizePx}px"
                         >
                           ${i + 1}
                         </div>
