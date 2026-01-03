@@ -67,7 +67,7 @@ export const updateVisualStep = (step, measureIndex = 0) => {
     if (cell.innerText.trim() === '') cell.classList.add('bg-gray-800');
   });
 
-  const marker = document.querySelector(`[data-step-marker="${step}"]`);
+  const marker = document.querySelector(`[data-step-marker="${step}"][data-measure-index="${measureIndex}"]`);
   if (marker) {
     marker.classList.remove('text-gray-500');
     marker.classList.add('text-cyan-400', 'font-bold', 'scale-110');

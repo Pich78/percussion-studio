@@ -150,34 +150,6 @@ export const TubsGrid = ({
   `;
   };
 
-  const renderTimelineHeader = () => `
-    <div class="flex min-w-max">
-      <!-- Sticky Label Spacer -->
-      <div class="sticky left-0 z-20 w-36 flex-shrink-0 bg-gray-950 border-r border-gray-800 shadow-[4px_0_10px_rgba(0,0,0,0.5)]"></div> 
-      
-      <div class="flex gap-1 pl-1 ml-1">
-        ${Array.from({ length: section.steps }).map((_, i) => {
-    const isGroupStart = i % groupSize === 0 && i !== 0;
-    const separator = isGroupStart
-      ? `<div class="w-px bg-gray-700 h-5 mt-3 flex-shrink-0"></div>`
-      : '';
-
-    return `
-          ${separator}
-          <div 
-            data-step-marker="${i}"
-            class="w-10 text-center text-xs font-mono mb-1 pt-2 transition-transform duration-75 flex-shrink-0
-              ${i === currentStep ? 'text-cyan-400 font-bold scale-110' : 'text-gray-500'}
-            "
-          >
-            ${i + 1}
-          </div>
-        `;
-  }).join('')}
-      </div>
-    </div>
-  `;
-
   const renderMeasures = () => section.measures.map((measure, measureIdx) => {
     const measureLabel = `Measure ${measureIdx + 1}`;
 
@@ -279,34 +251,67 @@ export const TubsGrid = ({
       `;
     }).join('');
 
+    const stepCount = section.steps;
+
+    // Render Measure Header with Steps
+    const renderMeasureHeader = () => {
+      return `
+        <div class="flex min-w-max mb-1">
+           <!-- Sticky Measure Label -->
+           <div class="sticky left-0 z-20 w-36 flex-shrink-0 flex items-center justify-between pr-1 bg-gray-950 border-r border-gray-800 shadow-[4px_0_10px_rgba(0,0,0,0.5)]">
+               <div class="pl-1 py-0.5 border-l-2 border-cyan-500 rounded-sm ml-1">
+                  <span class="text-[10px] font-bold text-cyan-400 uppercase tracking-tighter whitespace-nowrap">${measureLabel}</span>
+               </div>
+               ${!readOnly ? `
+                <div class="flex items-center">
+                  <button 
+                    data-action="duplicate-measure" 
+                    data-measure-index="${measureIdx}"
+                    class="p-1 text-gray-500 hover:text-cyan-400 transition-colors"
+                    title="Duplicate Measure"
+                  >
+                    ${DocumentDuplicateIcon('w-3 h-3')}
+                  </button>
+                  <button 
+                    data-action="delete-measure" 
+                    data-measure-index="${measureIdx}"
+                    class="p-1 text-gray-500 hover:text-red-500 transition-colors"
+                    title="Delete Measure"
+                  >
+                    ${TrashIcon('w-3 h-3')}
+                  </button>
+                </div>
+                ` : ''}
+           </div>
+
+           <!-- Step Numbers -->
+           <div class="flex gap-1 pl-1 ml-1 bg-gray-900/20 rounded-r-md">
+              ${Array.from({ length: stepCount }).map((_, i) => {
+        const isGroupStart = i % groupSize === 0 && i !== 0;
+        const separator = isGroupStart
+          ? `<div class="w-px bg-gray-700 h-5 mt-1 flex-shrink-0"></div>`
+          : '';
+
+        return `
+                        ${separator}
+                        <div 
+                          data-step-marker="${i}" 
+                          data-measure-index="${measureIdx}"
+                          class="w-10 text-center text-[10px] font-mono p-1 text-gray-500 flex-shrink-0"
+                        >
+                          ${i + 1}
+                        </div>
+                      `;
+      }).join('')}
+           </div>
+        </div>
+       `;
+    };
+
     return `
       <div class="measure-container mb-6" data-measure-index="${measureIdx}">
-        <!-- Measure Label with Actions -->
-        <div class="sticky left-0 z-20 mb-2 flex items-center gap-2">
-          <div class="px-2 py-1 bg-gray-800/80 backdrop-blur border-l-4 border-cyan-500 rounded">
-            <span class="text-xs font-bold text-cyan-400 uppercase tracking-wide">${measureLabel}</span>
-          </div>
-          ${!readOnly ? `
-          <div class="flex items-center gap-1">
-            <button 
-              data-action="duplicate-measure" 
-              data-measure-index="${measureIdx}"
-              class="p-1 text-gray-500 hover:text-cyan-400 transition-colors"
-              title="Duplicate Measure"
-            >
-              ${DocumentDuplicateIcon('w-3.5 h-3.5')}
-            </button>
-            <button 
-              data-action="delete-measure" 
-              data-measure-index="${measureIdx}"
-              class="p-1 text-gray-500 hover:text-red-500 transition-colors"
-              title="Delete Measure"
-            >
-              ${TrashIcon('w-3.5 h-3.5')}
-            </button>
-          </div>
-          ` : ''}
-        </div>
+        <!-- Measure Header -->
+        ${renderMeasureHeader()}
         
         <!-- Tracks for this measure -->
         ${renderTracksForMeasure()}
@@ -549,7 +554,7 @@ export const TubsGrid = ({
       class="flex flex-col gap-4 overflow-x-auto overflow-y-auto pb-8 w-full custom-scrollbar relative bg-gray-900/20 p-4 rounded-xl border border-gray-800"
     >
       ${renderSectionSettings()}
-      ${renderTimelineHeader()}
+
       ${renderMeasures()}
     </div>
     
