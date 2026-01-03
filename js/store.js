@@ -21,7 +21,9 @@ export const state = {
         modalStep: 'instrument', // 'instrument' | 'soundpack'
         pendingInstrument: null, // Intermediate state for 2-step selection
         pendingSoundPack: null, // Selected sound pack before confirmation
-        editingTrackIndex: null
+        editingTrackIndex: null,
+        isLoadingRhythm: false, // True when rhythm is being loaded
+        loadingRhythmName: null // Name of the rhythm being loaded
     }
 };
 
