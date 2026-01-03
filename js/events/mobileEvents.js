@@ -25,12 +25,25 @@ export const setupMobileEvents = () => {
         const allowedActions = [
             'toggle-play', 'stop', 'toggle-menu', 'close-menu', 'load-rhythm',
             'select-rhythm-confirm', 'toggle-mute', 'update-global-bpm',
-            'update-volume', 'close-modal', 'close-modal-bg', 'open-structure'
+            'update-volume', 'close-modal', 'close-modal-bg', 'open-structure',
+            'toggle-fullscreen'
         ];
         if (!allowedActions.includes(action)) return;
 
         if (action === 'toggle-play') togglePlay();
         if (action === 'stop') stopPlayback();
+
+        if (action === 'toggle-fullscreen') {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.error(`Error attempting to enable fullscreen: ${err.message}`);
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
 
         if (action === 'toggle-menu') {
             state.uiState.isMenuOpen = !state.uiState.isMenuOpen;
@@ -84,6 +97,11 @@ export const setupMobileEvents = () => {
         }
     });
 
+    // Update UI on fullscreen change
+    document.addEventListener('fullscreenchange', () => {
+        renderApp();
+    });
+
     root.addEventListener('input', (e) => {
         const target = e.target;
         const action = target.dataset.action;
@@ -99,6 +117,10 @@ export const setupMobileEvents = () => {
             if (!section.bpm) playback.currentPlayheadBpm = state.toque.globalBpm;
             const display = document.getElementById('header-global-bpm');
             if (display) display.innerHTML = `${state.toque.globalBpm} <span class="text-[9px] text-gray-600">BPM</span>`;
+
+            // Also update the static value text if it exists
+            const valDisplay = document.getElementById('header-global-bpm-val');
+            if (valDisplay) valDisplay.textContent = state.toque.globalBpm;
         }
 
         if (action === 'update-volume') {

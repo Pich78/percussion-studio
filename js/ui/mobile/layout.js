@@ -8,13 +8,20 @@ import { PauseIcon } from '../../icons/pauseIcon.js';
 import { FolderOpenIcon } from '../../icons/folderOpenIcon.js';
 import { DevicePhoneMobileIcon } from '../../icons/DevicePhoneMobileIcon.js';
 
+import { ArrowsPointingOutIcon } from '../../icons/arrowsPointingOutIcon.js';
+import { ArrowsPointingInIcon } from '../../icons/arrowsPointingInIcon.js';
+
 const renderHeader = (activeSection) => {
+  const isFullscreen = !!document.fullscreenElement;
   return `
       <header class="h-16 px-4 border-b border-gray-800 flex justify-between items-center bg-gray-950 flex-shrink-0 z-40 gap-2">
-        <!-- Left: Menu -->
+        <!-- Left: Menu & Fullscreen -->
         <div class="flex items-center gap-2">
             <button data-action="toggle-menu" class="text-gray-400 hover:text-white p-2 rounded-md hover:bg-gray-800 transition-colors ${state.uiState.isMenuOpen ? 'bg-gray-800 text-white' : ''}">
                 ${Bars3Icon('w-6 h-6 pointer-events-none')}
+            </button>
+            <button data-action="toggle-fullscreen" class="text-gray-400 hover:text-white p-2 rounded-md hover:bg-gray-800 transition-colors">
+                ${isFullscreen ? ArrowsPointingInIcon('w-5 h-5 pointer-events-none') : ArrowsPointingOutIcon('w-5 h-5 pointer-events-none')}
             </button>
         </div>
 
