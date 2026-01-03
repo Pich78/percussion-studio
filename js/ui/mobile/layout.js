@@ -79,19 +79,26 @@ export const MobileLayout = () => {
     const steps = activeSection?.steps || 12;
     const subdivision = activeSection?.subdivision || 4;
 
-    // Account for: sticky instrument label (144px/w-36), gaps (4px per step), padding, safe areas
+    // Account for all horizontal space consumers:
+    // - Sticky instrument label: 144px (w-36)
+    // - Gap between cells: ~5px per cell (gap-1 = 4px + border)
+    // - Separators between groups: 2px each
+    // - Cell container padding: 8px (p-1 on both sides = 4px + 4px)
+    // - Some buffer for scrollbar and rendering: 10px
     const stickyLabelWidth = 144;
-    const gapPerStep = 5; // gap-1 = 4px + some border
-    const separatorCount = Math.floor((steps - 1) / subdivision); // dividers between groups
-    const safeAreaPadding = 20; // approximate combined left/right safe area
+    const gapPerStep = 5;
+    const separatorCount = Math.floor((steps - 1) / subdivision);
+    const containerPadding = 8;
+    const buffer = 15;
 
-    const availableWidth = viewportWidth - stickyLabelWidth - safeAreaPadding - (separatorCount * 2);
-    const availableForCells = availableWidth - (steps * gapPerStep);
+    const totalOverhead = stickyLabelWidth + containerPadding + buffer + (separatorCount * 2) + (steps * gapPerStep);
+    const availableForCells = viewportWidth - totalOverhead;
 
     const optimalCellWidth = Math.floor(availableForCells / steps);
 
-    // Clamp between minimum (20px) and maximum (40px)
-    const clampedWidth = Math.max(20, Math.min(40, optimalCellWidth));
+    // Clamp between minimum (16px) and maximum (40px)
+    // 16px is still usable for small icons/letters
+    const clampedWidth = Math.max(16, Math.min(40, optimalCellWidth));
 
     return clampedWidth;
   };
