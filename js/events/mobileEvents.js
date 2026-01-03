@@ -8,11 +8,13 @@ export const setupMobileEvents = () => {
 
     root.addEventListener('click', (e) => {
         // --- Fullscreen & Wake Lock Logic ---
-        if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen().catch(err => {
-                console.log(`Error attempting to enable fullscreen: ${err.message}`);
+        // --- Fullscreen & Wake Lock Logic ---
+        if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen().catch(() => {
+                // Ignore fullscreen errors silently (user might have blocked it)
             });
         }
+        // ------------------------------------
         // ------------------------------------
 
         const target = e.target.closest('[data-action], [data-role]');
