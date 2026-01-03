@@ -193,11 +193,11 @@ export const TubsGrid = ({
       // Conditional Track Name Rendering
       const renderTrackName = () => {
         if (readOnly) {
-          return `<span class="font-bold text-sm select-none text-left truncate w-20 text-gray-200 ${track.muted ? 'text-gray-500 line-through' : ''}" title="${displayName}">${displayName}</span>`;
+          return `<span class="font-bold text-sm select-none text-left truncate w-20 text-gray-200 ${track.muted || track.volume === 0 ? 'text-gray-500 line-through' : ''}" title="${displayName}">${displayName}</span>`;
         }
         return `
             <button 
-                class="font-bold text-sm cursor-pointer select-none hover:text-cyan-400 hover:underline text-left truncate w-20 ${track.muted ? 'text-gray-500 line-through' : 'text-gray-200'}"
+                class="font-bold text-sm cursor-pointer select-none hover:text-cyan-400 hover:underline text-left truncate w-20 ${track.muted || track.volume === 0 ? 'text-gray-500 line-through' : 'text-gray-200'}"
                 data-action="open-edit-modal"
                 data-track-index="${trackIdx}"
                 data-measure-index="${measureIdx}"
@@ -209,7 +209,7 @@ export const TubsGrid = ({
       };
 
       return `
-        <div class="flex items-center group min-w-max transition-opacity duration-300 ${track.muted ? 'opacity-50' : 'opacity-100'}">
+        <div class="flex items-center group min-w-max transition-opacity duration-300 ${track.muted || track.volume === 0 ? 'opacity-50' : 'opacity-100'}">
           <!-- Instrument Label - Sticky -->
           <div class="sticky left-0 z-20 w-36 flex-shrink-0 pr-2 flex flex-col justify-center ${borderColor} pl-3 bg-gray-950 border-r border-gray-800 py-2 shadow-[4px_0_10px_rgba(0,0,0,0.5)]">
             
