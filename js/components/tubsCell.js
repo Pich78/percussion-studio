@@ -9,22 +9,11 @@ export const TubsCell = ({
   stepIndex,
   measureIndex,
   instrumentDef,
-  cellSize = 'normal' // 'normal' (40px), 'small' (32px), 'tiny' (24px)
+  cellSizePx = 40,  // Cell size in pixels
+  iconSizePx = 32,  // Icon size in pixels
+  fontSizePx = '0.875rem' // Font size
 }) => {
-  // Dynamic sizing classes
-  const sizeClasses = {
-    normal: 'w-10 h-10 text-sm',
-    small: 'w-8 h-8 text-xs',
-    tiny: 'w-6 h-6 text-[10px]'
-  };
-
-  const iconSizeClasses = {
-    normal: 'w-8 h-8',
-    small: 'w-6 h-6',
-    tiny: 'w-4 h-4'
-  };
-
-  const baseClasses = `${sizeClasses[cellSize] || sizeClasses.normal} border border-gray-700 flex items-center justify-center select-none transition-all duration-75 relative`;
+  const baseClasses = `border border-gray-700 flex items-center justify-center select-none transition-all duration-75 relative`;
 
   // Interaction states
   const cursorClass = isValid ? "cursor-pointer" : "cursor-not-allowed opacity-50";
@@ -39,10 +28,14 @@ export const TubsCell = ({
   // Ghost effect for empty cells on current step
   const stepHighlight = isCurrentStep && stroke === StrokeType.None ? "bg-gray-800" : "";
 
+  // Inline styles for dynamic sizing
+  const cellStyle = `width: ${cellSizePx}px; height: ${cellSizePx}px; font-size: ${fontSizePx}`;
+
   // Data attributes are crucial for the Event Delegation in TubsGrid
   return `
     <div 
       class="${baseClasses} ${colorClass} ${activeClass} ${stepHighlight} ${cursorClass} ${hoverClass}"
+      style="${cellStyle}"
       data-role="tubs-cell"
       data-track-index="${trackIndex}"
       data-step-index="${stepIndex}"
@@ -57,8 +50,7 @@ export const TubsCell = ({
       if (instrumentDef && instrumentDef.sounds) {
         const soundDef = instrumentDef.sounds.find(s => s.letter === stroke);
         if (soundDef && soundDef.svg) {
-          const iconSize = iconSizeClasses[cellSize] || iconSizeClasses.normal;
-          return `<img src="data/assets/icons/${soundDef.svg}" class="${iconSize} pointer-events-none select-none" alt="${stroke}" />`;
+          return `<img src="data/assets/icons/${soundDef.svg}" style="width: ${iconSizePx}px; height: ${iconSizePx}px" class="pointer-events-none select-none" alt="${stroke}" />`;
         }
       }
 

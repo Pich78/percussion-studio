@@ -75,6 +75,31 @@ const renderHeader = (activeSection) => {
 export const MobileLayout = () => {
   const activeSection = state.toque.sections.find(s => s.id === state.activeSectionId) || state.toque.sections[0];
 
+  // Calculate optimal cell size based on available screen width
+  const calculateMobileCellSize = () => {
+    const viewportWidth = window.innerWidth;
+    const steps = activeSection?.steps || 12;
+    const subdivision = activeSection?.subdivision || 4;
+
+    // Account for: sticky instrument label (144px/w-36), gaps (4px per step), padding, safe areas
+    const stickyLabelWidth = 144;
+    const gapPerStep = 5; // gap-1 = 4px + some border
+    const separatorCount = Math.floor((steps - 1) / subdivision); // dividers between groups
+    const safeAreaPadding = 20; // approximate combined left/right safe area
+
+    const availableWidth = viewportWidth - stickyLabelWidth - safeAreaPadding - (separatorCount * 2);
+    const availableForCells = availableWidth - (steps * gapPerStep);
+
+    const optimalCellWidth = Math.floor(availableForCells / steps);
+
+    // Clamp between minimum (20px) and maximum (40px)
+    const clampedWidth = Math.max(20, Math.min(40, optimalCellWidth));
+
+    return clampedWidth;
+  };
+
+  const mobileCellSize = calculateMobileCellSize();
+
   return `
     <div class="flex flex-col h-full bg-gray-950 text-gray-100 font-sans selection:bg-cyan-500 selection:text-black select-none">
       <!-- Portrait Mode Enforcer Overlay -->
@@ -97,7 +122,8 @@ export const MobileLayout = () => {
     selectedStroke: state.selectedStroke,
     uiState: state.uiState,
     readOnly: true,
-    isMobile: true
+    isMobile: true,
+    mobileCellSize
   })}
           </div>
         </main>
