@@ -29,7 +29,8 @@ export const TubsGrid = ({
   currentStep,
   selectedStroke,
   uiState,
-  readOnly = false
+  readOnly = false,
+  isMobile = false
 }) => {
   // Safety check: if section is null (e.g. before load), return placeholder
   if (!section) return `<div class="p-8 text-center text-gray-500">No active section loaded.</div>`;
@@ -548,10 +549,16 @@ export const TubsGrid = ({
   };
 
   // -- MAIN RETURN --
+  // Mobile view: edge-to-edge with safe areas for dynamic island
+  // Desktop view: bordered container with rounded corners
+  const containerClasses = isMobile
+    ? 'flex flex-col gap-2 overflow-x-auto overflow-y-auto pb-4 w-full custom-scrollbar relative pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]'
+    : 'flex flex-col gap-4 overflow-x-auto overflow-y-auto pb-8 w-full custom-scrollbar relative bg-gray-900/20 p-4 rounded-xl border border-gray-800';
+
   return `
     <div 
       id="tubs-scroll-container"
-      class="flex flex-col gap-4 overflow-x-auto overflow-y-auto pb-8 w-full custom-scrollbar relative bg-gray-900/20 p-4 rounded-xl border border-gray-800"
+      class="${containerClasses}"
     >
       ${renderSectionSettings()}
 
