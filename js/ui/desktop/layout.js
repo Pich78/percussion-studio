@@ -59,6 +59,13 @@ const renderHeader = () => {
         </div>
       </div>
       <div class="flex items-center gap-4 flex-shrink-0">
+        <div class="flex items-center gap-3 bg-gray-900 px-3 py-2 rounded-lg border border-gray-800">
+          <div class="flex flex-col items-end leading-none">
+              <span class="text-[9px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">Global</span>
+              <span class="text-xs font-mono font-bold text-cyan-400" id="header-global-bpm">${state.toque.globalBpm} <span class="text-[9px] text-gray-600">BPM</span></span>
+          </div>
+          <input type="range" min="40" max="240" value="${state.toque.globalBpm}" data-action="update-global-bpm" class="w-40 h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-500 hover:accent-cyan-400" />
+        </div>
         <div class="flex items-center gap-1 bg-gray-900 rounded-lg p-1 border border-gray-800">
           <button data-action="stop" class="w-10 h-10 rounded-md flex items-center justify-center bg-gray-800 hover:bg-red-900/40 hover:text-red-400 text-gray-400 transition-all border border-transparent hover:border-red-900/50">
             ${StopIcon('w-5 h-5 pointer-events-none')}
@@ -66,13 +73,6 @@ const renderHeader = () => {
           <button data-action="toggle-play" class="w-10 h-10 rounded-md flex items-center justify-center transition-all shadow-lg ${state.isPlaying ? 'bg-amber-500/10 text-amber-500 border border-amber-500/50 hover:bg-amber-500/20' : 'bg-green-600 text-white hover:bg-green-500 shadow-green-900/20'}">
             ${state.isPlaying ? PauseIcon('w-6 h-6 pointer-events-none') : PlayIcon('w-6 h-6 ml-0.5 pointer-events-none')}
           </button>
-        </div>
-        <div class="flex items-center gap-3 bg-gray-900 px-3 py-2 rounded-lg border border-gray-800">
-          <div class="flex flex-col items-end leading-none">
-              <span class="text-[9px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">Global</span>
-              <span class="text-xs font-mono font-bold text-cyan-400" id="header-global-bpm">${state.toque.globalBpm} <span class="text-[9px] text-gray-600">BPM</span></span>
-          </div>
-          <input type="range" min="40" max="240" value="${state.toque.globalBpm}" data-action="update-global-bpm" class="w-24 h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-500 hover:accent-cyan-400" />
         </div>
       </div>
     </header>
