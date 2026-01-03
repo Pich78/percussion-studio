@@ -9,13 +9,14 @@ import { MinusIcon as MinusSvg } from '../icons/minusIcon.js';
 import { Bars3Icon as DragHandleSvg } from '../icons/bars3Icon.js';
 
 export const Timeline = ({
-    sections,
-    globalBpm,
-    activeSectionId,
-    rhythmName
+  sections,
+  globalBpm,
+  activeSectionId,
+  rhythmName,
+  readOnly = false
 }) => {
 
-    const renderHeader = () => `
+  const renderHeader = () => `
     <div class="p-4 border-b border-gray-800 flex items-center justify-between bg-gray-900 sticky top-0 z-10 gap-2">
       <input 
           value="${rhythmName}" 
@@ -23,7 +24,9 @@ export const Timeline = ({
           class="bg-transparent border-b border-transparent hover:border-gray-700 focus:border-cyan-500 focus:outline-none text-cyan-400 font-bold text-sm w-full transition-colors truncate placeholder-gray-600"
           placeholder="Rhythm Name"
           title="Rename Rhythm"
+          ${readOnly ? 'disabled readonly' : ''}
       />
+      ${!readOnly ? `
       <button 
         data-action="add-section"
         class="p-1 rounded-full hover:bg-gray-800 text-gray-400 hover:text-white transition-colors border border-transparent hover:border-gray-700 flex-shrink-0"
@@ -31,28 +34,29 @@ export const Timeline = ({
       >
         ${PlusIconSvg('w-5 h-5')}
       </button>
+      ` : ''}
     </div>
   `;
 
-    const renderSectionItem = (section, index) => {
-        const isActive = section.id === activeSectionId;
-        const effectiveBpm = section.bpm ?? globalBpm;
-        const accel = section.tempoAcceleration || 0;
-        const isCustomBpm = section.bpm !== undefined;
+  const renderSectionItem = (section, index) => {
+    const isActive = section.id === activeSectionId;
+    const effectiveBpm = section.bpm ?? globalBpm;
+    const accel = section.tempoAcceleration || 0;
+    const isCustomBpm = section.bpm !== undefined;
 
-        // Accel Icon Logic
-        let AccelIcon = MinusSvg;
-        let accelColorClass = 'text-gray-500 border-gray-800/50 opacity-70 bg-gray-950/30';
+    // Accel Icon Logic
+    let AccelIcon = MinusSvg;
+    let accelColorClass = 'text-gray-500 border-gray-800/50 opacity-70 bg-gray-950/30';
 
-        if (accel > 0) {
-            AccelIcon = TrendUpSvg;
-            accelColorClass = 'bg-emerald-900/20 text-emerald-400 border-emerald-500/30';
-        } else if (accel < 0) {
-            AccelIcon = TrendDownSvg;
-            accelColorClass = 'bg-rose-900/20 text-rose-400 border-rose-500/30';
-        }
+    if (accel > 0) {
+      AccelIcon = TrendUpSvg;
+      accelColorClass = 'bg-emerald-900/20 text-emerald-400 border-emerald-500/30';
+    } else if (accel < 0) {
+      AccelIcon = TrendDownSvg;
+      accelColorClass = 'bg-rose-900/20 text-rose-400 border-rose-500/30';
+    }
 
-        return `
+    return `
       <div 
         draggable="true"
         data-role="timeline-item"
@@ -61,15 +65,17 @@ export const Timeline = ({
         class="
           group relative flex gap-2 p-2 rounded-lg cursor-pointer border transition-all select-none
           ${isActive
-                ? 'bg-gray-800 border-cyan-500 text-white shadow-lg shadow-cyan-900/10'
-                : 'bg-gray-900/50 border-gray-800 text-gray-400 hover:bg-gray-800 hover:border-gray-700'}
+        ? 'bg-gray-800 border-cyan-500 text-white shadow-lg shadow-cyan-900/10'
+        : 'bg-gray-900/50 border-gray-800 text-gray-400 hover:bg-gray-800 hover:border-gray-700'}
         "
         onclick="document.dispatchEvent(new CustomEvent('timeline-select', { detail: '${section.id}' }))"
       >
         <!-- Drag Handle -->
+        ${!readOnly ? `
         <div class="flex items-center justify-center cursor-move text-gray-600 hover:text-gray-400 flex-shrink-0">
           ${DragHandleSvg('w-4 h-4 rotate-90 pointer-events-none')}
         </div>
+        ` : ''}
 
         <!-- Content Container -->
         <div class="flex flex-col gap-1 flex-1 min-w-0 pointer-events-none">
@@ -102,9 +108,9 @@ export const Timeline = ({
               <!-- Tempo -->
               <span 
                   class="text-[9px] font-mono px-1 py-0.5 rounded border flex items-center gap-1 ${isCustomBpm
-                ? 'bg-amber-900/20 text-amber-400 border-amber-500/30'
-                : 'bg-gray-950/30 text-gray-500 border-gray-800/50 opacity-70'
-            }"
+        ? 'bg-amber-900/20 text-amber-400 border-amber-500/30'
+        : 'bg-gray-950/30 text-gray-500 border-gray-800/50 opacity-70'
+      }"
                   title="${isCustomBpm ? "Custom Tempo" : "Global Tempo"}"
               >
                   ♩=${effectiveBpm}
@@ -120,6 +126,7 @@ export const Timeline = ({
             </div>
 
             <!-- Right: Actions (Pointer events re-enabled for buttons) -->
+            ${!readOnly ? `
             <div class="flex items-center gap-1 ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} transition-opacity pointer-events-auto">
               <button 
                 data-action="duplicate-section"
@@ -141,14 +148,15 @@ export const Timeline = ({
                 </button>
               ` : ''}
             </div>
+            ` : ''}
 
           </div>
         </div>
       </div>
     `;
-    };
+  };
 
-    return `
+  return `
     <div class="w-72 bg-gray-900 border-r border-gray-800 flex flex-col h-full flex-shrink-0">
       ${renderHeader()}
       <!-- Sections List -->
