@@ -8,9 +8,9 @@ import { PauseIcon } from '../../icons/pauseIcon.js';
 import { FolderOpenIcon } from '../../icons/folderOpenIcon.js';
 import { DevicePhoneMobileIcon } from '../../icons/DevicePhoneMobileIcon.js';
 
-const renderHeader = () => {
+const renderHeader = (activeSection) => {
   return `
-      <header class="h-16 px-4 border-b border-gray-800 flex justify-between items-center bg-gray-950 flex-shrink-0 z-40 gap-4">
+      <header class="h-16 px-4 border-b border-gray-800 flex justify-between items-center bg-gray-950 flex-shrink-0 z-40 gap-2">
         <!-- Left: Menu -->
         <div class="flex items-center gap-2">
             <button data-action="toggle-menu" class="text-gray-400 hover:text-white p-2 rounded-md hover:bg-gray-800 transition-colors ${state.uiState.isMenuOpen ? 'bg-gray-800 text-white' : ''}">
@@ -18,12 +18,45 @@ const renderHeader = () => {
             </button>
         </div>
 
-        <!-- Center: Playback Status -->
-        <div class="flex items-center gap-3 bg-gray-900 px-3 py-1.5 rounded-lg border border-gray-800">
-             <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">BPM</span>
-             <span class="text-sm font-mono font-bold text-cyan-400" id="header-global-bpm">${state.toque.globalBpm}</span>
-             <div class="h-4 w-px bg-gray-700"></div>
-             <input type="range" min="40" max="240" value="${state.toque.globalBpm}" data-action="update-global-bpm" class="w-16 h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-500" />
+        <!-- Center: Section Info & Status -->
+        <div class="flex flex-col items-center justify-center flex-1 min-w-0 px-2 overflow-hidden">
+             <!-- Top: Section Name -->
+             <span class="text-sm font-bold text-gray-200 truncate w-full text-center leading-tight mb-0.5">${activeSection.name}</span>
+             
+             <!-- Bottom: Stats -->
+             <div class="flex items-center gap-2 text-[10px] sm:text-xs text-gray-500 font-mono bg-gray-900/50 px-2 py-0.5 rounded-md border border-gray-800/50">
+                <!-- Repetitions -->
+                <span class="flex items-center gap-1">
+                    <span class="uppercase tracking-wider">Rep</span>
+                    <span class="text-white font-bold" id="header-rep-count">${state.isPlaying ? playback.repetitionCounter : 1}</span>
+                    <span>/</span>
+                    <span>${activeSection.repetitions || 1}</span>
+                </span>
+                
+                <div class="h-3 w-px bg-gray-700"></div>
+
+                <!-- Global BPM Control -->
+                <div class="flex items-center gap-1">
+                    <input 
+                      type="range" 
+                      min="40" 
+                      max="240" 
+                      value="${state.toque.globalBpm}" 
+                      data-action="update-global-bpm" 
+                      class="w-12 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-500" 
+                    />
+                    <span class="text-cyan-400 font-bold w-5 text-right" id="header-global-bpm-val">${state.toque.globalBpm}</span>
+                </div>
+
+                <!-- Live BPM Indicator (Only when playing) -->
+                ${state.isPlaying ? `
+                    <div class="h-3 w-px bg-gray-700 animate-pulse"></div>
+                    <span class="flex items-center gap-1 text-green-400 font-bold animate-pulse">
+                        <span>${Math.round(playback.currentPlayheadBpm)}</span>
+                        <span class="text-[8px] opacity-70">LIVE</span>
+                    </span>
+                ` : ''}
+             </div>
         </div>
 
         <!-- Right: Play/Stop -->
@@ -53,7 +86,7 @@ export const MobileLayout = () => {
          <p class="text-gray-400">Percussion Studio is designed for landscape mode.</p>
       </div>
 
-      ${renderHeader()}
+      ${renderHeader(activeSection)}
       <div class="flex flex-1 overflow-hidden">
         <main class="flex-1 overflow-hidden relative flex flex-col justify-center items-center bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-900 via-gray-950 to-gray-950">
           <div id="grid-container" class="w-full max-w-7xl px-4 py-8 flex flex-col items-center justify-center overflow-hidden h-full">
