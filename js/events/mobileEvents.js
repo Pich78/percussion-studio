@@ -2,6 +2,7 @@ import { state, playback } from '../store.js';
 import { actions } from '../actions.js';
 import { togglePlay, stopPlayback } from '../services/sequencer.js';
 import { renderApp, refreshGrid } from '../ui/renderer.js';
+import { audioEngine } from '../services/audioEngine.js';
 
 export const setupMobileEvents = () => {
     const root = document.getElementById('root');
@@ -14,6 +15,10 @@ export const setupMobileEvents = () => {
                 // Ignore fullscreen errors silently (user might have blocked it)
             });
         }
+
+        // Resume Audio Context (Mobile Fix)
+        audioEngine.init();
+        audioEngine.resume();
         // ------------------------------------
         // ------------------------------------
 
