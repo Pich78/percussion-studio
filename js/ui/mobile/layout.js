@@ -10,62 +10,60 @@ import { DevicePhoneMobileIcon } from '../../icons/DevicePhoneMobileIcon.js';
 
 const renderHeader = (activeSection) => {
   return `
-      <header class="h-16 px-4 border-b border-gray-800 flex justify-between items-center bg-gray-950 flex-shrink-0 z-40 gap-2">
+      <header class="h-16 px-2 border-b border-gray-800 flex justify-between items-center bg-gray-950 flex-shrink-0 z-40 gap-1">
         <!-- Left: Menu -->
-        <div class="flex items-center gap-2">
+        <div class="flex items-center flex-shrink-0">
             <button data-action="toggle-menu" class="text-gray-400 hover:text-white p-2 rounded-md hover:bg-gray-800 transition-colors ${state.uiState.isMenuOpen ? 'bg-gray-800 text-white' : ''}">
                 ${Bars3Icon('w-6 h-6 pointer-events-none')}
             </button>
         </div>
 
-        <!-- Center: Section Info & Status -->
-        <div class="flex flex-col items-center justify-center flex-1 min-w-0 px-2 overflow-hidden">
+        <!-- Center: Section Info & Status (truncates if needed) -->
+        <div class="flex flex-col items-center justify-center flex-1 min-w-0 px-1 overflow-hidden max-w-[50%]">
              <!-- Top: Section Name -->
-             <span class="text-sm font-bold text-gray-200 truncate w-full text-center leading-tight mb-0.5">${activeSection.name}</span>
+             <span class="text-xs font-bold text-gray-200 truncate w-full text-center leading-tight mb-0.5">${activeSection.name}</span>
              
              <!-- Bottom: Stats -->
-             <div class="flex items-center gap-2 text-[10px] sm:text-xs text-gray-500 font-mono bg-gray-900/50 px-2 py-0.5 rounded-md border border-gray-800/50">
+             <div class="flex items-center gap-1 text-[9px] text-gray-500 font-mono bg-gray-900/50 px-1.5 py-0.5 rounded-md border border-gray-800/50">
                 <!-- Repetitions -->
-                <span class="flex items-center gap-1">
+                <span class="flex items-center gap-0.5">
                     <span class="uppercase tracking-wider">Rep</span>
                     <span class="text-white font-bold" id="header-rep-count">${state.isPlaying ? playback.repetitionCounter : 1}</span>
                     <span>/</span>
                     <span>${activeSection.repetitions || 1}</span>
                 </span>
                 
-                <div class="h-3 w-px bg-gray-700"></div>
-
-                <div class="h-3 w-px bg-gray-700"></div>
+                <div class="h-2 w-px bg-gray-700"></div>
 
                 <!-- Global BPM Control -->
-                <div class="flex items-center gap-1">
+                <div class="flex items-center gap-0.5">
                     <input 
                       type="range" 
                       min="40" 
                       max="240" 
                       value="${state.toque.globalBpm}" 
                       data-action="update-global-bpm" 
-                      class="w-12 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-500" 
+                      class="w-10 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-500" 
                     />
-                    <span class="text-cyan-400 font-bold w-5 text-right" id="header-global-bpm-val">${state.toque.globalBpm}</span>
+                    <span class="text-cyan-400 font-bold w-4 text-right" id="header-global-bpm-val">${state.toque.globalBpm}</span>
                 </div>
 
                 <!-- Live BPM Indicator -->
-                <div class="h-3 w-px bg-gray-700 ${state.isPlaying ? 'animate-pulse' : 'opacity-50'}"></div>
-                <span class="flex items-center gap-1 ${state.isPlaying ? 'text-green-400 animate-pulse' : 'text-gray-600'} font-bold">
+                <div class="h-2 w-px bg-gray-700 ${state.isPlaying ? 'animate-pulse' : 'opacity-50'}"></div>
+                <span class="flex items-center gap-0.5 ${state.isPlaying ? 'text-green-400 animate-pulse' : 'text-gray-600'} font-bold">
                     <span>${state.isPlaying ? Math.round(playback.currentPlayheadBpm) : state.toque.globalBpm}</span>
-                    <span class="text-[8px] opacity-70">LIVE</span>
+                    <span class="text-[7px] opacity-70">LIVE</span>
                 </span>
              </div>
         </div>
 
-        <!-- Right: Play/Stop -->
-        <div class="flex items-center gap-2">
-            <button data-action="stop" class="w-10 h-10 rounded-md flex items-center justify-center bg-gray-900 border border-gray-800 text-gray-400 hover:bg-red-900/40 hover:text-red-400 hover:border-red-900/50 transition-all">
-                ${StopIcon('w-5 h-5 pointer-events-none')}
+        <!-- Right: Play/Stop (always visible) -->
+        <div class="flex items-center gap-1 flex-shrink-0">
+            <button data-action="stop" class="w-9 h-9 rounded-md flex items-center justify-center bg-gray-900 border border-gray-800 text-gray-400 hover:bg-red-900/40 hover:text-red-400 hover:border-red-900/50 transition-all">
+                ${StopIcon('w-4 h-4 pointer-events-none')}
             </button>
-            <button data-action="toggle-play" class="w-10 h-10 rounded-md flex items-center justify-center transition-all shadow-lg ${state.isPlaying ? 'bg-amber-500/10 text-amber-500 border border-amber-500/50' : 'bg-green-600 text-white shadow-green-900/20'}">
-                ${state.isPlaying ? PauseIcon('w-6 h-6 pointer-events-none') : PlayIcon('w-6 h-6 ml-0.5 pointer-events-none')}
+            <button data-action="toggle-play" class="w-9 h-9 rounded-md flex items-center justify-center transition-all shadow-lg ${state.isPlaying ? 'bg-amber-500/10 text-amber-500 border border-amber-500/50' : 'bg-green-600 text-white shadow-green-900/20'}">
+                ${state.isPlaying ? PauseIcon('w-5 h-5 pointer-events-none') : PlayIcon('w-5 h-5 ml-0.5 pointer-events-none')}
             </button>
         </div>
       </header>
