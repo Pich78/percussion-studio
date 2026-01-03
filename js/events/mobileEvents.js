@@ -51,9 +51,23 @@ export const setupMobileEvents = () => {
 
         if (action === 'select-rhythm-confirm') {
             const rhythmId = target.dataset.rhythmId;
-            // Mobile: Skip confirmation (Read-Only)
+            // Mobile: Close modal immediately and show loading screen
+            // Extract readable name from rhythmId (e.g. "bata/chachalokafun" -> "Chachalokafun")
+            const rhythmName = rhythmId.split('/').pop().replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+
+            state.uiState.modalOpen = false;
+            state.uiState.isLoadingRhythm = true;
+            state.uiState.loadingRhythmName = rhythmName;
+            renderApp();
+
+            // Load rhythm asynchronously
             actions.loadRhythm(rhythmId).then(() => {
-                state.uiState.modalOpen = false;
+                state.uiState.isLoadingRhythm = false;
+                state.uiState.loadingRhythmName = null;
+                renderApp();
+            }).catch(() => {
+                state.uiState.isLoadingRhythm = false;
+                state.uiState.loadingRhythmName = null;
                 renderApp();
             });
         }

@@ -116,6 +116,21 @@ export const MobileLayout = () => {
          <p class="text-gray-400">Percussion Studio is designed for landscape mode.</p>
       </div>
 
+      <!-- Rhythm Loading Overlay -->
+      ${state.uiState.isLoadingRhythm ? `
+      <div class="fixed inset-0 z-[90] bg-gray-950 flex flex-col items-center justify-center p-8 text-center">
+         <div class="mb-8">
+            <!-- Animated loading spinner -->
+            <div class="relative w-20 h-20">
+               <div class="absolute inset-0 border-4 border-gray-800 rounded-full"></div>
+               <div class="absolute inset-0 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+         </div>
+         <h2 class="text-xl font-bold text-white mb-2">Loading</h2>
+         <p class="text-cyan-400 text-lg font-semibold">${state.uiState.loadingRhythmName || 'Rhythm'}</p>
+      </div>
+      ` : ''}
+
       ${renderHeader(activeSection)}
       <div class="flex flex-1 overflow-hidden">
         <main class="flex-1 overflow-hidden relative flex flex-col justify-center items-center bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-900 via-gray-950 to-gray-950">
