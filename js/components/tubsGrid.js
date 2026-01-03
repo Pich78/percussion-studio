@@ -574,10 +574,10 @@ export const TubsGrid = ({
   };
 
   // -- MAIN RETURN --
-  // Mobile view: edge-to-edge with safe areas for dynamic island
+  // Mobile view: edge-to-edge (safe areas handled by layout wrapper)
   // Desktop view: bordered container with rounded corners
   const containerClasses = isMobile
-    ? 'flex flex-col gap-2 overflow-x-auto overflow-y-auto pb-4 w-full custom-scrollbar relative pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]'
+    ? 'flex flex-col gap-2 overflow-x-auto overflow-y-auto pb-4 w-full custom-scrollbar relative'
     : 'flex flex-col gap-4 overflow-x-auto overflow-y-auto pb-8 w-full custom-scrollbar relative bg-gray-900/20 p-4 rounded-xl border border-gray-800';
 
   return `
