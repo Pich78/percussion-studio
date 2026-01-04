@@ -1,5 +1,5 @@
-name: "Yakota - Base"
-global_bpm: 90
+name: "Los Guerreros - Base"
+global_bpm: 100
 
 sound_kit:
   oko:
@@ -19,6 +19,10 @@ playback_flow:
     steps: 12
     measures:
       - pattern:
-          oko: "||S--|-O-|S--|-O-||"
-          ito: "||O--|S--|O--|S--||"
-          iya: "||--S|---|--R|-O-||"
+          oko: "||O-O|S--|O-O|S--||"
+          ito: "||S--|-O-|S--|-O-||"
+          iya: "||O-S|--S|--S|-S-||"
+      - pattern:
+          oko: "||O-O|S--|O-O|S--||"
+          ito: "||S--|-O-|S-O|-O-||"
+          iya: "||--S|-O-|O-S|-S-||"

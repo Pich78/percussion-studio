@@ -1,16 +1,16 @@
-name: "Los Guerreros"
+name: "Los Guerreros - Llamada y Base"
 global_bpm: 120
 
 sound_kit:
   oko:
     instrument: "OKO"
-    pack: "basic_bata"
+    pack: "cp_bata_chaworo"
   ito:
     instrument: "ITO"
-    pack: "basic_bata"
+    pack: "cp_bata_chaworo"
   iya:
     instrument: "IYA"
-    pack: "basic_bata"
+    pack: "cp_bata_chaworo"
 
 playback_flow:
   - name: "LLamada"
@@ -23,7 +23,7 @@ playback_flow:
           ito: "||---|---|--O|-O-||"
           iya: "||---|-O-|O-S|-S-||"
   - name: "Base"
-    repetitions: 10
+    repetitions: 16
     time_signature: "6/8"
     steps: 12
     measures:
