@@ -6,7 +6,7 @@ import { StopIcon } from '../../icons/stopIcon.js';
 import { PlayIcon } from '../../icons/playIcon.js';
 import { PauseIcon } from '../../icons/pauseIcon.js';
 import { FolderOpenIcon } from '../../icons/folderOpenIcon.js';
-import { DevicePhoneMobileIcon } from '../../icons/DevicePhoneMobileIcon.js';
+import { DeviceRotateIcon } from '../../icons/DeviceRotateIcon.js';
 
 const renderHeader = (activeSection) => {
   return `
@@ -116,7 +116,7 @@ export const MobileLayout = () => {
       <!-- Portrait Mode Enforcer Overlay -->
       <div class="fixed inset-0 z-[100] bg-gray-950 flex flex-col items-center justify-center p-8 text-center portrait:flex landscape:hidden">
          <div class="animate-pulse mb-6 text-cyan-500">
-            ${DevicePhoneMobileIcon('w-24 h-24 rotate-90')}
+            ${DeviceRotateIcon('w-24 h-24')}
          </div>
          <h2 class="text-2xl font-bold text-white mb-2">Please Rotate Your Device</h2>
          <p class="text-gray-400">Percussion Studio is designed for landscape mode.</p>
