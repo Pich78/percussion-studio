@@ -38,6 +38,9 @@ export const actions = {
     loadRhythm: async (rhythmId) => {
         stopPlayback();
 
+        // Reset Global Mix
+        state.mix = {};
+
         try {
             // 1. Fetch Rhythm YAML
             const rhythmDef = await dataLoader.loadRhythmDefinition(rhythmId);
@@ -171,6 +174,9 @@ export const actions = {
     createNewRhythm: () => {
         stopPlayback();
         const newId = crypto.randomUUID();
+        // Reset Global Mix
+        state.mix = {};
+
         // Create a blank slate
         state.toque = {
             id: crypto.randomUUID(),
@@ -344,12 +350,24 @@ export const actions = {
 
         // 3. Add to all measures in section
         section.measures.forEach(measure => {
+            // Apply Global Mix
+            let vol = 1.0;
+            let mut = false;
+
+            if (state.mix[instrumentSymbol]) {
+                vol = state.mix[instrumentSymbol].volume;
+                mut = state.mix[instrumentSymbol].muted;
+            } else {
+                // Initialize global mix for this new instrument if not present
+                state.mix[instrumentSymbol] = { volume: 1.0, muted: false };
+            }
+
             measure.tracks.push({
                 id: crypto.randomUUID(),
                 instrument: instrumentSymbol,
                 pack: pack,
-                volume: 1.0,
-                muted: false,
+                volume: vol,
+                muted: mut,
                 strokes: Array(section.steps).fill(StrokeType.None)
             });
         });
@@ -456,14 +474,98 @@ export const actions = {
             await audioEngine.loadSoundPack(newSymbol, soundConfig);
         }
 
+        // Apply Global Mix settings if available for the new instrument
+        // If not, default to 1.0 / unmuted.
+        // Also update the global mix for this instrument if it didn't exist.
+        if (!state.mix[newSymbol]) {
+            state.mix[newSymbol] = { volume: 1.0, muted: false };
+        }
+        const mixSettings = state.mix[newSymbol];
+
         // Update all measures
         section.measures.forEach(measure => {
             if (measure.tracks[trackIdx]) {
                 measure.tracks[trackIdx].instrument = newSymbol;
                 measure.tracks[trackIdx].pack = pack;
+                measure.tracks[trackIdx].volume = mixSettings.volume;
+                measure.tracks[trackIdx].muted = mixSettings.muted;
             }
         });
 
+        refreshGrid();
+    },
+
+    /**
+     * Sets the global volume for a specific instrument type.
+     * Updates ALL tracks of this instrument across ALL sections.
+     */
+    setGlobalVolume: (instrumentSymbol, volume) => {
+        // 1. Update Global State
+        if (!state.mix[instrumentSymbol]) {
+            state.mix[instrumentSymbol] = { volume: 1.0, muted: false };
+        }
+        state.mix[instrumentSymbol].volume = volume;
+
+        // 2. Propagate to ALL sections and measures
+        if (state.toque && state.toque.sections) {
+            state.toque.sections.forEach(section => {
+                section.measures.forEach(measure => {
+                    measure.tracks.forEach(track => {
+                        if (track.instrument === instrumentSymbol) {
+                            track.volume = volume;
+                        }
+                    });
+                });
+            });
+        }
+
+        // 3. Refresh (optional, but good for UI consistency if multiple visible)
+        // Usually volume change is feedback-less until played, but if we had VU meters...
+        // No need to full refreshGrid for volume, usually.
+        // BUT, if we have muted state affecting UI opacity, and volume=0 might affect it?
+        // The current UI logic: volume === 0 adds 'line-through' and opacity-50.
+        // So YES, we might need to refreshGrid to update the visual state of OTHER tracks 
+        // if they are visible (e.g. multi-measure view, or if we had a mixer).
+        // For now, let's NOT refreshGrid on every volume drag to keep it smooth, 
+        // assuming the `input` event only updates the *data*.
+        // The user dragging the slider updates *that* slider visually.
+        // Other sliders for the same instrument will interpret the new value on next render.
+        // If we want them to move in sync, we need to refresh.
+        // Given it's "Global", let's leave it without refresh for performance during drag,
+        // unless user complains. 
+        // WAIT: The user said "volume slider setting... shall be global".
+        // If I have two measures visible, and I drag volume in Measure 1, Measure 2's slider should probably move?
+        // `tubsGrid` is re-rendered on `refreshGrid`.
+        // If I don't refresh, the other slider won't move.
+        // Let's rely on the fact that `input` event is high frequency.
+        // Maybe we don't refresh grid on `input`, but we do on `change` (mouse up)?
+        // For now: update data model.
+    },
+
+    /**
+     * Sets the global mute status for a specific instrument type.
+     */
+    setGlobalMute: (instrumentSymbol, isMuted) => {
+        // 1. Update Global State
+        if (!state.mix[instrumentSymbol]) {
+            state.mix[instrumentSymbol] = { volume: 1.0, muted: false };
+        }
+        state.mix[instrumentSymbol].muted = isMuted;
+
+        // 2. Propagate
+        if (state.toque && state.toque.sections) {
+            state.toque.sections.forEach(section => {
+                section.measures.forEach(measure => {
+                    measure.tracks.forEach(track => {
+                        if (track.instrument === instrumentSymbol) {
+                            track.muted = isMuted;
+                        }
+                    });
+                });
+            });
+        }
+
+        // 3. Refresh Grid required to show visual feedback (opacity/line-through)
         refreshGrid();
     }
 };

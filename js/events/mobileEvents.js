@@ -75,14 +75,13 @@ export const setupMobileEvents = () => {
         if (action === 'toggle-mute') {
             const section = state.toque.sections.find(s => s.id === state.activeSectionId);
             const tIdx = parseInt(target.dataset.trackIndex);
-            // Apply to all measures
-            const track = section.measures[0].tracks[tIdx];
-            track.muted = !track.muted;
 
-            section.measures.forEach(measure => {
-                if (measure.tracks[tIdx]) measure.tracks[tIdx].muted = track.muted;
-            });
-            refreshGrid();
+            // Mobile assumes track structure is consistent, so grab from first measure to identify instrument
+            const track = section.measures[0].tracks[tIdx];
+            if (track) {
+                const newMutedState = !track.muted;
+                actions.setGlobalMute(track.instrument, newMutedState);
+            }
         }
 
         if (action === 'open-structure') {
@@ -118,9 +117,11 @@ export const setupMobileEvents = () => {
         if (action === 'update-volume') {
             const tIdx = parseInt(target.dataset.trackIndex);
             const newVolume = parseFloat(target.value);
-            section.measures.forEach(measure => {
-                if (measure.tracks[tIdx]) measure.tracks[tIdx].volume = newVolume;
-            });
+            // Get instrument from first measure
+            const track = section.measures[0].tracks[tIdx];
+            if (track) {
+                actions.setGlobalVolume(track.instrument, newVolume);
+            }
         }
     });
 
