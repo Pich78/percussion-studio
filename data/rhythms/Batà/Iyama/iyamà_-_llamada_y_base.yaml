@@ -1,14 +1,23 @@
-name: "Iya Mase (variante)"
-global_bpm: 120
+name: "Iyamà - Llamada y Base"
+global_bpm: 100
 
 sound_kit:
   oko:
     instrument: "OKO"
-    pack: "basic_bata"
+    pack: "cp_bata_chaworo"
   ito:
     instrument: "ITO"
-    pack: "basic_bata"
+    pack: "cp_bata_chaworo"
   iya:
+    instrument: "IYA"
+    pack: "cp_bata_chaworo"
+  oko_2:
+    instrument: "OKO"
+    pack: "basic_bata"
+  ito_2:
+    instrument: "ITO"
+    pack: "basic_bata"
+  iya_2:
     instrument: "IYA"
     pack: "basic_bata"
 
@@ -23,11 +32,11 @@ playback_flow:
           ito: "||---|---|--O|-O-||"
           iya: "||---|-R-|OOS|-S-||"
   - name: "Base"
-    repetitions: 10
+    repetitions: 16
     time_signature: "6/8"
     steps: 12
     measures:
       - pattern:
-          oko: "||O-O|S--|O-O|S--||"
-          ito: "||S--|---|S-O|-O-||"
-          iya: "||--S|--S|-OS|-S-||"
+          oko_2: "||O-O|S--|O-O|S--||"
+          ito_2: "||S--|---|S-O|-O-||"
+          iya_2: "||O--|--S|-OS|-S-||"
