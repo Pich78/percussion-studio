@@ -40,6 +40,8 @@ const renderHeader = () => {
         <h1 class="text-xl font-bold text-gray-100 whitespace-nowrap hidden sm:block">Percussion Studio</h1>
         <div class="h-6 w-px bg-gray-800 hidden sm:block"></div>
         <div class="flex items-center gap-3 min-w-0 overflow-hidden flex-1">
+           <span class="text-amber-400 font-bold text-lg truncate whitespace-nowrap">${state.toque.name}</span>
+           <span class="text-gray-600">/</span>
            <span class="text-gray-200 font-bold text-lg truncate whitespace-nowrap">${activeSection.name}</span>
            <div class="flex items-center gap-1 ml-2 bg-gray-900 px-2 py-0.5 rounded border border-gray-800 flex-shrink-0">
               <span class="text-[10px] uppercase font-bold text-gray-500">Rep</span>

@@ -20,7 +20,9 @@ const renderHeader = (activeSection) => {
 
         <!-- Center: Section Info & Status -->
         <div class="flex items-center justify-center flex-1 min-w-0 gap-2 overflow-hidden">
-             <!-- Section Name -->
+             <!-- Rhythm and Section Names -->
+             <span class="text-sm font-bold text-amber-400 truncate">${state.toque.name}</span>
+             <span class="text-gray-600 text-sm">/</span>
              <span class="text-sm font-bold text-gray-200 truncate">${activeSection.name}</span>
              
              <!-- Stats Badge -->
