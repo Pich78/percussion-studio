@@ -22,6 +22,8 @@ import { XMarkIcon } from '../icons/xMarkIcon.js';
 import { FolderOpenIcon } from '../icons/folderOpenIcon.js';
 import { DocumentDuplicateIcon } from '../icons/documentDuplicateIcon.js';
 import { MusicalNoteIcon } from '../icons/musicalNoteIcon.js';
+import { ChevronRightIcon } from '../icons/chevronRightIcon.js';
+import { ChevronDownIcon } from '../icons/chevronDownIcon.js';
 
 export const TubsGrid = ({
   section,
@@ -401,11 +403,12 @@ export const TubsGrid = ({
         return tree;
       };
 
-      // 2. Recursive Render
-      const renderTree = (node, depth = 0) => {
+      // 2. Recursive Render (with collapsible folders)
+      const renderTree = (node, depth = 0, parentPath = '') => {
         return Object.entries(node).map(([key, value]) => {
           const isLeaf = typeof value === 'string';
           const paddingLeft = depth * 1.5; // indentation in rem
+          const folderPath = parentPath ? `${parentPath}/${key}` : key;
 
           if (isLeaf) {
             // It's a rhythm button
@@ -427,16 +430,24 @@ export const TubsGrid = ({
           } else {
             // It's a Folder
             const folderName = key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+            const isExpanded = uiState.expandedFolders.has(folderPath);
+            const chevronIcon = isExpanded
+              ? ChevronDownIcon('w-4 h-4 text-gray-500 transition-transform')
+              : ChevronRightIcon('w-4 h-4 text-gray-500 transition-transform');
+
             return `
               <div class="mb-2">
-                <div 
-                  class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-2"
+                <button 
+                  data-action="toggle-folder"
+                  data-folder-path="${folderPath}"
+                  class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-2 hover:text-gray-200 transition-colors cursor-pointer w-full text-left py-1 rounded hover:bg-gray-800/50"
                   style="margin-left: ${paddingLeft}rem;"
                 >
-                  ${FolderOpenIcon('w-4 h-4 text-gray-600')}
+                  ${chevronIcon}
+                  ${FolderOpenIcon('w-4 h-4 text-amber-600')}
                   ${folderName}
-                </div>
-                ${renderTree(value, depth + 1)}
+                </button>
+                ${isExpanded ? renderTree(value, depth + 1, folderPath) : ''}
               </div>
             `;
           }

@@ -29,7 +29,8 @@ export const state = {
         isLoadingRhythm: false, // True when rhythm is being loaded
         loadingRhythmName: null, // Name of the rhythm being loaded
         mobileCellSize: null, // Cached mobile cell size in pixels
-        mobileCellSteps: null // Step count that the cell size was calculated for
+        mobileCellSteps: null, // Step count that the cell size was calculated for
+        expandedFolders: new Set() // Tracks which rhythm folders are expanded
     }
 };
 
