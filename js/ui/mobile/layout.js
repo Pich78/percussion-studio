@@ -72,7 +72,15 @@ export const MobileLayout = () => {
   const activeSection = state.toque.sections.find(s => s.id === state.activeSectionId) || state.toque.sections[0];
 
   // Calculate optimal cell size based on available screen width
+  // Only recalculate if step count changes, otherwise use cached value
   const calculateMobileCellSize = () => {
+    const steps = activeSection?.steps || 12;
+
+    // Use cached value if step count hasn't changed
+    if (state.uiState.mobileCellSize !== null && state.uiState.mobileCellSteps === steps) {
+      return state.uiState.mobileCellSize;
+    }
+
     // Get safe area insets from CSS custom properties (set via env() in mobile.html)
     const computedStyle = getComputedStyle(document.documentElement);
     const safeAreaLeft = parseInt(computedStyle.getPropertyValue('--safe-area-left') || '0', 10) || 0;
@@ -82,7 +90,6 @@ export const MobileLayout = () => {
     // Subtract safe areas to get usable width (excludes dynamic island area)
     const usableWidth = viewportWidth - safeAreaLeft - safeAreaRight;
 
-    const steps = activeSection?.steps || 12;
     const subdivision = activeSection?.subdivision || 4;
 
     // Account for all horizontal space consumers:
@@ -105,6 +112,10 @@ export const MobileLayout = () => {
     // Clamp between minimum (16px) and maximum (40px)
     // 16px is still usable for small icons/letters
     const clampedWidth = Math.max(16, Math.min(40, optimalCellWidth));
+
+    // Cache the calculated value and the step count it was calculated for
+    state.uiState.mobileCellSize = clampedWidth;
+    state.uiState.mobileCellSteps = steps;
 
     return clampedWidth;
   };
