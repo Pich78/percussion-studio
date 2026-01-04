@@ -36,7 +36,8 @@ export const refreshGrid = () => {
       currentStep: state.currentStep,
       selectedStroke: state.selectedStroke,
       uiState: state.uiState,
-      readOnly: isMobile
+      readOnly: isMobile,
+      isMobile: isMobile
     });
 
     // Restore scroll position
