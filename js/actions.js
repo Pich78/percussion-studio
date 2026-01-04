@@ -498,13 +498,29 @@ export const actions = {
     /**
      * Sets the global volume for a specific instrument type.
      * Updates ALL tracks of this instrument across ALL sections.
+     * SYNC: If volume is 0, mute. If volume > 0, unmute.
      */
     setGlobalVolume: (instrumentSymbol, volume) => {
         // 1. Update Global State
         if (!state.mix[instrumentSymbol]) {
-            state.mix[instrumentSymbol] = { volume: 1.0, muted: false };
+            state.mix[instrumentSymbol] = { volume: 1.0, muted: false, lastVolume: 1.0 };
         }
-        state.mix[instrumentSymbol].volume = volume;
+
+        const mix = state.mix[instrumentSymbol];
+        mix.volume = volume;
+
+        // Track last known good volume (if not 0)
+        if (volume > 0) mix.lastVolume = volume;
+
+        // Sync Mute State
+        let muteChanged = false;
+        if (volume === 0 && !mix.muted) {
+            mix.muted = true;
+            muteChanged = true;
+        } else if (volume > 0 && mix.muted) {
+            mix.muted = false;
+            muteChanged = true;
+        }
 
         // 2. Propagate to ALL sections and measures
         if (state.toque && state.toque.sections) {
@@ -513,44 +529,45 @@ export const actions = {
                     measure.tracks.forEach(track => {
                         if (track.instrument === instrumentSymbol) {
                             track.volume = volume;
+                            if (muteChanged) track.muted = mix.muted;
                         }
                     });
                 });
             });
         }
 
-        // 3. Refresh (optional, but good for UI consistency if multiple visible)
-        // Usually volume change is feedback-less until played, but if we had VU meters...
-        // No need to full refreshGrid for volume, usually.
-        // BUT, if we have muted state affecting UI opacity, and volume=0 might affect it?
-        // The current UI logic: volume === 0 adds 'line-through' and opacity-50.
-        // So YES, we might need to refreshGrid to update the visual state of OTHER tracks 
-        // if they are visible (e.g. multi-measure view, or if we had a mixer).
-        // For now, let's NOT refreshGrid on every volume drag to keep it smooth, 
-        // assuming the `input` event only updates the *data*.
-        // The user dragging the slider updates *that* slider visually.
-        // Other sliders for the same instrument will interpret the new value on next render.
-        // If we want them to move in sync, we need to refresh.
-        // Given it's "Global", let's leave it without refresh for performance during drag,
-        // unless user complains. 
-        // WAIT: The user said "volume slider setting... shall be global".
-        // If I have two measures visible, and I drag volume in Measure 1, Measure 2's slider should probably move?
-        // `tubsGrid` is re-rendered on `refreshGrid`.
-        // If I don't refresh, the other slider won't move.
-        // Let's rely on the fact that `input` event is high frequency.
-        // Maybe we don't refresh grid on `input`, but we do on `change` (mouse up)?
-        // For now: update data model.
+        // 3. Refresh Grid ONLY if mute state changed (to update visual opacity/strikethrough)
+        // This avoids refreshing on every drag pixel, but ensures visual sync when hitting 0.
+        if (muteChanged) {
+            refreshGrid();
+        }
     },
 
     /**
      * Sets the global mute status for a specific instrument type.
+     * SYNC: If muted, set volume to 0. If unmuted, restore last volume.
      */
     setGlobalMute: (instrumentSymbol, isMuted) => {
         // 1. Update Global State
         if (!state.mix[instrumentSymbol]) {
-            state.mix[instrumentSymbol] = { volume: 1.0, muted: false };
+            state.mix[instrumentSymbol] = { volume: 1.0, muted: false, lastVolume: 1.0 };
         }
-        state.mix[instrumentSymbol].muted = isMuted;
+
+        const mix = state.mix[instrumentSymbol];
+        mix.muted = isMuted;
+
+        let targetVolume = mix.volume;
+
+        if (isMuted) {
+            // Store current volume before muting (if meaningful)
+            if (mix.volume > 0) mix.lastVolume = mix.volume;
+            targetVolume = 0;
+        } else {
+            // Restore last volume
+            targetVolume = mix.lastVolume || 1.0;
+        }
+
+        mix.volume = targetVolume;
 
         // 2. Propagate
         if (state.toque && state.toque.sections) {
@@ -559,13 +576,14 @@ export const actions = {
                     measure.tracks.forEach(track => {
                         if (track.instrument === instrumentSymbol) {
                             track.muted = isMuted;
+                            track.volume = targetVolume;
                         }
                     });
                 });
             });
         }
 
-        // 3. Refresh Grid required to show visual feedback (opacity/line-through)
+        // 3. Refresh Grid required to show visual feedback (opacity/line-through) + Slider updates
         refreshGrid();
     }
 };
