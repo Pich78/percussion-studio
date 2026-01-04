@@ -1,29 +1,20 @@
-name: "Iyakota Base"
+name: "Yakota - Base"
 global_bpm: 90
 
 sound_kit:
   oko:
     instrument: "OKO"
-    pack: "basic_bata"
+    pack: "cp_bata_chaworo"
   ito:
     instrument: "ITO"
-    pack: "basic_bata"
+    pack: "cp_bata_chaworo"
   iya:
     instrument: "IYA"
-    pack: "basic_bata"
+    pack: "cp_bata_chaworo"
 
 playback_flow:
-  - name: "LLamada"
-    repetitions: 1
-    time_signature: "6/8"
-    steps: 12
-    measures:
-      - pattern:
-          oko: "||---|---|---|---||"
-          ito: "||---|---|---|---||"
-          iya: "||S-S|-S-|S-R|-O-||"
   - name: "Marcha"
-    repetitions: 10
+    repetitions: 1
     time_signature: "6/8"
     steps: 12
     measures:
