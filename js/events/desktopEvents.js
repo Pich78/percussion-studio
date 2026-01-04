@@ -71,14 +71,10 @@ export const setupDesktopEvents = () => {
             const tIdx = parseInt(target.dataset.trackIndex);
             const mIdx = parseInt(target.dataset.measureIndex || 0);
             const track = section.measures[mIdx].tracks[tIdx];
-            track.muted = !track.muted;
-            // Apply to all measures
-            section.measures.forEach(measure => {
-                if (measure.tracks[tIdx]) {
-                    measure.tracks[tIdx].muted = track.muted;
-                }
-            });
-            refreshGrid();
+
+            // Toggle local to get new state, then apply globally
+            const newMutedState = !track.muted;
+            actions.setGlobalMute(track.instrument, newMutedState);
         }
         if (action === 'remove-track') {
             if (confirm("Remove track?")) {
@@ -237,11 +233,13 @@ export const setupDesktopEvents = () => {
         }
 
         if (action === 'update-volume') {
+            const section = state.toque.sections.find(s => s.id === state.activeSectionId);
             const tIdx = parseInt(target.dataset.trackIndex);
+            const mIdx = parseInt(target.dataset.measureIndex || 0);
+            const track = section.measures[mIdx].tracks[tIdx];
             const newVolume = parseFloat(target.value);
-            section.measures.forEach(measure => {
-                if (measure.tracks[tIdx]) measure.tracks[tIdx].volume = newVolume;
-            });
+
+            actions.setGlobalVolume(track.instrument, newVolume);
         }
 
         if (action === 'update-bpm') {

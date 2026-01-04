@@ -5,6 +5,10 @@ export const state = {
     // Will be populated by actions.loadRhythm() via the dataLoader.
     toque: null,
 
+    // Global volume/mute mix state.
+    // Key: instrument symbol (e.g. "Iya"), Value: { volume: 1.0, muted: false }
+    mix: {},
+
     // Cache for loaded Instrument YAML definitions.
     // Key: Symbol (e.g. "ITO"), Value: The parsed YAML object with .sounds, .name, etc.
     instrumentDefinitions: {},
