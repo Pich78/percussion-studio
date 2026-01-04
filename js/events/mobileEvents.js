@@ -24,7 +24,7 @@ export const setupMobileEvents = () => {
         // Allowed actions for mobile
         const allowedActions = [
             'toggle-play', 'stop', 'toggle-menu', 'close-menu', 'load-rhythm',
-            'select-rhythm-confirm', 'toggle-mute', 'update-global-bpm',
+            'select-rhythm-confirm', 'toggle-mute', 'update-global-bpm', 'toggle-folder',
             'update-volume', 'close-modal', 'close-modal-bg', 'open-structure'
         ];
         if (!allowedActions.includes(action)) return;
@@ -46,6 +46,16 @@ export const setupMobileEvents = () => {
             state.uiState.modalType = 'rhythm';
             state.uiState.modalOpen = true;
             state.uiState.isMenuOpen = false;
+            renderApp();
+        }
+
+        if (action === 'toggle-folder') {
+            const folderPath = target.dataset.folderPath;
+            if (state.uiState.expandedFolders.has(folderPath)) {
+                state.uiState.expandedFolders.delete(folderPath);
+            } else {
+                state.uiState.expandedFolders.add(folderPath);
+            }
             renderApp();
         }
 

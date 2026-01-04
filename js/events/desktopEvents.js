@@ -173,6 +173,15 @@ export const setupDesktopEvents = () => {
                 });
             }
         }
+        if (action === 'toggle-folder') {
+            const folderPath = target.dataset.folderPath;
+            if (state.uiState.expandedFolders.has(folderPath)) {
+                state.uiState.expandedFolders.delete(folderPath);
+            } else {
+                state.uiState.expandedFolders.add(folderPath);
+            }
+            refreshGrid();
+        }
         if (action === 'select-rhythm-confirm') {
             const rhythmId = target.dataset.rhythmId;
             if (confirm("Load this rhythm? Unsaved changes will be lost.")) {
