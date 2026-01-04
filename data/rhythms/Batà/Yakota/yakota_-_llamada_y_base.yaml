@@ -1,0 +1,33 @@
+name: "Yakota - Llamada y Base"
+global_bpm: 90
+
+sound_kit:
+  oko:
+    instrument: "OKO"
+    pack: "cp_bata_chaworo"
+  ito:
+    instrument: "ITO"
+    pack: "cp_bata_chaworo"
+  iya:
+    instrument: "IYA"
+    pack: "cp_bata_chaworo"
+
+playback_flow:
+  - name: "LLamada"
+    repetitions: 1
+    time_signature: "6/8"
+    steps: 12
+    measures:
+      - pattern:
+          oko: "||---|---|---|---||"
+          ito: "||---|---|---|---||"
+          iya: "||S-S|-S-|S-R|-O-||"
+  - name: "Base"
+    repetitions: 10
+    time_signature: "6/8"
+    steps: 12
+    measures:
+      - pattern:
+          oko: "||S--|-O-|S--|-O-||"
+          ito: "||O--|S--|O--|S--||"
+          iya: "||--S|---|--R|-O-||"
