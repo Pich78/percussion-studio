@@ -20,7 +20,7 @@ export const TubsCell = ({
   const hoverClass = isValid ? "hover:border-gray-500 hover:bg-gray-800" : "";
 
   // Active/Playing state
-  const activeClass = isCurrentStep ? "ring-2 ring-white z-10 scale-105 shadow-lg shadow-cyan-500/50" : "";
+  const activeClass = isCurrentStep ? "ring-2 ring-white z-10 shadow-lg shadow-cyan-500/50" : "";
 
   // Visual styling based on stroke type
   const colorClass = STROKE_COLORS[stroke] || STROKE_COLORS[StrokeType.None];
