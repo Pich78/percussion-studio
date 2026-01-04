@@ -10,13 +10,13 @@
     "cp_bata_chaworo": "data/sounds/cp_bata_chaworo/"
   },
   "rhythms": {
-    "dada_base": "data/rhythms/dada_base.yaml",
-    "dada_y_primera_conversacion": "data/rhythms/dada_y_primera_conversacion.yaml",
-    "iyakota_base": "data/rhythms/iyakota_base.yaml",
-    "iya_mase": "data/rhythms/iya_mase.yaml",
-    "iya_mase_(variante)": "data/rhythms/iya_mase_(variante).yaml",
-    "los_guerreros": "data/rhythms/los_guerreros.yaml",
-    "oggun_base": "data/rhythms/oggun_base.yaml",
-    "test_24_steps": "data/rhythms/test_24_steps.yaml"
+    "Bat\u00e0/dada_base": "data/rhythms/Bat\u00e0/dada_base.yaml",
+    "Bat\u00e0/dada_y_primera_conversacion": "data/rhythms/Bat\u00e0/dada_y_primera_conversacion.yaml",
+    "Bat\u00e0/iyakota_base": "data/rhythms/Bat\u00e0/iyakota_base.yaml",
+    "Bat\u00e0/iya_mase": "data/rhythms/Bat\u00e0/iya_mase.yaml",
+    "Bat\u00e0/iya_mase_(variante)": "data/rhythms/Bat\u00e0/iya_mase_(variante).yaml",
+    "Bat\u00e0/los_guerreros": "data/rhythms/Bat\u00e0/los_guerreros.yaml",
+    "Bat\u00e0/oggun_base": "data/rhythms/Bat\u00e0/oggun_base.yaml",
+    "tests/24_steps": "data/rhythms/tests/24_steps.yaml"
   }
 }
