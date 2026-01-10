@@ -21,7 +21,7 @@ export const state = {
     uiState: {
         isMenuOpen: false,
         modalOpen: false,
-        modalType: 'instrument', // 'instrument' | 'rhythm'
+        modalType: 'instrument', // 'instrument' | 'rhythm' | 'userGuide'
         modalStep: 'instrument', // 'instrument' | 'soundpack'
         pendingInstrument: null, // Intermediate state for 2-step selection
         pendingSoundPack: null, // Selected sound pack before confirmation
@@ -30,7 +30,10 @@ export const state = {
         loadingRhythmName: null, // Name of the rhythm being loaded
         mobileCellSize: null, // Cached mobile cell size in pixels
         mobileCellSteps: null, // Step count that the cell size was calculated for
-        expandedFolders: new Set() // Tracks which rhythm folders are expanded
+        expandedFolders: new Set(), // Tracks which rhythm folders are expanded
+        userGuideSubmenuOpen: false, // Tracks if user guide language submenu is open
+        userGuideContent: null, // Loaded markdown content for user guide modal
+        userGuideLanguage: null // 'en' | 'it' - currently selected language
     }
 };
 

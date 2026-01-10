@@ -29,9 +29,28 @@ const renderHeader = () => {
                     <button data-action="load-rhythm" class="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition-colors flex items-center gap-2 border-b border-gray-800">
                         ${FolderOpenIcon('w-4 h-4 text-amber-500 pointer-events-none')} Load Rhythm...
                     </button>
-                    <button data-action="download-rhythm" class="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition-colors flex items-center gap-2">
+                    <button data-action="download-rhythm" class="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition-colors flex items-center gap-2 border-b border-gray-800">
                         ${ArrowDownTrayIcon('w-4 h-4 text-green-500 pointer-events-none')} Download Rhythm
                     </button>
+                    <div class="relative">
+                        <button data-action="toggle-user-guide-submenu" class="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition-colors flex items-center justify-between gap-2">
+                            <span class="flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-purple-400 pointer-events-none"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" /></svg>
+                                User Guide
+                            </span>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3 h-3 pointer-events-none ${state.uiState.userGuideSubmenuOpen ? 'rotate-90' : ''}"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+                        </button>
+                        ${state.uiState.userGuideSubmenuOpen ? `
+                        <div class="border-t border-gray-800 bg-gray-800/50">
+                            <button data-action="open-user-guide" data-lang="en" class="w-full text-left px-6 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors flex items-center gap-2">
+                                <span class="w-5 h-5 flex items-center justify-center text-xs font-bold text-blue-400 bg-blue-400/10 rounded">EN</span> English
+                            </button>
+                            <button data-action="open-user-guide" data-lang="it" class="w-full text-left px-6 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors flex items-center gap-2">
+                                <span class="w-5 h-5 flex items-center justify-center text-xs font-bold text-green-400 bg-green-400/10 rounded">IT</span> Italiano
+                            </button>
+                        </div>
+                        ` : ''}
+                    </div>
                 </div>
             </div>
             <div class="fixed inset-0 z-40 bg-transparent" data-action="close-menu"></div>
@@ -81,6 +100,36 @@ const renderHeader = () => {
   `;
 };
 
+const renderUserGuideModal = () => {
+  if (!state.uiState.modalOpen || state.uiState.modalType !== 'userGuide') return '';
+
+  const langLabel = state.uiState.userGuideLanguage === 'it' ? 'Italiano' : 'English';
+
+  return `
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" data-action="close-modal-bg">
+      <div class="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl max-w-4xl w-full h-[80vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div class="p-4 border-b border-gray-800 flex justify-between items-center bg-gray-950 flex-shrink-0">
+          <h3 class="text-lg font-bold text-white flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-purple-400"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" /></svg>
+            User Guide <span class="text-sm text-gray-500 font-normal">(${langLabel})</span>
+          </h3>
+          <button data-action="close-modal" class="text-gray-500 hover:text-white p-1 rounded hover:bg-gray-800">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+        </div>
+        <div class="flex-1 overflow-y-auto p-6 prose prose-invert prose-sm max-w-none" id="user-guide-content">
+          ${state.uiState.userGuideContent || '<div class="text-center text-gray-500 py-8">Loading...</div>'}
+        </div>
+        <div class="p-4 border-t border-gray-800 bg-gray-950 flex justify-end flex-shrink-0">
+          <button data-action="close-modal" class="px-4 py-2 text-gray-400 hover:text-white font-medium transition-colors">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+};
+
 export const DesktopLayout = () => {
   const activeSection = state.toque.sections.find(s => s.id === state.activeSectionId) || state.toque.sections[0];
 
@@ -112,5 +161,6 @@ export const DesktopLayout = () => {
       </div>
       ${Controls({ selectedStroke: state.selectedStroke })}
     </div>
+    ${renderUserGuideModal()}
   `;
 };

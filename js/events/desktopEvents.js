@@ -43,6 +43,75 @@ export const setupDesktopEvents = () => {
             state.uiState.isMenuOpen = false;
             renderApp();
         }
+        if (action === 'toggle-user-guide-submenu') {
+            state.uiState.userGuideSubmenuOpen = !state.uiState.userGuideSubmenuOpen;
+            renderApp();
+        }
+        if (action === 'open-user-guide') {
+            const lang = target.dataset.lang;
+            const isMobile = window.IS_MOBILE_VIEW === true;
+            const platform = isMobile ? 'mobile' : 'desktop';
+            const filePath = `docs/user-guide-${platform}-${lang}.md`;
+
+            state.uiState.userGuideLanguage = lang;
+            state.uiState.userGuideContent = '<div class="text-center text-gray-500 py-8"><div class="animate-spin inline-block w-6 h-6 border-2 border-gray-500 border-t-cyan-400 rounded-full mb-2"></div><div>Loading...</div></div>';
+            state.uiState.modalType = 'userGuide';
+            state.uiState.modalOpen = true;
+            state.uiState.isMenuOpen = false;
+            state.uiState.userGuideSubmenuOpen = false;
+            renderApp();
+
+            // Fetch and render markdown
+            fetch(filePath)
+                .then(response => response.text())
+                .then(markdown => {
+                    // Simple markdown to HTML conversion
+                    let html = markdown
+                        // Escape HTML
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        // Headers
+                        .replace(/^### (.*$)/gim, '<h3 class="text-lg font-bold text-cyan-400 mt-6 mb-2">$1</h3>')
+                        .replace(/^## (.*$)/gim, '<h2 class="text-xl font-bold text-white mt-8 mb-3 border-b border-gray-700 pb-2">$1</h2>')
+                        .replace(/^# (.*$)/gim, '<h1 class="text-2xl font-bold text-white mb-4">$1</h1>')
+                        // Bold and italic
+                        .replace(/\*\*\*(.*?)\*\*\*/g, '<strong><em>$1</em></strong>')
+                        .replace(/\*\*(.*?)\*\*/g, '<strong class="text-white">$1</strong>')
+                        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                        // Code
+                        .replace(/`(.*?)`/g, '<code class="bg-gray-800 px-1 py-0.5 rounded text-cyan-300 text-sm">$1</code>')
+                        // Links  
+                        .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" class="text-cyan-400 hover:underline">$1</a>')
+                        // Horizontal rules
+                        .replace(/^---$/gim, '<hr class="border-gray-700 my-6">')
+                        // Lists
+                        .replace(/^\d+\. (.*$)/gim, '<li class="ml-4 mb-1">$1</li>')
+                        .replace(/^- (.*$)/gim, '<li class="ml-4 mb-1 list-disc">$1</li>')
+                        // Tables - basic support
+                        .replace(/^\|(.+)\|$/gim, (match, content) => {
+                            const cells = content.split('|').map(c => c.trim());
+                            if (cells.every(c => /^[-:]+$/.test(c))) return ''; // Skip separator row
+                            const cellTags = cells.map(c => `<td class="border border-gray-700 px-3 py-2">${c}</td>`).join('');
+                            return `<tr>${cellTags}</tr>`;
+                        })
+                        // Blockquotes
+                        .replace(/^&gt; \*\*Note\*\*: (.*$)/gim, '<div class="bg-blue-900/20 border-l-4 border-blue-500 p-3 my-3 text-blue-300">$1</div>')
+                        .replace(/^&gt; (.*$)/gim, '<blockquote class="border-l-4 border-gray-600 pl-4 my-3 text-gray-400">$1</blockquote>')
+                        // Paragraphs
+                        .replace(/\n\n/g, '</p><p class="mb-3">')
+                        .replace(/\n/g, '<br>');
+
+                    // Wrap tables
+                    html = html.replace(/(<tr>[\s\S]*?<\/tr>)+/g, '<table class="w-full border-collapse border border-gray-700 my-4">$&</table>');
+
+                    state.uiState.userGuideContent = `<div class="text-gray-300"><p class="mb-3">${html}</p></div>`;
+                    renderApp();
+                })
+                .catch(err => {
+                    state.uiState.userGuideContent = `<div class="text-center text-red-400 py-8">Failed to load user guide: ${err.message}</div>`;
+                    renderApp();
+                });
+        }
 
         if (action === 'add-measure') {
             actions.addMeasure();
