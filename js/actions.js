@@ -159,6 +159,126 @@ export const actions = {
         }
     },
 
+    /**
+     * Loads a rhythm from a local file (using browser File API)
+     * @param {File} file - The File object from file input
+     */
+    loadRhythmFromFile: async (file) => {
+        stopPlayback();
+
+        // Reset Global Mix
+        state.mix = {};
+
+        try {
+            // 1. Read file content
+            const content = await file.text();
+
+            // 2. Parse YAML
+            const rhythmDef = jsyaml.load(content);
+            if (!rhythmDef) {
+                throw new Error("Could not parse rhythm file");
+            }
+
+            console.log(`Loading Rhythm from file: ${rhythmDef.name}`);
+
+            // 3. Pre-load Instruments and Audio Kits
+            const trackConfig = rhythmDef.sound_kit;
+
+            for (const [trackKey, config] of Object.entries(trackConfig)) {
+                // A. Load Instrument Definition
+                if (!state.instrumentDefinitions[config.instrument]) {
+                    console.log(`[LoadRhythmFromFile] Loading instrument definition for '${config.instrument}'`);
+                    const instDef = await dataLoader.loadInstrumentDefinition(config.instrument);
+                    state.instrumentDefinitions[config.instrument] = instDef;
+                }
+
+                // B. Load Audio Samples
+                const soundConfig = await dataLoader.loadSoundPackConfig(config.pack, config.instrument);
+                if (soundConfig) {
+                    await audioEngine.loadSoundPack(config.instrument, soundConfig);
+                }
+            }
+
+            // 4. Build Runtime Sections
+            const sections = rhythmDef.playback_flow.map(flow => {
+                const sub = flow.time_signature === '6/8' || flow.time_signature === '12/8' ? 3 : 4;
+                const hasMeasures = flow.measures && Array.isArray(flow.measures);
+
+                let measures = [];
+
+                if (hasMeasures) {
+                    measures = flow.measures.map(measureDef => {
+                        const tracks = [];
+                        for (const [trackKey, patternStr] of Object.entries(measureDef.pattern)) {
+                            const conf = trackConfig[trackKey];
+                            if (!conf) continue;
+
+                            tracks.push({
+                                id: crypto.randomUUID(),
+                                instrument: conf.instrument,
+                                pack: conf.pack,
+                                volume: 1.0,
+                                muted: false,
+                                strokes: parsePatternString(patternStr, flow.steps)
+                            });
+                        }
+
+                        return {
+                            id: crypto.randomUUID(),
+                            tracks: tracks
+                        };
+                    });
+                } else {
+                    const tracks = [];
+                    for (const [trackKey, patternStr] of Object.entries(flow.pattern)) {
+                        const conf = trackConfig[trackKey];
+                        if (!conf) continue;
+
+                        tracks.push({
+                            id: crypto.randomUUID(),
+                            instrument: conf.instrument,
+                            pack: conf.pack,
+                            volume: 1.0,
+                            muted: false,
+                            strokes: parsePatternString(patternStr, flow.steps)
+                        });
+                    }
+
+                    measures = [{
+                        id: crypto.randomUUID(),
+                        tracks: tracks
+                    }];
+                }
+
+                return {
+                    id: crypto.randomUUID(),
+                    name: flow.name,
+                    timeSignature: flow.time_signature,
+                    steps: flow.steps,
+                    subdivision: sub,
+                    repetitions: flow.repetitions,
+                    measures: measures,
+                    bpm: flow.bpm,
+                    tempoAcceleration: flow.tempo_acceleration || 0
+                };
+            });
+
+            // 5. Update State
+            state.toque = {
+                id: crypto.randomUUID(),
+                name: rhythmDef.name,
+                globalBpm: rhythmDef.global_bpm,
+                sections: sections
+            };
+
+            actions.updateActiveSection(sections[0].id);
+
+        } catch (e) {
+            console.error("Error loading rhythm from file:", e);
+            alert("Failed to load rhythm file. Check console for details.");
+        }
+    },
+
     updateActiveSection: (id) => {
         state.activeSectionId = id;
         playback.activeSectionId = id;

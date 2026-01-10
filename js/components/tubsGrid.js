@@ -24,6 +24,7 @@ import { DocumentDuplicateIcon } from '../icons/documentDuplicateIcon.js';
 import { MusicalNoteIcon } from '../icons/musicalNoteIcon.js';
 import { ChevronRightIcon } from '../icons/chevronRightIcon.js';
 import { ChevronDownIcon } from '../icons/chevronDownIcon.js';
+import { ComputerDesktopIcon } from '../icons/computerDesktopIcon.js';
 
 export const TubsGrid = ({
   section,
@@ -571,6 +572,20 @@ export const TubsGrid = ({
                         OK
                     </button>
                   ` : `
+                    <input 
+                        type="file" 
+                        id="rhythm-file-input" 
+                        accept=".yaml,.yml" 
+                        class="hidden"
+                        data-action="load-rhythm-file"
+                    />
+                    <button 
+                        data-action="trigger-file-input"
+                        class="px-4 py-2 rounded font-medium transition-all flex items-center gap-2 bg-cyan-600/20 text-cyan-400 border border-cyan-600/50 hover:bg-cyan-600/30 hover:border-cyan-500"
+                    >
+                        ${ComputerDesktopIcon('w-4 h-4 pointer-events-none')}
+                        Load from PC
+                    </button>
                     <button 
                         data-action="close-modal"
                         class="px-4 py-2 text-gray-400 hover:text-white font-medium"

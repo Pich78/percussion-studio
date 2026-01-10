@@ -191,6 +191,13 @@ export const setupDesktopEvents = () => {
                 });
             }
         }
+        if (action === 'trigger-file-input') {
+            // Programmatically trigger the hidden file input
+            const fileInput = document.getElementById('rhythm-file-input');
+            if (fileInput) {
+                fileInput.click();
+            }
+        }
 
         // Settings
         if (action === 'toggle-bpm-override') {
@@ -265,6 +272,22 @@ export const setupDesktopEvents = () => {
         const target = e.target;
         const action = target.dataset.action;
         if (!action) return;
+
+        // Handle file input separately (doesn't need section)
+        if (action === 'load-rhythm-file') {
+            const file = target.files?.[0];
+            if (file) {
+                if (confirm("Load this rhythm file? Unsaved changes will be lost.")) {
+                    actions.loadRhythmFromFile(file).then(() => {
+                        state.uiState.modalOpen = false;
+                        renderApp();
+                    });
+                }
+                // Reset file input so the same file can be selected again
+                target.value = '';
+            }
+            return;
+        }
 
         const section = state.toque.sections.find(s => s.id === state.activeSectionId);
 
