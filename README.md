@@ -294,6 +294,15 @@ Contributions are welcome! To add new instruments, sound packs, or rhythms:
 4. Test your changes locally
 5. Submit a pull request
 
+## User Guides
+
+Comprehensive guides for using Percussion Studio:
+
+| Platform | English | Italiano |
+|----------|---------|----------|
+| **Desktop** | [User Guide (EN)](docs/user-guide-desktop-en.md) | [Guida Utente (IT)](docs/user-guide-desktop-it.md) |
+| **Mobile** | [User Guide (EN)](docs/user-guide-mobile-en.md) | [Guida Utente (IT)](docs/user-guide-mobile-it.md) |
+
 ## Documentation
 
 - **[data_specifications.md](data_specifications.md)**: Detailed technical specifications
