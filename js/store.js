@@ -5,6 +5,12 @@ export const state = {
     // Will be populated by actions.loadRhythm() via the dataLoader.
     toque: null,
 
+    // Tracks the source of the current rhythm for share functionality
+    // 'repo' = loaded from manifest, 'local' = loaded from user's device, 'new' = created fresh
+    rhythmSource: null,
+    // The rhythm ID if loaded from repo (used for sharing)
+    currentRhythmId: null,
+
     // Global volume/mute mix state.
     // Key: instrument symbol (e.g. "Iya"), Value: { volume: 1.0, muted: false }
     mix: {},

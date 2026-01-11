@@ -80,6 +80,12 @@ Tap the **☰** icon in the top-left to open the menu.
 3. Tap any section to switch to it
 4. Tap **✕** or outside to close
 
+### Share Rhythm
+
+- Tap **Share Rhythm** to copy a link to the current rhythm
+- On mobile, this may open your device's share sheet
+- Only available for library rhythms (not for locally loaded files)
+
 ### User Guide
 
 - Tap **User Guide** to access documentation
@@ -211,6 +217,28 @@ Located in the header on the right side:
 | Volume/Mute | ✅ Yes | ✅ Yes |
 | Playback | ✅ Yes | ✅ Yes |
 | BPM Adjustment | ✅ Yes | ✅ Yes |
+
+| Share Rhythm | ✅ Yes | ✅ Yes |
+
+---
+
+## Shareable Links
+
+You can share and receive direct links to specific rhythms.
+
+### Sharing a Rhythm
+
+1. Open the rhythm you want to share
+2. Tap **☰** → **Share Rhythm**
+3. Your device's share menu opens (or link is copied)
+4. Send the link to anyone!
+
+### Opening a Shared Link
+
+- When you open a link with `?rhythm=...`, that rhythm loads automatically
+- Example: `mobile.html?rhythm=Batà/Dadà/dada_base`
+
+> **Note**: Share Rhythm is only available for rhythms from the library.
 
 ---
 

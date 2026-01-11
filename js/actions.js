@@ -151,6 +151,10 @@ export const actions = {
                 sections: sections
             };
 
+            // Track rhythm source for sharing
+            state.rhythmSource = 'repo';
+            state.currentRhythmId = rhythmId;
+
             actions.updateActiveSection(sections[0].id);
 
         } catch (e) {
@@ -271,6 +275,10 @@ export const actions = {
                 sections: sections
             };
 
+            // Track rhythm source - local files cannot be shared via URL
+            state.rhythmSource = 'local';
+            state.currentRhythmId = null;
+
             actions.updateActiveSection(sections[0].id);
 
         } catch (e) {
@@ -315,6 +323,11 @@ export const actions = {
                 }]
             }]
         };
+
+        // Track rhythm source - new rhythms cannot be shared via URL
+        state.rhythmSource = 'new';
+        state.currentRhythmId = null;
+
         actions.updateActiveSection(newId);
     },
 

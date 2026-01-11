@@ -43,6 +43,25 @@ export const setupDesktopEvents = () => {
             state.uiState.isMenuOpen = false;
             renderApp();
         }
+        if (action === 'share-rhythm') {
+            if (state.rhythmSource === 'repo' && state.currentRhythmId) {
+                // Build shareable URL
+                const baseUrl = window.location.origin + window.location.pathname;
+                const shareUrl = `${baseUrl}?rhythm=${encodeURIComponent(state.currentRhythmId)}`;
+
+                // Copy to clipboard
+                navigator.clipboard.writeText(shareUrl).then(() => {
+                    // Show success feedback briefly
+                    alert(`Link copied to clipboard!\n\n${shareUrl}`);
+                }).catch(err => {
+                    console.error('Failed to copy:', err);
+                    // Fallback: show URL in prompt for manual copy
+                    prompt('Copy this link:', shareUrl);
+                });
+            }
+            state.uiState.isMenuOpen = false;
+            renderApp();
+        }
         if (action === 'toggle-user-guide-submenu') {
             state.uiState.userGuideSubmenuOpen = !state.uiState.userGuideSubmenuOpen;
             renderApp();

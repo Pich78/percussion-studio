@@ -62,6 +62,7 @@ Click the **☰** icon in the top-left to access:
 | **New Rhythm** | Create a new empty rhythm (prompts for confirmation) |
 | **Load Rhythm...** | Browse and select from available rhythms |
 | **Download Rhythm** | Save current rhythm as a YAML file to your computer |
+| **Share Rhythm** | Copy a shareable link to the current rhythm (only for library rhythms) |
 | **User Guide** | Access this documentation (choose language) |
 
 ### Loading Rhythms
@@ -222,6 +223,26 @@ The header shows:
 |-----|--------|
 | **Spacebar** | Toggle Play/Pause |
 | **Enter** | Confirm rhythm name edit |
+
+---
+
+## Shareable Links
+
+You can share and receive direct links to specific rhythms.
+
+### Sharing a Rhythm
+
+1. Open the rhythm you want to share
+2. Click **☰** → **Share Rhythm**
+3. The link is copied to your clipboard
+4. Send the link to anyone!
+
+### Opening a Shared Link
+
+- When you open a link with `?rhythm=...`, that rhythm loads automatically
+- Example: `desktop.html?rhythm=Batà/Dadà/dada_base`
+
+> **Note**: Share Rhythm is only available for rhythms from the library. Rhythms loaded from local files or newly created cannot be shared via URL.
 
 ---
 

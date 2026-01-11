@@ -62,6 +62,7 @@ Clicca sull'icona **☰** in alto a sinistra per accedere a:
 | **Nuovo Ritmo** | Crea un nuovo ritmo vuoto (richiede conferma) |
 | **Carica Ritmo...** | Sfoglia e seleziona tra i ritmi disponibili |
 | **Scarica Ritmo** | Salva il ritmo corrente come file YAML sul tuo computer |
+| **Condividi Ritmo** | Copia un link condivisibile al ritmo corrente (solo per ritmi della libreria) |
 | **Guida Utente** | Accedi a questa documentazione (scegli la lingua) |
 
 ### Caricamento Ritmi
@@ -222,6 +223,26 @@ L'intestazione mostra:
 |-------|--------|
 | **Barra Spaziatrice** | Alterna Play/Pausa |
 | **Invio** | Conferma modifica nome ritmo |
+
+---
+
+## Link Condivisibili
+
+Puoi condividere e ricevere link diretti a ritmi specifici.
+
+### Condividere un Ritmo
+
+1. Apri il ritmo che vuoi condividere
+2. Clicca **☰** → **Condividi Ritmo**
+3. Il link viene copiato negli appunti
+4. Invia il link a chiunque!
+
+### Aprire un Link Condiviso
+
+- Quando apri un link con `?rhythm=...`, quel ritmo si carica automaticamente
+- Esempio: `desktop.html?rhythm=Batà/Dadà/dada_base`
+
+> **Nota**: Condividi Ritmo è disponibile solo per ritmi della libreria. I ritmi caricati da file locali o creati nuovi non possono essere condivisi tramite URL.
 
 ---
 
