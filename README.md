@@ -294,6 +294,32 @@ Contributions are welcome! To add new instruments, sound packs, or rhythms:
 4. Test your changes locally
 5. Submit a pull request
 
+## Shareable Links
+
+You can share direct links to specific rhythms using URL parameters:
+
+### URL Format
+
+```
+https://yoursite.com/desktop.html?rhythm=Batà/Dadà/dada_base
+https://yoursite.com/mobile.html?rhythm=Batà/Yakota/yakota_-_base
+```
+
+### How It Works
+
+1. **Direct Links**: Share a URL with `?rhythm=<rhythm-id>` to load a specific rhythm
+2. **Share Button**: Use the "Share Rhythm" button in the menu to copy the current rhythm's URL
+3. **Fallback**: If the specified rhythm isn't found, the app loads the default rhythm
+
+### Examples
+
+| Rhythm | Desktop Link | Mobile Link |
+|--------|-------------|-------------|
+| Dadà Base | `desktop.html?rhythm=Batà/Dadà/dada_base` | `mobile.html?rhythm=Batà/Dadà/dada_base` |
+| Yakota Base | `desktop.html?rhythm=Batà/Yakota/yakota_-_base` | `mobile.html?rhythm=Batà/Yakota/yakota_-_base` |
+
+> **Note**: Only rhythms from the library (defined in `manifest.json`) can be shared via URL. Rhythms loaded from local files or newly created ones cannot be shared.
+
 ## User Guides
 
 Comprehensive guides for using Percussion Studio:

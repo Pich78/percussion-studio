@@ -80,6 +80,12 @@ Tocca l'icona **☰** in alto a sinistra per aprire il menu.
 3. Tocca una sezione per passare ad essa
 4. Tocca **✕** o fuori per chiudere
 
+### Condividi Ritmo
+
+- Tocca **Condividi Ritmo** per copiare un link al ritmo corrente
+- Su mobile, potrebbe aprire il menu di condivisione del dispositivo
+- Disponibile solo per ritmi della libreria (non per file caricati localmente)
+
 ### Guida Utente
 
 - Tocca **Guida Utente** per accedere alla documentazione
@@ -211,6 +217,28 @@ Situati nell'intestazione sul lato destro:
 | Volume/Mute | ✅ Sì | ✅ Sì |
 | Riproduzione | ✅ Sì | ✅ Sì |
 | Regolazione BPM | ✅ Sì | ✅ Sì |
+
+| Condividi Ritmo | ✅ Sì | ✅ Sì |
+
+---
+
+## Link Condivisibili
+
+Puoi condividere e ricevere link diretti a ritmi specifici.
+
+### Condividere un Ritmo
+
+1. Apri il ritmo che vuoi condividere
+2. Tocca **☰** → **Condividi Ritmo**
+3. Si apre il menu di condivisione del dispositivo (o il link viene copiato)
+4. Invia il link a chiunque!
+
+### Aprire un Link Condiviso
+
+- Quando apri un link con `?rhythm=...`, quel ritmo si carica automaticamente
+- Esempio: `mobile.html?rhythm=Batà/Dadà/dada_base`
+
+> **Nota**: Condividi Ritmo è disponibile solo per ritmi della libreria.
 
 ---
 

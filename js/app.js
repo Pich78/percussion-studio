@@ -33,11 +33,33 @@ const init = async () => {
     }
 
     // 3. Load Initial Content
+    // Check for rhythm specified in URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const requestedRhythm = urlParams.get('rhythm');
+
     // We check the manifest for available rhythms.
     const rhythmIds = Object.keys(dataLoader.manifest.rhythms || {});
 
-    if (rhythmIds.length > 0) {
-        // Automatically load the first rhythm found (e.g., 'iyakota_1')
+    if (requestedRhythm) {
+        // URL parameter specified - try to load that rhythm
+        if (rhythmIds.includes(requestedRhythm)) {
+            console.log(`Startup: Loading rhythm from URL parameter '${requestedRhythm}'`);
+            await actions.loadRhythm(requestedRhythm);
+        } else {
+            // Rhythm not found in manifest
+            console.warn(`Startup: Requested rhythm '${requestedRhythm}' not found in manifest.`);
+            console.log(`Available rhythms:`, rhythmIds);
+
+            // Show brief error then load default
+            if (rhythmIds.length > 0) {
+                console.log(`Startup: Falling back to default rhythm '${rhythmIds[0]}'`);
+                await actions.loadRhythm(rhythmIds[0]);
+            } else {
+                actions.createNewRhythm();
+            }
+        }
+    } else if (rhythmIds.length > 0) {
+        // No URL parameter - load the first rhythm found (default behavior)
         console.log(`Startup: Loading default rhythm '${rhythmIds[0]}'`);
         await actions.loadRhythm(rhythmIds[0]);
     } else {

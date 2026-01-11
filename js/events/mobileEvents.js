@@ -26,7 +26,7 @@ export const setupMobileEvents = () => {
             'toggle-play', 'stop', 'toggle-menu', 'close-menu', 'load-rhythm',
             'select-rhythm-confirm', 'toggle-mute', 'update-global-bpm', 'toggle-folder',
             'update-volume', 'close-modal', 'close-modal-bg', 'open-structure',
-            'toggle-user-guide-submenu', 'open-user-guide'
+            'toggle-user-guide-submenu', 'open-user-guide', 'share-rhythm'
         ];
         if (!allowedActions.includes(action)) return;
 
@@ -111,6 +111,36 @@ export const setupMobileEvents = () => {
                     state.uiState.userGuideContent = `<div class="text-center text-red-400 py-8">Failed to load user guide: ${err.message}</div>`;
                     renderApp();
                 });
+        }
+
+        if (action === 'share-rhythm') {
+            if (state.rhythmSource === 'repo' && state.currentRhythmId) {
+                // Build shareable URL
+                const baseUrl = window.location.origin + window.location.pathname;
+                const shareUrl = `${baseUrl}?rhythm=${encodeURIComponent(state.currentRhythmId)}`;
+
+                // Try native share API (better on mobile)
+                if (navigator.share) {
+                    navigator.share({
+                        title: state.toque?.name || 'Percussion Studio Rhythm',
+                        text: `Check out this rhythm: ${state.toque?.name}`,
+                        url: shareUrl
+                    }).catch(() => {
+                        // Fallback to clipboard
+                        navigator.clipboard.writeText(shareUrl);
+                        alert('Link copied to clipboard!');
+                    });
+                } else {
+                    // Fallback to clipboard
+                    navigator.clipboard.writeText(shareUrl).then(() => {
+                        alert(`Link copied to clipboard!\n\n${shareUrl}`);
+                    }).catch(() => {
+                        prompt('Copy this link:', shareUrl);
+                    });
+                }
+            }
+            state.uiState.isMenuOpen = false;
+            renderApp();
         }
 
         if (action === 'load-rhythm') {
