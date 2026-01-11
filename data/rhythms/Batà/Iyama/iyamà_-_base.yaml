@@ -1,0 +1,24 @@
+name: "Iyamà - Base"
+global_bpm: 100
+
+sound_kit:
+  oko:
+    instrument: "OKO"
+    pack: "basic_bata"
+  ito:
+    instrument: "ITO"
+    pack: "basic_bata"
+  iya:
+    instrument: "IYA"
+    pack: "basic_bata"
+
+playback_flow:
+  - name: "Base"
+    repetitions: 1
+    time_signature: "6/8"
+    steps: 12
+    measures:
+      - pattern:
+          oko: "||O-O|S--|O-O|S--||"
+          ito: "||S--|---|S-O|-O-||"
+          iya: "||O--|--S|-OS|-S-||"
