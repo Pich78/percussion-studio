@@ -1,7 +1,8 @@
 /* 
   js/services/audioEngine.js
-  Handles AudioContext, sample loading, and playback.
-  Replaces synthesis with sample-based playback from loaded Sound Packs.
+  Handles AudioContext, sample loading, and PRECISION playback.
+  Uses per-instrument GainNodes for real-time volume control.
+  Supports scheduled playback via absolute audio time.
 */
 
 import { StrokeType } from '../types.js';
@@ -10,8 +11,13 @@ class AudioEngine {
     constructor() {
         this.ctx = null;
         this.masterGain = null;
-        // Cache structure: { 'ITO': { 'O': AudioBuffer, 'S': AudioBuffer, ... }, 'OKO': { ... } }
+        // Cache structure: { 'ITO': { 'O': AudioBuffer, 'S': AudioBuffer, ... }, ... }
         this.buffers = {};
+        // Per-instrument GainNodes for real-time volume control
+        // Structure: { 'ITO': GainNode, 'OKO': GainNode, ... }
+        this.instrumentGains = {};
+        // Mute state tracking (separate from gain value for restore)
+        this.instrumentMuted = {};
     }
 
     init() {
@@ -76,12 +82,57 @@ class AudioEngine {
         document.addEventListener('click', startAudioBridge, true);
     }
 
-
-
     resume() {
         if (this.ctx && this.ctx.state === 'suspended') {
             this.ctx.resume();
         }
+    }
+
+    /**
+     * Get the current audio context time (for precision scheduling)
+     * @returns {number} Current time in seconds from audio context
+     */
+    getCurrentTime() {
+        this.init();
+        return this.ctx ? this.ctx.currentTime : 0;
+    }
+
+    /**
+     * Creates or retrieves the GainNode for an instrument
+     * @param {string} symbol - Instrument symbol (e.g., 'ITO')
+     * @returns {GainNode}
+     */
+    getInstrumentGain(symbol) {
+        if (!this.instrumentGains[symbol]) {
+            this.init();
+            const gainNode = this.ctx.createGain();
+            gainNode.connect(this.masterGain);
+            this.instrumentGains[symbol] = gainNode;
+            this.instrumentMuted[symbol] = false;
+        }
+        return this.instrumentGains[symbol];
+    }
+
+    /**
+     * Sets the volume for a specific instrument (real-time, affects playing sounds)
+     * @param {string} symbol - Instrument symbol
+     * @param {number} volume - 0.0 to 1.0
+     */
+    setInstrumentVolume(symbol, volume) {
+        const gainNode = this.getInstrumentGain(symbol);
+        // Use setValueAtTime for immediate, glitch-free change
+        gainNode.gain.setValueAtTime(volume, this.ctx.currentTime);
+    }
+
+    /**
+     * Mutes/unmutes an instrument (real-time)
+     * @param {string} symbol - Instrument symbol
+     * @param {boolean} muted - true to mute
+     */
+    setInstrumentMuted(symbol, muted) {
+        this.instrumentMuted[symbol] = muted;
+        // Note: We don't change the gain here - the mute state is checked at play time
+        // This allows the original volume to be preserved
     }
 
     /**
@@ -94,6 +145,9 @@ class AudioEngine {
         if (!this.buffers[symbol]) {
             this.buffers[symbol] = {};
         }
+
+        // Ensure instrument has a GainNode
+        this.getInstrumentGain(symbol);
 
         const promises = Object.entries(soundConfig.files).map(async ([letter, filename]) => {
             // Normalize letter to uppercase for consistency
@@ -125,29 +179,41 @@ class AudioEngine {
 
     /**
      * Play a sound with shortened duration (for Presionado emulation)
+     * @param {AudioBuffer} buffer
+     * @param {number} time - Absolute audio context time
+     * @param {string} symbol - Instrument symbol for routing through instrument gain
+     * @param {number} volume - Track-level volume multiplier
+     * @param {number} cutRatio - Fraction of buffer to play
      */
-    playShortenedSound(buffer, time, volume, cutRatio = 0.08) {
+    playShortenedSound(buffer, time, symbol, volume = 1.0, cutRatio = 0.08) {
         const playTime = Math.max(time, this.ctx.currentTime);
 
         const source = this.ctx.createBufferSource();
         source.buffer = buffer;
 
-        const gainNode = this.ctx.createGain();
-        gainNode.gain.value = volume;
+        // Per-note gain for track volume
+        const noteGain = this.ctx.createGain();
+        noteGain.gain.value = volume;
 
-        source.connect(gainNode);
-        gainNode.connect(this.masterGain);
+        // Route: Source -> NoteGain -> InstrumentGain -> MasterGain
+        const instrumentGain = this.getInstrumentGain(symbol);
+        source.connect(noteGain);
+        noteGain.connect(instrumentGain);
 
         source.start(playTime);
-        // Cut the sound short
         source.stop(playTime + (buffer.duration * cutRatio));
     }
 
     /**
      * Play multiple sounds layered together
+     * @param {AudioBuffer[]} buffers
+     * @param {number} time - Absolute audio context time
+     * @param {string} symbol - Instrument symbol
+     * @param {number} volume - Track-level volume
      */
-    playLayeredSounds(buffers, time, volume) {
+    playLayeredSounds(buffers, time, symbol, volume = 1.0) {
         const playTime = Math.max(time, this.ctx.currentTime);
+        const instrumentGain = this.getInstrumentGain(symbol);
 
         buffers.forEach(buffer => {
             if (!buffer) return;
@@ -155,11 +221,11 @@ class AudioEngine {
             const source = this.ctx.createBufferSource();
             source.buffer = buffer;
 
-            const gainNode = this.ctx.createGain();
-            gainNode.gain.value = volume;
+            const noteGain = this.ctx.createGain();
+            noteGain.gain.value = volume;
 
-            source.connect(gainNode);
-            gainNode.connect(this.masterGain);
+            source.connect(noteGain);
+            noteGain.connect(instrumentGain);
 
             source.start(playTime);
         });
@@ -167,6 +233,10 @@ class AudioEngine {
 
     /**
      * Emulate missing Batá drum sounds using available samples
+     * @param {string} instrumentSymbol
+     * @param {string} stroke
+     * @param {number} time - Absolute audio context time
+     * @param {number} volume
      */
     emulateStroke(instrumentSymbol, stroke, time, volume) {
         const instBuffers = this.buffers[instrumentSymbol];
@@ -179,37 +249,34 @@ class AudioEngine {
         switch (stroke) {
             case 'R': // Mordito = Slap + Open
                 if (slapBuffer && openBuffer) {
-                    console.log(`[Emulation] ${instrumentSymbol} Mordito: Slap + Open`);
-                    this.playLayeredSounds([slapBuffer, openBuffer], time, volume);
+                    this.playLayeredSounds([slapBuffer, openBuffer], time, instrumentSymbol, volume);
                 }
                 break;
 
             case 'P': // Presionado = Shortened Open
                 if (openBuffer) {
-                    console.log(`[Emulation] ${instrumentSymbol} Presionado: Shortened Open`);
-                    this.playShortenedSound(openBuffer, time, volume, 0.08);
+                    this.playShortenedSound(openBuffer, time, instrumentSymbol, volume, 0.08);
                 }
                 break;
 
-            case 'H': // Half Mordito = Slap + Presionado (or Slap + Shortened Open)
+            case 'H': // Half Mordito = Slap + Presionado
                 if (slapBuffer) {
                     if (presionadoBuffer) {
-                        console.log(`[Emulation] ${instrumentSymbol} Half Mordito: Slap + Presionado`);
-                        this.playLayeredSounds([slapBuffer, presionadoBuffer], time, volume);
+                        this.playLayeredSounds([slapBuffer, presionadoBuffer], time, instrumentSymbol, volume);
                     } else if (openBuffer) {
-                        console.log(`[Emulation] ${instrumentSymbol} Half Mordito: Slap + Shortened Open`);
                         // Play slap normally
                         const playTime = Math.max(time, this.ctx.currentTime);
-                        const slapSource = this.ctx.createBufferSource();
-                        slapSource.buffer = slapBuffer;
-                        const slapGain = this.ctx.createGain();
-                        slapGain.gain.value = volume;
-                        slapSource.connect(slapGain);
-                        slapGain.connect(this.masterGain);
-                        slapSource.start(playTime);
+                        const source = this.ctx.createBufferSource();
+                        source.buffer = slapBuffer;
+                        const noteGain = this.ctx.createGain();
+                        noteGain.gain.value = volume;
+                        const instrumentGain = this.getInstrumentGain(instrumentSymbol);
+                        source.connect(noteGain);
+                        noteGain.connect(instrumentGain);
+                        source.start(playTime);
 
                         // Play shortened open
-                        this.playShortenedSound(openBuffer, time, volume, 0.08);
+                        this.playShortenedSound(openBuffer, time, instrumentSymbol, volume, 0.08);
                     }
                 }
                 break;
@@ -217,15 +284,20 @@ class AudioEngine {
     }
 
     /**
-     * Plays a specific stroke for an instrument.
+     * Plays a specific stroke for an instrument at a SCHEDULED TIME.
+     * This is the primary method for precision playback.
+     * 
      * @param {string} instrumentSymbol - e.g. 'ITO'
-     * @param {string} stroke - The stroke letter (e.g. 'O', 'S', or StrokeType enum value)
-     * @param {number} time - AudioContext time to play
-     * @param {number} volume - 0.0 to 1.0
+     * @param {string} stroke - The stroke letter (e.g. 'O', 'S')
+     * @param {number} time - Absolute AudioContext time to play (use getCurrentTime() for "now")
+     * @param {number} volume - 0.0 to 1.0 (track-level volume)
      */
     playStroke(instrumentSymbol, stroke, time = 0, volume = 1.0) {
         this.init();
         if (!this.ctx || !this.masterGain) return;
+
+        // Check mute state
+        if (this.instrumentMuted[instrumentSymbol]) return;
 
         // Normalize stroke (handle Rest and Case)
         if (!stroke || stroke === StrokeType.None || stroke === '.' || stroke === ' ') return;
@@ -234,7 +306,6 @@ class AudioEngine {
         // Check if instrument and sample exist
         const instBuffers = this.buffers[instrumentSymbol];
         if (!instBuffers) {
-            // console.warn(`No buffers loaded for instrument: ${instrumentSymbol}`);
             return;
         }
 
@@ -245,26 +316,34 @@ class AudioEngine {
                 this.emulateStroke(instrumentSymbol, strokeKey, time, volume);
                 return;
             }
-            // console.warn(`No sample found for ${instrumentSymbol} stroke: ${strokeKey}`);
             return;
         }
 
-        // Safety check for invalid time
-        const playTime = Math.max(time, this.ctx.currentTime);
+        // Use provided time, or "now" as fallback
+        // For scheduled playback, time should be > currentTime
+        const playTime = time > 0 ? Math.max(time, this.ctx.currentTime) : this.ctx.currentTime;
 
         // Create Source
         const source = this.ctx.createBufferSource();
         source.buffer = buffer;
 
-        // Individual Gain (Volume)
-        const gainNode = this.ctx.createGain();
-        gainNode.gain.value = volume;
+        // Per-note gain for track-level volume
+        const noteGain = this.ctx.createGain();
+        noteGain.gain.value = volume;
 
-        // Graph: Source -> Gain -> Master
-        source.connect(gainNode);
-        gainNode.connect(this.masterGain);
+        // Route through instrument gain for real-time global volume control
+        const instrumentGain = this.getInstrumentGain(instrumentSymbol);
+        source.connect(noteGain);
+        noteGain.connect(instrumentGain);
 
         source.start(playTime);
+    }
+
+    /**
+     * Convenience method: Play a stroke immediately (for UI preview clicks)
+     */
+    playStrokeNow(instrumentSymbol, stroke, volume = 1.0) {
+        this.playStroke(instrumentSymbol, stroke, this.getCurrentTime(), volume);
     }
 }
 
