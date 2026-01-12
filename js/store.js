@@ -50,5 +50,6 @@ export const playback = {
     currentMeasureIndex: 0, // Track current measure within section
     repetitionCounter: 1,
     currentPlayheadBpm: 120, // Default safe value
-    activeSectionId: null
+    activeSectionId: null,
+    nextNoteTime: 0 // For precision look-ahead scheduling (audioContext time)
 };

@@ -440,8 +440,8 @@ export const actions = {
         track.strokes[stepIdx] = nextStroke;
         refreshGrid();
 
-        // Play sound
-        audioEngine.playStroke(track.instrument, nextStroke, 0, track.volume);
+        // Play sound immediately for UI feedback
+        audioEngine.playStrokeNow(track.instrument, nextStroke, track.volume);
     },
 
     resizeTracks: (section) => {
@@ -632,6 +632,7 @@ export const actions = {
      * Sets the global volume for a specific instrument type.
      * Updates ALL tracks of this instrument across ALL sections.
      * SYNC: If volume is 0, mute. If volume > 0, unmute.
+     * NOW: Also updates audio engine in real-time for immediate effect.
      */
     setGlobalVolume: (instrumentSymbol, volume) => {
         // 1. Update Global State
@@ -644,6 +645,9 @@ export const actions = {
 
         // Track last known good volume (if not 0)
         if (volume > 0) mix.lastVolume = volume;
+
+        // REAL-TIME: Update audio engine immediately
+        audioEngine.setInstrumentVolume(instrumentSymbol, volume);
 
         // Sync Mute State
         let muteChanged = false;
@@ -679,6 +683,7 @@ export const actions = {
     /**
      * Sets the global mute status for a specific instrument type.
      * SYNC: If muted, set volume to 0. If unmuted, restore last volume.
+     * NOW: Also updates audio engine in real-time for immediate effect.
      */
     setGlobalMute: (instrumentSymbol, isMuted) => {
         // 1. Update Global State
@@ -688,6 +693,9 @@ export const actions = {
 
         const mix = state.mix[instrumentSymbol];
         mix.muted = isMuted;
+
+        // REAL-TIME: Update audio engine mute state immediately
+        audioEngine.setInstrumentMuted(instrumentSymbol, isMuted);
 
         let targetVolume = mix.volume;
 
