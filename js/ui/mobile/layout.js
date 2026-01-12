@@ -177,8 +177,8 @@ export const MobileLayout = () => {
             <!-- Backdrop -->
             <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" data-action="close-menu"></div>
             
-            <!-- Modal Content -->
-            <div class="relative w-4/5 max-w-sm h-full bg-gray-900 border-r border-gray-800 shadow-2xl flex flex-col animate-in fade-in slide-in-from-left duration-200">
+            <!-- Modal Content - with safe area padding for dynamic island -->
+            <div class="relative w-4/5 max-w-sm h-full bg-gray-900 border-r border-gray-800 shadow-2xl flex flex-col animate-in fade-in slide-in-from-left duration-200 ml-[var(--safe-area-left)]">
                 <div class="p-4 border-b border-gray-800 flex justify-between items-center bg-gray-950">
                     <h2 class="text-lg font-bold text-white">Menu</h2>
                     <button data-action="close-menu" class="p-2 text-gray-500 hover:text-white">
