@@ -460,7 +460,7 @@ export const TubsGrid = ({
         : '<div class="text-center text-gray-500 py-8">No rhythms found.</div>';
 
       content = `
-            <div class="p-6 overflow-y-auto max-h-[60vh]">
+            <div id="rhythm-modal-scroll" class="p-6 overflow-y-auto max-h-[60vh]">
                 ${rhythms}
             </div>
         `;
