@@ -155,12 +155,25 @@ export const setupMobileEvents = () => {
 
         if (action === 'toggle-folder') {
             const folderPath = target.dataset.folderPath;
+
+            // Save scroll position before re-render
+            const scrollContainer = document.getElementById('rhythm-modal-scroll');
+            const scrollTop = scrollContainer ? scrollContainer.scrollTop : 0;
+
             if (state.uiState.expandedFolders.has(folderPath)) {
                 state.uiState.expandedFolders.delete(folderPath);
             } else {
                 state.uiState.expandedFolders.add(folderPath);
             }
             renderApp();
+
+            // Restore scroll position after re-render
+            requestAnimationFrame(() => {
+                const newScrollContainer = document.getElementById('rhythm-modal-scroll');
+                if (newScrollContainer) {
+                    newScrollContainer.scrollTop = scrollTop;
+                }
+            });
         }
 
         if (action === 'select-rhythm-confirm') {
