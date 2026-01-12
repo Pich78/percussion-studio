@@ -125,8 +125,10 @@ export const setupMobileEvents = () => {
                         title: state.toque?.name || 'Percussion Studio Rhythm',
                         text: `Check out this rhythm: ${state.toque?.name}`,
                         url: shareUrl
-                    }).catch(() => {
-                        // Fallback to clipboard
+                    }).catch((err) => {
+                        // User cancelled the share - don't show any message
+                        if (err.name === 'AbortError') return;
+                        // Fallback to clipboard only on actual errors
                         navigator.clipboard.writeText(shareUrl);
                         alert('Link copied to clipboard!');
                     });
