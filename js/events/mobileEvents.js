@@ -39,7 +39,8 @@ export const setupMobileEvents = () => {
             renderApp();
         }
         if (action === 'close-menu') {
-            if (e.target !== target) return; // Prevent closing when clicking content
+            // Only check target match for backdrop (div), not for button clicks
+            if (target.tagName === 'DIV' && e.target !== target) return;
             state.uiState.isMenuOpen = false;
             state.uiState.userGuideSubmenuOpen = false;
             renderApp();
