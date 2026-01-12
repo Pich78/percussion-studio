@@ -150,11 +150,13 @@ export const MobileLayout = () => {
       </div>
       ` : ''}
 
-      ${renderHeader(activeSection)}
-      <div class="flex flex-1 overflow-hidden">
-        <main class="flex-1 overflow-hidden relative flex flex-col justify-center items-center bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-900 via-gray-950 to-gray-950">
-          <div id="grid-container" class="w-full max-w-7xl py-2 flex flex-col items-center justify-center overflow-hidden h-full">
-            ${TubsGrid({
+      <!-- Main content - hidden in portrait mode -->
+      <div class="landscape-only flex flex-col flex-1 overflow-hidden">
+        ${renderHeader(activeSection)}
+        <div class="flex flex-1 overflow-hidden">
+          <main class="flex-1 overflow-hidden relative flex flex-col justify-center items-center bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-900 via-gray-950 to-gray-950">
+            <div id="grid-container" class="w-full max-w-7xl py-2 flex flex-col items-center justify-center overflow-hidden h-full no-pinch-zoom">
+              ${TubsGrid({
     section: activeSection,
     globalBpm: state.toque.globalBpm,
     currentStep: state.currentStep,
@@ -164,8 +166,9 @@ export const MobileLayout = () => {
     isMobile: true,
     mobileCellSize
   })}
-          </div>
-        </main>
+            </div>
+          </main>
+        </div>
       </div>
 
       <!-- Mobile Menu Modal (Timeline) -->
