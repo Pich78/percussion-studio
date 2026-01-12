@@ -187,10 +187,10 @@ export const MobileLayout = () => {
                 </div>
                 
                 <!-- Menu Actions -->
-                <nav class="flex-1 overflow-y-auto p-3">
-                     <div class="bg-gray-800/50 rounded-2xl border border-gray-700/50 overflow-hidden">
+                <nav class="flex-1 overflow-y-auto p-3 pb-8">
+                     <div class="bg-gray-800/50 rounded-2xl border border-gray-700/50">
                         <!-- Load Rhythm -->
-                        <button data-action="load-rhythm" class="w-full px-4 py-3.5 flex items-center gap-4 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/50">
+                        <button data-action="load-rhythm" class="w-full px-4 py-3.5 flex items-center gap-4 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/50 rounded-t-2xl">
                            <div class="w-9 h-9 rounded-xl bg-amber-500/15 flex items-center justify-center flex-shrink-0">
                               ${FolderOpenIcon('w-5 h-5 text-amber-400 pointer-events-none')}
                            </div>
@@ -220,7 +220,7 @@ export const MobileLayout = () => {
                         ` : ''}
                         
                         <!-- User Guide with Submenu -->
-                        <button data-action="toggle-user-guide-submenu" class="w-full px-4 py-3.5 flex items-center gap-4 hover:bg-gray-700/50 active:bg-gray-700 transition-colors">
+                        <button data-action="toggle-user-guide-submenu" class="w-full px-4 py-3.5 flex items-center gap-4 hover:bg-gray-700/50 active:bg-gray-700 transition-colors ${state.uiState.userGuideSubmenuOpen ? '' : 'rounded-b-2xl'}">
                            <div class="w-9 h-9 rounded-xl bg-purple-500/15 flex items-center justify-center flex-shrink-0">
                               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-purple-400 pointer-events-none"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" /></svg>
                            </div>
@@ -230,12 +230,12 @@ export const MobileLayout = () => {
                         
                         <!-- Language Submenu -->
                         ${state.uiState.userGuideSubmenuOpen ? `
-                        <div class="bg-gray-900/50 border-t border-gray-700/50">
+                        <div class="bg-gray-900/50 border-t border-gray-700/50 rounded-b-2xl">
                            <button data-action="open-user-guide" data-lang="en" class="w-full px-4 py-3 pl-16 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
                               <span class="w-8 h-6 rounded bg-blue-500/20 text-blue-400 text-xs font-bold flex items-center justify-center">EN</span>
                               <span class="text-gray-300 text-sm">English</span>
                            </button>
-                           <button data-action="open-user-guide" data-lang="it" class="w-full px-4 py-3 pl-16 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors">
+                           <button data-action="open-user-guide" data-lang="it" class="w-full px-4 py-3 pl-16 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors rounded-b-2xl">
                               <span class="w-8 h-6 rounded bg-green-500/20 text-green-400 text-xs font-bold flex items-center justify-center">IT</span>
                               <span class="text-gray-300 text-sm">Italiano</span>
                            </button>
