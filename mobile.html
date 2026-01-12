@@ -88,10 +88,16 @@
             }
         }
     </style>
+
+    <!-- PWA / iOS Home Screen App Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Percussion Studio">
+    <link rel="apple-touch-icon" href="./icons/icon-192.png">
 </head>
 
-<body class="bg-gray-950 text-white overflow-hidden">
-    <div id="root" class="h-screen w-screen flex flex-col">
+<body class="bg-gray-950 text-white overflow-hidden h-screen">
+    <div id="root" class="h-full w-full flex flex-col">
         <!-- Initial loading screen - replaced by app.js once loaded -->
         <div class="flex h-full items-center justify-center flex-col gap-6">
             <!-- Drum Icon -->
