@@ -187,44 +187,62 @@ export const MobileLayout = () => {
                 </div>
                 
                 <!-- Menu Actions -->
-                <div class="p-4 flex flex-col gap-3">
-                     <button data-action="load-rhythm" class="w-full bg-gray-800 hover:bg-gray-700 text-gray-200 hover:text-white px-4 py-4 rounded-xl flex items-center justify-center gap-3 border border-gray-700 transition-colors font-bold shadow-lg text-lg">
-                        ${FolderOpenIcon('w-6 h-6 text-amber-500 pointer-events-none')}
-                        Load Rhythm
-                     </button>
-                     
-                     <button data-action="open-structure" class="w-full bg-gray-800 hover:bg-gray-700 text-gray-200 hover:text-white px-4 py-4 rounded-xl flex items-center justify-center gap-3 border border-gray-700 transition-colors font-bold shadow-lg text-lg">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-cyan-500 pointer-events-none"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
-                        Show Structure
-                     </button>
-                     
-                     ${window.location.hostname.includes('github.io') ? `
-                     <button data-action="share-rhythm" class="w-full px-4 py-4 rounded-xl flex items-center justify-center gap-3 border transition-colors font-bold shadow-lg text-lg ${state.rhythmSource === 'repo' ? 'bg-gray-800 hover:bg-gray-700 text-gray-200 hover:text-white border-gray-700' : 'bg-gray-800/50 text-gray-600 border-gray-800 cursor-not-allowed'}" ${state.rhythmSource !== 'repo' ? 'disabled' : ''}>
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 ${state.rhythmSource === 'repo' ? 'text-blue-400' : 'text-gray-600'} pointer-events-none"><path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z" /></svg>
-                        Share Rhythm${state.rhythmSource !== 'repo' ? ' (N/A)' : ''}
-                     </button>
-                     ` : ''}
-                     
-                     <div class="mt-2 pt-3 border-t border-gray-700">
-                        <button data-action="toggle-user-guide-submenu" class="w-full bg-gray-800 hover:bg-gray-700 text-gray-200 hover:text-white px-4 py-4 rounded-xl flex items-center justify-between border border-gray-700 transition-colors font-bold shadow-lg text-lg mb-2">
-                           <span class="flex items-center gap-3">
-                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-purple-400 pointer-events-none"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" /></svg>
-                              User Guide
-                           </span>
-                           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 pointer-events-none transition-transform ${state.uiState.userGuideSubmenuOpen ? 'rotate-90' : ''}"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+                <nav class="flex-1 overflow-y-auto p-3">
+                     <div class="bg-gray-800/50 rounded-2xl border border-gray-700/50 overflow-hidden">
+                        <!-- Load Rhythm -->
+                        <button data-action="load-rhythm" class="w-full px-4 py-3.5 flex items-center gap-4 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/50">
+                           <div class="w-9 h-9 rounded-xl bg-amber-500/15 flex items-center justify-center flex-shrink-0">
+                              ${FolderOpenIcon('w-5 h-5 text-amber-400 pointer-events-none')}
+                           </div>
+                           <span class="text-gray-100 font-medium text-base">Load Rhythm</span>
+                           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 text-gray-500 ml-auto pointer-events-none"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
                         </button>
+                        
+                        <!-- Show Structure -->
+                        <button data-action="open-structure" class="w-full px-4 py-3.5 flex items-center gap-4 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/50">
+                           <div class="w-9 h-9 rounded-xl bg-cyan-500/15 flex items-center justify-center flex-shrink-0">
+                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-cyan-400 pointer-events-none"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
+                           </div>
+                           <span class="text-gray-100 font-medium text-base">Show Structure</span>
+                           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 text-gray-500 ml-auto pointer-events-none"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+                        </button>
+                        
+                        ${window.location.hostname.includes('github.io') ? `
+                        <!-- Share Rhythm -->
+                        <button data-action="share-rhythm" class="w-full px-4 py-3.5 flex items-center gap-4 transition-colors border-b border-gray-700/50 ${state.rhythmSource === 'repo' ? 'hover:bg-gray-700/50 active:bg-gray-700' : 'opacity-40 cursor-not-allowed'}" ${state.rhythmSource !== 'repo' ? 'disabled' : ''}>
+                           <div class="w-9 h-9 rounded-xl ${state.rhythmSource === 'repo' ? 'bg-blue-500/15' : 'bg-gray-700/50'} flex items-center justify-center flex-shrink-0">
+                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 ${state.rhythmSource === 'repo' ? 'text-blue-400' : 'text-gray-500'} pointer-events-none"><path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z" /></svg>
+                           </div>
+                           <span class="${state.rhythmSource === 'repo' ? 'text-gray-100' : 'text-gray-500'} font-medium text-base">Share Rhythm</span>
+                           ${state.rhythmSource !== 'repo' ? '<span class="text-xs text-gray-600 ml-1">(N/A)</span>' : ''}
+                           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 text-gray-500 ml-auto pointer-events-none"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+                        </button>
+                        ` : ''}
+                        
+                        <!-- User Guide with Submenu -->
+                        <button data-action="toggle-user-guide-submenu" class="w-full px-4 py-3.5 flex items-center gap-4 hover:bg-gray-700/50 active:bg-gray-700 transition-colors">
+                           <div class="w-9 h-9 rounded-xl bg-purple-500/15 flex items-center justify-center flex-shrink-0">
+                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-purple-400 pointer-events-none"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" /></svg>
+                           </div>
+                           <span class="text-gray-100 font-medium text-base">User Guide</span>
+                           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 text-gray-500 ml-auto pointer-events-none transition-transform duration-200 ${state.uiState.userGuideSubmenuOpen ? 'rotate-90' : ''}"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+                        </button>
+                        
+                        <!-- Language Submenu -->
                         ${state.uiState.userGuideSubmenuOpen ? `
-                        <div class="flex gap-2 mt-2">
-                           <button data-action="open-user-guide" data-lang="en" class="flex-1 bg-gray-800 hover:bg-gray-700 text-gray-200 hover:text-white px-4 py-3 rounded-xl flex items-center justify-center gap-2 border border-gray-700 transition-colors font-bold">
-                              <span class="text-blue-400 font-bold">EN</span> English
+                        <div class="bg-gray-900/50 border-t border-gray-700/50">
+                           <button data-action="open-user-guide" data-lang="en" class="w-full px-4 py-3 pl-16 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
+                              <span class="w-8 h-6 rounded bg-blue-500/20 text-blue-400 text-xs font-bold flex items-center justify-center">EN</span>
+                              <span class="text-gray-300 text-sm">English</span>
                            </button>
-                           <button data-action="open-user-guide" data-lang="it" class="flex-1 bg-gray-800 hover:bg-gray-700 text-gray-200 hover:text-white px-4 py-3 rounded-xl flex items-center justify-center gap-2 border border-gray-700 transition-colors font-bold">
-                              <span class="text-green-400 font-bold">IT</span> Italiano
+                           <button data-action="open-user-guide" data-lang="it" class="w-full px-4 py-3 pl-16 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors">
+                              <span class="w-8 h-6 rounded bg-green-500/20 text-green-400 text-xs font-bold flex items-center justify-center">IT</span>
+                              <span class="text-gray-300 text-sm">Italiano</span>
                            </button>
                         </div>
                         ` : ''}
                      </div>
-                </div>
+                </nav>
             </div>
         </div>
       ` : ''}
