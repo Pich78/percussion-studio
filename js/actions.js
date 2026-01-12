@@ -48,31 +48,33 @@ export const actions = {
 
             console.log(`Loading Rhythm: ${rhythmDef.name}`);
 
-            // 2. Pre-load Instruments and Audio Kits
+            // 2. Pre-load Instruments and Audio Kits IN PARALLEL for faster startup
             // rhythmDef.sound_kit maps TrackID -> { instrument, pack }
             const trackConfig = rhythmDef.sound_kit;
 
-            for (const [trackKey, config] of Object.entries(trackConfig)) {
+            // Parallel loading: All instruments load concurrently instead of sequentially
+            const loadPromises = Object.entries(trackConfig).map(async ([trackKey, config]) => {
                 // A. Load Instrument Definition (for UI names/icons)
-                if (!state.instrumentDefinitions[config.instrument]) {
+                let instDef = state.instrumentDefinitions[config.instrument];
+                if (!instDef) {
                     console.log(`[LoadRhythm] Loading instrument definition for '${config.instrument}'`);
-                    const instDef = await dataLoader.loadInstrumentDefinition(config.instrument);
+                    instDef = await dataLoader.loadInstrumentDefinition(config.instrument);
                     console.log(`[LoadRhythm] Loaded definition for '${config.instrument}':`, instDef);
                     console.log(`[LoadRhythm] Available sounds for '${config.instrument}':`, instDef?.sounds?.map(s => s.letter).join(', '));
                     state.instrumentDefinitions[config.instrument] = instDef;
                 } else {
                     console.log(`[LoadRhythm] Using cached definition for '${config.instrument}'`);
-                    console.log(`[LoadRhythm] Cached sounds for '${config.instrument}':`, state.instrumentDefinitions[config.instrument]?.sounds?.map(s => s.letter).join(', '));
                 }
 
-                // B. Load Audio Samples
-                // We optimize by checking if audioEngine already has it? 
-                // AudioEngine checks internally, but we need the config object.
+                // B. Load Audio Samples (can run in parallel with other instruments)
                 const soundConfig = await dataLoader.loadSoundPackConfig(config.pack, config.instrument);
                 if (soundConfig) {
                     await audioEngine.loadSoundPack(config.instrument, soundConfig);
                 }
-            }
+            });
+
+            // Wait for ALL instruments to finish loading in parallel
+            await Promise.all(loadPromises);
 
             // 3. Build Runtime Sections
             const sections = rhythmDef.playback_flow.map(flow => {
@@ -185,23 +187,28 @@ export const actions = {
 
             console.log(`Loading Rhythm from file: ${rhythmDef.name}`);
 
-            // 3. Pre-load Instruments and Audio Kits
+            // 3. Pre-load Instruments and Audio Kits IN PARALLEL for faster startup
             const trackConfig = rhythmDef.sound_kit;
 
-            for (const [trackKey, config] of Object.entries(trackConfig)) {
+            // Parallel loading: All instruments load concurrently instead of sequentially
+            const loadPromises = Object.entries(trackConfig).map(async ([trackKey, config]) => {
                 // A. Load Instrument Definition
-                if (!state.instrumentDefinitions[config.instrument]) {
+                let instDef = state.instrumentDefinitions[config.instrument];
+                if (!instDef) {
                     console.log(`[LoadRhythmFromFile] Loading instrument definition for '${config.instrument}'`);
-                    const instDef = await dataLoader.loadInstrumentDefinition(config.instrument);
+                    instDef = await dataLoader.loadInstrumentDefinition(config.instrument);
                     state.instrumentDefinitions[config.instrument] = instDef;
                 }
 
-                // B. Load Audio Samples
+                // B. Load Audio Samples (can run in parallel with other instruments)
                 const soundConfig = await dataLoader.loadSoundPackConfig(config.pack, config.instrument);
                 if (soundConfig) {
                     await audioEngine.loadSoundPack(config.instrument, soundConfig);
                 }
-            }
+            });
+
+            // Wait for ALL instruments to finish loading in parallel
+            await Promise.all(loadPromises);
 
             // 4. Build Runtime Sections
             const sections = rhythmDef.playback_flow.map(flow => {
