@@ -35,6 +35,7 @@ L'interfaccia desktop è composta da quattro aree principali:
 - **Titolo**: Mostra "Percussion Studio"
 - **Info Ritmo**: Nome del ritmo corrente, sezione attiva, conteggio ripetizioni e BPM live
 - **Slider BPM Globale**: Regola il tempo base (40-240 BPM)
+- **Pulsante Count-In**: Attiva/disattiva il conteggio prima della riproduzione (mostra numero battiti: 4 o 6)
 - **Pulsanti di Riproduzione**: Stop (■) e Play/Pausa (▶/❚❚)
 
 ### Pannello Timeline (Sinistra)
@@ -214,6 +215,19 @@ Ogni misura ha un'intestazione con:
 L'intestazione mostra:
 - **Rep**: Ripetizione corrente / Ripetizioni totali
 - Si aggiorna in tempo reale durante la riproduzione
+
+### Count-In
+
+Il pulsante **COUNT** nell'intestazione abilita un conteggio prima dell'avvio della riproduzione.
+
+| Impostazione | Descrizione |
+|--------------|-------------|
+| **Attiva/Disattiva** | Clicca il pulsante COUNT per abilitare/disabilitare |
+| **Battiti** | Impostato automaticamente a 4 (per tempo 4/4) o 6 (per tempo 6/8 o 12/8) |
+| **Visivo** | Il pulsante mostra il battito corrente durante il count-in con animazione pulsante |
+| **Audio** | Riproduce suoni click (tono più alto sul primo battito) |
+
+> **Nota**: Il count-in viene riprodotto solo partendo dall'inizio (dopo lo stop). Riprendendo dalla pausa si salta il count-in.
 
 ---
 

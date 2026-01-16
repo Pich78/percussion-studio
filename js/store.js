@@ -24,6 +24,7 @@ export const state = {
     currentStep: -1,
     selectedStroke: StrokeType.Open, // Default selected tool
     clipboard: null, // For copy/paste measures
+    countInEnabled: true, // Toggle for count-in feature (enabled by default)
     uiState: {
         isMenuOpen: false,
         modalOpen: false,
@@ -51,5 +52,8 @@ export const playback = {
     repetitionCounter: 1,
     currentPlayheadBpm: 120, // Default safe value
     activeSectionId: null,
-    nextNoteTime: 0 // For precision look-ahead scheduling (audioContext time)
+    nextNoteTime: 0, // For precision look-ahead scheduling (audioContext time)
+    isCountingIn: false, // True when count-in is playing
+    countInStep: 0, // Current count-in beat (0-3 or 0-5)
+    countInTotal: 4 // Total count-in beats (4 or 6 based on time signature)
 };

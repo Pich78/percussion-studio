@@ -35,6 +35,7 @@ The desktop interface consists of four main areas:
 - **Title**: Shows "Percussion Studio"
 - **Rhythm Info**: Current rhythm name, active section, repetition count, and live BPM
 - **Global BPM Slider**: Adjust the base tempo (40-240 BPM)
+- **Count-In Button**: Toggle count-in before playback (shows beat count: 4 or 6)
 - **Playback Buttons**: Stop (■) and Play/Pause (▶/❚❚)
 
 ### Timeline Panel (Left)
@@ -214,6 +215,19 @@ Each measure has a header with:
 The header shows:
 - **Rep**: Current repetition / Total repetitions
 - Updates in real-time during playback
+
+### Count-In
+
+The **COUNT** button in the header enables a count-in before playback starts.
+
+| Setting | Description |
+|---------|-------------|
+| **Toggle** | Click the COUNT button to enable/disable |
+| **Beats** | Automatically set to 4 (for 4/4 time) or 6 (for 6/8 or 12/8 time) |
+| **Visual** | Button shows current beat during count-in with pulse animation |
+| **Audio** | Plays click sounds (higher pitch accent on beat 1) |
+
+> **Note**: Count-in only plays when starting from the beginning (after stopping). Resuming from pause skips the count-in.
 
 ---
 

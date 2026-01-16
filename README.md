@@ -16,6 +16,7 @@ Percussion Studio is a browser-based application for creating, editing, and play
 - 🎼 **Multiple instruments** (Batá drums, congas, and more)
 - 🔊 **Sound pack system** for different audio samples
 - 📊 **Multi-measure sections** with repeats and tempo control
+- 🎵 **Count-in** with automatic beat detection (4 for 4/4, 6 for 6/8 or 12/8)
 - 💾 **Import/Export rhythms** as YAML files
 - 🎨 **Modern, responsive UI** with real-time playback
 

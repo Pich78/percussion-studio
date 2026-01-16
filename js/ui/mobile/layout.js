@@ -55,7 +55,27 @@ const renderHeader = (activeSection) => {
               </div>
               <input type="range" min="40" max="240" value="${state.toque.globalBpm}" data-action="update-global-bpm" class="w-24 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-500 hover:accent-cyan-400" />
             </div>
-            
+            ${(() => {
+      const subdivision = activeSection?.subdivision || 4;
+      const countInBeats = subdivision === 3 ? 6 : 4;
+      const isCountingIn = playback.isCountingIn;
+      const countInStep = playback.countInStep;
+
+      const enabledClass = state.countInEnabled
+        ? 'bg-cyan-500/15 border-cyan-500/50 text-cyan-400'
+        : 'bg-gray-800 border-gray-700 text-gray-500';
+
+      const countingInClass = isCountingIn
+        ? 'animate-pulse ring-2 ring-cyan-400'
+        : '';
+
+      return `
+              <button data-action="toggle-count-in" class="flex items-center gap-1 px-2 py-1 rounded-lg border transition-all ${enabledClass} ${countingInClass}">
+                <span class="text-[8px] font-bold uppercase">Cnt</span>
+                <span class="font-mono font-bold text-xs">${isCountingIn ? countInStep : countInBeats}</span>
+              </button>
+              `;
+    })()}
             <!-- Play/Stop buttons -->
             <div class="flex items-center gap-0.5 bg-gray-900 rounded-lg p-0.5 border border-gray-800">
               <button data-action="stop" class="w-8 h-8 rounded-md flex items-center justify-center bg-gray-800 text-gray-400 hover:bg-red-900/40 hover:text-red-400 hover:border-red-900/50 transition-all">

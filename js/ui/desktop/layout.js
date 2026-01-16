@@ -90,9 +90,30 @@ const renderHeader = () => {
           <div class="flex flex-col items-end leading-none">
               <span class="text-[9px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">Global</span>
               <span class="text-xs font-mono font-bold text-cyan-400" id="header-global-bpm">${state.toque.globalBpm} <span class="text-[9px] text-gray-600">BPM</span></span>
-          </div>
+        </div>
           <input type="range" min="40" max="240" value="${state.toque.globalBpm}" data-action="update-global-bpm" class="w-40 h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-500 hover:accent-cyan-400" />
         </div>
+        ${(() => {
+      const subdivision = activeSection?.subdivision || 4;
+      const countInBeats = subdivision === 3 ? 6 : 4;
+      const isCountingIn = playback.isCountingIn;
+      const countInStep = playback.countInStep;
+
+      const enabledClass = state.countInEnabled
+        ? 'bg-cyan-500/15 border-cyan-500/50 text-cyan-400'
+        : 'bg-gray-800 border-gray-700 text-gray-500 hover:text-gray-300 hover:border-gray-600';
+
+      const countingInClass = isCountingIn
+        ? 'animate-pulse ring-2 ring-cyan-400'
+        : '';
+
+      return `
+          <button data-action="toggle-count-in" class="flex items-center gap-1.5 px-3 py-2 rounded-lg border transition-all ${enabledClass} ${countingInClass}" title="Toggle count-in (${countInBeats} beats)">
+            <span class="text-[10px] font-bold uppercase tracking-wide">Count</span>
+            <span class="font-mono font-bold text-sm">${isCountingIn ? countInStep : countInBeats}</span>
+          </button>
+          `;
+    })()}
         <div class="flex items-center gap-1 bg-gray-900 rounded-lg p-1 border border-gray-800">
           <button data-action="stop" class="w-10 h-10 rounded-md flex items-center justify-center bg-gray-800 hover:bg-red-900/40 hover:text-red-400 text-gray-400 transition-all border border-transparent hover:border-red-900/50">
             ${StopIcon('w-5 h-5 pointer-events-none')}

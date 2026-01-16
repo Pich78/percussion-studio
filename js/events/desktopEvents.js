@@ -22,6 +22,10 @@ export const setupDesktopEvents = () => {
             state.uiState.isMenuOpen = !state.uiState.isMenuOpen;
             renderApp();
         }
+        if (action === 'toggle-count-in') {
+            state.countInEnabled = !state.countInEnabled;
+            renderApp();
+        }
         if (action === 'close-menu') {
             if (e.target !== target) return;
             state.uiState.isMenuOpen = false;

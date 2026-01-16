@@ -26,7 +26,7 @@ export const setupMobileEvents = () => {
             'toggle-play', 'stop', 'toggle-menu', 'close-menu', 'load-rhythm',
             'select-rhythm-confirm', 'toggle-mute', 'update-global-bpm', 'toggle-folder',
             'update-volume', 'close-modal', 'close-modal-bg', 'open-structure',
-            'toggle-user-guide-submenu', 'open-user-guide', 'share-rhythm'
+            'toggle-user-guide-submenu', 'open-user-guide', 'share-rhythm', 'toggle-count-in'
         ];
         if (!allowedActions.includes(action)) return;
 
@@ -36,6 +36,10 @@ export const setupMobileEvents = () => {
         if (action === 'toggle-menu') {
             state.uiState.isMenuOpen = !state.uiState.isMenuOpen;
             state.uiState.userGuideSubmenuOpen = false; // Reset submenu when toggling main menu
+            renderApp();
+        }
+        if (action === 'toggle-count-in') {
+            state.countInEnabled = !state.countInEnabled;
             renderApp();
         }
         if (action === 'close-menu') {

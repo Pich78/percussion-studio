@@ -50,6 +50,7 @@ L'interfaccia mobile è ottimizzata per visualizzazione e riproduzione (sola let
 | **Contatore Rep** | Ripetizione corrente / Totale |
 | **BPM Live** | Visualizzazione tempo in tempo reale |
 | **Slider BPM Globale** | Regola il tempo base |
+| **Count-In (CNT)** | Attiva/disattiva conteggio prima della riproduzione (mostra 4 o 6) |
 | **Stop (■)** | Ferma la riproduzione |
 | **Play/Pausa (▶/❚❚)** | Alterna la riproduzione |
 
@@ -166,6 +167,17 @@ Situati nell'intestazione sul lato destro:
 
 - **Rep X/Y** mostra la ripetizione corrente sul totale
 - Si aggiorna in tempo reale durante la riproduzione
+
+### Count-In
+
+Il pulsante **CNT** nell'intestazione abilita un conteggio prima dell'avvio della riproduzione.
+
+- **Attiva/Disattiva**: Tocca il pulsante CNT per abilitare/disabilitare
+- **Battiti**: Impostato automaticamente a 4 (tempo 4/4) o 6 (tempo 6/8 o 12/8)
+- **Visivo**: Il pulsante mostra il battito corrente durante il count-in con animazione pulsante
+- **Audio**: Riproduce suoni click prima dell'avvio del ritmo
+
+> **Nota**: Il count-in viene riprodotto solo partendo dall'inizio.
 
 ---
 
