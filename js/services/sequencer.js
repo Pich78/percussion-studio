@@ -20,6 +20,61 @@ const SCHEDULE_AHEAD_TIME = 0.1;  // Schedule notes 100ms ahead (seconds)
 const LOOKAHEAD = 25.0;           // Check every 25ms (milliseconds)
 
 /**
+ * Play a synthesized click sound at a specific time.
+ * Uses a short sine wave burst for a clean metronome sound.
+ * @param {number} time - Absolute AudioContext time to play
+ * @param {boolean} isAccent - If true, plays louder/higher pitch (first beat)
+ */
+const playCountInClick = (time, isAccent = false) => {
+    const ctx = audioEngine.ctx;
+    if (!ctx) return;
+
+    // Create oscillator for click tone
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    // Accent beat is higher pitch and louder
+    osc.frequency.value = isAccent ? 1200 : 800;
+    osc.type = 'sine';
+
+    // Very short envelope for a "click" sound
+    const clickDuration = 0.03;
+    gain.gain.setValueAtTime(isAccent ? 0.5 : 0.3, time);
+    gain.gain.exponentialRampToValueAtTime(0.001, time + clickDuration);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(time);
+    osc.stop(time + clickDuration);
+};
+
+/**
+ * Get the number of count-in beats based on the first section's subdivision.
+ * @returns {number} 4 for 4/4 time, 6 for 6/8 or 12/8 time
+ */
+const getCountInBeats = () => {
+    const section = state.toque.sections[0];
+    const subdivision = section?.subdivision || 4;
+    // 3 = triplet feel (6/8, 12/8) → 6 beats (two groups of 3)
+    // 4 = straight feel (4/4) → 4 beats
+    return subdivision === 3 ? 6 : 4;
+};
+
+/**
+ * Get the duration of one count-in beat (one quarter note)
+ * @param {number} bpm - Current BPM
+ * @param {number} subdivision - Steps per beat
+ * @returns {number} Beat duration in seconds
+ */
+const getCountInBeatDuration = (bpm, subdivision) => {
+    // For subdivision 4: one beat = 4 steps
+    // For subdivision 3: one beat = 3 steps (one "pulse" in 6/8)
+    const stepDuration = getStepDuration(bpm, subdivision);
+    return stepDuration * subdivision;
+};
+
+/**
  * Schedule all sounds for the current step at the specified time
  */
 const scheduleStep = (section, measureIndex, stepIndex, time) => {
@@ -192,6 +247,8 @@ export const stopPlayback = () => {
     state.currentStep = -1;
     playback.repetitionCounter = 1;
     playback.nextNoteTime = 0;
+    playback.isCountingIn = false;
+    playback.countInStep = 0;
 
     if (state.toque && state.toque.sections && state.toque.sections.length > 0) {
         const first = state.toque.sections[0];
@@ -209,6 +266,7 @@ export const togglePlay = () => {
     if (state.isPlaying) {
         // Pause
         state.isPlaying = false;
+        playback.isCountingIn = false;
         clearTimeout(playback.timeoutId);
         playback.timeoutId = null;
         renderApp();
@@ -219,15 +277,62 @@ export const togglePlay = () => {
 
         // Initialize timing - start scheduling from "now"
         // Add a small buffer to ensure first note isn't in the past
-        playback.nextNoteTime = audioEngine.getCurrentTime() + 0.05;
+        let startTime = audioEngine.getCurrentTime() + 0.05;
 
-        // If stopped (step -1), start from beginning
+        // If stopped (step -1), start from beginning with count-in
         if (playback.currentStep < 0) {
             playback.currentStep = 0;
             playback.currentMeasureIndex = 0;
             state.currentStep = 0;
+
+            // Schedule count-in if enabled
+            if (state.countInEnabled) {
+                const firstSection = state.toque.sections[0];
+                const subdivision = firstSection?.subdivision || 4;
+                const bpm = playback.currentPlayheadBpm || firstSection?.bpm || state.toque.globalBpm;
+                const countInBeats = getCountInBeats();
+                const beatDuration = getCountInBeatDuration(bpm, subdivision);
+
+                // Update playback state for UI feedback
+                playback.isCountingIn = true;
+                playback.countInTotal = countInBeats;
+                playback.countInStep = 0;
+
+                // Schedule all count-in clicks
+                let clickTime = startTime;
+                for (let i = 0; i < countInBeats; i++) {
+                    const isAccent = (subdivision === 3) ? (i % 3 === 0) : (i === 0);
+                    playCountInClick(clickTime, isAccent);
+
+                    // Schedule visual update for count-in beat
+                    const beatIndex = i;
+                    const timeUntilClick = (clickTime - audioEngine.getCurrentTime()) * 1000;
+                    setTimeout(() => {
+                        if (state.isPlaying && playback.isCountingIn) {
+                            playback.countInStep = beatIndex + 1;
+                            renderApp();
+                        }
+                    }, Math.max(0, timeUntilClick));
+
+                    clickTime += beatDuration;
+                }
+
+                // Rhythm starts after count-in completes
+                startTime = clickTime;
+
+                // Schedule end of count-in phase
+                const countInDuration = countInBeats * beatDuration * 1000;
+                setTimeout(() => {
+                    if (state.isPlaying) {
+                        playback.isCountingIn = false;
+                        playback.countInStep = 0;
+                        renderApp();
+                    }
+                }, Math.max(0, countInDuration));
+            }
         }
 
+        playback.nextNoteTime = startTime;
         renderApp();
         scheduler();
     }

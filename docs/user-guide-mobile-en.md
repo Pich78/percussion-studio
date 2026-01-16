@@ -50,6 +50,7 @@ The mobile interface is optimized for viewing and playback (read-only).
 | **Rep Counter** | Current / Total repetitions |
 | **Live BPM** | Real-time tempo display |
 | **Global BPM Slider** | Adjust base tempo |
+| **Count-In (CNT)** | Toggle count-in before playback (shows 4 or 6) |
 | **Stop (■)** | Stop playback |
 | **Play/Pause (▶/❚❚)** | Toggle playback |
 
@@ -166,6 +167,17 @@ Located in the header on the right side:
 
 - **Rep X/Y** shows current repetition out of total
 - Updates in real-time during playback
+
+### Count-In
+
+The **CNT** button in the header enables a count-in before playback starts.
+
+- **Toggle**: Tap the CNT button to enable/disable
+- **Beats**: Automatically set to 4 (4/4 time) or 6 (6/8 or 12/8 time)
+- **Visual**: Button shows current beat during count-in with pulse animation
+- **Audio**: Plays click sounds before rhythm starts
+
+> **Note**: Count-in only plays when starting from the beginning.
 
 ---
 
