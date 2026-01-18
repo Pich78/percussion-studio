@@ -299,7 +299,7 @@ export const BataExplorerModal = ({ isMobile = false }) => {
     const drumIcon = '';
 
     return `
-        <div class="fixed inset-0 z-50 flex bg-black/80 backdrop-blur-sm" data-action="close-bata-explorer-bg">
+        <div class="fixed inset-0 z-50 flex bg-black/80 backdrop-blur-sm ${isMobile ? 'pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]' : ''}" data-action="close-bata-explorer-bg">
             <div class="flex-1 flex flex-col bg-gray-950 overflow-hidden ${isMobile ? '' : 'max-w-6xl mx-auto my-4 rounded-xl border border-gray-800'}">
                 
                 <!-- Header -->
