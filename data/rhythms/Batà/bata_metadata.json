@@ -32,7 +32,6 @@
       "associatedOrishas": [
         "Elegua"
       ],
-      "description": "Toque specifico di Eleguà",
       "timeSignature": "6/8"
     },
     "Batà/Dadà/dada_base": {
@@ -41,7 +40,6 @@
       "associatedOrishas": [
         "Dada"
       ],
-      "description": "Ritmo per la divinità della corona e dei bambini. Wolenche.",
       "timeSignature": "6/8"
     },
     "Batà/Dadà/dada_y_primera_conversacion": {
@@ -50,7 +48,6 @@
       "associatedOrishas": [
         "Dada"
       ],
-      "description": "Variazione con prima conversazione tra i tamburi per Dadà.",
       "timeSignature": "6/8"
     },
     "Batà/Ewi Bami/ewi_bami": {
@@ -59,7 +56,6 @@
       "associatedOrishas": [
         "Chango"
       ],
-      "description": "Toque specifico per Chango",
       "timeSignature": "6/8"
     },
     "Batà/Iyama/iyamà_-_base": {
@@ -70,7 +66,6 @@
         "Oshun",
         "Oya"
       ],
-      "description": "Ritmo fluido dedicato alle divinità femminili dell'acqua.",
       "timeSignature": "6/8"
     },
     "Batà/Iyama/iyamà_-_llamada_y_base": {
@@ -81,7 +76,6 @@
         "Oshun",
         "Oya"
       ],
-      "description": "Variazione con chiamata introduttiva per le divinità femminili.",
       "timeSignature": "6/8"
     },
     "Batà/Iyama/iyamà_-_llamada_y_base_-_variante": {
@@ -92,7 +86,6 @@
         "Oshun",
         "Oya"
       ],
-      "description": "Variazione alternativa dell'Iyamà per le divinità femminili.",
       "timeSignature": "6/8"
     },
     "Batà/Los Guerreros/los_guerreros_-_base": {
@@ -103,7 +96,6 @@
         "Ogun",
         "Ochosi"
       ],
-      "description": "Toque condiviso da Elegua, Ogun e Ochosi",
       "timeSignature": "6/8"
     },
     "Batà/Los Guerreros/los_guerreros_-_llamada_y_base": {
@@ -114,7 +106,6 @@
         "Ogun",
         "Ochosi"
       ],
-      "description": "Toque condiviso da Elegua, Ogun e Ochosi",
       "timeSignature": "6/8"
     },
     "Batà/Oggun - Rezo/oggun_-_rezo_-_base": {
@@ -123,7 +114,6 @@
       "associatedOrishas": [
         "Ogun"
       ],
-      "description": "Rezo Oggún. Ritmo pesante e marziale, evoca il lavoro della forgia e la marcia.",
       "timeSignature": "6/8"
     },
     "Batà/Oggun - Rezo/oggun_-_rezo_-_llamada_y_base": {
@@ -132,7 +122,6 @@
       "associatedOrishas": [
         "Ogun"
       ],
-      "description": "Variazione con chiamata del Rezo di Oggún.",
       "timeSignature": "6/8"
     },
     "Batà/Yakota/yakota_-_base": {
@@ -148,7 +137,6 @@
         "Oshun",
         "Oya"
       ],
-      "description": "Rumbita. Ritmo semplice e ballabile, usato per transizioni e danza sociale sacra.",
       "timeSignature": "6/8"
     },
     "Batà/Yakota/yakota_-_llamada_y_base": {
@@ -164,7 +152,6 @@
         "Oshun",
         "Oya"
       ],
-      "description": "Variazione con chiamata del Yakotá.",
       "timeSignature": "6/8"
     }
   }

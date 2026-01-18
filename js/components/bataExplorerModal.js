@@ -31,7 +31,6 @@ const groupToquesByFolder = (toquesMap) => {
                 displayName: folderName, // Default to folder name
                 classification: meta.classification, // Take from first item
                 associatedOrishas: new Set(),
-                description: meta.description, // Take from first item (usually base)
                 variations: []
             };
         }
@@ -45,7 +44,6 @@ const groupToquesByFolder = (toquesMap) => {
         group.variations.push({
             id: id,
             displayName: meta.displayName,
-            description: meta.description,
             timeSignature: meta.timeSignature
         });
     });
@@ -106,7 +104,7 @@ const ClassificationBadge = (classification) => {
 
 // --- Helper: Toque Card (Renders a Group) ---
 const ToqueCard = (group) => {
-    const { id, displayName, classification, associatedOrishas, description, variations } = group;
+    const { id, displayName, classification, associatedOrishas, variations } = group;
 
     return `
         <div 
@@ -130,10 +128,6 @@ const ToqueCard = (group) => {
                 </div>
             </div>
 
-            <p class="text-sm text-gray-400 line-clamp-2">
-                ${description || 'No description available.'}
-            </p>
-
             <div class="flex flex-wrap gap-1 mt-auto pt-2">
                 ${associatedOrishas.slice(0, 4).map(orisha => OrishaBadge(orisha, 'sm')).join('')}
                 ${associatedOrishas.length > 4 ?
@@ -141,8 +135,6 @@ const ToqueCard = (group) => {
             </div>
         </div>
     `;
-    // Note: data-toque-id here is actually the Group ID (Folder Name), which desktopEvents needs to handle or we treat "loading details" same way.
-    // In desktopEvents, 'load-toque-confirm' opens DETAILS panel first. We just need to ensure we pass the group ID.
 };
 
 // --- Helper: Zone Section ---
@@ -174,7 +166,7 @@ const ToqueDetailsModal = (groupId, allGroups) => {
     const group = allGroups.find(g => g.id === groupId);
     if (!group) return '';
 
-    const { displayName, classification, associatedOrishas, description, variations } = group;
+    const { displayName, classification, associatedOrishas, variations } = group;
 
     return `
         <div class="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" data-action="close-toque-details-bg">
@@ -195,13 +187,9 @@ const ToqueDetailsModal = (groupId, allGroups) => {
                         </button>
                     </div>
 
-                    <div class="flex flex-wrap gap-2 mb-4">
+                    <div class="flex flex-wrap gap-2">
                         ${associatedOrishas.map(orisha => OrishaBadge(orisha, 'md')).join('')}
                     </div>
-
-                    <p class="text-gray-400 leading-relaxed text-sm border-l-2 border-amber-600/50 pl-4 bg-gray-800/30 py-2 rounded-r">
-                        ${description || 'No description available.'}
-                    </p>
                 </div>
                 
                 <!-- Variations List -->
@@ -220,13 +208,10 @@ const ToqueDetailsModal = (groupId, allGroups) => {
                                         ${variant.timeSignature || '6/8'}
                                     </span>
                                 </div>
-                                <p class="text-xs text-gray-500 mb-4 line-clamp-2 flex-1">
-                                    ${variant.description !== description ? variant.description : 'Standard variation.'}
-                                </p>
                                 <button
                                     data-action="load-toque-confirm"
                                     data-toque-id="${variant.id}"
-                                    class="w-full py-2.5 px-3 rounded-lg bg-gray-700 hover:bg-amber-600 hover:text-white text-gray-300 text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-lg"
+                                    class="mt-4 w-full py-2.5 px-3 rounded-lg bg-gray-700 hover:bg-amber-600 hover:text-white text-gray-300 text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-lg"
                                 >
                                     ${MusicalNoteIcon('w-4 h-4')}
                                     Load Rhythm

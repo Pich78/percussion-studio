@@ -92,7 +92,6 @@ def generate_bata_metadata(rhythms_map):
                         "displayName": content.get('name', r_id),
                         "classification": content.get('classification', 'Generic'),
                         "associatedOrishas": content.get('orisha', []),
-                        "description": content.get('description', ''),
                         "timeSignature": content.get('time_signature', '6/8')
                     }
                     count += 1
