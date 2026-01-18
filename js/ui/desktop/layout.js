@@ -171,6 +171,10 @@ export const DesktopLayout = () => {
     globalBpm: state.toque.globalBpm,
     activeSectionId: state.activeSectionId,
     rhythmName: state.toque.name,
+    orisha: state.toque.orisha || [],
+    classification: state.toque.classification || null,
+    description: state.toque.description || '',
+    isBata: state.toque.isBata || '',
     readOnly: false
   })}
         </div>

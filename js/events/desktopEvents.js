@@ -415,6 +415,62 @@ export const setupDesktopEvents = () => {
                 });
             }
         }
+
+        // --- Rhythm Metadata Editor Event Handlers ---
+
+        // Toggle Batà Rhythm Mode (show/hide metadata)
+        if (action === 'toggle-bata-rhythm-mode') {
+            state.toque.isBata = !state.toque.isBata;
+            // Initialize arrays if turning ON and they don't exist
+            if (state.toque.isBata) {
+                if (!state.toque.orisha) state.toque.orisha = [];
+                if (state.toque.classification === undefined) state.toque.classification = null;
+                if (state.toque.description === undefined) state.toque.description = '';
+            }
+            renderApp();
+        }
+
+        // Toggle Orisha dropdown in timeline metadata editor
+        if (action === 'toggle-metadata-orisha-dropdown') {
+            state.uiState.metadataEditor.orishaDropdownOpen = !state.uiState.metadataEditor.orishaDropdownOpen;
+            renderApp();
+        }
+
+        // Toggle Orisha selection in rhythm metadata
+        if (action === 'toggle-rhythm-orisha') {
+            const orisha = target.dataset.orisha;
+            if (!state.toque.orisha) state.toque.orisha = [];
+            const idx = state.toque.orisha.indexOf(orisha);
+            if (idx >= 0) {
+                state.toque.orisha.splice(idx, 1);
+            } else {
+                state.toque.orisha.push(orisha);
+            }
+            state.uiState.metadataEditor.orishaDropdownOpen = false; // Close dropdown after selection
+            renderApp();
+        }
+
+        // Remove Orisha from rhythm metadata (via badge X button)
+        if (action === 'remove-rhythm-orisha') {
+            const orisha = target.dataset.orisha;
+            if (state.toque.orisha) {
+                const idx = state.toque.orisha.indexOf(orisha);
+                if (idx >= 0) state.toque.orisha.splice(idx, 1);
+            }
+            renderApp();
+        }
+
+        // Set rhythm classification
+        if (action === 'set-rhythm-classification') {
+            const classification = target.dataset.classification;
+            // Toggle off if clicking the same one, otherwise set new
+            if (state.toque.classification === classification) {
+                state.toque.classification = null;
+            } else {
+                state.toque.classification = classification;
+            }
+            renderApp();
+        }
         if (action === 'select-rhythm-confirm') {
             const rhythmId = target.dataset.rhythmId;
             if (confirm("Load this rhythm? Unsaved changes will be lost.")) {
@@ -475,6 +531,13 @@ export const setupDesktopEvents = () => {
             // Debounce re-render for performance
             clearTimeout(window._bataSearchTimeout);
             window._bataSearchTimeout = setTimeout(() => renderApp(), 150);
+            return;
+        }
+
+        // Update rhythm description
+        if (action === 'update-rhythm-description') {
+            state.toque.description = target.value;
+            // No renderApp() to avoid textarea losing focus during typing
             return;
         }
 
