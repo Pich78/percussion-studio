@@ -200,7 +200,7 @@ export const MobileLayout = () => {
             <!-- Modal Content - with safe area padding for dynamic island -->
             <div class="relative w-4/5 max-w-sm h-full bg-gray-900 border-r border-gray-800 shadow-2xl flex flex-col animate-in fade-in slide-in-from-left duration-200 ml-[var(--safe-area-left)]">
                 <div class="p-4 border-b border-gray-800 flex justify-between items-center bg-gray-950">
-                    <h2 class="text-lg font-bold text-white">Menu</h2>
+                    <h2 class="text-lg font-bold text-white">Percussion Studio</h2>
                     <button data-action="close-menu" class="p-2 text-gray-500 hover:text-white">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
