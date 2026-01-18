@@ -5,7 +5,7 @@
     "Ogun",
     "Ochosi",
     "Obatala",
-    "Shango",
+    "Chango",
     "Yemaya",
     "Oshun",
     "Oya",
@@ -16,7 +16,9 @@
     "Orisha Oko",
     "Ibeyi",
     "Dada",
-    "Oggue"
+    "Oggue",
+    "Orula",
+    "Eggun"
   ],
   "classifications": [
     "Specific",
@@ -25,16 +27,16 @@
   ],
   "toques": {
     "Batà/Alumbanche/alumbanche_base": {
-      "displayName": "Alumbanchè",
+      "displayName": "Alumbanche Base",
       "classification": "Specific",
       "associatedOrishas": [
         "Elegua"
       ],
-      "description": "Alumbanchè è usato per canti di lode e processioni. È una variazione del Latokpa che apre invariabilmente l'Oru Seco.",
+      "description": "Toque specifico di Eleguà",
       "timeSignature": "6/8"
     },
     "Batà/Dadà/dada_base": {
-      "displayName": "Dadà - Base",
+      "displayName": "Dada base",
       "classification": "Specific",
       "associatedOrishas": [
         "Dada"
@@ -43,7 +45,7 @@
       "timeSignature": "6/8"
     },
     "Batà/Dadà/dada_y_primera_conversacion": {
-      "displayName": "Dadà - Primera Conversación",
+      "displayName": "Dada y primera conversacion",
       "classification": "Specific",
       "associatedOrishas": [
         "Dada"
@@ -51,13 +53,13 @@
       "description": "Variazione con prima conversazione tra i tamburi per Dadà.",
       "timeSignature": "6/8"
     },
-    "Batà/Ewi Bami/ewi bami chango_base": {
-      "displayName": "Ewi Bami Changó",
+    "Batà/Ewi Bami/ewi_bami": {
+      "displayName": "Ewi Bami",
       "classification": "Specific",
       "associatedOrishas": [
-        "Shango"
+        "Chango"
       ],
-      "description": "Toque specifico per Changó. Ewi Bami è un canto tradizionale.",
+      "description": "Toque specifico per Chango",
       "timeSignature": "6/8"
     },
     "Batà/Iyama/iyamà_-_base": {
@@ -83,7 +85,7 @@
       "timeSignature": "6/8"
     },
     "Batà/Iyama/iyamà_-_llamada_y_base_-_variante": {
-      "displayName": "Iyamà - Llamada y Base (Variante)",
+      "displayName": "Iyamà - Llamada y Base - variante",
       "classification": "Shared",
       "associatedOrishas": [
         "Yemaya",
@@ -101,7 +103,7 @@
         "Ogun",
         "Ochosi"
       ],
-      "description": "Ritmo condiviso per i tre guerrieri: Elegua, Oggun e Ochosi.",
+      "description": "Toque condiviso da Elegua, Ogun e Ochosi",
       "timeSignature": "6/8"
     },
     "Batà/Los Guerreros/los_guerreros_-_llamada_y_base": {
@@ -112,11 +114,11 @@
         "Ogun",
         "Ochosi"
       ],
-      "description": "Variazione con chiamata per i tre guerrieri.",
+      "description": "Toque condiviso da Elegua, Ogun e Ochosi",
       "timeSignature": "6/8"
     },
     "Batà/Oggun - Rezo/oggun_-_rezo_-_base": {
-      "displayName": "Oggún Rezo - Base",
+      "displayName": "Oggun - Rezo - Base",
       "classification": "Specific",
       "associatedOrishas": [
         "Ogun"
@@ -125,7 +127,7 @@
       "timeSignature": "6/8"
     },
     "Batà/Oggun - Rezo/oggun_-_rezo_-_llamada_y_base": {
-      "displayName": "Oggún Rezo - Llamada y Base",
+      "displayName": "Oggun - Rezo - Llamada y Base",
       "classification": "Specific",
       "associatedOrishas": [
         "Ogun"
@@ -134,7 +136,7 @@
       "timeSignature": "6/8"
     },
     "Batà/Yakota/yakota_-_base": {
-      "displayName": "Yakotá - Base",
+      "displayName": "Yakota - Base",
       "classification": "Generic",
       "associatedOrishas": [
         "Elegua",
@@ -150,7 +152,7 @@
       "timeSignature": "6/8"
     },
     "Batà/Yakota/yakota_-_llamada_y_base": {
-      "displayName": "Yakotá - Llamada y Base",
+      "displayName": "Yakota - Llamada y Base",
       "classification": "Generic",
       "associatedOrishas": [
         "Elegua",

@@ -2,12 +2,11 @@ name: "Los Guerreros - Llamada y Base"
 global_bpm: 120
 is_bata: true
 orisha:
-  - "Elegua"
-  - "Ogun"
-  - "Ochosi"
+- "Elegua"
+- "Ogun"
+- "Ochosi"
 classification: "Shared"
 description: "Toque condiviso da Elegua, Ogun e Ochosi"
-
 sound_kit:
   oko:
     instrument: "OKO"
@@ -18,27 +17,26 @@ sound_kit:
   iya:
     instrument: "IYA"
     pack: "cp_bata_chaworo"
-
 playback_flow:
-  - name: "LLamada"
-    repetitions: 1
-    time_signature: "6/8"
-    steps: 12
-    measures:
-      - pattern:
-          oko: "||---|---|---|---||"
-          ito: "||---|---|--O|-O-||"
-          iya: "||---|-O-|O-S|-S-||"
-  - name: "Base"
-    repetitions: 16
-    time_signature: "6/8"
-    steps: 12
-    measures:
-      - pattern:
-          oko: "||O-O|S--|O-O|S--||"
-          ito: "||S--|-O-|S--|-O-||"
-          iya: "||O-S|--S|--S|-S-||"
-      - pattern:
-          oko: "||O-O|S--|O-O|S--||"
-          ito: "||S--|-O-|S-O|-O-||"
-          iya: "||--S|-O-|O-S|-S-||"
+- name: "LLamada"
+  repetitions: 1
+  time_signature: "6/8"
+  steps: 12
+  measures:
+  - pattern:
+      oko: "||---|---|---|---||"
+      ito: "||---|---|--O|-O-||"
+      iya: "||---|-O-|O-S|-S-||"
+- name: "Base"
+  repetitions: 16
+  time_signature: "6/8"
+  steps: 12
+  measures:
+  - pattern:
+      oko: "||O-O|S--|O-O|S--||"
+      ito: "||S--|-O-|S--|-O-||"
+      iya: "||O-S|--S|--S|-S-||"
+  - pattern:
+      oko: "||O-O|S--|O-O|S--||"
+      ito: "||S--|-O-|S-O|-O-||"
+      iya: "||--S|-O-|O-S|-S-||"

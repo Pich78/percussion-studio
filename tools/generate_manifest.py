@@ -6,6 +6,16 @@ import yaml # pip install pyyaml
 DATA_DIR = "data"
 MANIFEST_FILE = "manifest.json"
 
+# Batà Metadata Constants
+BATA_METADATA_FILE = os.path.join(DATA_DIR, "rhythms/Batà/bata_metadata.json")
+ORISHAS_LIST = [
+    "Elegua", "Ogun", "Ochosi", "Obatala", "Chango", 
+    "Yemaya", "Oshun", "Oya", "Babalu Aye", "Inle",
+    "Osain", "Aggayu", "Orisha Oko", "Ibeyi", "Dada", "Oggue",
+    "Orula", "Eggun"
+]
+CLASSIFICATIONS_LIST = ["Specific", "Shared", "Generic"]
+
 def scan_instruments():
     """Scans data/instruments for .yaml files"""
     instruments = {}
@@ -55,11 +65,66 @@ def scan_rhythms():
             
     return rhythms
 
+def generate_bata_metadata(rhythms_map):
+    """Generates bata_metadata.json by parsing rhythm YAML files"""
+    toques = {}
+    
+    print("⏳ Scanning for Batà rhythms...")
+    
+    count = 0
+    for r_id, file_path in rhythms_map.items():
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                content = yaml.safe_load(f)
+                
+                # Check if it's a Batà rhythm
+                # 1. Explicit flag
+                # 2. Inferred from presence of metadata fields
+                is_bata = content.get('is_bata', False)
+                if not is_bata:
+                    # heuristic inference
+                    if 'orisha' in content or 'classification' in content:
+                        is_bata = True
+                
+                if is_bata:
+                    # Extract metadata
+                    toques[r_id] = {
+                        "displayName": content.get('name', r_id),
+                        "classification": content.get('classification', 'Generic'),
+                        "associatedOrishas": content.get('orisha', []),
+                        "description": content.get('description', ''),
+                        "timeSignature": content.get('time_signature', '6/8')
+                    }
+                    count += 1
+                    
+        except Exception as e:
+            print(f"⚠️ Error parsing {file_path}: {e}")
+
+    # Construct the full metadata object
+    metadata = {
+        "version": "1.0",
+        "orishas": ORISHAS_LIST,
+        "classifications": CLASSIFICATIONS_LIST,
+        "toques": toques
+    }
+    
+    # Write to file
+    # Ensure directory exists
+    os.makedirs(os.path.dirname(BATA_METADATA_FILE), exist_ok=True)
+    
+    with open(BATA_METADATA_FILE, "w", encoding='utf-8') as f:
+        json.dump(metadata, f, indent=2, ensure_ascii=False)
+        
+    print(f"✅ Generated {BATA_METADATA_FILE}")
+    print(f"   - Batà Rhythms Found: {count}")
+
 def generate():
+    rhythms = scan_rhythms()
+    
     manifest = {
         "instruments": scan_instruments(),
         "sound_packs": scan_sound_packs(),
-        "rhythms": scan_rhythms()
+        "rhythms": rhythms
     }
     
     with open(MANIFEST_FILE, "w") as f:
@@ -69,6 +134,9 @@ def generate():
     print(f"   - Instruments: {len(manifest['instruments'])}")
     print(f"   - Sound Packs: {len(manifest['sound_packs'])}")
     print(f"   - Rhythms:     {len(manifest['rhythms'])}")
+    
+    # Generate Batà specific metadata
+    generate_bata_metadata(rhythms)
 
 if __name__ == "__main__":
     generate()

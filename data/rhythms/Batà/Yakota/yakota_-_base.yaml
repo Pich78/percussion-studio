@@ -1,6 +1,5 @@
 name: "Yakota - Base"
 global_bpm: 90
-
 sound_kit:
   oko:
     instrument: "OKO"
@@ -11,14 +10,25 @@ sound_kit:
   iya:
     instrument: "IYA"
     pack: "cp_bata_chaworo"
-
 playback_flow:
-  - name: "Base"
-    repetitions: 1
-    time_signature: "6/8"
-    steps: 12
-    measures:
-      - pattern:
-          oko: "||S--|-O-|S--|-O-||"
-          ito: "||O--|S--|O--|S--||"
-          iya: "||--S|---|--R|-O-||"
+- name: "Base"
+  repetitions: 1
+  time_signature: "6/8"
+  steps: 12
+  measures:
+  - pattern:
+      oko: "||S--|-O-|S--|-O-||"
+      ito: "||O--|S--|O--|S--||"
+      iya: "||--S|---|--R|-O-||"
+is_bata: true
+description: "Rumbita. Ritmo semplice e ballabile, usato per transizioni e danza sociale sacra."
+classification: "Generic"
+orisha:
+- "Elegua"
+- "Ogun"
+- "Ochosi"
+- "Obatala"
+- "Chango"
+- "Yemaya"
+- "Oshun"
+- "Oya"
