@@ -29,7 +29,27 @@ export const exportRhythmToYAML = (state) => {
 
     // Header
     yaml += `name: "${toque.name}"\n`;
-    yaml += `global_bpm: ${toque.globalBpm}\n\n`;
+    yaml += `global_bpm: ${toque.globalBpm}\n`;
+
+    // Metadata fields (optional)
+    if (toque.isBata) {
+        yaml += `is_bata: true\n`;
+        if (toque.orisha && toque.orisha.length > 0) {
+            yaml += `orisha:\n`;
+            toque.orisha.forEach(o => {
+                yaml += `  - "${o}"\n`;
+            });
+        }
+        if (toque.classification) {
+            yaml += `classification: "${toque.classification}"\n`;
+        }
+        if (toque.description) {
+            // Escape quotes in description and use double-quoted string
+            const escapedDesc = toque.description.replace(/"/g, '\\"').replace(/\n/g, '\\n');
+            yaml += `description: "${escapedDesc}"\n`;
+        }
+    }
+    yaml += `\n`;
 
     // Sound Kit - build track ID mappings
     yaml += `sound_kit:\n`;

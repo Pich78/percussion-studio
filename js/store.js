@@ -3,7 +3,8 @@ import { StrokeType } from './types.js';
 export const state = {
     // The active rhythm data. 
     // Will be populated by actions.loadRhythm() via the dataLoader.
-    toque: null,
+    // active rhythm data
+    toque: null, // { id, name, globalBpm, sections, isBata: boolean, orisha: [], classification: string, description: string }
 
     // Tracks the source of the current rhythm for share functionality
     // 'repo' = loaded from manifest, 'local' = loaded from user's device, 'new' = created fresh
@@ -49,6 +50,10 @@ export const state = {
             selectedTypes: [], // Array of selected classification types
             selectedToqueId: null, // Currently selected toque for details panel
             metadata: null // Loaded from bata_metadata.json
+        },
+        // Rhythm metadata editor state in timeline
+        metadataEditor: {
+            orishaDropdownOpen: false
         }
     }
 };

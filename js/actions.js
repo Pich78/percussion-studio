@@ -150,6 +150,11 @@ export const actions = {
                 id: rhythmId,
                 name: rhythmDef.name,
                 globalBpm: rhythmDef.global_bpm,
+                // If is_bata is explicit, use it. If not, check if any metadata fields exist to infer it.
+                isBata: rhythmDef.is_bata || (!!(rhythmDef.orisha || rhythmDef.classification || rhythmDef.description)),
+                orisha: rhythmDef.orisha || [],
+                classification: rhythmDef.classification || null,
+                description: rhythmDef.description || '',
                 sections: sections
             };
 
@@ -279,6 +284,11 @@ export const actions = {
                 id: crypto.randomUUID(),
                 name: rhythmDef.name,
                 globalBpm: rhythmDef.global_bpm,
+                // If is_bata is explicit, use it. If not, check if any metadata fields exist to infer it.
+                isBata: rhythmDef.is_bata || (!!(rhythmDef.orisha || rhythmDef.classification || rhythmDef.description)),
+                orisha: rhythmDef.orisha || [],
+                classification: rhythmDef.classification || null,
+                description: rhythmDef.description || '',
                 sections: sections
             };
 
