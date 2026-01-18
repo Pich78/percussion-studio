@@ -66,7 +66,8 @@ export const STROKE_PALETTE = [
 export const ORISHAS_LIST = [
     'Elegua', 'Ogun', 'Ochosi', 'Obatala', 'Chango',
     'Yemaya', 'Oshun', 'Oya', 'Babalu Aye', 'Inle',
-    'Osain', 'Aggayu', 'Orula', 'Eggun'
+    'Osain', 'Aggayu', 'Orisha Oko', 'Ibeyi', 'Dada', 'Oggue',
+    'Orula', 'Eggun'
 ];
 
 // Batà Explorer - Toque classification types
@@ -86,6 +87,7 @@ export const ORISHA_COLORS = {
     'Inle': { border: 'border-teal-500', text: 'text-teal-400', bg: 'bg-teal-950/30' },
     'Osain': { border: 'border-lime-700', text: 'text-lime-500', bg: 'bg-lime-950/30' },
     'Aggayu': { border: 'border-orange-700', text: 'text-orange-600', bg: 'bg-orange-950/30' },
+    'Orisha Oko': { border: 'border-rose-400', text: 'text-rose-400', bg: 'bg-rose-900/30' },
     'Ibeyi': { border: 'border-indigo-400', text: 'text-indigo-400', bg: 'bg-indigo-900/30' },
     'Dada': { border: 'border-red-400', text: 'text-red-300', bg: 'bg-red-900/30' },
     'Oggue': { border: 'border-amber-800', text: 'text-amber-700', bg: 'bg-amber-950/30' }
