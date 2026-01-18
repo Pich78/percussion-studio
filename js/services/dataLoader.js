@@ -147,6 +147,36 @@ class DataLoaderService {
 
         return await this._fetchYaml(path);
     }
+
+    /**
+     * 4. Load Batà Metadata
+     * Fetches data/rhythms/Batà/bata_metadata.json
+     * Contains Orisha associations, classifications, and descriptions for Batà rhythms
+     */
+    async loadBataMetadata() {
+        if (this._bataMetadataCache) {
+            return this._bataMetadataCache;
+        }
+
+        try {
+            const url = 'data/rhythms/Batà/bata_metadata.json';
+            const cacheBustUrl = config.isDevelopment ? `${url}?_=${Date.now()}` : url;
+
+            const response = await fetch(cacheBustUrl, config.isDevelopment ? {
+                cache: 'no-store'
+            } : {});
+
+            if (!response.ok) throw new Error(`HTTP ${response.status} for ${url}`);
+
+            const data = await response.json();
+            this._bataMetadataCache = data;
+            console.log('✅ Batà metadata loaded:', Object.keys(data.toques).length, 'rhythms');
+            return data;
+        } catch (error) {
+            console.error('Error loading Batà metadata:', error);
+            return null;
+        }
+    }
 }
 
 // Export a singleton instance

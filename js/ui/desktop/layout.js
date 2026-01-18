@@ -9,6 +9,7 @@ import { ArrowDownTrayIcon } from '../../icons/arrowDownTrayIcon.js';
 import { StopIcon } from '../../icons/stopIcon.js';
 import { PlayIcon } from '../../icons/playIcon.js';
 import { PauseIcon } from '../../icons/pauseIcon.js';
+import { BataExplorerModal } from '../../components/bataExplorerModal.js';
 
 const renderHeader = () => {
   const activeSection = state.toque.sections.find(s => s.id === state.activeSectionId) || state.toque.sections[0];
@@ -189,5 +190,6 @@ export const DesktopLayout = () => {
       ${Controls({ selectedStroke: state.selectedStroke })}
     </div>
     ${renderUserGuideModal()}
+    ${BataExplorerModal({ isMobile: false })}
   `;
 };

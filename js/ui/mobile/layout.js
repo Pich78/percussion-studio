@@ -7,6 +7,7 @@ import { PlayIcon } from '../../icons/playIcon.js';
 import { PauseIcon } from '../../icons/pauseIcon.js';
 import { FolderOpenIcon } from '../../icons/folderOpenIcon.js';
 import { DeviceRotateIcon } from '../../icons/DeviceRotateIcon.js';
+import { BataExplorerModal } from '../../components/bataExplorerModal.js';
 
 const renderHeader = (activeSection) => {
   return `
@@ -321,6 +322,8 @@ export const MobileLayout = () => {
             </div>
         </div>
       ` : ''}
+
+      ${BataExplorerModal({ isMobile: true })}
     </div>
   `;
 };
