@@ -146,15 +146,23 @@ export const actions = {
             });
 
             // 4. Update State
+            // Check if we have additional metadata from the Bata Explorer for this rhythm
+            const explorerMeta = state.uiState.bataExplorer?.metadata?.toques?.[rhythmId];
+
+            // Determine Batà status and metadata
+            // Priority: Explicit YAML > Explorer Metadata > Inferred from fields
+            const isBata = rhythmDef.is_bata ||
+                (!!explorerMeta) ||
+                (!!(rhythmDef.orisha || rhythmDef.classification || rhythmDef.description));
+
             state.toque = {
                 id: rhythmId,
                 name: rhythmDef.name,
                 globalBpm: rhythmDef.global_bpm,
-                // If is_bata is explicit, use it. If not, check if any metadata fields exist to infer it.
-                isBata: rhythmDef.is_bata || (!!(rhythmDef.orisha || rhythmDef.classification || rhythmDef.description)),
-                orisha: rhythmDef.orisha || [],
-                classification: rhythmDef.classification || null,
-                description: rhythmDef.description || '',
+                isBata: isBata,
+                orisha: rhythmDef.orisha || explorerMeta?.associatedOrishas || [],
+                classification: rhythmDef.classification || explorerMeta?.classification || null,
+                description: rhythmDef.description || explorerMeta?.description || '',
                 sections: sections
             };
 
