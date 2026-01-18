@@ -4,15 +4,66 @@
   - Search with filter tokens
   - Multi-select dropdowns for Orisha and Classification
   - Zone-based display (Specific/Shared/Generic)
-  - Details panel
+  - Details panel with variations/exercises list
 */
 
 import { state } from '../store.js';
-import { dataLoader } from '../services/dataLoader.js';
 import { ORISHAS_LIST, TOQUE_CLASSIFICATIONS, ORISHA_COLORS, CLASSIFICATION_COLORS } from '../constants.js';
 import { XMarkIcon } from '../icons/xMarkIcon.js';
 import { MusicalNoteIcon } from '../icons/musicalNoteIcon.js';
 import { ChevronDownIcon } from '../icons/chevronDownIcon.js';
+
+// --- Logic: Group Toques by Folder ---
+const groupToquesByFolder = (toquesMap) => {
+    const groups = {};
+
+    Object.entries(toquesMap).forEach(([id, meta]) => {
+        // ID format: Batà/Folder/Filename
+        const parts = id.split('/');
+        // Ensure it has at least Folder/Filename structure
+        if (parts.length < 3) return;
+
+        const folderName = parts[1]; // e.g., "Yakota"
+
+        if (!groups[folderName]) {
+            groups[folderName] = {
+                id: folderName, // Use folder name as Group ID
+                displayName: folderName, // Default to folder name
+                classification: meta.classification, // Take from first item
+                associatedOrishas: new Set(),
+                description: meta.description, // Take from first item (usually base)
+                variations: []
+            };
+        }
+
+        const group = groups[folderName];
+
+        // Accumulate Orishas
+        meta.associatedOrishas.forEach(o => group.associatedOrishas.add(o));
+
+        // Add variation
+        group.variations.push({
+            id: id,
+            displayName: meta.displayName,
+            description: meta.description,
+            timeSignature: meta.timeSignature
+        });
+    });
+
+    // Convert Sets to Arrays and sort variations
+    return Object.values(groups).map(g => ({
+        ...g,
+        associatedOrishas: Array.from(g.associatedOrishas),
+        // Sort variations: try to put "Base" first if possible
+        variations: g.variations.sort((a, b) => {
+            const isBaseA = a.id.toLowerCase().includes('base') && !a.id.toLowerCase().includes('llamada');
+            const isBaseB = b.id.toLowerCase().includes('base') && !b.id.toLowerCase().includes('llamada');
+            if (isBaseA && !isBaseB) return -1;
+            if (!isBaseA && isBaseB) return 1;
+            return a.displayName.localeCompare(b.displayName);
+        })
+    }));
+};
 
 // --- Helper: Orisha Badge ---
 const OrishaBadge = (name, size = 'sm') => {
@@ -53,14 +104,14 @@ const ClassificationBadge = (classification) => {
     `;
 };
 
-// --- Helper: Toque Card ---
-const ToqueCard = (toqueId, metadata) => {
-    const { displayName, classification, associatedOrishas, description } = metadata;
+// --- Helper: Toque Card (Renders a Group) ---
+const ToqueCard = (group) => {
+    const { id, displayName, classification, associatedOrishas, description, variations } = group;
 
     return `
         <div 
-            data-action="load-toque-confirm"
-            data-toque-id="${toqueId}"
+            data-action="select-toque"
+            data-toque-id="${id}" 
             class="
                 p-4 rounded-lg border cursor-pointer transition-all duration-200 group
                 flex flex-col gap-3 relative overflow-hidden
@@ -73,6 +124,9 @@ const ToqueCard = (toqueId, metadata) => {
                 </h3>
                 <div class="flex items-center gap-1 opacity-70 group-hover:opacity-100 transition-opacity">
                     ${ClassificationBadge(classification)}
+                    <span class="text-[10px] text-gray-500 bg-gray-900 px-1.5 py-0.5 rounded border border-gray-700 ml-1">
+                        ${variations.length} var.
+                    </span>
                 </div>
             </div>
 
@@ -81,15 +135,19 @@ const ToqueCard = (toqueId, metadata) => {
             </p>
 
             <div class="flex flex-wrap gap-1 mt-auto pt-2">
-                ${associatedOrishas.map(orisha => OrishaBadge(orisha, 'sm')).join('')}
+                ${associatedOrishas.slice(0, 4).map(orisha => OrishaBadge(orisha, 'sm')).join('')}
+                ${associatedOrishas.length > 4 ?
+            `<span class="text-[10px] text-gray-500 px-1 py-0.5">+${associatedOrishas.length - 4}</span>` : ''}
             </div>
         </div>
     `;
+    // Note: data-toque-id here is actually the Group ID (Folder Name), which desktopEvents needs to handle or we treat "loading details" same way.
+    // In desktopEvents, 'load-toque-confirm' opens DETAILS panel first. We just need to ensure we pass the group ID.
 };
 
 // --- Helper: Zone Section ---
-const ZoneSection = (zoneName, toques, isMobile = false) => {
-    if (toques.length === 0) return '';
+const ZoneSection = (zoneName, groups, isMobile = false) => {
+    if (groups.length === 0) return '';
 
     const colors = CLASSIFICATION_COLORS[zoneName];
     const dotShape = zoneName === 'Specific' ? 'rounded-sm rotate-45' : zoneName === 'Shared' ? 'rounded-full' : 'rounded-sm';
@@ -100,68 +158,83 @@ const ZoneSection = (zoneName, toques, isMobile = false) => {
                 <div class="h-3 w-3 ${dotShape} ${colors.dot}" style="box-shadow: 0 0 15px ${colors.glow}"></div>
                 <div>
                 <h3 class="font-bold uppercase tracking-widest text-sm ${colors.text}">${zoneName}</h3>
-                    <p class="text-xs text-gray-500 mt-0.5">
-                        ${zoneName === 'Specific' ? 'Rhythms dedicated exclusively to the selected Orisha(s)' :
-            zoneName === 'Shared' ? 'Rhythms shared with other deities' :
-                'General purpose rhythms available for these Orishas'}
-                    </p>
                 </div>
             </div>
             <div class="grid grid-cols-1 ${isMobile ? '' : 'md:grid-cols-2'} gap-4">
-                ${toques.map(([id, meta]) => ToqueCard(id, meta)).join('')}
+                ${groups.map(group => ToqueCard(group)).join('')}
             </div>
         </section>
     `;
 };
 
-// --- Helper: Details Panel ---
-const ToqueDetailsPanel = (toqueId, metadata) => {
-    if (!toqueId || !metadata) return '';
+// --- Helper: Details Modal Overlay ---
+const ToqueDetailsModal = (groupId, allGroups) => {
+    if (!groupId || !allGroups) return '';
 
-    const { displayName, classification, associatedOrishas, description, timeSignature } = metadata;
+    const group = allGroups.find(g => g.id === groupId);
+    if (!group) return '';
+
+    const { displayName, classification, associatedOrishas, description, variations } = group;
 
     return `
-        <div class="w-80 bg-gray-900 border-l border-gray-800 flex flex-col p-6 overflow-y-auto flex-shrink-0">
-            <!-- Close button -->
-            <div class="flex justify-end mb-4">
-                <button 
-                    data-action="close-toque-details"
-                    class="text-gray-500 hover:text-gray-200 transition bg-gray-800/80 hover:bg-gray-700 rounded-full p-2"
-                >
-                    ${XMarkIcon('w-5 h-5')}
-                </button>
-            </div>
-            
-            <!-- Header -->
-            <div class="mb-6 border-b border-gray-700 pb-4">
-                <div class="flex items-center gap-2 mb-2">
-                    ${ClassificationBadge(classification)}
-                    ${timeSignature ? `<span class="text-xs text-gray-500">${timeSignature}</span>` : ''}
+        <div class="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" data-action="close-toque-details-bg">
+            <div class="bg-gray-900 rounded-xl overflow-hidden shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col border border-gray-700 animate-in zoom-in-95 duration-200">
+                
+                <!-- Header -->
+                <div class="p-6 border-b border-gray-800 bg-gray-900/50">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="flex items-center gap-2">
+                            ${ClassificationBadge(classification)}
+                            <h2 class="text-2xl font-bold text-gray-100">${displayName}</h2>
+                        </div>
+                        <button 
+                            data-action="close-toque-details"
+                            class="text-gray-500 hover:text-white transition bg-gray-800 hover:bg-gray-700 rounded-full p-2"
+                        >
+                            ${XMarkIcon('w-6 h-6')}
+                        </button>
+                    </div>
+
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        ${associatedOrishas.map(orisha => OrishaBadge(orisha, 'md')).join('')}
+                    </div>
+
+                    <p class="text-gray-400 leading-relaxed text-sm border-l-2 border-amber-600/50 pl-4 bg-gray-800/30 py-2 rounded-r">
+                        ${description || 'No description available.'}
+                    </p>
                 </div>
-                <h2 class="text-2xl font-bold text-gray-100 mb-2">${displayName}</h2>
-                <p class="text-gray-400 leading-relaxed text-sm">${description || 'No description available.'}</p>
-            </div>
-            
-            <!-- Associated Orishas -->
-            <div class="mb-6">
-                <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-3">
-                    Associated Orishas
-                </h3>
-                <div class="flex flex-wrap gap-2">
-                    ${associatedOrishas.map(orisha => OrishaBadge(orisha, 'md')).join('')}
+                
+                <!-- Variations List -->
+                <div class="flex-1 overflow-y-auto px-6 py-6 custom-scrollbar bg-gray-950/30">
+                    <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-4 flex items-center gap-2">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                        Available Variations
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        ${variations.map(variant => `
+                            <div class="bg-gray-800/40 border border-gray-700/50 rounded-lg p-4 hover:border-amber-500/50 hover:bg-gray-800 transition-all group flex flex-col">
+                                <div class="flex justify-between items-start mb-2">
+                                    <h4 class="font-bold text-gray-200 text-sm group-hover:text-amber-400 transition-colors">${variant.displayName}</h4>
+                                    <span class="text-[10px] text-gray-400 font-mono bg-gray-900 px-2 py-1 rounded border border-gray-700">
+                                        ${variant.timeSignature || '6/8'}
+                                    </span>
+                                </div>
+                                <p class="text-xs text-gray-500 mb-4 line-clamp-2 flex-1">
+                                    ${variant.description !== description ? variant.description : 'Standard variation.'}
+                                </p>
+                                <button
+                                    data-action="load-toque-confirm"
+                                    data-toque-id="${variant.id}"
+                                    class="w-full py-2.5 px-3 rounded-lg bg-gray-700 hover:bg-amber-600 hover:text-white text-gray-300 text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-lg"
+                                >
+                                    ${MusicalNoteIcon('w-4 h-4')}
+                                    Load Rhythm
+                                </button>
+                            </div>
+                        `).join('')}
+                    </div>
                 </div>
-            </div>
-            
-            <!-- Load Button -->
-            <div class="mt-auto pt-4 border-t border-gray-700">
-                <button
-                    data-action="load-toque-confirm"
-                    data-toque-id="${toqueId}"
-                    class="w-full py-3 px-4 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-bold transition-colors flex items-center justify-center gap-2"
-                >
-                    ${MusicalNoteIcon('w-5 h-5')}
-                    Load This Rhythm
-                </button>
             </div>
         </div>
     `;
@@ -232,6 +305,7 @@ const FilterDropdown = (id, title, icon, options, selectedValues, toggleAction, 
 // --- Main Export: BataExplorerModal ---
 export const BataExplorerModal = ({ isMobile = false }) => {
     const bata = state.uiState.bataExplorer;
+    // Ensure we are in the correct state
     if (!bata.isOpen) return '';
 
     const metadata = bata.metadata;
@@ -248,47 +322,46 @@ export const BataExplorerModal = ({ isMobile = false }) => {
 
     const { searchTerm, selectedOrishas, selectedTypes, selectedToqueId } = bata;
 
-    // Filter logic
-    let filteredToques = Object.entries(metadata.toques);
+    // 1. Group Raw Toques into Folders
+    let groups = groupToquesByFolder(metadata.toques);
 
-    // 1. Text search
+    // 2. Filter Groups
+    // Text search
     if (searchTerm) {
         const lowerTerm = searchTerm.toLowerCase();
-        filteredToques = filteredToques.filter(([id, meta]) =>
-            meta.displayName.toLowerCase().includes(lowerTerm) ||
-            meta.description?.toLowerCase().includes(lowerTerm)
+        groups = groups.filter(g =>
+            g.displayName.toLowerCase().includes(lowerTerm) ||
+            g.description?.toLowerCase().includes(lowerTerm) ||
+            g.variations.some(v => v.displayName.toLowerCase().includes(lowerTerm))
         );
     }
 
-    // 2. Orisha filter (OR logic within Orishas)
+    // Orisha filter (OR logic)
     if (selectedOrishas.length > 0) {
-        filteredToques = filteredToques.filter(([id, meta]) =>
-            meta.associatedOrishas.some(o => selectedOrishas.includes(o))
+        groups = groups.filter(g =>
+            g.associatedOrishas.some(o => selectedOrishas.includes(o))
         );
     }
 
-    // 3. Classification filter (AND with Orishas, OR within Types)
+    // Classification filter (AND with Orishas)
     if (selectedTypes.length > 0) {
-        filteredToques = filteredToques.filter(([id, meta]) =>
-            selectedTypes.includes(meta.classification)
+        groups = groups.filter(g =>
+            selectedTypes.includes(g.classification)
         );
     }
 
-    // Group by classification if Orisha filter is active
+    // 3. Organize by Zone if needed
     const showZones = selectedOrishas.length > 0;
-    let zones = {};
+    let zoneGroups = {};
     if (showZones) {
-        zones = {
-            Specific: filteredToques.filter(([id, meta]) => meta.classification === 'Specific'),
-            Shared: filteredToques.filter(([id, meta]) => meta.classification === 'Shared'),
-            Generic: filteredToques.filter(([id, meta]) => meta.classification === 'Generic')
+        zoneGroups = {
+            Specific: groups.filter(g => g.classification === 'Specific'),
+            Shared: groups.filter(g => g.classification === 'Shared'),
+            Generic: groups.filter(g => g.classification === 'Generic')
         };
     }
 
-    // Get selected toque details
-    const selectedToqueMeta = selectedToqueId ? metadata.toques[selectedToqueId] : null;
-
-    // Dropdown states (stored in uiState)
+    // Dropdown states
     const orishaDropdownOpen = bata.orishaDropdownOpen || false;
     const typeDropdownOpen = bata.typeDropdownOpen || false;
 
@@ -296,7 +369,6 @@ export const BataExplorerModal = ({ isMobile = false }) => {
     const musicIcon = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path></svg>';
     const filterIcon = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>';
     const searchIcon = '<svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>';
-    const drumIcon = '';
 
     return `
         <div class="fixed inset-0 z-50 flex bg-black/80 backdrop-blur-sm" data-action="close-bata-explorer-bg">
@@ -306,7 +378,6 @@ export const BataExplorerModal = ({ isMobile = false }) => {
                 <div class="border-b border-gray-800 bg-gray-950 flex-shrink-0 px-6 py-4 ${isMobile ? 'pt-[max(1rem,env(safe-area-inset-top))]' : ''}">
                     <div class="max-w-4xl mx-auto flex items-center gap-4">
                         <!-- Search & Filters -->
-                        <!-- Search Input with Tokens -->
                         <div 
                             class="flex-1 flex items-center gap-2 bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 focus-within:ring-1 focus-within:ring-amber-600 focus-within:border-amber-600 transition-all cursor-text group"
                             data-action="focus-bata-search"
@@ -314,12 +385,10 @@ export const BataExplorerModal = ({ isMobile = false }) => {
                             ${searchIcon}
                             
                             <div class="flex flex-wrap gap-2 items-center flex-1 min-w-0">
-                                <!-- Orisha Tokens -->
+                                <!-- Tokens -->
                                 ${selectedOrishas.map(orisha =>
         FilterToken('Orisha', orisha, 'remove-orisha-filter', `data-orisha="${orisha}"`)
     ).join('')}
-                                
-                                <!-- Type Tokens -->
                                 ${selectedTypes.map(type =>
         FilterToken('Type', type, 'remove-type-filter', `data-type="${type}"`)
     ).join('')}
@@ -370,7 +439,7 @@ export const BataExplorerModal = ({ isMobile = false }) => {
                         <div class="max-w-4xl mx-auto">
 
                             <!-- Results -->
-                            ${filteredToques.length === 0 ? `
+                            ${groups.length === 0 ? `
                                 <div class="text-center py-16 opacity-60 flex flex-col items-center gap-4">
                                     <div class="bg-gray-800 p-4 rounded-full">
                                         ${searchIcon}
@@ -387,16 +456,19 @@ export const BataExplorerModal = ({ isMobile = false }) => {
                                     </button>
                                 </div>
                             ` : showZones ? `
-                                ${ZoneSection('Specific', zones.Specific, isMobile)}
-                                ${ZoneSection('Shared', zones.Shared, isMobile)}
-                                ${ZoneSection('Generic', zones.Generic, isMobile)}
+                                ${ZoneSection('Specific', zoneGroups.Specific, isMobile)}
+                                ${ZoneSection('Shared', zoneGroups.Shared, isMobile)}
+                                ${ZoneSection('Generic', zoneGroups.Generic, isMobile)}
                             ` : `
                                 <div class="grid grid-cols-1 ${isMobile ? '' : 'md:grid-cols-2'} gap-4">
-                                    ${filteredToques.map(([id, meta]) => ToqueCard(id, meta)).join('')}
+                                    ${groups.map(group => ToqueCard(group)).join('')}
                                 </div>
                             `}
                         </div>
                     </div>
+                    
+                    <!-- Details Modal (Overlay) -->
+                    ${selectedToqueId ? ToqueDetailsModal(selectedToqueId, groups) : ''}
                 </div>
             </div>
         </div>
