@@ -396,7 +396,8 @@ export const setupDesktopEvents = () => {
         }
 
         // Close toque details panel
-        if (action === 'close-toque-details') {
+        if (action === 'close-toque-details' ||
+            (action === 'close-toque-details-bg' && e.target === target)) {
             state.uiState.bataExplorer.selectedToqueId = null;
             renderApp();
         }
