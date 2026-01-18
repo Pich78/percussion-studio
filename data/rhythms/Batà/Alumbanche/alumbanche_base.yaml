@@ -1,5 +1,5 @@
 name: "Alumbanche Base"
-global_bpm: 92
+global_bpm: 68
 
 sound_kit:
   oko:
@@ -16,13 +16,9 @@ playback_flow:
   - name: "Base"
     repetitions: 1
     time_signature: "12/8"
-    steps: 12
+    steps: 24
     measures:
       - pattern:
-          oko: "||S-O|S-O|S-O|S-O||"
-          ito: "||S-S|-R-|S-S|-R-||"
-          iya: "||R--|---|S--|---||"
-      - pattern:
-          oko: "||S-O|S-O|S-O|S-O||"
-          ito: "||S-S|-R-|S-S|-R-||"
-          iya: "||S--|--S|-R-|OS-||"
+          oko: "||OR-|OS-|OR-|OS-|OR-|OS-|OR-|OS-||"
+          ito: "||OSO|SOS|-SO|SOS|OS-|SOS|OSO|S-S||"
+          iya: "||SOS|--O|--S|--O|-R-|O-S|-S-|ROO||"
