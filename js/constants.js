@@ -64,9 +64,9 @@ export const STROKE_PALETTE = [
 
 // Batà Explorer - Orisha list for filtering
 export const ORISHAS_LIST = [
-    'Elegua', 'Ogun', 'Ochosi', 'Obatala', 'Shango',
+    'Elegua', 'Ogun', 'Ochosi', 'Obatala', 'Chango',
     'Yemaya', 'Oshun', 'Oya', 'Babalu Aye', 'Inle',
-    'Osain', 'Aggayu', 'Orisha Oko', 'Ibeyi', 'Dada', 'Oggue'
+    'Osain', 'Aggayu', 'Orula', 'Eggun'
 ];
 
 // Batà Explorer - Toque classification types
@@ -74,19 +74,18 @@ export const TOQUE_CLASSIFICATIONS = ['Specific', 'Shared', 'Generic'];
 
 // Batà Explorer - Color mapping for Orisha badges
 export const ORISHA_COLORS = {
-    'Elegua': { border: 'border-red-600', text: 'text-red-500', bg: 'bg-red-950/30' },
-    'Ogun': { border: 'border-green-700', text: 'text-green-500', bg: 'bg-green-950/30' },
-    'Ochosi': { border: 'border-blue-700', text: 'text-blue-400', bg: 'bg-blue-950/30' },
-    'Obatala': { border: 'border-stone-200', text: 'text-stone-200', bg: 'bg-stone-700/30' },
-    'Shango': { border: 'border-red-500', text: 'text-red-500', bg: 'bg-red-900/30' },
-    'Yemaya': { border: 'border-blue-400', text: 'text-blue-300', bg: 'bg-blue-900/30' },
-    'Oshun': { border: 'border-yellow-500', text: 'text-yellow-400', bg: 'bg-yellow-900/30' },
+    'Elegua': { border: 'border-red-500', text: 'text-red-500', bg: 'bg-red-900/30' },
+    'Ogun': { border: 'border-green-600', text: 'text-green-500', bg: 'bg-green-900/30' },
+    'Ochosi': { border: 'border-blue-400', text: 'text-blue-400', bg: 'bg-blue-900/30' },
+    'Obatala': { border: 'border-gray-200', text: 'text-gray-200', bg: 'bg-gray-100/10' },
+    'Chango': { border: 'border-red-500', text: 'text-red-500', bg: 'bg-red-900/30' },
+    'Yemaya': { border: 'border-blue-500', text: 'text-blue-500', bg: 'bg-blue-900/30' },
+    'Oshun': { border: 'border-yellow-400', text: 'text-yellow-400', bg: 'bg-yellow-900/30' },
     'Oya': { border: 'border-purple-600', text: 'text-purple-400', bg: 'bg-purple-900/30' },
     'Babalu Aye': { border: 'border-purple-800', text: 'text-purple-600', bg: 'bg-purple-950/30' },
     'Inle': { border: 'border-teal-500', text: 'text-teal-400', bg: 'bg-teal-950/30' },
     'Osain': { border: 'border-lime-700', text: 'text-lime-500', bg: 'bg-lime-950/30' },
     'Aggayu': { border: 'border-orange-700', text: 'text-orange-600', bg: 'bg-orange-950/30' },
-    'Orisha Oko': { border: 'border-pink-300', text: 'text-pink-300', bg: 'bg-pink-900/30' },
     'Ibeyi': { border: 'border-indigo-400', text: 'text-indigo-400', bg: 'bg-indigo-900/30' },
     'Dada': { border: 'border-red-400', text: 'text-red-300', bg: 'bg-red-900/30' },
     'Oggue': { border: 'border-amber-800', text: 'text-amber-700', bg: 'bg-amber-950/30' }
