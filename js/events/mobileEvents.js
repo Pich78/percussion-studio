@@ -3,6 +3,7 @@ import { actions } from '../actions.js';
 import { togglePlay, stopPlayback } from '../services/sequencer.js';
 import { renderApp, refreshGrid } from '../ui/renderer.js';
 import { audioEngine } from '../services/audioEngine.js';
+import { dataLoader } from '../services/dataLoader.js';
 
 export const setupMobileEvents = () => {
     const root = document.getElementById('root');
@@ -26,7 +27,12 @@ export const setupMobileEvents = () => {
             'toggle-play', 'stop', 'toggle-menu', 'close-menu', 'load-rhythm',
             'select-rhythm-confirm', 'toggle-mute', 'update-global-bpm', 'toggle-folder',
             'update-volume', 'close-modal', 'close-modal-bg', 'open-structure',
-            'toggle-user-guide-submenu', 'open-user-guide', 'share-rhythm', 'toggle-count-in'
+            'toggle-user-guide-submenu', 'open-user-guide', 'share-rhythm', 'toggle-count-in',
+            // BataExplorer actions
+            'close-bata-explorer', 'close-bata-explorer-bg', 'toggle-filter-dropdown',
+            'toggle-orisha-filter', 'remove-orisha-filter', 'toggle-type-filter',
+            'remove-type-filter', 'clear-bata-filters', 'select-toque', 'close-toque-details',
+            'load-toque-confirm'
         ];
         if (!allowedActions.includes(action)) return;
 
@@ -160,6 +166,22 @@ export const setupMobileEvents = () => {
         if (action === 'toggle-folder') {
             const folderPath = target.dataset.folderPath;
 
+            // Special handling for Batà folder: Open BataExplorer modal
+            if (folderPath === 'Batà') {
+                state.uiState.modalOpen = false; // Close rhythm modal
+                state.uiState.bataExplorer.isOpen = true;
+
+                // Load metadata if not already loaded
+                if (!state.uiState.bataExplorer.metadata) {
+                    dataLoader.loadBataMetadata().then(metadata => {
+                        state.uiState.bataExplorer.metadata = metadata;
+                        renderApp();
+                    });
+                }
+                renderApp();
+                return;
+            }
+
             // Save scroll position before re-render
             const scrollContainer = document.getElementById('rhythm-modal-scroll');
             const scrollTop = scrollContainer ? scrollContainer.scrollTop : 0;
@@ -177,6 +199,128 @@ export const setupMobileEvents = () => {
                 if (newScrollContainer) {
                     newScrollContainer.scrollTop = scrollTop;
                 }
+            });
+        }
+
+        // --- BataExplorer Event Handlers ---
+
+        // Close BataExplorer modal
+        if (action === 'close-bata-explorer' ||
+            (action === 'close-bata-explorer-bg' && e.target === target)) {
+            state.uiState.bataExplorer.isOpen = false;
+            state.uiState.bataExplorer.selectedToqueId = null;
+            state.uiState.bataExplorer.orishaDropdownOpen = false;
+            state.uiState.bataExplorer.typeDropdownOpen = false;
+            renderApp();
+        }
+
+        // Toggle filter dropdowns
+        if (action === 'toggle-filter-dropdown') {
+            const dropdownId = target.dataset.dropdownId;
+            if (dropdownId === 'orisha') {
+                state.uiState.bataExplorer.orishaDropdownOpen = !state.uiState.bataExplorer.orishaDropdownOpen;
+                state.uiState.bataExplorer.typeDropdownOpen = false;
+            } else if (dropdownId === 'type') {
+                state.uiState.bataExplorer.typeDropdownOpen = !state.uiState.bataExplorer.typeDropdownOpen;
+                state.uiState.bataExplorer.orishaDropdownOpen = false;
+            }
+            renderApp();
+        }
+
+        // Toggle Orisha filter
+        if (action === 'toggle-orisha-filter') {
+            const orisha = target.dataset.value;
+            const arr = state.uiState.bataExplorer.selectedOrishas;
+            const idx = arr.indexOf(orisha);
+            if (idx >= 0) {
+                arr.splice(idx, 1);
+            } else {
+                arr.push(orisha);
+            }
+            state.uiState.bataExplorer.orishaDropdownOpen = false; // Close dropdown after selection
+            renderApp();
+        }
+
+        // Remove Orisha filter (from token)
+        if (action === 'remove-orisha-filter') {
+            const orisha = target.dataset.orisha;
+            const arr = state.uiState.bataExplorer.selectedOrishas;
+            const idx = arr.indexOf(orisha);
+            if (idx >= 0) arr.splice(idx, 1);
+            renderApp();
+        }
+
+        // Toggle Type filter
+        if (action === 'toggle-type-filter') {
+            const type = target.dataset.value;
+            const arr = state.uiState.bataExplorer.selectedTypes;
+            const idx = arr.indexOf(type);
+            if (idx >= 0) {
+                arr.splice(idx, 1);
+            } else {
+                arr.push(type);
+            }
+            state.uiState.bataExplorer.typeDropdownOpen = false; // Close dropdown after selection
+            renderApp();
+        }
+
+        // Remove Type filter (from token)
+        if (action === 'remove-type-filter') {
+            const type = target.dataset.type;
+            const arr = state.uiState.bataExplorer.selectedTypes;
+            const idx = arr.indexOf(type);
+            if (idx >= 0) arr.splice(idx, 1);
+            renderApp();
+        }
+
+        // Clear all BataExplorer filters
+        if (action === 'clear-bata-filters') {
+            state.uiState.bataExplorer.searchTerm = '';
+            state.uiState.bataExplorer.selectedOrishas = [];
+            state.uiState.bataExplorer.selectedTypes = [];
+            state.uiState.bataExplorer.selectedToqueId = null;
+            const searchInput = document.getElementById('bata-search-input');
+            if (searchInput) searchInput.value = '';
+            renderApp();
+        }
+
+        // Select toque card (show in details panel)
+        if (action === 'select-toque') {
+            const toqueId = target.dataset.toqueId;
+            state.uiState.bataExplorer.selectedToqueId = toqueId;
+            state.uiState.bataExplorer.orishaDropdownOpen = false;
+            state.uiState.bataExplorer.typeDropdownOpen = false;
+            renderApp();
+        }
+
+        // Close toque details panel
+        if (action === 'close-toque-details') {
+            state.uiState.bataExplorer.selectedToqueId = null;
+            renderApp();
+        }
+
+        // Load selected toque
+        if (action === 'load-toque-confirm') {
+            const toqueId = target.dataset.toqueId;
+            const rhythmName = toqueId.split('/').pop().replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+
+            state.uiState.bataExplorer.isOpen = false;
+            state.uiState.isLoadingRhythm = true;
+            state.uiState.loadingRhythmName = rhythmName;
+            renderApp();
+
+            actions.loadRhythm(toqueId).then(() => {
+                state.uiState.bataExplorer.selectedToqueId = null;
+                state.uiState.bataExplorer.selectedOrishas = [];
+                state.uiState.bataExplorer.selectedTypes = [];
+                state.uiState.bataExplorer.searchTerm = '';
+                state.uiState.isLoadingRhythm = false;
+                state.uiState.loadingRhythmName = null;
+                renderApp();
+            }).catch(() => {
+                state.uiState.isLoadingRhythm = false;
+                state.uiState.loadingRhythmName = null;
+                renderApp();
             });
         }
 
@@ -234,6 +378,13 @@ export const setupMobileEvents = () => {
         if (!action) return;
 
         // Only allow specific inputs
+        if (action === 'bata-search-input') {
+            state.uiState.bataExplorer.searchTerm = target.value;
+            clearTimeout(window._bataSearchTimeout);
+            window._bataSearchTimeout = setTimeout(() => renderApp(), 150);
+            return;
+        }
+
         if (action !== 'update-global-bpm' && action !== 'update-volume') return;
 
         const section = state.toque.sections.find(s => s.id === state.activeSectionId);

@@ -40,7 +40,16 @@ export const state = {
         expandedFolders: new Set(), // Tracks which rhythm folders are expanded
         userGuideSubmenuOpen: false, // Tracks if user guide language submenu is open
         userGuideContent: null, // Loaded markdown content for user guide modal
-        userGuideLanguage: null // 'en' | 'it' - currently selected language
+        userGuideLanguage: null, // 'en' | 'it' - currently selected language
+        // BataExplorer state
+        bataExplorer: {
+            isOpen: false,
+            searchTerm: '',
+            selectedOrishas: [], // Array of selected Orisha names for filtering
+            selectedTypes: [], // Array of selected classification types
+            selectedToqueId: null, // Currently selected toque for details panel
+            metadata: null // Loaded from bata_metadata.json
+        }
     }
 };
 
