@@ -36,17 +36,23 @@
     },
     "Batà/Dadà/dada_base": {
       "displayName": "Dada base",
-      "classification": "Specific",
+      "classification": "Shared",
       "associatedOrishas": [
-        "Dada"
+        "Dada",
+        "Orisha Oko",
+        "Chango",
+        "Oshun"
       ],
       "timeSignature": "6/8"
     },
     "Batà/Dadà/dada_y_primera_conversacion": {
       "displayName": "Dada y primera conversacion",
-      "classification": "Specific",
+      "classification": "Shared",
       "associatedOrishas": [
-        "Dada"
+        "Dada",
+        "Chango",
+        "Oshun",
+        "Orisha Oko"
       ],
       "timeSignature": "6/8"
     },
