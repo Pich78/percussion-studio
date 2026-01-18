@@ -1,5 +1,12 @@
 name: "Los Guerreros - Base"
 global_bpm: 100
+is_bata: true
+orisha:
+  - "Elegua"
+  - "Ogun"
+  - "Ochosi"
+classification: "Shared"
+description: "Toque condiviso da Elegua, Ogun e Ochosi"
 
 sound_kit:
   oko:
