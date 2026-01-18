@@ -1,6 +1,5 @@
 name: "Dada base"
 global_bpm: 92
-
 sound_kit:
   oko:
     instrument: "OKO"
@@ -11,23 +10,27 @@ sound_kit:
   iya:
     instrument: "IYA"
     pack: "cp_bata_chaworo"
-
 playback_flow:
-  - name: "Llamada"
-    repetitions: 1
-    time_signature: "6/8"
-    steps: 6
-    measures:
-      - pattern:
-          oko: "||---|--O||"
-          ito: "||---|-S-||"
-          iya: "||SO-|S--||"
-  - name: "Base"
-    repetitions: 5
-    time_signature: "12/8"
-    steps: 12
-    measures:
-      - pattern:
-          oko: "||S-O|S-O|S-O|S-O||"
-          ito: "||-S-|-S-|OS-|PS-||"
-          iya: "||S--|--S|-O-|S--||"
+- name: "Llamada"
+  repetitions: 1
+  time_signature: "6/8"
+  steps: 6
+  measures:
+  - pattern:
+      oko: "||---|--O||"
+      ito: "||---|-S-||"
+      iya: "||SO-|S--||"
+- name: "Base"
+  repetitions: 5
+  time_signature: "12/8"
+  steps: 12
+  measures:
+  - pattern:
+      oko: "||S-O|S-O|S-O|S-O||"
+      ito: "||-S-|-S-|OS-|PS-||"
+      iya: "||S--|--S|-O-|S--||"
+is_bata: true
+description: "Ritmo per la divinità della corona e dei bambini. Wolenche."
+classification: "Specific"
+orisha:
+- "Dada"

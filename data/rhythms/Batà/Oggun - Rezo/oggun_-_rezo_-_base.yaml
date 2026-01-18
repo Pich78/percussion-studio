@@ -1,6 +1,5 @@
 name: "Oggun - Rezo - Base"
 global_bpm: 100
-
 sound_kit:
   oko:
     instrument: "OKO"
@@ -11,14 +10,18 @@ sound_kit:
   iya:
     instrument: "IYA"
     pack: "cp_bata_chaworo"
-
 playback_flow:
-  - name: "Base"
-    repetitions: 1
-    time_signature: "4/4"
-    steps: 16
-    measures:
-      - pattern:
-          oko: "||R--O|S---|R-O-|S---||"
-          ito: "||S---|S---|S---|R---||"
-          iya: "||S---|--S-|--R-|----||"
+- name: "Base"
+  repetitions: 1
+  time_signature: "4/4"
+  steps: 16
+  measures:
+  - pattern:
+      oko: "||R--O|S---|R-O-|S---||"
+      ito: "||S---|S---|S---|R---||"
+      iya: "||S---|--S-|--R-|----||"
+is_bata: true
+description: "Rezo Oggún. Ritmo pesante e marziale, evoca il lavoro della forgia e la marcia."
+classification: "Specific"
+orisha:
+- "Ogun"
