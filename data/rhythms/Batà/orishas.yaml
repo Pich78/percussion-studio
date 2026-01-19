@@ -73,7 +73,7 @@ orishas:
     color:
       bg: "bg-pink-400" # Pink
       border: "border-sky-400" # Light Blue
-      text: "text-sky-700"
+      text: "text-sky-400"
   - name: "Chango"
     color:
       bg: "bg-red-600"
