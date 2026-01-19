@@ -72,8 +72,8 @@ orishas:
   - name: "Orisha Oko"
     color:
       bg: "bg-pink-400" # Pink
-      border: "border-sky-300" # Light Blue
-      text: "text-black"
+      border: "border-sky-400" # Light Blue
+      text: "text-sky-700"
   - name: "Chango"
     color:
       bg: "bg-red-600"

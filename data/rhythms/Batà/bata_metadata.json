@@ -99,8 +99,8 @@
     },
     "Orisha Oko": {
       "bg": "bg-pink-400",
-      "border": "border-sky-300",
-      "text": "text-black"
+      "border": "border-sky-400",
+      "text": "text-sky-700"
     },
     "Chango": {
       "bg": "bg-red-600",
