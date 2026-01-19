@@ -3,7 +3,7 @@ orishas:
     color:
       bg: "bg-red-600"
       border: "border-black"
-      text: "text-white"
+      text: "text-black"
   - name: "Oggun"
     color:
       bg: "bg-green-600"
