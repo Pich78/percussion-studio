@@ -203,18 +203,15 @@ const ToqueDetailsModal = (groupId, allGroups) => {
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                         ${variations.map(variant => `
-                            <div class="bg-gray-800/40 border border-gray-700/50 rounded-lg p-4 hover:border-amber-500/50 hover:bg-gray-800 transition-all group flex flex-col">
-                                <div class="flex justify-between items-start mb-2">
-                                    <h4 class="font-bold text-gray-200 text-sm group-hover:text-amber-400 transition-colors">${variant.displayName}</h4>
+                            <div 
+                                data-action="load-toque-confirm"
+                                data-toque-id="${variant.id}"
+                                class="bg-gray-800/40 border border-gray-700/50 rounded-lg p-4 hover:border-amber-500 hover:bg-gray-800 hover:shadow-lg cursor-pointer transition-all group flex items-center justify-between"
+                            >
+                                <h4 class="font-bold text-gray-200 text-sm group-hover:text-amber-400 transition-colors">${variant.displayName}</h4>
+                                <div class="text-gray-600 group-hover:text-amber-500 transition-colors">
+                                     ${MusicalNoteIcon('w-5 h-5')}
                                 </div>
-                                <button
-                                    data-action="load-toque-confirm"
-                                    data-toque-id="${variant.id}"
-                                    class="mt-4 w-full py-2.5 px-3 rounded-lg bg-gray-700 hover:bg-amber-600 hover:text-white text-gray-300 text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-lg"
-                                >
-                                    ${MusicalNoteIcon('w-4 h-4')}
-                                    Load Rhythm
-                                </button>
                             </div>
                         `).join('')}
                     </div>
