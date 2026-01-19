@@ -29,15 +29,3 @@ playback_flow:
       oko: "||S--|-O-|S--|-O-||"
       ito: "||O--|S--|O--|S--||"
       iya: "||--S|---|--R|-O-||"
-is_bata: true
-description: "Variazione con chiamata del Yakotá."
-classification: "Generic"
-orisha:
-- "Elegua"
-- "Ogun"
-- "Ochosi"
-- "Obatala"
-- "Chango"
-- "Yemaya"
-- "Oshun"
-- "Oya"

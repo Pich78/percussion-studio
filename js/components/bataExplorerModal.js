@@ -8,7 +8,7 @@
 */
 
 import { state } from '../store.js';
-import { ORISHAS_LIST, TOQUE_CLASSIFICATIONS, ORISHA_COLORS, CLASSIFICATION_COLORS } from '../constants.js';
+import { TOQUE_CLASSIFICATIONS, CLASSIFICATION_COLORS } from '../constants.js';
 import { XMarkIcon } from '../icons/xMarkIcon.js';
 import { MusicalNoteIcon } from '../icons/musicalNoteIcon.js';
 import { ChevronDownIcon } from '../icons/chevronDownIcon.js';
@@ -43,8 +43,7 @@ const groupToquesByFolder = (toquesMap) => {
         // Add variation
         group.variations.push({
             id: id,
-            displayName: meta.displayName,
-            timeSignature: meta.timeSignature
+            displayName: meta.displayName
         });
     });
 
@@ -65,11 +64,14 @@ const groupToquesByFolder = (toquesMap) => {
 
 // --- Helper: Orisha Badge ---
 const OrishaBadge = (name, size = 'sm') => {
-    const colors = ORISHA_COLORS[name] || { border: 'border-stone-500', text: 'text-stone-400', bg: 'bg-stone-800' };
+    const meta = state.uiState.bataExplorer.metadata || {};
+    const orishaColors = meta.orishaColors || {};
+    // Fallback if not found
+    const colors = orishaColors[name] || { border: 'border-stone-500', text: 'text-stone-400', bg: 'bg-stone-800' };
     const sizeClasses = size === 'sm' ? 'px-2 py-0.5 text-xs' : 'px-3 py-1 text-sm';
 
     return `
-        <span class="rounded-full border ${colors.border} ${colors.text} ${sizeClasses} whitespace-nowrap">
+        <span class="rounded-full border-2 ${colors.border} ${colors.bg} ${colors.text} ${sizeClasses} whitespace-nowrap shadow-sm font-medium">
             ${name}
         </span>
     `;
@@ -204,9 +206,6 @@ const ToqueDetailsModal = (groupId, allGroups) => {
                             <div class="bg-gray-800/40 border border-gray-700/50 rounded-lg p-4 hover:border-amber-500/50 hover:bg-gray-800 transition-all group flex flex-col">
                                 <div class="flex justify-between items-start mb-2">
                                     <h4 class="font-bold text-gray-200 text-sm group-hover:text-amber-400 transition-colors">${variant.displayName}</h4>
-                                    <span class="text-[10px] text-gray-400 font-mono bg-gray-900 px-2 py-1 rounded border border-gray-700">
-                                        ${variant.timeSignature || '6/8'}
-                                    </span>
                                 </div>
                                 <button
                                     data-action="load-toque-confirm"
@@ -226,7 +225,7 @@ const ToqueDetailsModal = (groupId, allGroups) => {
 };
 
 // --- Filter Dropdown ---
-const FilterDropdown = (id, title, icon, options, selectedValues, toggleAction, isOpen = false) => {
+const FilterDropdown = (id, title, icon, options, selectedValues, toggleAction, isOpen = false, colorMap = {}) => {
     const hasSelection = selectedValues.length > 0;
 
     return `
@@ -258,7 +257,9 @@ const FilterDropdown = (id, title, icon, options, selectedValues, toggleAction, 
                 <div class="absolute top-full right-0 mt-2 w-64 max-h-80 overflow-y-auto bg-gray-900 border border-gray-700 rounded-lg shadow-2xl z-50 p-1">
                     ${options.map(option => {
             const isSelected = selectedValues.includes(option);
-            const colorClass = id === 'orisha' && ORISHA_COLORS[option] ? ORISHA_COLORS[option].text : '';
+            // Optional: Use the text color if available, or just default styles
+            // const colorClass = id === 'orisha' && colorMap[option] ? colorMap[option].text : ''; 
+            // Turning off color text to ensure "simple text" request is met fully, matching other dropdowns
 
             return `
                             <div 
@@ -272,10 +273,10 @@ const FilterDropdown = (id, title, icon, options, selectedValues, toggleAction, 
                                 <div class="${isSelected ? 'text-amber-500' : 'text-gray-400'}">
                                     ${isSelected
                     ? '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>'
-                    : '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" stroke-width="2"></rect></svg>'
+                    : '<svg class="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" stroke-width="2"></rect></svg>'
                 }
                                 </div>
-                                <span class="flex-1 ${isSelected ? 'text-gray-100 font-medium' : 'text-gray-400'} ${colorClass}">
+                                <span class="flex-1 ${isSelected ? 'text-gray-100 font-medium' : 'text-gray-400'}">
                                     ${option}
                                 </span>
                             </div>
@@ -290,19 +291,22 @@ const FilterDropdown = (id, title, icon, options, selectedValues, toggleAction, 
 // --- Main Export: BataExplorerModal ---
 export const BataExplorerModal = ({ isMobile = false }) => {
     const bata = state.uiState.bataExplorer;
+    const meta = bata.metadata || {};
+    const orishas = meta.orishas || [];
+    const orishaColors = meta.orishaColors || {};
     // Ensure we are in the correct state
     if (!bata.isOpen) return '';
 
     const metadata = bata.metadata;
     if (!metadata) {
         return `
-            <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-                <div class="bg-gray-900 border border-gray-700 rounded-xl p-8 text-center">
-                    <div class="animate-spin inline-block w-8 h-8 border-2 border-gray-500 border-t-amber-400 rounded-full mb-4"></div>
-                    <p class="text-gray-400">Loading Batà rhythms...</p>
-                </div>
-            </div>
-        `;
+    < div class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" >
+        <div class="bg-gray-900 border border-gray-700 rounded-xl p-8 text-center">
+            <div class="animate-spin inline-block w-8 h-8 border-2 border-gray-500 border-t-amber-400 rounded-full mb-4"></div>
+            <p class="text-gray-400">Loading Batà rhythms...</p>
+        </div>
+            </div >
+    `;
     }
 
     const { searchTerm, selectedOrishas, selectedTypes, selectedToqueId } = bata;
@@ -357,40 +361,40 @@ export const BataExplorerModal = ({ isMobile = false }) => {
 
     return `
         <div class="fixed inset-0 z-50 flex bg-black/80 backdrop-blur-sm" data-action="close-bata-explorer-bg">
-            <div class="flex-1 flex flex-col bg-gray-950 overflow-hidden ${isMobile ? '' : 'max-w-6xl mx-auto my-4 rounded-xl border border-gray-800'}">
-                
-                <!-- Header -->
-                <div class="border-b border-gray-800 bg-gray-950 flex-shrink-0 px-6 py-4 ${isMobile ? 'pt-[max(1rem,env(safe-area-inset-top))]' : ''}">
-                    <div class="max-w-4xl mx-auto flex items-center gap-4">
-                        <!-- Search & Filters -->
-                        <div 
-                            class="flex-1 flex items-center gap-2 bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 focus-within:ring-1 focus-within:ring-amber-600 focus-within:border-amber-600 transition-all cursor-text group"
-                            data-action="focus-bata-search"
-                        >
-                            ${searchIcon}
-                            
-                            <div class="flex flex-wrap gap-2 items-center flex-1 min-w-0">
-                                <!-- Tokens -->
-                                ${selectedOrishas.map(orisha =>
+        <div class="flex-1 flex flex-col bg-gray-950 overflow-hidden ${isMobile ? '' : 'max-w-6xl mx-auto my-4 rounded-xl border border-gray-800'}">
+
+            <!-- Header -->
+            <div class="border-b border-gray-800 bg-gray-950 flex-shrink-0 px-6 py-4 ${isMobile ? 'pt-[max(1rem,env(safe-area-inset-top))]' : ''}">
+                <div class="max-w-4xl mx-auto flex items-center gap-4">
+                    <!-- Search & Filters -->
+                    <div
+                        class="flex-1 flex items-center gap-2 bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 focus-within:ring-1 focus-within:ring-amber-600 focus-within:border-amber-600 transition-all cursor-text group"
+                        data-action="focus-bata-search"
+                    >
+                        ${searchIcon}
+
+                        <div class="flex flex-wrap gap-2 items-center flex-1 min-w-0">
+                            <!-- Tokens -->
+                            ${selectedOrishas.map(orisha =>
         FilterToken('Orisha', orisha, 'remove-orisha-filter', `data-orisha="${orisha}"`)
     ).join('')}
-                                ${selectedTypes.map(type =>
+                            ${selectedTypes.map(type =>
         FilterToken('Type', type, 'remove-type-filter', `data-type="${type}"`)
     ).join('')}
 
-                                <!-- Input -->
-                                <input 
-                                    id="bata-search-input"
-                                    type="text" 
-                                    placeholder="${selectedOrishas.length === 0 && selectedTypes.length === 0 ? 'Search rhythms...' : ''}"
-                                    value="${searchTerm}"
-                                    data-action="bata-search-input"
-                                    class="bg-transparent border-none outline-none text-sm text-gray-200 placeholder-gray-600 min-w-[100px] flex-1 py-0.5"
-                                />
-                            </div>
+                            <!-- Input -->
+                            <input
+                                id="bata-search-input"
+                                type="text"
+                                placeholder="${selectedOrishas.length === 0 && selectedTypes.length === 0 ? 'Search rhythms...' : ''}"
+                                value="${searchTerm}"
+                                data-action="bata-search-input"
+                                class="bg-transparent border-none outline-none text-sm text-gray-200 placeholder-gray-600 min-w-[100px] flex-1 py-0.5"
+                            />
+                        </div>
 
-                            <!-- Clear All -->
-                            ${(searchTerm || selectedOrishas.length > 0 || selectedTypes.length > 0) ? `
+                        <!-- Clear All -->
+                        ${(searchTerm || selectedOrishas.length > 0 || selectedTypes.length > 0) ? `
                                 <button 
                                     data-action="clear-bata-filters"
                                     class="text-gray-500 hover:text-gray-300 p-1.5 rounded-full hover:bg-gray-800 transition-colors ml-auto"
@@ -399,32 +403,32 @@ export const BataExplorerModal = ({ isMobile = false }) => {
                                     ${XMarkIcon('w-4 h-4')}
                                 </button>
                             ` : ''}
-                        </div>
-
-                        <!-- Filter Dropdowns -->
-                        <div class="flex items-center gap-2">
-                            ${FilterDropdown('orisha', 'Orisha', musicIcon, ORISHAS_LIST, selectedOrishas, 'toggle-orisha-filter', orishaDropdownOpen)}
-                            ${FilterDropdown('type', 'Classification', filterIcon, TOQUE_CLASSIFICATIONS, selectedTypes, 'toggle-type-filter', typeDropdownOpen)}
-                        </div>
-
-                        <!-- Close Button -->
-                        <button 
-                            data-action="close-bata-explorer"
-                            class="text-gray-500 hover:text-white p-2 rounded-lg hover:bg-gray-800 transition-colors flex-shrink-0"
-                        >
-                            ${XMarkIcon('w-6 h-6')}
-                        </button>
                     </div>
+
+                    <!-- Filter Dropdowns -->
+                    <div class="flex items-center gap-2">
+                        ${FilterDropdown('orisha', 'Orisha', musicIcon, orishas, selectedOrishas, 'toggle-orisha-filter', orishaDropdownOpen, orishaColors)}
+                        ${FilterDropdown('type', 'Classification', filterIcon, TOQUE_CLASSIFICATIONS, selectedTypes, 'toggle-type-filter', typeDropdownOpen)}
+                    </div>
+
+                    <!-- Close Button -->
+                    <button
+                        data-action="close-bata-explorer"
+                        class="text-gray-500 hover:text-white p-2 rounded-lg hover:bg-gray-800 transition-colors flex-shrink-0"
+                    >
+                        ${XMarkIcon('w-6 h-6')}
+                    </button>
                 </div>
+            </div>
 
-                <!-- Content Area -->
-                <div class="flex-1 flex overflow-hidden">
-                    <!-- Main List -->
-                    <div class="flex-1 overflow-y-auto p-6 bg-gray-950/50">
-                        <div class="max-w-4xl mx-auto">
+            <!-- Content Area -->
+            <div class="flex-1 flex overflow-hidden">
+                <!-- Main List -->
+                <div class="flex-1 overflow-y-auto p-6 bg-gray-950/50">
+                    <div class="max-w-4xl mx-auto">
 
-                            <!-- Results -->
-                            ${groups.length === 0 ? `
+                        <!-- Results -->
+                        ${groups.length === 0 ? `
                                 <div class="text-center py-16 opacity-60 flex flex-col items-center gap-4">
                                     <div class="bg-gray-800 p-4 rounded-full">
                                         ${searchIcon}
@@ -449,13 +453,13 @@ export const BataExplorerModal = ({ isMobile = false }) => {
                                     ${groups.map(group => ToqueCard(group)).join('')}
                                 </div>
                             `}
-                        </div>
                     </div>
-                    
-                    <!-- Details Modal (Overlay) -->
-                    ${selectedToqueId ? ToqueDetailsModal(selectedToqueId, groups) : ''}
                 </div>
+
+                <!-- Details Modal (Overlay) -->
+                ${selectedToqueId ? ToqueDetailsModal(selectedToqueId, groups) : ''}
             </div>
         </div>
+        </div >
     `;
 };

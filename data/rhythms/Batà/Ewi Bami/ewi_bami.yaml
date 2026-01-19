@@ -1,10 +1,5 @@
 name: "Ewi Bami"
 global_bpm: 68
-is_bata: true
-orisha:
-- "Chango"
-classification: "Specific"
-description: "Toque specifico per Chango"
 sound_kit:
   oko:
     instrument: "OKO"

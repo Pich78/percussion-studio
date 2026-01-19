@@ -20,6 +20,8 @@ const init = async () => {
     // 2. Initialize Data Layer (Fetch manifest.json)
     try {
         await dataLoader.init();
+        // Load Batà metadata (Orishas, colors, etc.) immediately so it's available for UI
+        await dataLoader.loadBataMetadata();
     } catch (error) {
         console.error("Critical: Failed to load manifest.", error);
         document.getElementById('root').innerHTML = `

@@ -29,8 +29,3 @@ playback_flow:
       oko: "||R--O|S---|R-O-|S---||"
       ito: "||S---|S---|S---|R---||"
       iya: "||S---|--S-|--R-|----||"
-is_bata: true
-description: "Variazione con chiamata del Rezo di Oggún."
-classification: "Specific"
-orisha:
-- "Ogun"

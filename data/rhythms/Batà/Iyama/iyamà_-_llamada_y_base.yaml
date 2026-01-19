@@ -38,10 +38,3 @@ playback_flow:
       oko_2: "||O-O|S--|O-O|S--||"
       ito_2: "||S--|---|S-O|-O-||"
       iya_2: "||O--|--S|-OS|-S-||"
-is_bata: true
-description: "Variazione con chiamata introduttiva per le divinità femminili."
-classification: "Shared"
-orisha:
-- "Yemaya"
-- "Oshun"
-- "Oya"

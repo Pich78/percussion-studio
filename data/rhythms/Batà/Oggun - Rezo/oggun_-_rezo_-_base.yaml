@@ -20,8 +20,3 @@ playback_flow:
       oko: "||R--O|S---|R-O-|S---||"
       ito: "||S---|S---|S---|R---||"
       iya: "||S---|--S-|--R-|----||"
-is_bata: true
-description: "Rezo Oggún. Ritmo pesante e marziale, evoca il lavoro della forgia e la marcia."
-classification: "Specific"
-orisha:
-- "Ogun"
