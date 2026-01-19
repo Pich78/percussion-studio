@@ -1,0 +1,121 @@
+orishas:
+  - name: "Eleggua"
+    color:
+      bg: "bg-red-600"
+      border: "border-black"
+      text: "text-white"
+  - name: "Oggun"
+    color:
+      bg: "bg-green-600"
+      border: "border-black"
+      text: "text-white"
+  - name: "Ochosi"
+    color:
+      bg: "bg-blue-600"
+      border: "border-yellow-400"
+      text: "text-white"
+  - name: "Obaloke"
+    color:
+      bg: "bg-white"
+      border: "border-gray-400" # Silver
+      text: "text-gray-900"
+  - name: "Inle"
+    color:
+      bg: "bg-teal-500" # Turquoise
+      border: "border-yellow-400"
+      text: "text-black"
+  - name: "Babalu Aye"
+    color:
+      bg: "bg-purple-600"
+      border: "border-yellow-400"
+      text: "text-white"
+  - name: "Osain"
+    color:
+      bg: "bg-green-600"
+      border: "border-white"
+      text: "text-white"
+  - name: "Osun"
+    color:
+      bg: "bg-white"
+      border: "border-indigo-400" # Multicolored proxy
+      text: "text-gray-900"
+  - name: "Obatala"
+    color:
+      bg: "bg-white"
+      border: "border-white"
+      text: "text-gray-900"
+  - name: "Dada"
+    color:
+      bg: "bg-red-600"
+      border: "border-white"
+      text: "text-white"
+  - name: "Oggue"
+    color:
+      bg: "bg-amber-800" # Brown
+      border: "border-red-500"
+      text: "text-white"
+  - name: "Aggayu"
+    color:
+      bg: "bg-amber-800" # Brown
+      border: "border-orange-400" # Nine Colors proxy
+      text: "text-white"
+  - name: "Ibeji"
+    color:
+      bg: "bg-red-600"
+      border: "border-blue-500"
+      text: "text-white"
+  - name: "Orula"
+    color:
+      bg: "bg-green-600"
+      border: "border-yellow-400"
+      text: "text-white"
+  - name: "Orisha Oko"
+    color:
+      bg: "bg-pink-400" # Pink
+      border: "border-sky-300" # Light Blue
+      text: "text-black"
+  - name: "Chango"
+    color:
+      bg: "bg-red-600"
+      border: "border-white"
+      text: "text-white"
+  - name: "Yegua"
+    color:
+      bg: "bg-rose-600" # Dark Pink
+      border: "border-rose-900" # Burgundy
+      text: "text-white"
+  - name: "Oya"
+    color:
+      bg: "bg-amber-800" # Brown
+      border: "border-orange-400" # Nine Colors proxy
+      text: "text-white"
+  - name: "Ochun"
+    color:
+      bg: "bg-yellow-400"
+      border: "border-amber-600" # Amber
+      text: "text-black"
+  - name: "Yemaya"
+    color:
+      bg: "bg-blue-600"
+      border: "border-white"
+      text: "text-white"
+  - name: "Obba"
+    color:
+      bg: "bg-pink-400"
+      border: "border-amber-800" # Brown
+      text: "text-black"
+  - name: "Odduddua"
+    color:
+      bg: "bg-white"
+      border: "border-stone-200" # Ivory
+      text: "text-gray-900"
+  - name: "Olokun"
+    color:
+      bg: "bg-blue-900" # Navy Blue
+      border: "border-blue-300" 
+      text: "text-white"
+  - name: "Eggun"
+    color:
+      bg: "bg-black"
+      border: "border-gray-500" # Gray
+      text: "text-white"

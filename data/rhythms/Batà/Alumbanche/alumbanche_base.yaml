@@ -1,10 +1,5 @@
 name: "Alumbanche Base"
 global_bpm: 92
-is_bata: true
-orisha:
-- "Elegua"
-classification: "Specific"
-description: "Toque specifico di Eleguà"
 sound_kit:
   oko:
     instrument: "OKO"

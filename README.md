@@ -198,7 +198,36 @@ playback_flow:
 "||O-S-|--B-|O-T-|S-B-|"
 ```
 
-### 4. Updating the Manifest
+### 4. Creating Batà Rhythms
+
+Batà rhythms have a special structure and metadata system.
+
+**Location:** `data/rhythms/Batà/{Folder}/`
+
+**Structure:**
+- Each rhythm family gets its own folder (e.g., `Yakota`, `Alumbanche`)
+- **Metadata File:** A file named `{Folder}_metadata.yaml` defines properties for the whole group (Orishas, Classification)
+- **Rhythm Files:** Individual `.yaml` files for each variation
+
+**Example:** `data/rhythms/Batà/Yakota/`
+- `Yakota_metadata.yaml`
+- `yakota_base.yaml`
+- `yakota_llamada.yaml`
+
+**Metadata File Format (`Yakota_metadata.yaml`):**
+```yaml
+classification: "Generic"  # or "Specific", "Shared"
+orisha:
+  - "Elegua"
+  - "Ogun"
+  - "Ochosi"
+```
+*Note: Do not include a `description` field in this file.*
+
+**Orisha Configuration:**
+The list of available Orishas and their display colors is defined in `data/rhythms/Batà/orishas.yaml`. To add a new Orisha, simply edit this file and regenerate the manifest.
+
+### 5. Updating the Manifest
 
 After creating or modifying any data files, regenerate the manifest:
 

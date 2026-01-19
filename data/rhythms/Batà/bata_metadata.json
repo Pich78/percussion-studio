@@ -1,25 +1,153 @@
 {
   "version": "1.0",
   "orishas": [
-    "Elegua",
-    "Ogun",
+    "Eleggua",
+    "Oggun",
     "Ochosi",
-    "Obatala",
-    "Chango",
-    "Yemaya",
-    "Oshun",
-    "Oya",
-    "Babalu Aye",
+    "Obaloke",
     "Inle",
+    "Babalu Aye",
     "Osain",
-    "Aggayu",
-    "Orisha Oko",
-    "Ibeyi",
+    "Osun",
+    "Obatala",
     "Dada",
     "Oggue",
+    "Aggayu",
+    "Ibeji",
     "Orula",
+    "Orisha Oko",
+    "Chango",
+    "Yegua",
+    "Oya",
+    "Ochun",
+    "Yemaya",
+    "Obba",
+    "Odduddua",
+    "Olokun",
     "Eggun"
   ],
+  "orishaColors": {
+    "Eleggua": {
+      "bg": "bg-red-600",
+      "border": "border-black",
+      "text": "text-white"
+    },
+    "Oggun": {
+      "bg": "bg-green-600",
+      "border": "border-black",
+      "text": "text-white"
+    },
+    "Ochosi": {
+      "bg": "bg-blue-600",
+      "border": "border-yellow-400",
+      "text": "text-white"
+    },
+    "Obaloke": {
+      "bg": "bg-white",
+      "border": "border-gray-400",
+      "text": "text-gray-900"
+    },
+    "Inle": {
+      "bg": "bg-teal-500",
+      "border": "border-yellow-400",
+      "text": "text-black"
+    },
+    "Babalu Aye": {
+      "bg": "bg-purple-600",
+      "border": "border-yellow-400",
+      "text": "text-white"
+    },
+    "Osain": {
+      "bg": "bg-green-600",
+      "border": "border-white",
+      "text": "text-white"
+    },
+    "Osun": {
+      "bg": "bg-white",
+      "border": "border-indigo-400",
+      "text": "text-gray-900"
+    },
+    "Obatala": {
+      "bg": "bg-white",
+      "border": "border-white",
+      "text": "text-gray-900"
+    },
+    "Dada": {
+      "bg": "bg-red-600",
+      "border": "border-white",
+      "text": "text-white"
+    },
+    "Oggue": {
+      "bg": "bg-amber-800",
+      "border": "border-red-500",
+      "text": "text-white"
+    },
+    "Aggayu": {
+      "bg": "bg-amber-800",
+      "border": "border-orange-400",
+      "text": "text-white"
+    },
+    "Ibeji": {
+      "bg": "bg-red-600",
+      "border": "border-blue-500",
+      "text": "text-white"
+    },
+    "Orula": {
+      "bg": "bg-green-600",
+      "border": "border-yellow-400",
+      "text": "text-white"
+    },
+    "Orisha Oko": {
+      "bg": "bg-pink-400",
+      "border": "border-sky-300",
+      "text": "text-black"
+    },
+    "Chango": {
+      "bg": "bg-red-600",
+      "border": "border-white",
+      "text": "text-white"
+    },
+    "Yegua": {
+      "bg": "bg-rose-600",
+      "border": "border-rose-900",
+      "text": "text-white"
+    },
+    "Oya": {
+      "bg": "bg-amber-800",
+      "border": "border-orange-400",
+      "text": "text-white"
+    },
+    "Ochun": {
+      "bg": "bg-yellow-400",
+      "border": "border-amber-600",
+      "text": "text-black"
+    },
+    "Yemaya": {
+      "bg": "bg-blue-600",
+      "border": "border-white",
+      "text": "text-white"
+    },
+    "Obba": {
+      "bg": "bg-pink-400",
+      "border": "border-amber-800",
+      "text": "text-black"
+    },
+    "Odduddua": {
+      "bg": "bg-white",
+      "border": "border-stone-200",
+      "text": "text-gray-900"
+    },
+    "Olokun": {
+      "bg": "bg-blue-900",
+      "border": "border-blue-300",
+      "text": "text-white"
+    },
+    "Eggun": {
+      "bg": "bg-black",
+      "border": "border-gray-500",
+      "text": "text-white"
+    }
+  },
   "classifications": [
     "Specific",
     "Shared",
@@ -30,9 +158,8 @@
       "displayName": "Alumbanche Base",
       "classification": "Specific",
       "associatedOrishas": [
-        "Elegua"
-      ],
-      "timeSignature": "6/8"
+        "Eleggua"
+      ]
     },
     "Batà/Dadà/dada_base": {
       "displayName": "Dada base",
@@ -41,124 +168,112 @@
         "Dada",
         "Orisha Oko",
         "Chango",
-        "Oshun"
-      ],
-      "timeSignature": "6/8"
+        "Ochun"
+      ]
     },
     "Batà/Dadà/dada_y_primera_conversacion": {
       "displayName": "Dada y primera conversacion",
       "classification": "Shared",
       "associatedOrishas": [
         "Dada",
+        "Orisha Oko",
         "Chango",
-        "Oshun",
-        "Orisha Oko"
-      ],
-      "timeSignature": "6/8"
+        "Ochun"
+      ]
     },
     "Batà/Ewi Bami/ewi_bami": {
       "displayName": "Ewi Bami",
       "classification": "Specific",
       "associatedOrishas": [
         "Chango"
-      ],
-      "timeSignature": "6/8"
+      ]
     },
     "Batà/Iyama/iyamà_-_base": {
       "displayName": "Iyamà - Base",
       "classification": "Shared",
       "associatedOrishas": [
         "Yemaya",
-        "Oshun",
+        "Ochun",
         "Oya"
-      ],
-      "timeSignature": "6/8"
+      ]
     },
     "Batà/Iyama/iyamà_-_llamada_y_base": {
       "displayName": "Iyamà - Llamada y Base",
       "classification": "Shared",
       "associatedOrishas": [
         "Yemaya",
-        "Oshun",
+        "Ochun",
         "Oya"
-      ],
-      "timeSignature": "6/8"
+      ]
     },
     "Batà/Iyama/iyamà_-_llamada_y_base_-_variante": {
       "displayName": "Iyamà - Llamada y Base - variante",
       "classification": "Shared",
       "associatedOrishas": [
         "Yemaya",
-        "Oshun",
+        "Ochun",
         "Oya"
-      ],
-      "timeSignature": "6/8"
+      ]
     },
     "Batà/Los Guerreros/los_guerreros_-_base": {
       "displayName": "Los Guerreros - Base",
       "classification": "Shared",
       "associatedOrishas": [
-        "Elegua",
-        "Ogun",
+        "Eleggua",
+        "Oggun",
         "Ochosi"
-      ],
-      "timeSignature": "6/8"
+      ]
     },
     "Batà/Los Guerreros/los_guerreros_-_llamada_y_base": {
       "displayName": "Los Guerreros - Llamada y Base",
       "classification": "Shared",
       "associatedOrishas": [
-        "Elegua",
-        "Ogun",
+        "Eleggua",
+        "Oggun",
         "Ochosi"
-      ],
-      "timeSignature": "6/8"
+      ]
     },
     "Batà/Oggun - Rezo/oggun_-_rezo_-_base": {
       "displayName": "Oggun - Rezo - Base",
       "classification": "Specific",
       "associatedOrishas": [
-        "Ogun"
-      ],
-      "timeSignature": "6/8"
+        "Oggun"
+      ]
     },
     "Batà/Oggun - Rezo/oggun_-_rezo_-_llamada_y_base": {
       "displayName": "Oggun - Rezo - Llamada y Base",
       "classification": "Specific",
       "associatedOrishas": [
-        "Ogun"
-      ],
-      "timeSignature": "6/8"
+        "Oggun"
+      ]
     },
     "Batà/Yakota/yakota_-_base": {
       "displayName": "Yakota - Base",
       "classification": "Generic",
       "associatedOrishas": [
-        "Elegua",
-        "Ogun",
+        "Eleggua",
+        "Oggun",
         "Ochosi",
         "Obatala",
         "Chango",
         "Yemaya",
-        "Oshun",
+        "Ochun",
         "Oya"
-      ],
-      "timeSignature": "6/8"
+      ]
     },
     "Batà/Yakota/yakota_-_llamada_y_base": {
       "displayName": "Yakota - Llamada y Base",
       "classification": "Generic",
       "associatedOrishas": [
-        "Elegua",
-        "Ogun",
+        "Eleggua",
+        "Oggun",
         "Ochosi",
         "Obatala",
         "Chango",
         "Yemaya",
-        "Oshun",
+        "Ochun",
         "Oya"
-      ],
-      "timeSignature": "6/8"
+      ]
     }
   }
 }

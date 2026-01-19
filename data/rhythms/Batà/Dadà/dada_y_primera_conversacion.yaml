@@ -1,14 +1,5 @@
 name: "Dada y primera conversacion"
 global_bpm: 72
-is_bata: true
-orisha:
-  - "Dada"
-  - "Chango"
-  - "Oshun"
-  - "Orisha Oko"
-classification: "Shared"
-description: "Dada chiamata, base e prima conversazione"
-
 sound_kit:
   oko:
     instrument: "OKO"
@@ -19,49 +10,48 @@ sound_kit:
   iya:
     instrument: "IYA"
     pack: "cp_bata_chaworo"
-
 playback_flow:
-  - name: "Llamada"
-    repetitions: 1
-    time_signature: "6/8"
-    steps: 6
-    measures:
-      - pattern:
-          oko: "||---|--O||"
-          ito: "||---|-S-||"
-          iya: "||SO-|S--||"
-  - name: "Base"
-    repetitions: 4
-    time_signature: "12/8"
-    steps: 12
-    measures:
-      - pattern:
-          oko: "||S-O|S-O|S-O|S-O||"
-          ito: "||-S-|-S-|OS-|PS-||"
-          iya: "||S--|--S|-O-|S--||"
-  - name: "Conversacion"
-    repetitions: 2
-    time_signature: "12/8"
-    steps: 12
-    measures:
-      - pattern:
-          oko: "||S-O|S-O|S-O|S-O||"
-          ito: "||-S-|-S-|OS-|PS-||"
-          iya: "||S--|--S|-O-|SO-||"
-      - pattern:
-          oko: "||S-O|S-O|S-O|S-O||"
-          ito: "||-S-|-SO|OS-|PS-||"
-          iya: "||RO-|OO-|SO-|S-O||"
-      - pattern:
-          oko: "||S-O|S-O|S-O|S-O||"
-          ito: "||OR-|OR-|OS-|PS-||"
-          iya: "||S--|--S|-O-|S--||"
-  - name: "Base (repeticion)"
-    repetitions: 4
-    time_signature: "12/8"
-    steps: 12
-    measures:
-      - pattern:
-          oko: "||S-O|S-O|S-O|S-O||"
-          ito: "||-S-|-S-|OS-|PS-||"
-          iya: "||S--|--S|-O-|S--||"
+- name: "Llamada"
+  repetitions: 1
+  time_signature: "6/8"
+  steps: 6
+  measures:
+  - pattern:
+      oko: "||---|--O||"
+      ito: "||---|-S-||"
+      iya: "||SO-|S--||"
+- name: "Base"
+  repetitions: 4
+  time_signature: "12/8"
+  steps: 12
+  measures:
+  - pattern:
+      oko: "||S-O|S-O|S-O|S-O||"
+      ito: "||-S-|-S-|OS-|PS-||"
+      iya: "||S--|--S|-O-|S--||"
+- name: "Conversacion"
+  repetitions: 2
+  time_signature: "12/8"
+  steps: 12
+  measures:
+  - pattern:
+      oko: "||S-O|S-O|S-O|S-O||"
+      ito: "||-S-|-S-|OS-|PS-||"
+      iya: "||S--|--S|-O-|SO-||"
+  - pattern:
+      oko: "||S-O|S-O|S-O|S-O||"
+      ito: "||-S-|-SO|OS-|PS-||"
+      iya: "||RO-|OO-|SO-|S-O||"
+  - pattern:
+      oko: "||S-O|S-O|S-O|S-O||"
+      ito: "||OR-|OR-|OS-|PS-||"
+      iya: "||S--|--S|-O-|S--||"
+- name: "Base (repeticion)"
+  repetitions: 4
+  time_signature: "12/8"
+  steps: 12
+  measures:
+  - pattern:
+      oko: "||S-O|S-O|S-O|S-O||"
+      ito: "||-S-|-S-|OS-|PS-||"
+      iya: "||S--|--S|-O-|S--||"

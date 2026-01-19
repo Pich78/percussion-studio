@@ -20,10 +20,3 @@ playback_flow:
       oko: "||O-O|S--|O-O|S--||"
       ito: "||S--|---|S-O|-O-||"
       iya: "||O--|--S|-OS|-S-||"
-is_bata: true
-description: "Ritmo fluido dedicato alle divinità femminili dell'acqua."
-classification: "Shared"
-orisha:
-- "Yemaya"
-- "Oshun"
-- "Oya"
