@@ -179,7 +179,7 @@ export const DesktopLayout = () => {
   })}
         </div>
         <main class="flex-1 overflow-hidden relative flex flex-col justify-center items-center bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-900 via-gray-950 to-gray-950">
-          <div id="grid-container" class="w-full max-w-7xl px-4 py-8 flex flex-col items-center justify-center overflow-hidden h-full">
+          <div id="grid-container" class="w-full px-4 py-8 flex flex-col items-center justify-center overflow-hidden h-full">
             ${TubsGrid({
     section: activeSection,
     globalBpm: state.toque.globalBpm,
