@@ -194,7 +194,7 @@
       "associatedOrishas": [
         "Yemaya",
         "Ochun",
-        "Oya"
+        "Chango"
       ]
     },
     "Batà/Iyama/iyamà_-_llamada_y_base": {
@@ -203,7 +203,7 @@
       "associatedOrishas": [
         "Yemaya",
         "Ochun",
-        "Oya"
+        "Chango"
       ]
     },
     "Batà/Iyama/iyamà_-_llamada_y_base_-_variante": {
@@ -212,7 +212,7 @@
       "associatedOrishas": [
         "Yemaya",
         "Ochun",
-        "Oya"
+        "Chango"
       ]
     },
     "Batà/Los Guerreros/los_guerreros_-_base": {
@@ -251,28 +251,18 @@
       "displayName": "Yakota - Base",
       "classification": "Generic",
       "associatedOrishas": [
-        "Eleggua",
-        "Oggun",
-        "Ochosi",
-        "Obatala",
-        "Chango",
         "Yemaya",
         "Ochun",
-        "Oya"
+        "Eggun"
       ]
     },
     "Batà/Yakota/yakota_-_llamada_y_base": {
       "displayName": "Yakota - Llamada y Base",
       "classification": "Generic",
       "associatedOrishas": [
-        "Eleggua",
-        "Oggun",
-        "Ochosi",
-        "Obatala",
-        "Chango",
         "Yemaya",
         "Ochun",
-        "Oya"
+        "Eggun"
       ]
     }
   }
