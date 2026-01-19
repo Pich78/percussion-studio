@@ -300,13 +300,13 @@ export const BataExplorerModal = ({ isMobile = false }) => {
     const metadata = bata.metadata;
     if (!metadata) {
         return `
-    < div class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" >
-        <div class="bg-gray-900 border border-gray-700 rounded-xl p-8 text-center">
-            <div class="animate-spin inline-block w-8 h-8 border-2 border-gray-500 border-t-amber-400 rounded-full mb-4"></div>
-            <p class="text-gray-400">Loading Batà rhythms...</p>
-        </div>
-            </div >
-    `;
+            <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+                <div class="bg-gray-900 border border-gray-700 rounded-xl p-8 text-center">
+                    <div class="animate-spin inline-block w-8 h-8 border-2 border-gray-500 border-t-amber-400 rounded-full mb-4"></div>
+                    <p class="text-gray-400">Loading Batà rhythms...</p>
+                </div>
+            </div>
+        `;
     }
 
     const { searchTerm, selectedOrishas, selectedTypes, selectedToqueId } = bata;
@@ -361,10 +361,10 @@ export const BataExplorerModal = ({ isMobile = false }) => {
 
     return `
         <div class="fixed inset-0 z-50 flex bg-black/80 backdrop-blur-sm" data-action="close-bata-explorer-bg">
-        <div class="flex-1 flex flex-col bg-gray-950 overflow-hidden ${isMobile ? '' : 'max-w-6xl mx-auto my-4 rounded-xl border border-gray-800'}">
+            <div class="flex-1 flex flex-col bg-gray-950 overflow-hidden ${isMobile ? '' : 'max-w-6xl mx-auto my-4 rounded-xl border border-gray-800'}">
 
-            <!-- Header -->
-            <div class="border-b border-gray-800 bg-gray-950 flex-shrink-0 px-6 py-4 ${isMobile ? 'pt-[max(1rem,env(safe-area-inset-top))]' : ''}">
+                <!-- Header -->
+                <div class="border-b border-gray-800 bg-gray-950 flex-shrink-0 px-6 py-4 ${isMobile ? 'pt-[calc(env(safe-area-inset-top)+1.5rem)]' : ''}">
                 <div class="max-w-4xl mx-auto flex items-center gap-4">
                     <!-- Search & Filters -->
                     <div
@@ -460,6 +460,6 @@ export const BataExplorerModal = ({ isMobile = false }) => {
                 ${selectedToqueId ? ToqueDetailsModal(selectedToqueId, groups) : ''}
             </div>
         </div>
-        </div >
+        </div>
     `;
 };
