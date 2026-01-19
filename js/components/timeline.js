@@ -55,49 +55,17 @@ export const Timeline = ({
   const renderMetadataSection = () => {
     if (!isBata) return '';
 
-    // Build Orisha badges (Read-Only)
-    const orishaBadges = orisha.map(o => {
-      const colors = orishaColors[o] || { border: 'border-stone-500', text: 'text-stone-400', bg: 'bg-stone-800' };
-      return `
-        <span class="inline-flex items-center gap-1 px-2 py-1 rounded text-xs border-2 ${colors.border} ${colors.bg} ${colors.text} font-medium shadow-sm">
-          ${o}
-        </span>
-      `;
-    }).join('');
-
-    // Classification Badge (Read-Only)
-    let classificationBadge = '';
-    if (classification) {
-      const c = classification;
-      const colors = CLASSIFICATION_COLORS[c] || CLASSIFICATION_COLORS['Generic'];
-      classificationBadge = `
-            <span class="px-2 py-1 text-xs uppercase font-bold rounded border ${colors.text} ${colors.border} bg-gray-800">
-                ${c}
-            </span>
-        `;
-    }
+    // Only render description if present, since badges are removed
+    if (!description) return '';
 
     return `
       <div class="px-4 py-3 border-b border-gray-800 space-y-3">
-          <!-- Classification & Orishas Display -->
-          <div class="space-y-2 animate-in slide-in-from-top-1 fade-in duration-200">
-            ${classificationBadge ? `<div class="flex">${classificationBadge}</div>` : ''}
-            
-            ${orishaBadges ? `
-              <div class="flex flex-wrap gap-1.5 align-center">
-                ${orishaBadges}
-              </div>
-            ` : ''}
-          </div>
-
           <!-- Description Display (Read Only) -->
-          ${description ? `
             <div class="animate-in slide-in-from-top-2 fade-in duration-200">
               <p class="text-xs text-gray-400 italic border-l-2 border-gray-700 pl-2 py-1 leading-relaxed">
                 ${description}
               </p>
             </div>
-          ` : ''}
       </div>
     `;
   };
