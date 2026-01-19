@@ -215,6 +215,13 @@
         "Chango"
       ]
     },
+    "Batà/Latopa/latopa_base": {
+      "displayName": "Latopa Base",
+      "classification": "Specific",
+      "associatedOrishas": [
+        "Eleggua"
+      ]
+    },
     "Batà/Los Guerreros/los_guerreros_-_base": {
       "displayName": "Los Guerreros - Base",
       "classification": "Shared",

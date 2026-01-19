@@ -1,0 +1,24 @@
+name: "Latopa Base"
+global_bpm: 110
+
+sound_kit:
+  oko:
+    instrument: "OKO"
+    pack: "cp_bata_chaworo"
+  ito:
+    instrument: "ITO"
+    pack: "cp_bata_chaworo"
+  iya:
+    instrument: "IYA"
+    pack: "cp_bata_chaworo"
+
+playback_flow:
+  - name: "Base"
+    repetitions: 1
+    time_signature: "6/8"
+    steps: 24
+    measures:
+      - pattern:
+          oko: "||S--|-O-|S--|-O-|S--|-O-|S--|-O-||"
+          ito: "||--S|-P-|O-R|---|--R|---|O--|S--||"
+          iya: "||O-S|---|--S|-O-|O-S|---|--S|-S-||"
