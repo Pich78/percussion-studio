@@ -1,4 +1,4 @@
-import { STROKE_PALETTE, STROKE_COLORS } from '../constants.js';
+import { STROKE_PALETTE } from '../constants.js';
 import { TrashIcon } from '../icons/trashIcon.js';
 
 export const Controls = ({ selectedStroke }) => {
@@ -6,14 +6,13 @@ export const Controls = ({ selectedStroke }) => {
   const renderPalette = () => {
     return STROKE_PALETTE.map((item) => {
       const isSelected = selectedStroke === item.type;
-      const colorClass = STROKE_COLORS[item.type];
 
       const activeClass = isSelected
         ? 'ring-2 ring-white scale-105 z-10 shadow-lg opacity-100 grayscale-0 bg-gray-800'
         : 'opacity-60 hover:opacity-100 grayscale hover:grayscale-0 hover:bg-gray-800';
 
       const content = item.svg
-        ? `<img src="data/assets/icons/${item.svg}" class="w-6 h-6 mb-1 pointer-events-none select-none" alt="${item.label}" />`
+        ? `<img src="data/assets/icons/${item.svg}?v=5" class="w-6 h-6 mb-1 pointer-events-none select-none" alt="${item.label}" />`
         : `<span class="text-lg font-bold mb-1 pointer-events-none select-none">${item.type}</span>`;
 
       return `
@@ -26,7 +25,7 @@ export const Controls = ({ selectedStroke }) => {
           "
           title="${item.label}"
         >
-          <div class="w-8 h-8 flex items-center justify-center rounded-full ${item.svg ? '' : colorClass}">
+          <div class="w-8 h-8 flex items-center justify-center rounded-full">
              ${content}
           </div>
           <span class="text-[10px] font-bold uppercase text-gray-400 tracking-wider">${item.label}</span>

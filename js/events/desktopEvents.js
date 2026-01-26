@@ -6,6 +6,7 @@ import { Controls } from '../components/controls.js';
 import { StrokeType } from '../types.js';
 import { downloadRhythm } from '../utils/rhythmExporter.js';
 import { dataLoader } from '../services/dataLoader.js'; // Import dataLoader
+import { getValidInstrumentSteps } from '../utils/gridUtils.js';
 
 export const setupDesktopEvents = () => {
     const root = document.getElementById('root');
@@ -178,6 +179,22 @@ export const setupDesktopEvents = () => {
                 });
                 refreshGrid();
             }
+        }
+
+        // Cycle track subdivision on click
+        if (action === 'cycle-track-steps') {
+            const section = state.toque.sections.find(s => s.id === state.activeSectionId);
+            const trackIdx = parseInt(target.dataset.trackIndex);
+            const measureIdx = parseInt(target.dataset.measureIndex || 0);
+            const track = section.measures[measureIdx].tracks[trackIdx];
+
+            const currentSteps = track.trackSteps || section.steps;
+            const validOptions = getValidInstrumentSteps(section.steps);
+            const currentIndex = validOptions.indexOf(currentSteps);
+            const nextIndex = (currentIndex + 1) % validOptions.length;
+            const newSteps = validOptions[nextIndex];
+
+            actions.updateTrackSteps(trackIdx, measureIdx, newSteps);
         }
 
         // Modals
@@ -498,6 +515,7 @@ export const setupDesktopEvents = () => {
         if (action === 'select-stroke') {
             state.selectedStroke = target.dataset.stroke;
             document.querySelector('#root > div > div:last-child').outerHTML = Controls({ selectedStroke: state.selectedStroke });
+            refreshGrid(); // Refresh grid to update cursor styling for valid/invalid strokes
         }
         if (action === 'clear-pattern') {
             if (confirm("Clear all notes in this section?")) {
@@ -606,20 +624,44 @@ export const setupDesktopEvents = () => {
             section.name = target.value;
             renderApp();
         }
-        if (action === 'update-time-sig') {
-            section.timeSignature = target.value;
-            if (section.timeSignature === '6/8') { section.steps = 12; section.subdivision = 3; }
-            if (section.timeSignature === '4/4') { section.steps = 16; section.subdivision = 4; }
-            if (section.timeSignature === '12/8') { section.steps = 24; section.subdivision = 3; }
+        if (action === 'update-meter') {
+            // Parse meter value: "steps-subdivision" e.g. "16-4" or "12-3"
+            // If 'custom' is selected, just re-render to show custom input fields
+            if (target.value === 'custom') {
+                // Don't change anything yet - just re-render to show inputs
+                // Set to a default custom value that doesn't match predefined meters
+                section.steps = 5;  // Default custom steps
+                section.subdivision = 5;  // Default custom subdivision
+                actions.resizeTracks(section);
+                refreshGrid();
+                renderApp();
+                return;
+            }
+            const [steps, subdivision] = target.value.split('-').map(Number);
+            section.steps = steps;
+            section.subdivision = subdivision;
             actions.resizeTracks(section);
             refreshGrid();
             renderApp();
         }
-        if (action === 'update-steps') {
-            section.steps = Number(target.value);
+        if (action === 'update-custom-steps') {
+            const newSteps = Math.max(1, Math.min(64, parseInt(target.value) || 1));
+            section.steps = newSteps;
             actions.resizeTracks(section);
             refreshGrid();
             renderApp();
+        }
+        if (action === 'update-custom-subdivision') {
+            const newSubdivision = Math.max(1, Math.min(12, parseInt(target.value) || 1));
+            section.subdivision = newSubdivision;
+            refreshGrid();
+            renderApp();
+        }
+        if (action === 'update-track-steps') {
+            const trackIdx = parseInt(target.dataset.trackIndex);
+            const measureIdx = parseInt(target.dataset.measureIndex || 0);
+            const newSteps = parseInt(target.value);
+            actions.updateTrackSteps(trackIdx, measureIdx, newSteps);
         }
         if (action === 'update-repetitions') {
             section.repetitions = Math.max(1, Number(target.value));

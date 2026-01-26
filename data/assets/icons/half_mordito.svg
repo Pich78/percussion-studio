@@ -6,10 +6,10 @@
   </defs>
   
   <!-- Outer Border -->
-  <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
+  <circle cx="12" cy="12" r="9" stroke="#06B6D4" stroke-width="2"/>
   
   <!-- Diagonal Hatching (4 Lines) -->
-  <g clip-path="url(#circleClipHalf)" stroke="currentColor" stroke-width="1" opacity="0.6">
+  <g clip-path="url(#circleClipHalf)" stroke="#06B6D4" stroke-width="1" opacity="0.6">
     <line x1="0" y1="15" x2="15" y2="0"/>
     <line x1="0" y1="21" x2="21" y2="0"/>
     <line x1="3" y1="24" x2="24" y2="3"/>
@@ -17,5 +17,5 @@
   </g>
   
   <!-- Inner X (Matches Mordito size) -->
-  <path d="M8 8L16 16M16 8L8 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  <path d="M8 8L16 16M16 8L8 16" stroke="#06B6D4" stroke-width="2" stroke-linecap="round"/>
 </svg>

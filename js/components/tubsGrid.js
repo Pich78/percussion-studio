@@ -6,9 +6,10 @@
 
 import { StrokeType } from '../types.js';
 import { INSTRUMENT_COLORS } from '../constants.js'; // Colors still hardcoded for now
-import { TubsCell } from './tubsCell.js?v=2';
+import { TubsCell } from './tubsCell.js?v=3';
 import { state } from '../store.js';
 import { dataLoader } from '../services/dataLoader.js'; // To access manifest
+import { getValidInstrumentSteps, getClosestDivisor } from '../utils/gridUtils.js';
 
 // Icons
 import { SpeakerXMarkIcon } from '../icons/speakerXMarkIcon.js';
@@ -79,31 +80,66 @@ export const TubsGrid = ({
           />
       </div>
 
-      <!-- Time Sig -->
+      <!-- Meter -->
+      ${(() => {
+        // Check if current meter matches a predefined option
+        const predefinedMeters = [
+          { steps: 4, subdivision: 4, label: '4/4 (4)' },
+          { steps: 8, subdivision: 4, label: '4/4 (8)' },
+          { steps: 16, subdivision: 4, label: '4/4 (16)' },
+          { steps: 6, subdivision: 3, label: '6/8 (6)' },
+          { steps: 12, subdivision: 3, label: '6/8 (12)' },
+          { steps: 24, subdivision: 3, label: '6/8 (24)' }
+        ];
+        const isCustom = !predefinedMeters.some(m => m.steps === section.steps && m.subdivision === section.subdivision);
+        
+        return `
       <div class="flex flex-col">
-         <label class="text-[10px] text-gray-500 uppercase font-bold">Time Sig</label>
+         <label class="text-[10px] text-gray-500 uppercase font-bold">Meter</label>
          <select 
-          data-action="update-time-sig"
+          data-action="update-meter"
           class="bg-gray-900 border border-gray-700 text-xs rounded px-2 py-1 text-white h-[26px]"
          >
-           <option value="4/4" ${section.timeSignature === '4/4' ? 'selected' : ''}>Binary (4/4)</option>
-           <option value="6/8" ${section.timeSignature === '6/8' ? 'selected' : ''}>Ternary (6/8)</option>
-           <option value="12/8" ${section.timeSignature === '12/8' ? 'selected' : ''}>12/8</option>
+           <option value="4-4" ${section.steps === 4 && section.subdivision === 4 ? 'selected' : ''}>4/4 (4)</option>
+           <option value="8-4" ${section.steps === 8 && section.subdivision === 4 ? 'selected' : ''}>4/4 (8)</option>
+           <option value="16-4" ${section.steps === 16 && section.subdivision === 4 ? 'selected' : ''}>4/4 (16)</option>
+           <option value="6-3" ${section.steps === 6 && section.subdivision === 3 ? 'selected' : ''}>6/8 (6)</option>
+           <option value="12-3" ${section.steps === 12 && section.subdivision === 3 ? 'selected' : ''}>6/8 (12)</option>
+           <option value="24-3" ${section.steps === 24 && section.subdivision === 3 ? 'selected' : ''}>6/8 (24)</option>
+           <option value="custom" ${isCustom ? 'selected' : ''}>Custom</option>
          </select>
       </div>
-
-      <!-- Steps -->
+      
+      ${isCustom ? `
+      <!-- Custom Steps Input -->
       <div class="flex flex-col">
          <label class="text-[10px] text-gray-500 uppercase font-bold">Steps</label>
          <input 
            type="number"
-           min="4"
+           min="1"
            max="64"
            value="${section.steps}"
-           data-action="update-steps"
-           class="bg-gray-900 border border-gray-700 text-xs rounded px-2 py-0.5 text-white w-14 h-[26px]"
+           data-action="update-custom-steps"
+           class="bg-gray-900 border border-amber-700 text-xs rounded px-2 py-0.5 text-amber-400 w-14 h-[26px]"
+           title="Number of steps/beats"
          />
       </div>
+      
+      <!-- Custom Subdivision Input -->
+      <div class="flex flex-col">
+         <label class="text-[10px] text-gray-500 uppercase font-bold">Group</label>
+         <input 
+           type="number"
+           min="1"
+           max="12"
+           value="${section.subdivision}"
+           data-action="update-custom-subdivision"
+           class="bg-gray-900 border border-amber-700 text-xs rounded px-2 py-0.5 text-amber-400 w-14 h-[26px]"
+           title="Steps per group (visual grouping)"
+         />
+      </div>
+      ` : ''}`; 
+      })()}
 
       <!-- Repeats -->
       <div class="flex flex-col">
@@ -214,12 +250,26 @@ export const TubsGrid = ({
       return `
         <div class="flex items-center group min-w-max transition-opacity duration-300 ${track.muted || track.volume === 0 ? 'opacity-50' : 'opacity-100'}">
           <!-- Instrument Label - Sticky -->
-          <div class="sticky left-0 z-20 w-36 flex-shrink-0 pr-2 flex flex-col justify-center ${borderColor} pl-3 bg-gray-950 border-r border-gray-800 py-2 shadow-[4px_0_10px_rgba(0,0,0,0.5)]">
+          <div class="sticky left-0 z-20 w-44 flex-shrink-0 pr-2 flex flex-col justify-center ${borderColor} pl-3 bg-gray-950 border-r border-gray-800 py-2 shadow-[4px_0_10px_rgba(0,0,0,0.5)]">
             
             <div class="flex items-center justify-between mb-1">
               ${renderTrackName()}
               
               <div class="flex items-center gap-1">
+                 ${!readOnly ? `
+                 <!-- Subdivision Badge (click to cycle) -->
+                 <button 
+                   data-action="cycle-track-steps"
+                   data-track-index="${trackIdx}"
+                   data-measure-index="${measureIdx}"
+                   class="px-1 py-0.5 bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-400 
+                          rounded text-[10px] font-mono font-bold border border-indigo-500/30
+                          hover:border-indigo-400/50 transition-all"
+                   title="Subdivision: ${track.trackSteps || section.steps} steps (click to change)"
+                 >
+                   ÷${track.trackSteps || section.steps}
+                 </button>
+                 ` : ''}
                  <button data-action="toggle-mute" data-track-index="${trackIdx}" data-measure-index="${measureIdx}" class="text-gray-500 hover:text-white" title="${track.muted ? "Unmute" : "Mute"}">
                   ${track.muted ? SpeakerXMarkIcon('w-3.5 h-3.5') : SpeakerWaveIcon('w-3.5 h-3.5')}
                 </button>
@@ -231,49 +281,48 @@ export const TubsGrid = ({
               </div>
             </div>
             
-            <!-- Volume Slider -->
-            <input 
-              type="range" 
-              min="0" 
-              max="1" 
-              step="0.01" 
-              value="${track.volume ?? 1.0}" 
-              data-action="update-volume"
-              data-track-index="${trackIdx}"
-              data-measure-index="${measureIdx}"
-              class="w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-gray-400 hover:accent-cyan-400"
-              title="Volume"
-            />
+            <!-- Volume Slider Row -->
+            <div class="flex items-center">
+              <input 
+                type="range" 
+                min="0" 
+                max="1" 
+                step="0.01" 
+                value="${track.volume ?? 1.0}" 
+                data-action="update-volume"
+                data-track-index="${trackIdx}"
+                data-measure-index="${measureIdx}"
+                class="flex-1 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-gray-400 hover:accent-cyan-400"
+                title="Volume"
+              />
+            </div>
           </div>
 
-          <!-- Grid Cells -->
-          <div class="flex gap-1 bg-gray-900/30 p-1 rounded-r-md ml-1 ${readOnly ? 'pointer-events-none' : ''}">
-            ${track.strokes.map((stroke, stepIdx) => {
-        const isGroupStart = stepIdx % groupSize === 0 && stepIdx !== 0;
-        // Invisible separator to maintain alignment with header
-        const separator = isGroupStart
-          ? `<div class="w-px bg-transparent flex-shrink-0" style="height: ${cellSizePx}px"></div>`
-          : '';
 
-        return `
-              ${separator}
-              <div> 
-                ${TubsCell({
-          stroke,
-          isCurrentStep: currentStep === stepIdx,
-          isValid: isStrokeValid,
-          trackIndex: trackIdx,
-          stepIndex: stepIdx,
-          measureIndex: measureIdx,
-          isActive: stroke !== StrokeType.None,
-          instrumentDef: instDef,
-          cellSizePx,
-          iconSizePx,
-          fontSizePx
-        })}
-              </div>
-            `;
-      }).join('')}
+          <!-- Grid Cells - Elastic steps based on track subdivision -->
+          <div class="flex bg-gray-900/30 p-1 rounded-r-md ml-1 ${readOnly ? 'pointer-events-none' : ''}">
+            ${(() => {
+          const trackSteps = track.trackSteps || section.steps;
+          return track.strokes.slice(0, trackSteps).map((stroke, stepIdx) => {
+            return `
+                  ${TubsCell({
+              stroke,
+              currentGlobalStep: currentStep,
+              isValid: isStrokeValid,
+              trackIndex: trackIdx,
+              stepIndex: stepIdx,
+              measureIndex: measureIdx,
+              instrumentDef: instDef,
+              cellSizePx,
+              iconSizePx,
+              fontSizePx,
+              trackSteps: trackSteps,
+              gridSteps: section.steps,
+              isPlaying: state.isPlaying
+            })}
+                `;
+          }).join('');
+        })()}
           </div>
         </div>
       `;
@@ -286,7 +335,7 @@ export const TubsGrid = ({
       return `
         <div class="flex min-w-max mb-1">
            <!-- Sticky Measure Label -->
-           <div class="sticky left-0 z-20 w-36 flex-shrink-0 flex items-center justify-between pr-1 bg-gray-950 border-r border-gray-800 shadow-[4px_0_10px_rgba(0,0,0,0.5)]">
+           <div class="sticky left-0 z-20 w-44 flex-shrink-0 flex items-center justify-between pr-1 bg-gray-950 border-r border-gray-800 shadow-[4px_0_10px_rgba(0,0,0,0.5)]">
                <div class="pl-1 py-0.5 border-l-2 border-cyan-500 rounded-sm ml-1">
                   <span class="text-[10px] font-bold text-cyan-400 uppercase tracking-tighter whitespace-nowrap">${measureLabel}</span>
                </div>
@@ -312,21 +361,15 @@ export const TubsGrid = ({
                 ` : ''}
            </div>
 
-           <!-- Step Numbers -->
-           <div class="flex gap-1 pl-1 ml-1 bg-gray-900/20 rounded-r-md">
+           <!-- Step Numbers - aligned with grid cells -->
+           <div class="flex bg-gray-900/20 p-1 rounded-r-md ml-1">
               ${Array.from({ length: stepCount }).map((_, i) => {
-        const isGroupStart = i % groupSize === 0 && i !== 0;
-        const separator = isGroupStart
-          ? `<div class="w-px bg-gray-700 h-5 mt-1 flex-shrink-0"></div>`
-          : '';
-
         return `
-                        ${separator}
                         <div 
                           data-step-marker="${i}" 
                           data-measure-index="${measureIdx}"
-                          class="text-center text-[10px] font-mono p-1 text-gray-500 flex-shrink-0"
-                          style="width: ${cellSizePx}px"
+                          class="text-center text-[10px] font-mono text-gray-500 flex-shrink-0 flex items-center justify-center"
+                          style="width: ${cellSizePx}px; height: ${cellSizePx * 0.6}px;"
                         >
                           ${i + 1}
                         </div>
@@ -347,7 +390,7 @@ export const TubsGrid = ({
         
         <!-- Add Track Button (per measure) -->
         ${!readOnly ? `
-        <div class="sticky left-0 z-20 w-36 pt-2">
+        <div class="sticky left-0 z-20 w-44 pt-2">
           <button 
             data-action="open-add-modal"
             class="w-full py-2 border border-dashed border-gray-700 rounded text-gray-500 hover:text-white hover:border-gray-500 hover:bg-gray-900 flex items-center justify-center gap-2 text-xs font-bold transition-all uppercase tracking-wide"

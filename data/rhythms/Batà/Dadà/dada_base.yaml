@@ -13,7 +13,7 @@ sound_kit:
 playback_flow:
 - name: "Llamada"
   repetitions: 1
-  time_signature: "6/8"
+  subdivision: 3
   steps: 6
   measures:
   - pattern:
@@ -22,7 +22,7 @@ playback_flow:
       iya: "||SO-|S--||"
 - name: "Base"
   repetitions: 5
-  time_signature: "12/8"
+  subdivision: 3
   steps: 12
   measures:
   - pattern:

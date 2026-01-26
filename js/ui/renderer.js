@@ -51,24 +51,58 @@ export const refreshGrid = () => {
 };
 
 export const updateVisualStep = (step, measureIndex = 0) => {
-  document.querySelectorAll('.ring-2.ring-white').forEach(el => {
-    el.classList.remove('ring-2', 'ring-white', 'z-10', 'shadow-lg', 'shadow-cyan-500/50');
-  });
-  document.querySelectorAll('.bg-gray-800').forEach(el => {
-    if (el.innerText === '' || el.innerText === '.') el.classList.remove('bg-gray-800');
-  });
+  // Remove previous playhead indicators
+  document.querySelectorAll('.playhead-indicator').forEach(el => el.remove());
+
+  // Reset step marker styling
   document.querySelectorAll('[data-step-marker]').forEach(el => {
     el.classList.remove('text-cyan-400', 'font-bold', 'scale-110');
     el.classList.add('text-gray-500');
   });
 
-  // Select cells matching BOTH step index AND measure index
-  const cells = document.querySelectorAll(`[data-step-index="${step}"][data-measure-index="${measureIndex}"]`);
+  // Get all cells for this measure
+  const cells = document.querySelectorAll(`[data-role="tubs-cell"][data-measure-index="${measureIndex}"]`);
+
   cells.forEach(cell => {
-    cell.classList.add('ring-2', 'ring-white', 'z-10', 'shadow-lg', 'shadow-cyan-500/50');
-    if (cell.innerText.trim() === '') cell.classList.add('bg-gray-800');
+    const trackIndex = parseInt(cell.dataset.trackIndex);
+    const cellStepIndex = parseInt(cell.dataset.stepIndex);
+
+    // Get track to determine its subdivision
+    const activeSection = state?.toque?.sections?.find(s => s.id === state?.activeSectionId);
+    if (!activeSection) return;
+
+    const track = activeSection?.measures?.[measureIndex]?.tracks?.[trackIndex];
+    if (!track) return;
+
+    const trackSteps = track.trackSteps || activeSection.steps;
+    const gridSteps = activeSection.steps;
+    const cellsPerStep = gridSteps / trackSteps;
+
+    // Calculate which global steps this cell covers
+    const globalStepStart = cellStepIndex * cellsPerStep;
+    const globalStepEnd = globalStepStart + cellsPerStep - 1;
+
+    // Check if current step falls within this cell
+    if (step >= globalStepStart && step <= globalStepEnd) {
+      // Calculate offset within the cell
+      const cellWidth = cell.offsetWidth;
+      const cellSizePx = cellWidth / cellsPerStep;
+      const offsetPx = (step - globalStepStart) * cellSizePx;
+
+      // Create playhead indicator element
+      const playhead = document.createElement('div');
+      playhead.className = 'playhead-indicator absolute top-0 h-full pointer-events-none z-30';
+      playhead.style.left = `${offsetPx}px`;
+      playhead.style.width = `${cellSizePx}px`;
+      playhead.innerHTML = '<div class="w-full h-full bg-white/25 ring-2 ring-inset ring-white rounded-sm shadow-[0_0_15px_rgba(255,255,255,0.6)]"></div>';
+
+      // Ensure cell has relative positioning for the absolute playhead
+      cell.style.position = 'relative';
+      cell.appendChild(playhead);
+    }
   });
 
+  // Highlight the step marker in the ruler
   const marker = document.querySelector(`[data-step-marker="${step}"][data-measure-index="${measureIndex}"]`);
   if (marker) {
     marker.classList.remove('text-gray-500');

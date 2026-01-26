@@ -78,7 +78,9 @@ export const actions = {
 
             // 3. Build Runtime Sections
             const sections = rhythmDef.playback_flow.map(flow => {
-                const sub = flow.time_signature === '6/8' || flow.time_signature === '12/8' ? 3 : 4;
+                // Use explicit subdivision if present, otherwise derive from steps
+                // Steps 6, 12, 24 are typically ternary (subdivision 3), others are quaternary (subdivision 4)
+                const sub = flow.subdivision || ([6, 12, 24].includes(flow.steps) ? 3 : 4);
 
                 // Check if new format (measures array) or old format (single pattern)
                 const hasMeasures = flow.measures && Array.isArray(flow.measures);
@@ -135,7 +137,6 @@ export const actions = {
                 return {
                     id: crypto.randomUUID(),
                     name: flow.name,
-                    timeSignature: flow.time_signature,
                     steps: flow.steps,
                     subdivision: sub,
                     repetitions: flow.repetitions,
@@ -225,7 +226,8 @@ export const actions = {
 
             // 4. Build Runtime Sections
             const sections = rhythmDef.playback_flow.map(flow => {
-                const sub = flow.time_signature === '6/8' || flow.time_signature === '12/8' ? 3 : 4;
+                // Use explicit subdivision if present, otherwise derive from steps
+                const sub = flow.subdivision || ([6, 12, 24].includes(flow.steps) ? 3 : 4);
                 const hasMeasures = flow.measures && Array.isArray(flow.measures);
 
                 let measures = [];
@@ -277,7 +279,6 @@ export const actions = {
                 return {
                     id: crypto.randomUUID(),
                     name: flow.name,
-                    timeSignature: flow.time_signature,
                     steps: flow.steps,
                     subdivision: sub,
                     repetitions: flow.repetitions,
@@ -338,7 +339,6 @@ export const actions = {
             sections: [{
                 id: newId,
                 name: "Section 1",
-                timeSignature: '4/4',
                 steps: 16,
                 subdivision: 4,
                 repetitions: 1,
@@ -363,7 +363,6 @@ export const actions = {
         const newSec = {
             id: crypto.randomUUID(),
             name: `Section ${state.toque.sections.length + 1}`,
-            timeSignature: '4/4',
             steps: 16,
             subdivision: 4,
             repetitions: 1,
@@ -473,6 +472,18 @@ export const actions = {
         const newSteps = section.steps;
         section.measures.forEach(measure => {
             measure.tracks.forEach(track => {
+                // When section steps change, adjust trackSteps if needed
+                if (track.trackSteps && track.trackSteps > newSteps) {
+                    // Find closest valid divisor
+                    const validDivisors = [];
+                    for (let i = 1; i <= newSteps; i++) {
+                        if (newSteps % i === 0) validDivisors.push(i);
+                    }
+                    track.trackSteps = validDivisors.reduce((prev, curr) =>
+                        Math.abs(curr - track.trackSteps) < Math.abs(prev - track.trackSteps) ? curr : prev
+                    );
+                }
+                // Resize strokes array to match section steps
                 if (newSteps > track.strokes.length) {
                     const diff = newSteps - track.strokes.length;
                     for (let i = 0; i < diff; i++) track.strokes.push(StrokeType.None);
@@ -481,6 +492,36 @@ export const actions = {
                 }
             });
         });
+    },
+
+    /**
+     * Updates the subdivision step count for a specific track
+     * @param {number} trackIdx - Track index
+     * @param {number} measureIdx - Measure index
+     * @param {number} newTrackSteps - New subdivision count for this track
+     */
+    updateTrackSteps: (trackIdx, measureIdx, newTrackSteps) => {
+        const section = state.toque.sections.find(s => s.id === state.activeSectionId);
+        if (!section) return;
+
+        const measure = section.measures[measureIdx];
+        if (!measure || !measure.tracks[trackIdx]) return;
+
+        const track = measure.tracks[trackIdx];
+        const oldTrackSteps = track.trackSteps || section.steps;
+
+        // Set the new track steps
+        track.trackSteps = newTrackSteps;
+
+        // Resize strokes array to match new track steps
+        if (newTrackSteps > track.strokes.length) {
+            const diff = newTrackSteps - track.strokes.length;
+            for (let i = 0; i < diff; i++) track.strokes.push(StrokeType.None);
+        } else {
+            track.strokes.length = newTrackSteps;
+        }
+
+        refreshGrid();
     },
 
     /**

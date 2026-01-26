@@ -188,8 +188,7 @@ Il pulsante **CNT** nell'intestazione abilita un conteggio prima dell'avvio dell
 1. Tocca **☰** → **Mostra Struttura**
 2. Visualizza tutte le sezioni con le loro proprietà:
    - Nome
-   - Tempo in chiave
-   - Passi
+   - Metro
    - Ripetizioni
    - Impostazioni tempo
 3. Tocca una scheda sezione per passare ad essa

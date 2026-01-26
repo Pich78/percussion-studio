@@ -13,7 +13,7 @@ sound_kit:
 playback_flow:
 - name: "LLamada"
   repetitions: 1
-  time_signature: "6/8"
+  subdivision: 3
   steps: 12
   measures:
   - pattern:
@@ -22,7 +22,7 @@ playback_flow:
       iya: "||---|-O-|O-S|-S-||"
 - name: "Base"
   repetitions: 16
-  time_signature: "6/8"
+  subdivision: 3
   steps: 12
   measures:
   - pattern:

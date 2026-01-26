@@ -36,17 +36,6 @@ export const INSTRUMENT_COLORS = {
     'BON': 'border-l-4 border-l-lime-500',    // Bongo
 };
 
-export const STROKE_COLORS = {
-    [StrokeType.None]: 'text-gray-700 bg-transparent',
-    [StrokeType.Open]: 'bg-blue-500 text-white font-bold',
-    [StrokeType.Presionado]: 'bg-cyan-600 text-white',
-    [StrokeType.Slap]: 'bg-yellow-400 text-black font-bold',
-    [StrokeType.Mordito]: 'bg-purple-600 text-white',
-    [StrokeType.HalfMordito]: 'bg-pink-500 text-white',
-    [StrokeType.Bass]: 'bg-red-600 text-white font-bold',
-    [StrokeType.Dedo]: 'bg-gray-800 text-gray-400',
-    [StrokeType.Muff]: 'bg-gray-500 text-white',
-};
 
 export const STROKE_PALETTE = [
 
