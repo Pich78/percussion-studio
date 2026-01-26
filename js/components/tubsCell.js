@@ -70,23 +70,11 @@ export const TubsCell = ({
 
 
 
-  // Render playhead indicator (minimum cell size highlight at measure step resolution)
-  // NOTE: During playback, we don't render the static playhead here.
-  // The updateVisualStep() function dynamically adds/removes playhead indicators.
-  // This prevents duplicate/stuck playheads when the grid re-renders during loops.
+  // Render playhead indicator - Now handled at grid level as unified bar
+  // Both during playback (updateVisualStep) and when paused (renderStaticPlayhead in tubsGrid)
   const renderPlayhead = () => {
-    // Disabled during playback - updateVisualStep handles it dynamically
-    if (isPlaying) return '';
-    if (!isPlayheadInCell || currentGlobalStep < 0) return '';
-
-    return `
-      <div 
-        class="absolute top-0 h-full pointer-events-none z-30"
-        style="left: ${playheadOffsetPx}px; width: ${cellSizePx}px;"
-      >
-        <div class="w-full h-full bg-white/20 ring-2 ring-inset ring-white rounded-sm shadow-[0_0_15px_rgba(255,255,255,0.5)]"></div>
-      </div>
-    `;
+    // Always return empty - unified bar is rendered at grid level
+    return '';
   };
 
   // Render subtle step indicator lines within elastic cells
