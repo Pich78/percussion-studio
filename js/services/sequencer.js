@@ -76,6 +76,7 @@ const getCountInBeatDuration = (bpm, subdivision) => {
 
 /**
  * Schedule all sounds for the current step at the specified time
+ * Handles per-track subdivision by mapping global step to track step
  */
 const scheduleStep = (section, measureIndex, stepIndex, time) => {
     const measure = section.measures[measureIndex];
@@ -83,8 +84,21 @@ const scheduleStep = (section, measureIndex, stepIndex, time) => {
 
     measure.tracks.forEach(track => {
         if (track.muted || track.volume === 0) return;
-        if (stepIndex < track.strokes.length) {
-            const stroke = track.strokes[stepIndex];
+
+        // Per-track subdivision: track may have its own step count
+        const trackSteps = track.trackSteps || section.steps;
+
+        // Map global step to track step
+        // e.g., if section=12 steps and track=4 steps, 
+        // global step 0,1,2 → track step 0; step 3,4,5 → track step 1; etc.
+        const stepsPerTrackStep = section.steps / trackSteps;
+        const trackStepIndex = Math.floor(stepIndex / stepsPerTrackStep);
+
+        // Only play on the FIRST global step of each track step
+        const isFirstStepOfTrackStep = (stepIndex % stepsPerTrackStep) === 0;
+
+        if (isFirstStepOfTrackStep && trackStepIndex < track.strokes.length) {
+            const stroke = track.strokes[trackStepIndex];
             // Schedule at the EXACT time (not "now")
             audioEngine.playStroke(track.instrument, stroke, time, track.volume);
         }
@@ -283,7 +297,8 @@ export const togglePlay = () => {
         if (playback.currentStep < 0) {
             playback.currentStep = 0;
             playback.currentMeasureIndex = 0;
-            state.currentStep = 0;
+            // Don't set state.currentStep yet - scheduler will update it when the first note plays
+            // This prevents the highlight from appearing before the music starts
 
             // Schedule count-in if enabled
             if (state.countInEnabled) {

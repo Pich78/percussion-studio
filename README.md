@@ -147,7 +147,7 @@ sound_kit:
 playback_flow:
   - name: "Main Pattern"
     repetitions: 4
-    time_signature: "4/4"
+    subdivision: 4      # 4 for binary (4/4), 3 for ternary (6/8)
     steps: 16
     measures:
       - pattern:
@@ -173,8 +173,8 @@ playback_flow:
 - Array of sections, each with:
   - `name`: Section name (e.g., "Intro", "Verse", "Chorus")
   - `repetitions`: How many times to repeat this section
-  - `time_signature`: "4/4", "6/8", or "12/8"
-  - `steps`: Number of steps per measure (typically 16 for 4/4)
+  - `subdivision`: 3 (Ternary) or 4 (Binary) - Determines visual grouping
+  - `steps`: Number of steps per measure (e.g., 16 for 4/4, 12 for 6/8)
   - `bpm`: (Optional) Override global BPM for this section
   - `tempo_acceleration`: (Optional) Percentage change per repetition
   - `measures`: Array of measures
@@ -240,11 +240,11 @@ This updates `manifest.json` so the application can discover your new content.
 
 ## Pattern Writing Tips
 
-### Time Signatures
+### Meter and Subdivision
 
-- **4/4 (Binary)**: Use 16 steps, subdivision of 4
-- **6/8 (Ternary)**: Use 12 steps, subdivision of 3
-- **12/8**: Use 24 steps, subdivision of 3
+- **Binary (4/4)**: Use 16 steps, subdivision of 4
+- **Ternary (6/8)**: Use 12 steps, subdivision of 3
+- **Compound (12/8)**: Use 24 steps, subdivision of 3
 
 ### Common Patterns
 

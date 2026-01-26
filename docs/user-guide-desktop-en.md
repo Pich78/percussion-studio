@@ -83,8 +83,7 @@ The timeline panel on the left manages your rhythm's structure.
 
 Each section card displays:
 - **Name**: Section identifier
-- **Time Signature**: 4/4 (binary), 6/8 (ternary), or 12/8
-- **Steps**: Number of grid steps (e.g., 16s)
+- **Meter**: Time Signature and Steps (e.g., 4/4 (16))
 - **Repetitions**: How many times this section repeats (e.g., x4)
 - **Tempo**: BPM (amber = custom, gray = global)
 - **Acceleration**: Tempo change per repetition (%)
@@ -113,8 +112,7 @@ At the top of the grid, configure the current section:
 | Setting | Description |
 |---------|-------------|
 | **Name** | Section name (editable text field) |
-| **Time Sig** | Binary (4/4), Ternary (6/8), or 12/8 |
-| **Steps** | Number of steps per measure (4-64) |
+| **Meter** | Combined Time Signature and Steps (e.g., "4/4 (16)") |
 | **Repeats** | How many times section plays (1-99) |
 | **Tempo** | Lock icon toggles global/custom BPM |
 | **Accel/Decel %** | Tempo change per repetition (-10% to +10%) |

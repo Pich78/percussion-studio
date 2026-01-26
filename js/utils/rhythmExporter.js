@@ -110,8 +110,8 @@ export const exportRhythmToYAML = (state) => {
     toque.sections.forEach((section, idx) => {
         yaml += `  - name: "${section.name}"\n`;
         yaml += `    repetitions: ${section.repetitions || 1}\n`;
-        yaml += `    time_signature: "${section.timeSignature}"\n`;
         yaml += `    steps: ${section.steps}\n`;
+        yaml += `    subdivision: ${section.subdivision}\n`;
 
         // Add optional BPM override
         if (section.bpm !== undefined) {
