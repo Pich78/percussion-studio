@@ -17,6 +17,15 @@ export const renderApp = () => {
   } else {
     root.innerHTML = DesktopLayout();
   }
+
+  // Render static playhead when not playing (unified bar across all tracks)
+  // This ensures the playhead remains visible when pausing (state.isPlaying becomes false -> renderApp called)
+  if (!state.isPlaying && state.currentStep >= 0) {
+    // Use setTimeout to ensure DOM is ready
+    setTimeout(() => {
+      updateVisualStep(state.currentStep, state.currentMeasure || 0);
+    }, 0);
+  }
 };
 
 export const refreshGrid = () => {
@@ -47,6 +56,14 @@ export const refreshGrid = () => {
       newScrollContainer.scrollTop = scrollTop;
       newScrollContainer.scrollLeft = scrollLeft;
     }
+
+    // Render static playhead when not playing (unified bar across all tracks)
+    if (!state.isPlaying && state.currentStep >= 0) {
+      // Use setTimeout to ensure DOM is ready
+      setTimeout(() => {
+        updateVisualStep(state.currentStep, state.currentMeasure || 0);
+      }, 0);
+    }
   }
 };
 
@@ -60,47 +77,69 @@ export const updateVisualStep = (step, measureIndex = 0) => {
     el.classList.add('text-gray-500');
   });
 
-  // Get all cells for this measure
-  const cells = document.querySelectorAll(`[data-role="tubs-cell"][data-measure-index="${measureIndex}"]`);
+  // Get the measure container
+  const measureContainer = document.querySelector(`.measure-container[data-measure-index="${measureIndex}"]`);
+  if (!measureContainer) return;
 
-  cells.forEach(cell => {
-    const trackIndex = parseInt(cell.dataset.trackIndex);
-    const cellStepIndex = parseInt(cell.dataset.stepIndex);
+  // Get active section info
+  const activeSection = state?.toque?.sections?.find(s => s.id === state?.activeSectionId);
+  if (!activeSection) return;
 
-    // Get track to determine its subdivision
-    const activeSection = state?.toque?.sections?.find(s => s.id === state?.activeSectionId);
-    if (!activeSection) return;
+  // Find a reference cell to calculate dimensions (use first track, first cell)
+  const referenceCell = measureContainer.querySelector(`[data-role="tubs-cell"][data-step-index="0"]`);
+  if (!referenceCell) return;
 
-    const track = activeSection?.measures?.[measureIndex]?.tracks?.[trackIndex];
-    if (!track) return;
+  // Get the tracks container (parent of all track rows)
+  // Find all track rows - they contain the cells
+  const trackRows = measureContainer.querySelectorAll('.flex.items-center.group');
+  if (trackRows.length === 0) return;
 
-    const trackSteps = track.trackSteps || activeSection.steps;
-    const gridSteps = activeSection.steps;
-    const cellsPerStep = gridSteps / trackSteps;
+  // Calculate cell size from reference cell
+  const gridSteps = activeSection.steps;
+  const cellWidth = referenceCell.offsetWidth;
+  const refTrack = activeSection?.measures?.[measureIndex]?.tracks?.[0];
+  const refTrackSteps = refTrack?.trackSteps || gridSteps;
+  const refCellsPerStep = gridSteps / refTrackSteps;
+  const cellSizePx = cellWidth / refCellsPerStep;
 
-    // Calculate which global steps this cell covers
-    const globalStepStart = cellStepIndex * cellsPerStep;
-    const globalStepEnd = globalStepStart + cellsPerStep - 1;
+  // Calculate the horizontal position for the playhead bar
+  const playheadLeftPx = step * cellSizePx;
 
-    // Check if current step falls within this cell
-    if (step >= globalStepStart && step <= globalStepEnd) {
-      // Calculate offset within the cell
-      const cellWidth = cell.offsetWidth;
-      const cellSizePx = cellWidth / cellsPerStep;
-      const offsetPx = (step - globalStepStart) * cellSizePx;
+  // Get the first and last track row to determine total height and position
+  const firstRow = trackRows[0];
+  const lastRow = trackRows[trackRows.length - 1];
 
-      // Create playhead indicator element
-      const playhead = document.createElement('div');
-      playhead.className = 'playhead-indicator absolute top-0 h-full pointer-events-none z-30';
-      playhead.style.left = `${offsetPx}px`;
-      playhead.style.width = `${cellSizePx}px`;
-      playhead.innerHTML = '<div class="w-full h-full bg-white/25 ring-2 ring-inset ring-white rounded-sm shadow-[0_0_15px_rgba(255,255,255,0.6)]"></div>';
+  // Find the cells container in the first row (the grid area, not the sticky label)
+  const firstCellsContainer = firstRow.querySelector('.flex.bg-gray-900\\/30');
+  if (!firstCellsContainer) return;
 
-      // Ensure cell has relative positioning for the absolute playhead
-      cell.style.position = 'relative';
-      cell.appendChild(playhead);
-    }
-  });
+  // Get positions relative to measure container
+  const measureRect = measureContainer.getBoundingClientRect();
+  const referenceRect = referenceCell.getBoundingClientRect();
+  const firstContainerRect = firstCellsContainer.getBoundingClientRect();
+  const lastContainerRect = lastRow.querySelector('.flex.bg-gray-900\\/30')?.getBoundingClientRect() || firstContainerRect;
+
+  // Calculate the top position and total height of all tracks
+  const topOffset = firstContainerRect.top - measureRect.top;
+  const totalHeight = (lastContainerRect.bottom - firstContainerRect.top);
+
+  // Calculate start position relative to measure container
+  // We use referenceRect.left (the actual cell start) instead of firstContainerRect.left
+  // to implicitly account for any padding on the container (e.g., p-1 class)
+  const startLeft = referenceRect.left - measureRect.left;
+
+  // Create unified playhead bar
+  const playhead = document.createElement('div');
+  playhead.className = 'playhead-indicator absolute pointer-events-none z-30';
+  playhead.style.left = `${startLeft + playheadLeftPx}px`;
+  playhead.style.top = `${topOffset}px`;
+  playhead.style.width = `${cellSizePx}px`;
+  playhead.style.height = `${totalHeight}px`;
+  playhead.innerHTML = '<div class="w-full h-full bg-white/25 ring-2 ring-inset ring-white rounded-sm shadow-[0_0_15px_rgba(255,255,255,0.6)]"></div>';
+
+  // Ensure measure container has relative positioning
+  measureContainer.style.position = 'relative';
+  measureContainer.appendChild(playhead);
 
   // Highlight the step marker in the ruler
   const marker = document.querySelector(`[data-step-marker="${step}"][data-measure-index="${measureIndex}"]`);
