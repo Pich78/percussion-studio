@@ -116,10 +116,10 @@ export const TubsCell = ({
       <!-- Playhead Indicator -->
       ${renderPlayhead()}
 
-      <!-- Guide Number: Visible when empty, hidden when symbol present -->
+      <!-- Guide Number: Visible when empty AND not playing, hidden when symbol present or playing -->
       <div class="
         absolute inset-0 flex items-center justify-center pointer-events-none select-none transition-all duration-200
-        ${isRest ? 'opacity-30' : 'opacity-0 scale-50'}
+        ${isRest && !isPlaying ? 'opacity-30' : 'opacity-0 scale-50'}
       ">
         <span class="${guideNumberSize} font-bold text-slate-400">${guideNumber}</span>
       </div>
