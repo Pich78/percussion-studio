@@ -152,10 +152,32 @@ export const setupDesktopEvents = () => {
         if (action === 'duplicate-section') actions.duplicateSection(target.dataset.id);
 
         if (target.dataset.role === 'tubs-cell') {
+            const section = state.toque.sections.find(s => s.id === state.activeSectionId);
+            const trackIdx = parseInt(target.dataset.trackIndex);
+            const measureIdx = parseInt(target.dataset.measureIndex || 0);
+            const rawStepIdx = parseInt(target.dataset.stepIndex);
+
+            const track = section.measures[measureIdx].tracks[trackIdx];
+
+            let targetStepIdx = rawStepIdx;
+
+            // Snap Input Logic
+            if (track.snapToGrid) {
+                // If snapping is enabled, find the nearest grid line based on the divisor
+                const divisor = track.trackSteps || section.steps;
+                const groupSize = section.steps / divisor;
+
+                // Snap to nearest group start (Floor ensures we stay in current visual block)
+                targetStepIdx = Math.floor(rawStepIdx / groupSize) * groupSize;
+
+                // Clamp
+                if (targetStepIdx >= section.steps) targetStepIdx = section.steps - groupSize; // Or stick to last
+            }
+
             actions.handleUpdateStroke(
-                parseInt(target.dataset.trackIndex),
-                parseInt(target.dataset.stepIndex),
-                parseInt(target.dataset.measureIndex || 0)
+                trackIdx,
+                targetStepIdx,
+                measureIdx
             );
         }
 
@@ -195,6 +217,17 @@ export const setupDesktopEvents = () => {
             const newSteps = validOptions[nextIndex];
 
             actions.updateTrackSteps(trackIdx, measureIdx, newSteps);
+        }
+
+        // Toggle Snap to Grid for subdivision changes
+        if (action === 'toggle-track-snap') {
+            const section = state.toque.sections.find(s => s.id === state.activeSectionId);
+            const trackIdx = parseInt(target.dataset.trackIndex);
+            const measureIdx = parseInt(target.dataset.measureIndex || 0);
+            const track = section.measures[measureIdx].tracks[trackIdx];
+
+            track.snapToGrid = !track.snapToGrid;
+            refreshGrid();
         }
 
         // Modals

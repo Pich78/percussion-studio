@@ -29,35 +29,45 @@ export const TubsCell = ({
   cellSizePx = 40,
   iconSizePx = 32,
   fontSizePx = '0.875rem',
-  trackSteps,
+  divisor, // Visual subdivision divisor
   gridSteps,
-  isPlaying = false
+  isPlaying = false,
+  isSnapOn = false // If true, disable individual cell hover
 }) => {
-  // Calculate how many grid cells this step spans
-  const cellsPerStep = gridSteps / trackSteps;
-  const stepWidthPx = cellSizePx * cellsPerStep;
+  // 1:1 Mapping - One Step = One Cell
+  const stepWidthPx = cellSizePx;
 
-  // Calculate which global steps this elastic cell covers
-  const globalStepStart = stepIndex * cellsPerStep;
-  const globalStepEnd = globalStepStart + cellsPerStep - 1;
+  // Is the playhead exactly on this step?
+  const isPlayheadInCell = currentGlobalStep === stepIndex;
 
-  // Is the playhead currently within this elastic cell?
-  const isPlayheadInCell = currentGlobalStep >= globalStepStart && currentGlobalStep <= globalStepEnd;
-
-  // Position of playhead within this cell (in pixels from left)
-  const playheadOffsetPx = isPlayheadInCell ? (currentGlobalStep - globalStepStart) * cellSizePx : -1;
-
-  // Rhythmic background color
-  const rhythmicBg = getCellBackgroundClass(stepIndex, trackSteps);
+  // Rhythmic background color (visual grouping)
+  const rhythmicBg = getCellBackgroundClass(stepIndex, gridSteps, divisor);
 
   // Guide number for empty cells
-  const guideNumber = getGuideNumber(stepIndex, trackSteps);
-  const guideNumberSize = getGuideNumberSize(trackSteps);
+  const guideNumber = getGuideNumber(stepIndex, gridSteps, divisor);
+  const guideNumberSize = getGuideNumberSize(gridSteps);
 
   const isRest = stroke === StrokeType.None;
 
+  // Determine Border Logic for Visual Grouping
+  let borderClass = 'border-r border-gray-600'; // Default
+
+  if (divisor) {
+    const groupSize = gridSteps / divisor;
+    // Only draw right border if it's the end of a group
+    // Float precision safety
+    const nextIndex = stepIndex + 1;
+    const isGroupEnd = Math.abs((nextIndex % groupSize)) < 0.001 || Math.abs((nextIndex % groupSize) - groupSize) < 0.001;
+
+    if (!isGroupEnd) {
+      borderClass = 'border-r-0'; // Hide internal borders
+      // Optional: Add very subtle separator?
+      // borderClass = 'border-r border-gray-800/30'; 
+    }
+  }
+
   // Base classes
-  const baseClasses = `flex items-center justify-center select-none transition-all duration-75 relative border-r border-gray-600`;
+  const baseClasses = `flex items-center justify-center select-none transition-all duration-75 relative ${borderClass}`;
 
   // First cell gets left border too
   const borderLeft = stepIndex === 0 ? 'border-l border-gray-600' : '';
@@ -66,7 +76,8 @@ export const TubsCell = ({
   const cursorClass = isValid ? "cursor-pointer" : "cursor-not-allowed opacity-50";
 
   // Hover class - more visible highlight when editing
-  const hoverClass = isValid && !isPlaying ? "hover:bg-cyan-500/30 hover:ring-1 hover:ring-cyan-400/50" : "";
+  // If Snap is ON, individual cells should NOT light up (the group handles it)
+  const hoverClass = isValid && !isPlaying && !isSnapOn ? "hover:bg-cyan-500/30 hover:ring-1 hover:ring-cyan-400/50" : "";
 
 
 
@@ -75,27 +86,6 @@ export const TubsCell = ({
   const renderPlayhead = () => {
     // Always return empty - unified bar is rendered at grid level
     return '';
-  };
-
-  // Render subtle step indicator lines within elastic cells
-  const renderStepIndicators = () => {
-    // Only show indicators if this cell spans multiple grid steps
-    if (cellsPerStep <= 1) return '';
-
-    // Create subtle vertical lines for each internal step boundary
-    const indicators = [];
-    for (let i = 1; i < cellsPerStep; i++) {
-      const leftPos = i * cellSizePx;
-      indicators.push(`
-        <div 
-          class="absolute top-0 h-full pointer-events-none z-10"
-          style="left: ${leftPos}px; width: 1px;"
-        >
-          <div class="w-full h-full border-l border-dashed border-gray-500/30"></div>
-        </div>
-      `);
-    }
-    return indicators.join('');
   };
 
   // Data attributes for event delegation
@@ -110,8 +100,6 @@ export const TubsCell = ({
       data-stroke="${stroke}"
       title="${!isValid ? "Stroke not allowed for this instrument" : ""}"
     >
-      <!-- Step Indicator Lines (subtle underlying grid) -->
-      ${renderStepIndicators()}
       
       <!-- Playhead Indicator -->
       ${renderPlayhead()}
