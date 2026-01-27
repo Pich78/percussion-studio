@@ -92,7 +92,7 @@ export const TubsGrid = ({
           { steps: 24, subdivision: 3, label: '6/8 (24)' }
         ];
         const isCustom = !predefinedMeters.some(m => m.steps === section.steps && m.subdivision === section.subdivision);
-        
+
         return `
       <div class="flex flex-col">
          <label class="text-[10px] text-gray-500 uppercase font-bold">Meter</label>
@@ -138,7 +138,7 @@ export const TubsGrid = ({
            title="Steps per group (visual grouping)"
          />
       </div>
-      ` : ''}`; 
+      ` : ''}`;
       })()}
 
       <!-- Repeats -->
@@ -269,6 +269,19 @@ export const TubsGrid = ({
                  >
                    ÷${track.trackSteps || section.steps}
                  </button>
+
+                 <!-- Snap Toggle Button -->
+                 <button
+                   data-action="toggle-track-snap"
+                   data-track-index="${trackIdx}"
+                   data-measure-index="${measureIdx}"
+                   class="px-1.5 py-0.5 rounded text-[10px] font-bold border transition-all ${track.snapToGrid
+            ? 'bg-amber-500/20 text-amber-400 border-amber-500/30 hover:bg-amber-500/30'
+            : 'bg-gray-800 text-gray-500 border-gray-700 hover:text-gray-300'}"
+                   title="Snap to Step: ${track.snapToGrid ? 'ON (Preserve Index)' : 'OFF (Preserve Time)'}"
+                 >
+                    ${track.snapToGrid ? 'S' : 'S'}
+                 </button>
                  ` : ''}
                  <button data-action="toggle-mute" data-track-index="${trackIdx}" data-measure-index="${measureIdx}" class="text-gray-500 hover:text-white" title="${track.muted ? "Unmute" : "Mute"}">
                   ${track.muted ? SpeakerXMarkIcon('w-3.5 h-3.5') : SpeakerWaveIcon('w-3.5 h-3.5')}
@@ -299,29 +312,80 @@ export const TubsGrid = ({
           </div>
 
 
-          <!-- Grid Cells - Elastic steps based on track subdivision -->
+          <!-- Grid Cells - Visual Subdivision Only -->
           <div class="flex bg-gray-900/30 p-1 rounded-r-md ml-1 ${readOnly ? 'pointer-events-none' : ''}">
             ${(() => {
-          const trackSteps = track.trackSteps || section.steps;
-          return track.strokes.slice(0, trackSteps).map((stroke, stepIdx) => {
-            return `
-                  ${TubsCell({
-              stroke,
-              currentGlobalStep: currentStep,
-              isValid: isStrokeValid,
-              trackIndex: trackIdx,
-              stepIndex: stepIdx,
-              measureIndex: measureIdx,
-              instrumentDef: instDef,
-              cellSizePx,
-              iconSizePx,
-              fontSizePx,
-              trackSteps: trackSteps,
-              gridSteps: section.steps,
-              isPlaying: state.isPlaying
-            })}
-                `;
-          }).join('');
+          // Visual Grouping Logic
+          const divisor = track.trackSteps || section.steps;
+          const totalSteps = section.steps;
+
+          if (divisor && divisor <= totalSteps) {
+            // Grouped Mode
+            const groupSize = totalSteps / divisor;
+            const groups = [];
+
+            for (let i = 0; i < divisor; i++) {
+              const startIdx = Math.round(i * groupSize);
+              const endIdx = Math.round((i + 1) * groupSize);
+
+              // Slice steps for this group
+              // We map over the INDICES not the strokes directly to keep global index correct
+              const groupHtml = [];
+              for (let s = startIdx; s < endIdx; s++) {
+                if (s < track.strokes.length) {
+                  groupHtml.push(TubsCell({
+                    stroke: track.strokes[s],
+                    currentGlobalStep: currentStep,
+                    isValid: isStrokeValid,
+                    trackIndex: trackIdx,
+                    stepIndex: s,
+                    measureIndex: measureIdx,
+                    instrumentDef: instDef,
+                    cellSizePx,
+                    iconSizePx,
+                    fontSizePx,
+                    divisor: divisor,
+                    gridSteps: totalSteps,
+                    isPlaying: state.isPlaying,
+                    isSnapOn: track.snapToGrid // Pass snap state
+                  }));
+                }
+              }
+
+              // Group container
+              // Group Hover: Always show on hover (Cyan)
+              // If Snap is ON, this is the only highlight. 
+              // If Snap is OFF, this combines with the cell highlight.
+              const groupHoverClass = 'hover:bg-cyan-500/30 hover:ring-1 hover:ring-cyan-400/50 hover:rounded-sm z-0 hover:z-10 cursor-pointer';
+
+              groups.push(`
+                      <div class="flex ${groupHoverClass} transition-all duration-100">
+                          ${groupHtml.join('')}
+                      </div>
+                  `);
+            }
+            return groups.join('');
+
+          } else {
+            // Fallback / Flat Mode (No divisor or invalid)
+            return track.strokes.map((stroke, stepIdx) => {
+              return TubsCell({
+                stroke,
+                currentGlobalStep: currentStep,
+                isValid: isStrokeValid,
+                trackIndex: trackIdx,
+                stepIndex: stepIdx,
+                measureIndex: measureIdx,
+                instrumentDef: instDef,
+                cellSizePx,
+                iconSizePx,
+                fontSizePx,
+                divisor: divisor, // might be undefined
+                gridSteps: section.steps,
+                isPlaying: state.isPlaying
+              });
+            }).join('');
+          }
         })()}
           </div>
         </div>

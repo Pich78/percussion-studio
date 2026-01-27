@@ -508,18 +508,13 @@ export const actions = {
         if (!measure || !measure.tracks[trackIdx]) return;
 
         const track = measure.tracks[trackIdx];
-        const oldTrackSteps = track.trackSteps || section.steps;
 
-        // Set the new track steps
+        // Update the visual subdivision preference
         track.trackSteps = newTrackSteps;
 
-        // Resize strokes array to match new track steps
-        if (newTrackSteps > track.strokes.length) {
-            const diff = newTrackSteps - track.strokes.length;
-            for (let i = 0; i < diff; i++) track.strokes.push(StrokeType.None);
-        } else {
-            track.strokes.length = newTrackSteps;
-        }
+        // No array resizing or stroke moving! 
+        // Example: If section has 12 steps, and we select '4' (beats), 
+        // we just change the visual grouping. The array stays length 12.
 
         refreshGrid();
     },

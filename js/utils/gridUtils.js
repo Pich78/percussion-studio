@@ -43,7 +43,7 @@ export const getValidInstrumentSteps = (gridSize) => {
 export const getClosestDivisor = (target, gridSize) => {
   const validSteps = getValidInstrumentSteps(gridSize);
   if (validSteps.length === 0) return gridSize;
-  
+
   return validSteps.reduce((prev, curr) => {
     return Math.abs(curr - target) < Math.abs(prev - target) ? curr : prev;
   });
@@ -56,10 +56,39 @@ export const getClosestDivisor = (target, gridSize) => {
  * @param {number} steps - Total steps for this instrument
  * @returns {string} Tailwind CSS class for background
  */
-export const getCellBackgroundClass = (index, steps) => {
-  const STRONG = 'bg-indigo-500/20'; // Primary accent
-  const MEDIUM = 'bg-indigo-500/10'; // Secondary accent
+export const getCellBackgroundClass = (index, steps, divisor = null) => {
+  const STRONG = 'bg-indigo-500/20'; // Primary accent (Beat)
+  const MEDIUM = 'bg-indigo-500/10'; // Secondary accent (Half-beat)
   const WEAK = 'bg-indigo-500/5';    // Subdivision
+
+  // If divisor is provided (Visual Grouping Mode), use it to determine structure
+  if (divisor) {
+    if (divisor > steps) return WEAK; // Should not happen typically
+
+    const groupSize = steps / divisor; // e.g. 12 steps / 4 beats = 3 steps per beat
+
+    // Is this index a beat start?
+    // Floating point check: nearly integer
+    const currentBeat = index / groupSize;
+
+    // Precision tolerance for float division keys
+    if (Math.abs(currentBeat - Math.round(currentBeat)) < 0.001) {
+      // It's a beat start!
+      return STRONG;
+    }
+
+    // If grouping is even length (e.g. 4 steps per beat), allow secondary accent
+    if (groupSize >= 4 && groupSize % 2 === 0) {
+      const midPoint = groupSize / 2;
+      if (Math.abs((index % groupSize) - midPoint) < 0.001) {
+        return MEDIUM;
+      }
+    }
+
+    return WEAK;
+  }
+
+  // Fallback to old heuristic logic if no divisor (Legacy or Global Grid)
 
   // Ternary patterns (3, 6, 12, 24)
   if (steps % 3 === 0 && steps % 4 !== 0) {
@@ -93,7 +122,20 @@ export const getCellBackgroundClass = (index, steps) => {
  * @param {number} steps - Total steps
  * @returns {number} The guide number to display
  */
-export const getGuideNumber = (index, steps) => {
+export const getGuideNumber = (index, steps, divisor = null) => {
+  // Visual Grouping Mode
+  if (divisor) {
+    const groupSize = steps / divisor;
+    const currentBeat = index / groupSize;
+
+    // Use epsilon for float safety
+    if (Math.abs(currentBeat - Math.round(currentBeat)) < 0.001) {
+      return Math.round(currentBeat) + 1;
+    }
+    return ''; // Hide guide numbers inside the block
+  }
+
+  // Fallback (Global Grid)
   // For very few steps, use absolute counting
   if (steps < 6) return index + 1;
 
