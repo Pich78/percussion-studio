@@ -265,9 +265,9 @@ export const TubsGrid = ({
                    class="px-1 py-0.5 bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-400 
                           rounded text-[10px] font-mono font-bold border border-indigo-500/30
                           hover:border-indigo-400/50 transition-all"
-                   title="Subdivision: ${track.trackSteps || section.steps} steps (click to change)"
+                   title="Subdivision: ${track.trackSteps || section.subdivision || 4} steps (click to change)"
                  >
-                   ÷${track.trackSteps || section.steps}
+                   ÷${track.trackSteps || section.subdivision || 4}
                  </button>
 
                  <!-- Snap Toggle Button -->
@@ -316,7 +316,7 @@ export const TubsGrid = ({
           <div class="flex bg-gray-900/30 p-1 rounded-r-md ml-1 ${readOnly ? 'pointer-events-none' : ''}">
             ${(() => {
           // Visual Grouping Logic
-          const divisor = track.trackSteps || section.steps;
+          const divisor = track.trackSteps || section.subdivision || 4;
           const totalSteps = section.steps;
 
           if (divisor && divisor <= totalSteps) {

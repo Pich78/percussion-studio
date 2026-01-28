@@ -164,7 +164,7 @@ export const setupDesktopEvents = () => {
             // Snap Input Logic
             if (track.snapToGrid) {
                 // If snapping is enabled, find the nearest grid line based on the divisor
-                const divisor = track.trackSteps || section.steps;
+                const divisor = track.trackSteps || section.subdivision || 4;
                 const groupSize = section.steps / divisor;
 
                 // Snap to nearest group start (Floor ensures we stay in current visual block)
@@ -210,7 +210,7 @@ export const setupDesktopEvents = () => {
             const measureIdx = parseInt(target.dataset.measureIndex || 0);
             const track = section.measures[measureIdx].tracks[trackIdx];
 
-            const currentSteps = track.trackSteps || section.steps;
+            const currentSteps = track.trackSteps || section.subdivision || 4;
             const validOptions = getValidInstrumentSteps(section.steps);
             const currentIndex = validOptions.indexOf(currentSteps);
             const nextIndex = (currentIndex + 1) % validOptions.length;

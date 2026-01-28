@@ -85,17 +85,10 @@ const scheduleStep = (section, measureIndex, stepIndex, time) => {
     measure.tracks.forEach(track => {
         if (track.muted || track.volume === 0) return;
 
-        // Per-track subdivision: track may have its own step count
-        const trackSteps = track.trackSteps || section.steps;
-
-        // Map global step to track step
-        // e.g., if section=12 steps and track=4 steps, 
-        // global step 0,1,2 → track step 0; step 3,4,5 → track step 1; etc.
-        const stepsPerTrackStep = section.steps / trackSteps;
-        const trackStepIndex = Math.floor(stepIndex / stepsPerTrackStep);
-
-        // Only play on the FIRST global step of each track step
-        const isFirstStepOfTrackStep = (stepIndex % stepsPerTrackStep) === 0;
+        // Always use full resolution for playback
+        // The track.trackSteps property is now strictly visual
+        const trackStepIndex = stepIndex;
+        const isFirstStepOfTrackStep = true;
 
         if (isFirstStepOfTrackStep && trackStepIndex < track.strokes.length) {
             const stroke = track.strokes[trackStepIndex];
