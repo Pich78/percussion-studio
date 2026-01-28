@@ -125,19 +125,7 @@ export const TubsGrid = ({
          />
       </div>
       
-      <!-- Custom Subdivision Input -->
-      <div class="flex flex-col">
-         <label class="text-[10px] text-gray-500 uppercase font-bold">Group</label>
-         <input 
-           type="number"
-           min="1"
-           max="12"
-           value="${section.subdivision}"
-           data-action="update-custom-subdivision"
-           class="bg-gray-900 border border-amber-700 text-xs rounded px-2 py-0.5 text-amber-400 w-14 h-[26px]"
-           title="Steps per group (visual grouping)"
-         />
-      </div>
+
       ` : ''}`;
       })()}
 
