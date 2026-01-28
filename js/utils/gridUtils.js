@@ -7,7 +7,8 @@
 export const GRID_STEP_OPTIONS = [4, 6, 8, 12, 16, 24];
 
 // Valid step options for per-instrument subdivision
-export const INSTRUMENT_STEP_OPTIONS = [2, 3, 4, 6, 8, 12, 16, 24];
+// Valid step options for per-instrument subdivision (Deprecated/Unused: now calculated dynamicall)
+// export const INSTRUMENT_STEP_OPTIONS = [2, 3, 4, 6, 8, 12, 16, 24];
 
 /**
  * Get all divisors of a number
@@ -31,7 +32,8 @@ export const getDivisors = (num) => {
  */
 export const getValidInstrumentSteps = (gridSize) => {
   const divisors = getDivisors(gridSize);
-  return INSTRUMENT_STEP_OPTIONS.filter(step => divisors.includes(step) && step !== gridSize);
+  // Filter out 1 (too granular) and gridSize (1:1 mapping, redundant)
+  return divisors.filter(step => step !== 1 && step !== gridSize);
 };
 
 /**

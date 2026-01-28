@@ -9,7 +9,7 @@ import { INSTRUMENT_COLORS } from '../constants.js'; // Colors still hardcoded f
 import { TubsCell } from './tubsCell.js?v=3';
 import { state } from '../store.js';
 import { dataLoader } from '../services/dataLoader.js'; // To access manifest
-import { getValidInstrumentSteps, getClosestDivisor } from '../utils/gridUtils.js';
+import { getValidInstrumentSteps, getClosestDivisor } from '../utils/gridUtils.js?v=dynamic';
 
 // Icons
 import { SpeakerXMarkIcon } from '../icons/speakerXMarkIcon.js';
