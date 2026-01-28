@@ -31,7 +31,7 @@ export const getDivisors = (num) => {
  */
 export const getValidInstrumentSteps = (gridSize) => {
   const divisors = getDivisors(gridSize);
-  return INSTRUMENT_STEP_OPTIONS.filter(step => divisors.includes(step));
+  return INSTRUMENT_STEP_OPTIONS.filter(step => divisors.includes(step) && step !== gridSize);
 };
 
 /**
