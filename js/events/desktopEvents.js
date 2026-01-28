@@ -6,7 +6,7 @@ import { Controls } from '../components/controls.js';
 import { StrokeType } from '../types.js';
 import { downloadRhythm } from '../utils/rhythmExporter.js';
 import { dataLoader } from '../services/dataLoader.js'; // Import dataLoader
-import { getValidInstrumentSteps } from '../utils/gridUtils.js';
+import { getValidInstrumentSteps } from '../utils/gridUtils.js?v=dynamic';
 
 export const setupDesktopEvents = () => {
     const root = document.getElementById('root');
