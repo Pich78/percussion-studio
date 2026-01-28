@@ -665,6 +665,10 @@ export const setupDesktopEvents = () => {
                 // Set to a default custom value that doesn't match predefined meters
                 section.steps = 5;  // Default custom steps
                 section.subdivision = 5;  // Default custom subdivision
+
+                // Reset all track overrides
+                section.measures.forEach(m => m.tracks.forEach(t => delete t.trackSteps));
+
                 actions.resizeTracks(section);
                 refreshGrid();
                 renderApp();
@@ -673,6 +677,10 @@ export const setupDesktopEvents = () => {
             const [steps, subdivision] = target.value.split('-').map(Number);
             section.steps = steps;
             section.subdivision = subdivision;
+
+            // Reset all track overrides
+            section.measures.forEach(m => m.tracks.forEach(t => delete t.trackSteps));
+
             actions.resizeTracks(section);
             refreshGrid();
             renderApp();
@@ -680,6 +688,10 @@ export const setupDesktopEvents = () => {
         if (action === 'update-custom-steps') {
             const newSteps = Math.max(1, Math.min(64, parseInt(target.value) || 1));
             section.steps = newSteps;
+
+            // Reset all track overrides
+            section.measures.forEach(m => m.tracks.forEach(t => delete t.trackSteps));
+
             actions.resizeTracks(section);
             refreshGrid();
             renderApp();
