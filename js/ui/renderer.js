@@ -95,12 +95,8 @@ export const updateVisualStep = (step, measureIndex = 0) => {
   if (trackRows.length === 0) return;
 
   // Calculate cell size from reference cell
-  const gridSteps = activeSection.steps;
-  const cellWidth = referenceCell.offsetWidth;
-  const refTrack = activeSection?.measures?.[measureIndex]?.tracks?.[0];
-  const refTrackSteps = refTrack?.trackSteps || gridSteps;
-  const refCellsPerStep = gridSteps / refTrackSteps;
-  const cellSizePx = cellWidth / refCellsPerStep;
+  // We strictly enforce 1 cell = 1 step visually
+  const cellSizePx = referenceCell.offsetWidth;
 
   // Calculate the horizontal position for the playhead bar
   const playheadLeftPx = step * cellSizePx;
