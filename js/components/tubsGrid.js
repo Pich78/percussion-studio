@@ -91,7 +91,7 @@ export const TubsGrid = ({
           { steps: 12, subdivision: 3, label: '6/8 (12)' },
           { steps: 24, subdivision: 3, label: '6/8 (24)' }
         ];
-        const isCustom = !predefinedMeters.some(m => m.steps === section.steps && m.subdivision === section.subdivision);
+        const isCustom = section.isCustomOverride || !predefinedMeters.some(m => m.steps === section.steps && m.subdivision === section.subdivision);
 
         return `
       <div class="flex flex-col">

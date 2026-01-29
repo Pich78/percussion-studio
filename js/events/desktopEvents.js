@@ -6,7 +6,7 @@ import { Controls } from '../components/controls.js';
 import { StrokeType } from '../types.js';
 import { downloadRhythm } from '../utils/rhythmExporter.js';
 import { dataLoader } from '../services/dataLoader.js'; // Import dataLoader
-import { getValidInstrumentSteps } from '../utils/gridUtils.js?v=dynamic';
+import { getValidInstrumentSteps, getClosestDivisor } from '../utils/gridUtils.js?v=dynamic';
 
 export const setupDesktopEvents = () => {
     const root = document.getElementById('root');
@@ -661,10 +661,10 @@ export const setupDesktopEvents = () => {
             // Parse meter value: "steps-subdivision" e.g. "16-4" or "12-3"
             // If 'custom' is selected, just re-render to show custom input fields
             if (target.value === 'custom') {
-                // Don't change anything yet - just re-render to show inputs
-                // Set to a default custom value that doesn't match predefined meters
-                section.steps = 5;  // Default custom steps
-                section.subdivision = 5;  // Default custom subdivision
+                // Set to default 16 (4/4) as requested
+                section.steps = 16;
+                section.subdivision = 4;
+                section.isCustomOverride = true; // Force inputs to show
 
                 // Reset all track overrides
                 section.measures.forEach(m => m.tracks.forEach(t => delete t.trackSteps));
@@ -677,6 +677,7 @@ export const setupDesktopEvents = () => {
             const [steps, subdivision] = target.value.split('-').map(Number);
             section.steps = steps;
             section.subdivision = subdivision;
+            section.isCustomOverride = false; // Reset override on preset select
 
             // Reset all track overrides
             section.measures.forEach(m => m.tracks.forEach(t => delete t.trackSteps));
@@ -689,7 +690,11 @@ export const setupDesktopEvents = () => {
             const newSteps = Math.max(1, Math.min(64, parseInt(target.value) || 1));
             section.steps = newSteps;
 
-            // Reset all track overrides
+            // Calculate a valid subdivision for the new step count
+            // We favor keeping it close to 4 (quarter note feel) if possible
+            section.subdivision = getClosestDivisor(4, newSteps);
+
+            // Reset all track overrides to ensure they use the new valid subdivision
             section.measures.forEach(m => m.tracks.forEach(t => delete t.trackSteps));
 
             actions.resizeTracks(section);
