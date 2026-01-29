@@ -1,0 +1,28 @@
+name: "Latopa 2 part Base"
+global_bpm: 110
+is_bata: true
+orisha:
+  - "Eleggua"
+classification: "Specific"
+
+sound_kit:
+  oko:
+    instrument: "OKO"
+    pack: "cp_bata_chaworo"
+  ito:
+    instrument: "ITO"
+    pack: "cp_bata_chaworo"
+  iya:
+    instrument: "IYA"
+    pack: "cp_bata_chaworo"
+
+playback_flow:
+  - name: "Base"
+    repetitions: 1
+    steps: 24
+    subdivision: 3
+    measures:
+      - pattern:
+          oko: "||S--|-O-|S--|-O-|S--|-O-|S--|-O-||"
+          ito: "||P-S|---|P-S|---|P-R|---|O-S|---||"
+          iya: "||S-M|-O-|S-M|-O-|S-S|---|S-M|-O-||"
