@@ -6,6 +6,18 @@ import { DesktopLayout } from './desktop/layout.js';
 const root = document.getElementById('root');
 
 export const renderApp = () => {
+  // Capture focus state before rendering
+  const activeElement = document.activeElement;
+  let focusId = null;
+  let selectionStart = 0;
+  let selectionEnd = 0;
+
+  if (activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA') && root.contains(activeElement)) {
+    focusId = activeElement.id;
+    selectionStart = activeElement.selectionStart;
+    selectionEnd = activeElement.selectionEnd;
+  }
+
   if (!state.toque) {
     root.innerHTML = '<div class="flex h-full items-center justify-center text-gray-500">Loading Rhythm...</div>';
     return;
@@ -16,6 +28,22 @@ export const renderApp = () => {
     root.innerHTML = MobileLayout();
   } else {
     root.innerHTML = DesktopLayout();
+  }
+
+  // Restore focus if applicable
+  if (focusId) {
+    const newActiveElement = document.getElementById(focusId);
+    if (newActiveElement) {
+      newActiveElement.focus();
+      // Restore cursor position for text inputs
+      if (typeof newActiveElement.setSelectionRange === 'function') {
+        try {
+          newActiveElement.setSelectionRange(selectionStart, selectionEnd);
+        } catch (e) {
+          // Ignore errors for inputs that don't support selection (e.g. number)
+        }
+      }
+    }
   }
 
   // Render static playhead when not playing (unified bar across all tracks)
