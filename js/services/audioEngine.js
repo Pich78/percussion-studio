@@ -6,6 +6,7 @@
 */
 
 import { StrokeType } from '../types.js';
+import { isBataDrum, emulateStroke } from './bataEmulation.js';
 
 class AudioEngine {
     constructor() {
@@ -170,118 +171,7 @@ class AudioEngine {
         console.log(`🔊 Loaded samples for ${symbol}`);
     }
 
-    /**
-     * Check if an instrument is a Batá drum
-     */
-    isBataDrum(instrumentSymbol) {
-        return ['IYA', 'ITO', 'OKO'].includes(instrumentSymbol);
-    }
 
-    /**
-     * Play a sound with shortened duration (for Presionado emulation)
-     * @param {AudioBuffer} buffer
-     * @param {number} time - Absolute audio context time
-     * @param {string} symbol - Instrument symbol for routing through instrument gain
-     * @param {number} volume - Track-level volume multiplier
-     * @param {number} cutRatio - Fraction of buffer to play
-     */
-    playShortenedSound(buffer, time, symbol, volume = 1.0, cutRatio = 0.08) {
-        const playTime = Math.max(time, this.ctx.currentTime);
-
-        const source = this.ctx.createBufferSource();
-        source.buffer = buffer;
-
-        // Per-note gain for track volume
-        const noteGain = this.ctx.createGain();
-        noteGain.gain.value = volume;
-
-        // Route: Source -> NoteGain -> InstrumentGain -> MasterGain
-        const instrumentGain = this.getInstrumentGain(symbol);
-        source.connect(noteGain);
-        noteGain.connect(instrumentGain);
-
-        source.start(playTime);
-        source.stop(playTime + (buffer.duration * cutRatio));
-    }
-
-    /**
-     * Play multiple sounds layered together
-     * @param {AudioBuffer[]} buffers
-     * @param {number} time - Absolute audio context time
-     * @param {string} symbol - Instrument symbol
-     * @param {number} volume - Track-level volume
-     */
-    playLayeredSounds(buffers, time, symbol, volume = 1.0) {
-        const playTime = Math.max(time, this.ctx.currentTime);
-        const instrumentGain = this.getInstrumentGain(symbol);
-
-        buffers.forEach(buffer => {
-            if (!buffer) return;
-
-            const source = this.ctx.createBufferSource();
-            source.buffer = buffer;
-
-            const noteGain = this.ctx.createGain();
-            noteGain.gain.value = volume;
-
-            source.connect(noteGain);
-            noteGain.connect(instrumentGain);
-
-            source.start(playTime);
-        });
-    }
-
-    /**
-     * Emulate missing Batá drum sounds using available samples
-     * @param {string} instrumentSymbol
-     * @param {string} stroke
-     * @param {number} time - Absolute audio context time
-     * @param {number} volume
-     */
-    emulateStroke(instrumentSymbol, stroke, time, volume) {
-        const instBuffers = this.buffers[instrumentSymbol];
-        if (!instBuffers) return;
-
-        const openBuffer = instBuffers['O'];
-        const slapBuffer = instBuffers['S'];
-        const presionadoBuffer = instBuffers['P'];
-
-        switch (stroke) {
-            case 'R': // Mordito = Slap + Open
-                if (slapBuffer && openBuffer) {
-                    this.playLayeredSounds([slapBuffer, openBuffer], time, instrumentSymbol, volume);
-                }
-                break;
-
-            case 'P': // Presionado = Shortened Open
-                if (openBuffer) {
-                    this.playShortenedSound(openBuffer, time, instrumentSymbol, volume, 0.08);
-                }
-                break;
-
-            case 'H': // Half Mordito = Slap + Presionado
-                if (slapBuffer) {
-                    if (presionadoBuffer) {
-                        this.playLayeredSounds([slapBuffer, presionadoBuffer], time, instrumentSymbol, volume);
-                    } else if (openBuffer) {
-                        // Play slap normally
-                        const playTime = Math.max(time, this.ctx.currentTime);
-                        const source = this.ctx.createBufferSource();
-                        source.buffer = slapBuffer;
-                        const noteGain = this.ctx.createGain();
-                        noteGain.gain.value = volume;
-                        const instrumentGain = this.getInstrumentGain(instrumentSymbol);
-                        source.connect(noteGain);
-                        noteGain.connect(instrumentGain);
-                        source.start(playTime);
-
-                        // Play shortened open
-                        this.playShortenedSound(openBuffer, time, instrumentSymbol, volume, 0.08);
-                    }
-                }
-                break;
-        }
-    }
 
     /**
      * Plays a specific stroke for an instrument at a SCHEDULED TIME.
@@ -312,8 +202,9 @@ class AudioEngine {
         const buffer = instBuffers[strokeKey];
         if (!buffer) {
             // Try emulation for Batá drums
-            if (this.isBataDrum(instrumentSymbol)) {
-                this.emulateStroke(instrumentSymbol, strokeKey, time, volume);
+            if (isBataDrum(instrumentSymbol)) {
+                const instrumentGain = this.getInstrumentGain(instrumentSymbol);
+                emulateStroke(this.ctx, instBuffers, strokeKey, time, instrumentGain, volume);
                 return;
             }
             return;
