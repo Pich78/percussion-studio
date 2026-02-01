@@ -3,17 +3,14 @@
   Actions for loading and creating rhythms.
 */
 
-import { state, playback } from '../store.js';
-import { renderApp } from '../ui/renderer.js';
+import { state } from '../store.js';
 import { stopPlayback } from '../services/sequencer.js';
 import { audioEngine } from '../services/audioEngine.js';
 import { dataLoader } from '../services/dataLoader.js';
-import { StrokeType } from '../types.js';
 import {
     buildRuntimeSections,
     buildToqueState
 } from '../utils/rhythmTransformers.js';
-import { parsePatternString } from '../utils/patternParser.js';
 import { getExplorerRhythmMeta } from '../store/stateSelectors.js';
 import { updateActiveSection } from './sectionActions.js';
 
