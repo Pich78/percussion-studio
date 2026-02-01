@@ -138,14 +138,9 @@ export const handleTrackStepsChange = (target) => {
 /**
  * Handle stroke selection
  * @param {HTMLElement} target - The stroke button element
- * @param {Function} Controls - The Controls component function
  */
-export const handleSelectStroke = (target, Controls) => {
+export const handleSelectStroke = (target) => {
     state.selectedStroke = target.dataset.stroke;
-    const controlsContainer = document.querySelector('#root > div > div:last-child');
-    if (controlsContainer && Controls) {
-        controlsContainer.outerHTML = Controls({ selectedStroke: state.selectedStroke });
-    }
     refreshGrid();
 };
 
@@ -158,8 +153,7 @@ export const handleClearPattern = () => {
         section.measures.forEach(measure => {
             measure.tracks.forEach(t => t.strokes.fill(StrokeType.None));
         });
-        const { stopPlayback } = require('../../services/sequencer.js');
-        stopPlayback();
         refreshGrid();
     }
 };
+
