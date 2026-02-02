@@ -18,14 +18,14 @@ import { XMarkIcon } from '../../icons/xMarkIcon.js';
  * @returns {string} HTML string
  */
 const renderInstrumentList = (selectedInstrument) => {
-    if (!dataLoader.manifest || !dataLoader.manifest.instruments) {
-        return '<div class="text-center text-gray-500 py-8">Loading instruments...</div>';
-    }
+  if (!dataLoader.manifest || !dataLoader.manifest.instruments) {
+    return '<div class="text-center text-gray-500 py-8">Loading instruments...</div>';
+  }
 
-    return Object.keys(dataLoader.manifest.instruments).map(symbol => {
-        const colorClass = INSTRUMENT_COLORS[symbol] || 'border-gray-700';
-        const isSelected = selectedInstrument === symbol;
-        return `
+  return Object.keys(dataLoader.manifest.instruments).map(symbol => {
+    const colorClass = INSTRUMENT_COLORS[symbol] || 'border-gray-700';
+    const isSelected = selectedInstrument === symbol;
+    return `
             <button
               data-action="select-instrument"
               data-instrument="${symbol}"
@@ -33,13 +33,13 @@ const renderInstrumentList = (selectedInstrument) => {
                 flex items-center gap-3 px-3 py-2 rounded-lg border bg-gray-900/50 hover:bg-gray-800 transition-all text-left
                 ${colorClass}
                 border-l-[6px]
-                ${isSelected ? 'ring-2 ring-cyan-400 bg-gray-800' : ''}
+                ${isSelected ? 'ring-2 ring-amber-400 bg-amber-900/30' : ''}
               "
             >
-              <span class="font-medium ${isSelected ? 'text-cyan-400' : 'text-gray-200'} pointer-events-none">${state.instrumentDefinitions[symbol]?.name || symbol}</span>
+              <span class="font-medium ${isSelected ? 'text-amber-300' : 'text-gray-200'} pointer-events-none">${state.instrumentDefinitions[symbol]?.name || symbol}</span>
             </button>
           `;
-    }).join('');
+  }).join('');
 };
 
 /**
@@ -49,30 +49,30 @@ const renderInstrumentList = (selectedInstrument) => {
  * @returns {string} HTML string
  */
 const renderSoundPackList = (selectedInstrument, selectedPack) => {
-    if (!selectedInstrument) {
-        return '<div class="text-center text-gray-500 py-8">Select an instrument to view sound packs</div>';
-    }
+  if (!selectedInstrument) {
+    return '<div class="text-center text-gray-500 py-8">Select an instrument to view sound packs</div>';
+  }
 
-    if (!dataLoader.manifest || !dataLoader.manifest.sound_packs) {
-        return '<div class="text-center text-gray-500">No sound packs found.</div>';
-    }
+  if (!dataLoader.manifest || !dataLoader.manifest.sound_packs) {
+    return '<div class="text-center text-gray-500">No sound packs found.</div>';
+  }
 
-    return Object.keys(dataLoader.manifest.sound_packs).map(pack => {
-        const isSelected = selectedPack === pack;
-        return `
+  return Object.keys(dataLoader.manifest.sound_packs).map(pack => {
+    const isSelected = selectedPack === pack;
+    return `
             <button
               data-action="select-sound-pack"
               data-pack="${pack}"
               class="
                 flex items-center gap-3 px-3 py-3 rounded-lg border bg-gray-900/50 hover:bg-gray-800 transition-all text-left
-                ${isSelected ? 'ring-2 ring-cyan-400 bg-gray-800 border-cyan-400' : 'border-gray-700 hover:border-amber-500 hover:shadow-[0_0_10px_rgba(245,158,11,0.2)]'}
+                ${isSelected ? 'ring-2 ring-amber-400 bg-amber-900/30 border-amber-400' : 'border-gray-700 hover:border-amber-500 hover:shadow-[0_0_10px_rgba(245,158,11,0.2)]'}
               "
             >
-              ${SpeakerWaveIcon(`w-5 h-5 ${isSelected ? 'text-cyan-400' : 'text-gray-500'}`)}
-              <span class="font-medium ${isSelected ? 'text-cyan-400' : 'text-gray-200'} pointer-events-none">${pack}</span>
+              ${SpeakerWaveIcon(`w-5 h-5 ${isSelected ? 'text-amber-300' : 'text-gray-500'}`)}
+              <span class="font-medium ${isSelected ? 'text-amber-300' : 'text-gray-200'} pointer-events-none">${pack}</span>
             </button>
           `;
-    }).join('');
+  }).join('');
 };
 
 /**
@@ -81,11 +81,11 @@ const renderSoundPackList = (selectedInstrument, selectedPack) => {
  * @returns {string} HTML string
  */
 export const InstrumentModal = (uiState) => {
-    const title = uiState.editingTrackIndex !== null ? 'Change Instrument' : 'Add Instrument';
-    const selectedInstrument = uiState.pendingInstrument;
-    const selectedPack = uiState.pendingSoundPack;
+  const title = uiState.editingTrackIndex !== null ? 'Change Instrument' : 'Add Instrument';
+  const selectedInstrument = uiState.pendingInstrument;
+  const selectedPack = uiState.pendingSoundPack;
 
-    const content = `
+  const content = `
         <div class="p-6 grid grid-cols-2 gap-6 overflow-y-auto max-h-[60vh]">
           <!-- Left Column: Instruments -->
           <div class="border-r border-gray-800 pr-4">
@@ -105,9 +105,9 @@ export const InstrumentModal = (uiState) => {
         </div>
       `;
 
-    const canConfirm = uiState.pendingInstrument && uiState.pendingSoundPack;
+  const canConfirm = uiState.pendingInstrument && uiState.pendingSoundPack;
 
-    return `
+  return `
       <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" data-action="close-modal-bg">
           <div class="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl max-w-4xl w-full flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
               <div class="p-4 border-b border-gray-800 flex justify-between items-center bg-gray-950">
@@ -132,8 +132,8 @@ export const InstrumentModal = (uiState) => {
                     data-action="confirm-instrument-selection"
                     class="px-4 py-2 rounded font-medium transition-all
                       ${canConfirm
-            ? 'bg-cyan-600 hover:bg-cyan-500 text-white cursor-pointer'
-            : 'bg-gray-700 text-gray-500 cursor-not-allowed opacity-50'}"
+      ? 'bg-cyan-600 hover:bg-cyan-500 text-white cursor-pointer'
+      : 'bg-gray-700 text-gray-500 cursor-not-allowed opacity-50'}"
                     ${!canConfirm ? 'disabled' : ''}
                 >
                     OK

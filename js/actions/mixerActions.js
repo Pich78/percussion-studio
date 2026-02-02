@@ -55,8 +55,9 @@ export const setGlobalVolume = (instrumentSymbol, volume) => {
         });
     }
 
-    // 3. Refresh Grid ONLY if mute state changed (to update visual opacity/strikethrough)
-    if (muteChanged) {
+    // 3. Refresh Grid ONLY if mute state changed AND not currently dragging
+    // (Dragging will refresh on mouseup to avoid breaking the drag)
+    if (muteChanged && !window.__volumeDragging) {
         refreshGrid();
     }
 };

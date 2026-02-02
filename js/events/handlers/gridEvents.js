@@ -121,7 +121,23 @@ export const handleVolumeInput = (target) => {
     const track = section.measures[mIdx].tracks[tIdx];
     const newVolume = parseFloat(target.value);
 
+    // Update state and audio engine
     actions.setGlobalVolume(track.instrument, newVolume);
+
+    // Direct DOM update for immediate visual feedback (no re-render needed)
+    const container = target.closest('.group\\/vol');
+    if (container) {
+        const percentage = Math.round(newVolume * 100);
+        // Update fill bar
+        const fillBar = container.querySelector('div[class*="bg-gradient"]');
+        if (fillBar) fillBar.style.width = `${percentage}%`;
+        // Update handle position
+        const handle = container.querySelector('div[class*="bg-white"]');
+        if (handle) handle.style.left = `calc(${percentage}% - 6px)`;
+        // Update percentage text
+        const percentLabel = container.querySelector('span[class*="font-mono"]');
+        if (percentLabel) percentLabel.textContent = `${percentage}%`;
+    }
 };
 
 /**
