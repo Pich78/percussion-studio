@@ -131,11 +131,11 @@ export const handleVolumeInput = (target) => {
         // Update fill bar
         const fillBar = container.querySelector('div[class*="bg-gradient"]');
         if (fillBar) fillBar.style.width = `${percentage}%`;
-        // Update handle position
+        // Update handle position (8px offset for 4x4 handle)
         const handle = container.querySelector('div[class*="bg-white"]');
-        if (handle) handle.style.left = `calc(${percentage}% - 6px)`;
+        if (handle) handle.style.left = `calc(${percentage}% - 8px)`;
         // Update percentage text
-        const percentLabel = container.querySelector('span[class*="font-mono"]');
+        const percentLabel = container.querySelector('span[class*="font-medium"]');
         if (percentLabel) percentLabel.textContent = `${percentage}%`;
     }
 };
