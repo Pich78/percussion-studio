@@ -24,14 +24,53 @@ export const handleOpenAddModal = async () => {
 };
 
 /**
- * Handle open edit instrument modal
+ * Handle open edit instrument modal (pre-selects instrument only)
  * @param {HTMLElement} target - The edit button element
  */
 export const handleOpenEditModal = async (target) => {
-    state.uiState.editingTrackIndex = parseInt(target.dataset.trackIndex);
+    const trackIdx = parseInt(target.dataset.trackIndex);
+    const measureIdx = parseInt(target.dataset.measureIndex || 0);
+    state.uiState.editingTrackIndex = trackIdx;
     state.uiState.modalType = 'instrument';
-    state.uiState.pendingInstrument = null;
-    state.uiState.pendingSoundPack = null;
+
+    // Pre-select current instrument only (NOT pack) - user can pick new pack
+    const section = state.toque?.sections.find(s => s.id === state.activeSectionId);
+    const track = section?.measures[measureIdx]?.tracks[trackIdx];
+    if (track) {
+        state.uiState.pendingInstrument = track.instrument;
+        state.uiState.pendingSoundPack = null; // Don't pre-select pack
+    } else {
+        state.uiState.pendingInstrument = null;
+        state.uiState.pendingSoundPack = null;
+    }
+
+    state.uiState.modalOpen = true;
+
+    await preloadInstrumentDefinitions();
+    refreshGrid();
+};
+
+/**
+ * Handle open pack modal (pre-selects both instrument AND pack)
+ * @param {HTMLElement} target - The pack button element
+ */
+export const handleOpenPackModal = async (target) => {
+    const trackIdx = parseInt(target.dataset.trackIndex);
+    const measureIdx = parseInt(target.dataset.measureIndex || 0);
+    state.uiState.editingTrackIndex = trackIdx;
+    state.uiState.modalType = 'instrument';
+
+    // Pre-select both instrument AND pack - shows current selection
+    const section = state.toque?.sections.find(s => s.id === state.activeSectionId);
+    const track = section?.measures[measureIdx]?.tracks[trackIdx];
+    if (track) {
+        state.uiState.pendingInstrument = track.instrument;
+        state.uiState.pendingSoundPack = track.pack;
+    } else {
+        state.uiState.pendingInstrument = null;
+        state.uiState.pendingSoundPack = null;
+    }
+
     state.uiState.modalOpen = true;
 
     await preloadInstrumentDefinitions();

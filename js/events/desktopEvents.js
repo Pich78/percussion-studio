@@ -58,6 +58,7 @@ const createActionRouter = () => {
         // Modals
         'open-add-modal': () => modalHandlers.handleOpenAddModal(),
         'open-edit-modal': (e, target) => modalHandlers.handleOpenEditModal(target),
+        'open-pack-modal': (e, target) => modalHandlers.handleOpenPackModal(target),
         'close-modal': () => modalHandlers.handleCloseModal(),
         'close-modal-bg': (e, target) => { if (e.target === target) modalHandlers.handleCloseModal(); },
         'select-instrument': (e, target) => modalHandlers.handleSelectInstrument(target),
@@ -174,6 +175,63 @@ export const setupDesktopEvents = () => {
         const target = e.target.closest('[data-role="tubs-cell"]');
         if (target) {
             handleTubsCellRightClick(e, target);
+        }
+    });
+
+    // Volume slider drag tracking (document-level for consistent drag)
+    let activeVolumeSlider = null;
+    let activeVolumeContainer = null;
+    let activeVolumeInput = null;
+
+    // Use capture phase to intercept before native range input behavior
+    root.addEventListener('mousedown', (e) => {
+        // Target the entire slider container for easier clicking
+        const container = e.target.closest('.group\\/vol');
+        if (!container) return;
+
+        const input = container.querySelector('input[data-action="update-volume"]');
+        if (!input) return;
+
+        activeVolumeContainer = container;
+        activeVolumeInput = input;
+
+        // Set global flag to prevent refreshGrid during drag
+        window.__volumeDragging = true;
+
+        // Immediately calculate and update position on first click
+        const rect = container.getBoundingClientRect();
+        let percentage = (e.clientX - rect.left) / rect.width;
+        percentage = Math.max(0, Math.min(1, percentage));
+        input.value = percentage;
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+
+        // Prevent text selection and native range behavior
+        e.preventDefault();
+        e.stopPropagation();
+    }, true); // Capture phase
+
+    document.addEventListener('mousemove', (e) => {
+        if (!activeVolumeInput || !activeVolumeContainer) return;
+
+        const rect = activeVolumeContainer.getBoundingClientRect();
+        let percentage = (e.clientX - rect.left) / rect.width;
+        percentage = Math.max(0, Math.min(1, percentage));
+
+        // Update the input value
+        activeVolumeInput.value = percentage;
+
+        // Trigger the input event to update state and visuals
+        activeVolumeInput.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+
+    document.addEventListener('mouseup', () => {
+        if (activeVolumeInput) {
+            // Clear drag state
+            window.__volumeDragging = false;
+            activeVolumeInput = null;
+            activeVolumeContainer = null;
+            // Refresh grid to sync any mute state changes that were deferred
+            refreshGrid();
         }
     });
 
