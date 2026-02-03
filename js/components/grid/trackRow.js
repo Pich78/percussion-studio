@@ -56,7 +56,8 @@ const renderTrackCells = ({
   cellSizePx,
   iconSizePx,
   fontSizePx,
-  readOnly
+  readOnly,
+  selectedStroke
 }) => {
   const divisor = track.trackSteps || section.subdivision || 4;
   const totalSteps = section.steps;
@@ -87,7 +88,8 @@ const renderTrackCells = ({
             divisor: divisor,
             gridSteps: totalSteps,
             isPlaying: state.isPlaying,
-            isSnapOn: track.snapToGrid
+            isSnapOn: track.snapToGrid,
+            selectedStroke
           }));
         }
       }
@@ -117,7 +119,8 @@ const renderTrackCells = ({
         fontSizePx,
         divisor: divisor,
         gridSteps: section.steps,
-        isPlaying: state.isPlaying
+        isPlaying: state.isPlaying,
+        selectedStroke
       });
     }).join('');
   }
@@ -244,7 +247,8 @@ export const TrackRow = ({
       cellSizePx,
       iconSizePx,
       fontSizePx,
-      readOnly
+      readOnly,
+      selectedStroke
     })}
           </div>
         </div>

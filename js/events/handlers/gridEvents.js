@@ -8,6 +8,7 @@ import { refreshGrid, renderApp } from '../../ui/renderer.js';
 import { actions } from '../../actions.js';
 import { StrokeType } from '../../types.js';
 import { getValidInstrumentSteps } from '../../utils/gridUtils.js';
+import { updateGlobalCursor } from '../../utils/strokeCursors.js';
 
 /**
  * Handle cell click (update stroke)
@@ -157,6 +158,7 @@ export const handleTrackStepsChange = (target) => {
  */
 export const handleSelectStroke = (target) => {
     state.selectedStroke = target.dataset.stroke;
+    updateGlobalCursor(state.selectedStroke);
     renderApp();
 };
 
