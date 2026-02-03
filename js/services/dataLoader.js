@@ -18,7 +18,7 @@ class DataLoaderService {
      */
     async init() {
         try {
-            const response = await fetch(this.MANIFEST_URL);
+            const response = await fetch(this.MANIFEST_URL, { cache: 'no-store' });
             if (!response.ok) throw new Error(`Failed to load manifest: ${response.status}`);
             this.manifest = await response.json();
             console.log('✅ Manifest loaded:', this.manifest);
@@ -43,7 +43,7 @@ class DataLoaderService {
                 console.log(`[DataLoader] Fetching YAML from: ${url}`);
             }
 
-            const response = await fetch(url);
+            const response = await fetch(url, { cache: 'no-store' });
 
             if (!response.ok) throw new Error(`HTTP ${response.status} for ${url}`);
             const text = await response.text();
@@ -145,7 +145,7 @@ class DataLoaderService {
         // Always fetch fresh data - no caching
         try {
             const url = 'data/rhythms/Batà/bata_metadata.json';
-            const response = await fetch(url);
+            const response = await fetch(url, { cache: 'no-store' });
 
             if (!response.ok) throw new Error(`HTTP ${response.status} for ${url}`);
 
