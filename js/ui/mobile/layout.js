@@ -54,7 +54,18 @@ const renderHeader = (activeSection) => {
                   <span class="text-[8px] font-bold text-gray-500 uppercase tracking-wider">Global</span>
                   <span class="text-[10px] font-mono font-bold text-cyan-400" id="header-global-bpm">${state.toque.globalBpm} <span class="text-[8px] text-gray-600">BPM</span></span>
               </div>
-              <input type="range" min="40" max="240" value="${state.toque.globalBpm}" data-action="update-global-bpm" class="w-24 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-500 hover:accent-cyan-400" />
+              <!-- BPM Slider with Handle (matching volume slider style) -->
+              <div class="relative w-20 h-4 flex items-center group/bpm cursor-pointer">
+                <!-- Background track -->
+                <div class="absolute left-0 right-0 h-1.5 bg-gray-700 rounded-full cursor-pointer"></div>
+                <!-- Fill bar (cyan gradient) -->
+                <div class="absolute left-0 h-1.5 bg-gradient-to-r from-cyan-600 to-cyan-400 rounded-full cursor-pointer" style="width: ${((state.toque.globalBpm - 40) / 200) * 100}%"></div>
+                <!-- Handle -->
+                <div class="absolute w-3 h-3 bg-white rounded-full shadow-md border border-cyan-400 cursor-pointer z-[15]" style="left: calc(${((state.toque.globalBpm - 40) / 200) * 100}% - 6px)"></div>
+                <!-- Range input (invisible but captures interactions) -->
+                <input type="range" min="40" max="240" value="${state.toque.globalBpm}" data-action="update-global-bpm" 
+                  class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" />
+              </div>
             </div>
             ${(() => {
       const subdivision = activeSection?.subdivision || 4;
