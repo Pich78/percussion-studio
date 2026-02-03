@@ -84,10 +84,9 @@ const preloadInstrumentDefinitions = async () => {
     const manifest = dataLoader.manifest;
     if (manifest && manifest.instruments) {
         for (const symbol of Object.keys(manifest.instruments)) {
-            if (!state.instrumentDefinitions[symbol]) {
-                const instDef = await dataLoader.loadInstrumentDefinition(symbol);
-                state.instrumentDefinitions[symbol] = instDef;
-            }
+            // Always reload instrument definitions to ensure freshness
+            const instDef = await dataLoader.loadInstrumentDefinition(symbol);
+            state.instrumentDefinitions[symbol] = instDef;
         }
         refreshGrid();
     }
@@ -156,7 +155,12 @@ export const handleToggleFolder = (target) => {
         state.uiState.modalOpen = false;
         state.uiState.bataExplorer.isOpen = true;
 
-        if (!state.uiState.bataExplorer.metadata) {
+        // In development, always reload metadata to pick up changes
+        const shouldReload = !state.uiState.bataExplorer.metadata ||
+            (typeof window !== 'undefined' && window.location.hostname === 'localhost');
+
+        if (shouldReload) {
+            state.uiState.bataExplorer.metadata = null; // Clear cached state
             dataLoader.loadBataMetadata().then(metadata => {
                 state.uiState.bataExplorer.metadata = metadata;
                 renderApp();
