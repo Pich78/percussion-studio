@@ -229,7 +229,13 @@ export const setupMobileEvents = () => {
             const section = state.toque?.sections.find(s => s.id === state.activeSectionId);
             if (!section?.bpm) playback.currentPlayheadBpm = state.toque.globalBpm;
             const display = document.getElementById('header-global-bpm');
-            if (display) display.innerHTML = `${state.toque.globalBpm} <span class="text-[9px] text-gray-600">BPM</span>`;
+            if (display) display.innerHTML = `${state.toque.globalBpm} <span class="text-[8px] text-gray-600">BPM</span>`;
+
+            // Direct DOM update for BPM slider visual feedback
+            const bpmContainer = target.closest('.group\\/bpm');
+            if (bpmContainer) {
+                updateBpmSliderVisuals(bpmContainer, state.toque.globalBpm);
+            }
         }
     });
 
@@ -244,6 +250,81 @@ export const setupMobileEvents = () => {
             renderApp();
         }
     });
+
+    // BPM slider touch drag tracking for smooth mobile interaction
+    let activeBpmContainer = null;
+    let activeBpmInput = null;
+
+    root.addEventListener('touchstart', (e) => {
+        const bpmContainer = e.target.closest('.group\\/bpm');
+        if (!bpmContainer) return;
+
+        const bpmInput = bpmContainer.querySelector('input[data-action="update-global-bpm"]');
+        if (!bpmInput) return;
+
+        activeBpmContainer = bpmContainer;
+        activeBpmInput = bpmInput;
+
+        // Set global flag to prevent refreshGrid during drag
+        window.__bpmDragging = true;
+
+        // Get first touch position
+        const touch = e.touches[0];
+        const rect = bpmContainer.getBoundingClientRect();
+        let percentage = (touch.clientX - rect.left) / rect.width;
+        percentage = Math.max(0, Math.min(1, percentage));
+        const newBpm = Math.round(40 + percentage * 200); // 40-240 BPM range
+        bpmInput.value = newBpm;
+        bpmInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+        // Direct DOM update for immediate visual feedback
+        updateBpmSliderVisuals(bpmContainer, newBpm);
+
+        // Prevent default to avoid scroll interference
+        e.preventDefault();
+    }, { passive: false });
+
+    document.addEventListener('touchmove', (e) => {
+        if (!activeBpmInput || !activeBpmContainer) return;
+
+        const touch = e.touches[0];
+        const rect = activeBpmContainer.getBoundingClientRect();
+        let percentage = (touch.clientX - rect.left) / rect.width;
+        percentage = Math.max(0, Math.min(1, percentage));
+        const newBpm = Math.round(40 + percentage * 200); // 40-240 BPM range
+
+        // Update the input value
+        activeBpmInput.value = newBpm;
+
+        // Trigger the input event to update state
+        activeBpmInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+        // Direct DOM update for immediate visual feedback
+        updateBpmSliderVisuals(activeBpmContainer, newBpm);
+    }, { passive: true });
+
+    document.addEventListener('touchend', () => {
+        if (activeBpmInput) {
+            window.__bpmDragging = false;
+            activeBpmInput = null;
+            activeBpmContainer = null;
+        }
+    });
+
+    /**
+     * Update BPM slider visuals directly (no re-render)
+     * @param {HTMLElement} container - The slider container
+     * @param {number} bpm - The new BPM value
+     */
+    function updateBpmSliderVisuals(container, bpm) {
+        const percentage = ((bpm - 40) / 200) * 100;
+        // Update fill bar
+        const fillBar = container.querySelector('div[class*="bg-gradient"]');
+        if (fillBar) fillBar.style.width = `${percentage}%`;
+        // Update handle position (6px offset for 3x3 handle on mobile)
+        const handle = container.querySelector('div[class*="bg-white"]');
+        if (handle) handle.style.left = `calc(${percentage}% - 6px)`;
+    }
 
     // Timeline section select
     document.addEventListener('timeline-select', (e) => {
