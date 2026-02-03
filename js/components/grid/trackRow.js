@@ -193,12 +193,12 @@ export const TrackRow = ({
                 <div class="flex-1 relative h-5 flex items-center group/vol ml-1 cursor-pointer">
                   <!-- Background track -->
                   <div class="absolute left-0 right-0 h-2 bg-gray-800 rounded-full cursor-pointer"></div>
-                  <!-- Fill bar -->
-                  <div class="absolute left-0 h-2 bg-gradient-to-r from-gray-500 to-gray-300 rounded-full cursor-pointer" style="width: ${(track.volume ?? 1.0) * 100}%"></div>
+                  <!-- Fill bar (cyan gradient) -->
+                  <div class="absolute left-0 h-2 bg-gradient-to-r from-cyan-600 to-cyan-400 rounded-full cursor-pointer" style="width: ${(track.volume ?? 1.0) * 100}%"></div>
                   <!-- Percentage label -->
                   <span class="absolute left-1 text-[8px] font-medium text-white/90 pointer-events-none z-10" style="text-shadow: 0 1px 2px rgba(0,0,0,0.8)">${Math.round((track.volume ?? 1.0) * 100)}%</span>
                   <!-- Handle -->
-                  <div class="absolute w-4 h-4 bg-white rounded-full shadow-md border border-gray-300 cursor-pointer z-[15] transition-transform group-hover/vol:scale-110" style="left: calc(${(track.volume ?? 1.0) * 100}% - 8px)"></div>
+                  <div class="absolute w-4 h-4 bg-white rounded-full shadow-md border border-cyan-400 cursor-pointer z-[15] transition-transform group-hover/vol:scale-110" style="left: calc(${(track.volume ?? 1.0) * 100}% - 8px)"></div>
                   <!-- Range input (invisible but captures clicks) -->
                   <input type="range" min="0" max="1" step="0.01" value="${track.volume ?? 1.0}" 
                     data-action="update-volume" data-track-index="${trackIdx}" data-measure-index="${measureIdx}"
