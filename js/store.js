@@ -25,7 +25,7 @@ export const state = {
     currentStep: -1,
     selectedStroke: StrokeType.Open, // Default selected tool
     clipboard: null, // For copy/paste measures
-    countInEnabled: true, // Toggle for count-in feature (enabled by default)
+    countInEnabled: false, // Toggle for count-in feature (enabled by default)
     uiState: {
         isMenuOpen: false,
         modalOpen: false,
