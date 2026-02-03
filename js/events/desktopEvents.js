@@ -245,6 +245,11 @@ export const setupDesktopEvents = () => {
             return;
         }
 
+        if (action === 'update-global-bpm') {
+            playbackHandlers.handleGlobalBpmInput(target);
+            return;
+        }
+
         if (action === 'update-volume') {
             gridHandlers.handleVolumeInput(target);
             return;
@@ -309,6 +314,11 @@ export const setupDesktopEvents = () => {
         if (action === 'update-bpm' && section) {
             section.bpm = Number(target.value);
             playback.currentPlayheadBpm = section.bpm;
+            return;
+        }
+
+        if (action === 'update-global-bpm') {
+            playbackHandlers.handleGlobalBpmChange(target);
             return;
         }
 
