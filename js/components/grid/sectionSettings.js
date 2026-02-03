@@ -16,24 +16,24 @@ import { ChartBarIcon } from '../../icons/chartBarIcon.js';
  * @returns {string} HTML string
  */
 export const SectionSettings = (section, globalBpm, readOnly = false) => {
-    if (readOnly) return '';
+  if (readOnly) return '';
 
-    const isCustomBpm = section.bpm !== undefined;
+  const isCustomBpm = section.bpm !== undefined;
 
-    // Check if current meter matches a predefined option
-    const predefinedMeters = [
-        { steps: 4, subdivision: 4, label: '4/4 (4)' },
-        { steps: 8, subdivision: 4, label: '4/4 (8)' },
-        { steps: 16, subdivision: 4, label: '4/4 (16)' },
-        { steps: 6, subdivision: 3, label: '6/8 (6)' },
-        { steps: 12, subdivision: 3, label: '6/8 (12)' },
-        { steps: 24, subdivision: 3, label: '6/8 (24)' }
-    ];
-    const isCustom = section.isCustomOverride || !predefinedMeters.some(
-        m => m.steps === section.steps && m.subdivision === section.subdivision
-    );
+  // Check if current meter matches a predefined option
+  const predefinedMeters = [
+    { steps: 4, subdivision: 4, label: '4/4 (4)' },
+    { steps: 8, subdivision: 4, label: '4/4 (8)' },
+    { steps: 16, subdivision: 4, label: '4/4 (16)' },
+    { steps: 6, subdivision: 3, label: '6/8 (6)' },
+    { steps: 12, subdivision: 3, label: '6/8 (12)' },
+    { steps: 24, subdivision: 3, label: '6/8 (24)' }
+  ];
+  const isCustom = section.isCustomOverride || !predefinedMeters.some(
+    m => m.steps === section.steps && m.subdivision === section.subdivision
+  );
 
-    return `
+  return `
     <div class="sticky left-0 z-30 flex items-center gap-6 mb-2 px-4 py-2 bg-gray-950/95 backdrop-blur border border-gray-800 w-fit rounded-lg shadow-lg">
       <!-- Name -->
       <div class="flex flex-col">
@@ -131,7 +131,7 @@ export const SectionSettings = (section, globalBpm, readOnly = false) => {
            Accel/Decel %
         </label>
         <div class="flex items-center gap-1 h-[26px]">
-          ${ChartBarIcon('w-3.5 h-3.5 text-gray-500')}
+          ${ChartBarIcon(`w-3.5 h-3.5 ${(section.repetitions || 1) <= 1 ? 'text-gray-700' : 'text-gray-500'}`)}
           <input 
              type="number"
              step="0.1"
@@ -139,10 +139,16 @@ export const SectionSettings = (section, globalBpm, readOnly = false) => {
              min="-10"
              value="${section.tempoAcceleration || 0}"
              data-action="update-acceleration"
-             class="bg-gray-900 border border-gray-700 text-xs rounded px-2 py-0.5 text-white w-16 h-[26px] focus:border-cyan-500 focus:outline-none"
-             title="Percentage of tempo change per repetition (e.g. 1.0 = +1%)"
+             class="bg-gray-900 border text-xs rounded px-2 py-0.5 w-16 h-[26px] focus:outline-none ${(section.repetitions || 1) <= 1
+      ? 'border-gray-800 text-gray-600 cursor-not-allowed opacity-50'
+      : 'border-gray-700 text-white focus:border-cyan-500'
+    }"
+             title="${(section.repetitions || 1) <= 1
+      ? 'Acceleration requires more than 1 repetition'
+      : 'Percentage of tempo change per repetition (e.g. 1.0 = +1%)'}"
+             ${(section.repetitions || 1) <= 1 ? 'disabled' : ''}
           />
-          <span class="text-xs text-gray-500">%</span>
+          <span class="text-xs ${(section.repetitions || 1) <= 1 ? 'text-gray-700' : 'text-gray-500'}">%</span>
         </div>
       </div>
     </div>
