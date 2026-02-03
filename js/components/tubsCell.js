@@ -17,6 +17,7 @@ import { getCellBackgroundClass, getGuideNumber, getGuideNumberSize } from '../u
  * @param {number} params.trackSteps - Number of steps for this track
  * @param {number} params.gridSteps - Global grid step count
  * @param {boolean} params.isPlaying - Whether playback is active
+ * @param {string} params.selectedStroke - Currently selected stroke type for cursor
  */
 export const TubsCell = ({
   stroke,
@@ -32,7 +33,8 @@ export const TubsCell = ({
   divisor, // Visual subdivision divisor
   gridSteps,
   isPlaying = false,
-  isSnapOn = false // If true, disable individual cell hover
+  isSnapOn = false, // If true, disable individual cell hover
+  selectedStroke = StrokeType.Open // Currently selected stroke for cursor display
 }) => {
   // 1:1 Mapping - One Step = One Cell
   const stepWidthPx = cellSizePx;
@@ -73,7 +75,8 @@ export const TubsCell = ({
   const borderLeft = stepIndex === 0 ? 'border-l border-gray-600' : '';
 
   // Interaction states (only when not playing)
-  const cursorClass = isValid ? "cursor-pointer" : "cursor-not-allowed opacity-50";
+  // Use stroke-invalid class for CSS-based cursor control (handled by dynamic style tag)
+  const invalidClass = !isValid ? 'opacity-50 stroke-invalid' : '';
 
   // Hover class - more visible highlight when editing
   // If Snap is ON, individual cells should NOT light up (the group handles it)
@@ -91,7 +94,7 @@ export const TubsCell = ({
   // Data attributes for event delegation
   return `
     <button 
-      class="${baseClasses} ${borderLeft} ${rhythmicBg} ${cursorClass} ${hoverClass}"
+      class="${baseClasses} ${borderLeft} ${rhythmicBg} ${invalidClass} ${hoverClass}"
       style="width: ${stepWidthPx}px; height: ${cellSizePx}px;"
       data-role="tubs-cell"
       data-track-index="${trackIndex}"
