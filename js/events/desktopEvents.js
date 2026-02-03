@@ -259,6 +259,11 @@ export const setupDesktopEvents = () => {
             timelineHandlers.handleUpdateRhythmDescription(target);
             return;
         }
+
+        if (action === 'update-acceleration') {
+            playbackHandlers.handleAccelerationInput(target);
+            return;
+        }
     });
 
     // Change handler for select/number inputs
@@ -323,8 +328,7 @@ export const setupDesktopEvents = () => {
         }
 
         if (action === 'update-acceleration' && section) {
-            section.tempoAcceleration = parseFloat(target.value);
-            renderApp();
+            playbackHandlers.handleAccelerationChange(target);
             return;
         }
 

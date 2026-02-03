@@ -131,6 +131,12 @@ const advanceStep = () => {
 
         if (nextMeasure >= activeSec.measures.length) {
             // End of all measures - check repetitions
+            console.log('[DEBUG] End of measures:', {
+                repetitionCounter: playback.repetitionCounter,
+                sectionRepetitions: activeSec.repetitions,
+                tempoAcceleration: activeSec.tempoAcceleration,
+                currentBpm: playback.currentPlayheadBpm
+            });
             if (playback.repetitionCounter < (activeSec.repetitions || 1)) {
                 playback.repetitionCounter += 1;
                 nextStep = 0;
@@ -139,6 +145,7 @@ const advanceStep = () => {
                 // Apply tempo acceleration
                 if (activeSec.tempoAcceleration && activeSec.tempoAcceleration !== 0) {
                     const multiplier = 1 + (activeSec.tempoAcceleration / 100);
+                    console.log('[DEBUG] Applying acceleration:', { multiplier, newBpm: playback.currentPlayheadBpm * multiplier });
                     playback.currentPlayheadBpm = playback.currentPlayheadBpm * multiplier;
                 }
 
