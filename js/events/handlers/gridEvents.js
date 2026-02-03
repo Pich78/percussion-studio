@@ -4,7 +4,7 @@
 */
 
 import { state } from '../../store.js';
-import { refreshGrid } from '../../ui/renderer.js';
+import { refreshGrid, renderApp } from '../../ui/renderer.js';
 import { actions } from '../../actions.js';
 import { StrokeType } from '../../types.js';
 import { getValidInstrumentSteps } from '../../utils/gridUtils.js';
@@ -157,7 +157,7 @@ export const handleTrackStepsChange = (target) => {
  */
 export const handleSelectStroke = (target) => {
     state.selectedStroke = target.dataset.stroke;
-    refreshGrid();
+    renderApp();
 };
 
 /**
