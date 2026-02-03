@@ -278,6 +278,16 @@
         "Eggun"
       ]
     },
+    "Batà/Olokun/olokun_-_llamada_y_base": {
+      "displayName": "Olokun - Llamada y Base",
+      "classification": "Shared",
+      "associatedOrishas": [
+        "Olokun",
+        "Eleggua",
+        "Oggun",
+        "Eggun"
+      ]
+    },
     "Batà/Yakota/yakota_-_base": {
       "displayName": "Yakota - Base",
       "classification": "Generic",
