@@ -183,9 +183,42 @@ export const setupDesktopEvents = () => {
     let activeVolumeContainer = null;
     let activeVolumeInput = null;
 
+    // BPM slider drag tracking (document-level for smooth drag like volume)
+    let activeBpmContainer = null;
+    let activeBpmInput = null;
+
     // Use capture phase to intercept before native range input behavior
     root.addEventListener('mousedown', (e) => {
-        // Target the entire slider container for easier clicking
+        // Check for BPM slider container first (group/bpm class)
+        const bpmContainer = e.target.closest('.group\\/bpm');
+        if (bpmContainer) {
+            const bpmInput = bpmContainer.querySelector('input[data-action="update-global-bpm"]');
+            if (bpmInput) {
+                activeBpmContainer = bpmContainer;
+                activeBpmInput = bpmInput;
+
+                // Set global flag to prevent refreshGrid during drag
+                window.__bpmDragging = true;
+
+                // Immediately calculate and update position on first click
+                const rect = bpmContainer.getBoundingClientRect();
+                let percentage = (e.clientX - rect.left) / rect.width;
+                percentage = Math.max(0, Math.min(1, percentage));
+                const newBpm = Math.round(40 + percentage * 200); // 40-240 BPM range
+                bpmInput.value = newBpm;
+                bpmInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+                // Direct DOM update for immediate visual feedback
+                updateBpmSliderVisuals(bpmContainer, newBpm);
+
+                // Prevent text selection and native range behavior
+                e.preventDefault();
+                e.stopPropagation();
+                return;
+            }
+        }
+
+        // Target the entire volume slider container for easier clicking
         const container = e.target.closest('.group\\/vol');
         if (!container) return;
 
@@ -211,6 +244,25 @@ export const setupDesktopEvents = () => {
     }, true); // Capture phase
 
     document.addEventListener('mousemove', (e) => {
+        // Handle BPM slider drag
+        if (activeBpmInput && activeBpmContainer) {
+            const rect = activeBpmContainer.getBoundingClientRect();
+            let percentage = (e.clientX - rect.left) / rect.width;
+            percentage = Math.max(0, Math.min(1, percentage));
+            const newBpm = Math.round(40 + percentage * 200); // 40-240 BPM range
+
+            // Update the input value
+            activeBpmInput.value = newBpm;
+
+            // Trigger the input event to update state
+            activeBpmInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+            // Direct DOM update for immediate visual feedback
+            updateBpmSliderVisuals(activeBpmContainer, newBpm);
+            return;
+        }
+
+        // Handle volume slider drag
         if (!activeVolumeInput || !activeVolumeContainer) return;
 
         const rect = activeVolumeContainer.getBoundingClientRect();
@@ -225,6 +277,14 @@ export const setupDesktopEvents = () => {
     });
 
     document.addEventListener('mouseup', () => {
+        // Handle BPM slider release
+        if (activeBpmInput) {
+            window.__bpmDragging = false;
+            activeBpmInput = null;
+            activeBpmContainer = null;
+        }
+
+        // Handle volume slider release
         if (activeVolumeInput) {
             // Clear drag state
             window.__volumeDragging = false;
@@ -234,6 +294,21 @@ export const setupDesktopEvents = () => {
             refreshGrid();
         }
     });
+
+    /**
+     * Update BPM slider visuals directly (no re-render)
+     * @param {HTMLElement} container - The slider container
+     * @param {number} bpm - The new BPM value
+     */
+    function updateBpmSliderVisuals(container, bpm) {
+        const percentage = ((bpm - 40) / 200) * 100;
+        // Update fill bar
+        const fillBar = container.querySelector('div[class*="bg-gradient"]');
+        if (fillBar) fillBar.style.width = `${percentage}%`;
+        // Update handle position (8px offset for 4x4 handle)
+        const handle = container.querySelector('div[class*="bg-white"]');
+        if (handle) handle.style.left = `calc(${percentage}% - 8px)`;
+    }
 
     // Input handler for sliders and text inputs
     root.addEventListener('input', (e) => {
