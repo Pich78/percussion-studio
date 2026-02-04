@@ -104,36 +104,40 @@ const renderHeader = (activeSection) => {
 
 /**
  * Pure function to calculate optimal mobile cell size
+ * Cells should fill the available width after accounting for:
+ * - Safe areas (dynamic island)
+ * - Sticky instrument label (w-44=176px + border-l-4 + border-r = ~181px)
+ * - Cell container padding (p-1 = 4px each side = 8px)
+ * - Margin between label and cells (ml-1 = 4px)
+ * - Small buffer for rounding (2px)
+ * 
+ * NOTE: Cells are adjacent (no gaps between them), just borders which are
+ * rendered inside the cell width, not adding to it.
+ * 
  * @param {number} viewportWidth - Current window.innerWidth
  * @param {number} steps - Number of steps in the section
- * @param {number} subdivision - Section subdivision
+ * @param {number} subdivision - Section subdivision (not used, kept for API compatibility)
  * @param {number} safeAreaLeft - Left safe area inset
  * @param {number} safeAreaRight - Right safe area inset
  * @returns {number} Optimal cell size in pixels (16-40px)
  */
 export const calculateMobileCellSize = (viewportWidth, steps, subdivision, safeAreaLeft, safeAreaRight) => {
-  // Subtract safe areas to get usable width (excludes dynamic island area)
+  // Usable width after safe areas
   const usableWidth = viewportWidth - safeAreaLeft - safeAreaRight;
 
-  // Account for all horizontal space consumers:
-  // - Sticky instrument label: ~181px (w-44=176px + border-l-4 + border-r ~ 5px)
-  // - Gap between cells: ~5px per cell (gap-1 = 4px + border)
-  // - Separators between groups: 2px each
-  // - Cell container padding: 8px (p-1 on both sides = 4px + 4px)
-  // - Some buffer for scrollbar and rendering: 10px
-  const stickyLabelWidth = 181;
-  const gapPerStep = 5;
-  const separatorCount = Math.floor((steps - 1) / subdivision);
-  const containerPadding = 8;
-  const buffer = 15;
+  // Layout overhead (accurate breakdown):
+  // - Sticky label: w-44 (176px) + border-l-4 (4px) + border-r (1px) = 181px
+  // - Cell container: p-1 = 8px total (4px each side)
+  // - ml-1 between label and cells = 4px
+  // - Small buffer for sub-pixel rounding = 2px
+  const totalOverhead = 181 + 8 + 4 + 2; // = 195px
 
-  const totalOverhead = stickyLabelWidth + containerPadding + buffer + (separatorCount * 2) + (steps * gapPerStep);
   const availableForCells = usableWidth - totalOverhead;
 
+  // Calculate optimal cell width - cells are adjacent (no gaps)
   const optimalCellWidth = Math.floor(availableForCells / steps);
 
   // Clamp between minimum (16px) and maximum (40px)
-  // 16px is still usable for small icons/letters
   return Math.max(16, Math.min(40, optimalCellWidth));
 };
 
