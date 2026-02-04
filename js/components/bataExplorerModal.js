@@ -137,8 +137,12 @@ export const BataExplorerModal = ({ isMobile = false }) => {
 
     const metadata = bata.metadata;
     if (!metadata) {
+        const loaderContainerClass = isMobile
+            ? "fixed inset-y-0 left-[var(--safe-area-left)] right-[var(--safe-area-right)] z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+            : "fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4";
+
         return `
-            <div class="fixed inset-y-0 left-[var(--safe-area-left)] right-[var(--safe-area-right)] z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+            <div class="${loaderContainerClass}">
                 <div class="bg-gray-900 border border-gray-700 rounded-xl p-8 text-center">
                     <div class="animate-spin inline-block w-8 h-8 border-2 border-gray-500 border-t-amber-400 rounded-full mb-4"></div>
                     <p class="text-gray-400">Loading Batà rhythms...</p>
@@ -192,8 +196,12 @@ export const BataExplorerModal = ({ isMobile = false }) => {
     const filterIcon = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>';
     const searchIcon = '<svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>';
 
+    const modalContainerClass = isMobile
+        ? "fixed inset-y-0 left-[var(--safe-area-left)] right-[var(--safe-area-right)] z-50 flex bg-black/80 backdrop-blur-sm"
+        : "fixed inset-0 z-50 flex bg-black/80 backdrop-blur-sm";
+
     return `
-        <div class="fixed inset-y-0 left-[var(--safe-area-left)] right-[var(--safe-area-right)] z-50 flex bg-black/80 backdrop-blur-sm" data-action="close-bata-explorer-bg">
+        <div class="${modalContainerClass}" data-action="close-bata-explorer-bg">
             <div class="flex-1 flex flex-col bg-gray-950 overflow-hidden ${isMobile ? '' : 'max-w-6xl mx-auto my-4 rounded-xl border border-gray-800'}">
 
                 <!-- Header -->
