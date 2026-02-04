@@ -36,8 +36,6 @@ export const state = {
         editingTrackIndex: null,
         isLoadingRhythm: false, // True when rhythm is being loaded
         loadingRhythmName: null, // Name of the rhythm being loaded
-        mobileCellSize: null, // Cached mobile cell size in pixels
-        mobileCellSteps: null, // Step count that the cell size was calculated for
         expandedFolders: new Set(), // Tracks which rhythm folders are expanded
         userGuideSubmenuOpen: false, // Tracks if user guide language submenu is open
         userGuideContent: null, // Loaded markdown content for user guide modal

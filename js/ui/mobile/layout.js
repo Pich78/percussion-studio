@@ -102,59 +102,54 @@ const renderHeader = (activeSection) => {
   `;
 };
 
+/**
+ * Pure function to calculate optimal mobile cell size
+ * @param {number} viewportWidth - Current window.innerWidth
+ * @param {number} steps - Number of steps in the section
+ * @param {number} subdivision - Section subdivision
+ * @param {number} safeAreaLeft - Left safe area inset
+ * @param {number} safeAreaRight - Right safe area inset
+ * @returns {number} Optimal cell size in pixels (16-40px)
+ */
+export const calculateMobileCellSize = (viewportWidth, steps, subdivision, safeAreaLeft, safeAreaRight) => {
+  // Subtract safe areas to get usable width (excludes dynamic island area)
+  const usableWidth = viewportWidth - safeAreaLeft - safeAreaRight;
+
+  // Account for all horizontal space consumers:
+  // - Sticky instrument label: ~181px (w-44=176px + border-l-4 + border-r ~ 5px)
+  // - Gap between cells: ~5px per cell (gap-1 = 4px + border)
+  // - Separators between groups: 2px each
+  // - Cell container padding: 8px (p-1 on both sides = 4px + 4px)
+  // - Some buffer for scrollbar and rendering: 10px
+  const stickyLabelWidth = 181;
+  const gapPerStep = 5;
+  const separatorCount = Math.floor((steps - 1) / subdivision);
+  const containerPadding = 8;
+  const buffer = 15;
+
+  const totalOverhead = stickyLabelWidth + containerPadding + buffer + (separatorCount * 2) + (steps * gapPerStep);
+  const availableForCells = usableWidth - totalOverhead;
+
+  const optimalCellWidth = Math.floor(availableForCells / steps);
+
+  // Clamp between minimum (16px) and maximum (40px)
+  // 16px is still usable for small icons/letters
+  return Math.max(16, Math.min(40, optimalCellWidth));
+};
+
 export const MobileLayout = () => {
   const activeSection = state.toque.sections.find(s => s.id === state.activeSectionId) || state.toque.sections[0];
 
-  // Calculate optimal cell size based on available screen width
-  // Only recalculate if step count changes, otherwise use cached value
-  const calculateMobileCellSize = () => {
-    const steps = activeSection?.steps || 12;
+  // Get current viewport and safe area dimensions
+  const viewportWidth = window.innerWidth;
+  const computedStyle = getComputedStyle(document.documentElement);
+  const safeAreaLeft = parseInt(computedStyle.getPropertyValue('--safe-area-left') || '0', 10) || 0;
+  const safeAreaRight = parseInt(computedStyle.getPropertyValue('--safe-area-right') || '0', 10) || 0;
 
-    // Use cached value if step count hasn't changed
-    if (state.uiState.mobileCellSize !== null && state.uiState.mobileCellSteps === steps) {
-      return state.uiState.mobileCellSize;
-    }
-
-    // Get safe area insets from CSS custom properties (set via env() in mobile.html)
-    const computedStyle = getComputedStyle(document.documentElement);
-    const safeAreaLeft = parseInt(computedStyle.getPropertyValue('--safe-area-left') || '0', 10) || 0;
-    const safeAreaRight = parseInt(computedStyle.getPropertyValue('--safe-area-right') || '0', 10) || 0;
-
-    const viewportWidth = window.innerWidth;
-    // Subtract safe areas to get usable width (excludes dynamic island area)
-    const usableWidth = viewportWidth - safeAreaLeft - safeAreaRight;
-
-    const subdivision = activeSection?.subdivision || 4;
-
-    // Account for all horizontal space consumers:
-    // - Sticky instrument label: ~181px (w-44=176px + border-l-4 + border-r ~ 5px)
-    // - Gap between cells: ~5px per cell (gap-1 = 4px + border)
-    // - Separators between groups: 2px each
-    // - Cell container padding: 8px (p-1 on both sides = 4px + 4px)
-    // - Some buffer for scrollbar and rendering: 10px
-    const stickyLabelWidth = 181;
-    const gapPerStep = 5;
-    const separatorCount = Math.floor((steps - 1) / subdivision);
-    const containerPadding = 8;
-    const buffer = 15;
-
-    const totalOverhead = stickyLabelWidth + containerPadding + buffer + (separatorCount * 2) + (steps * gapPerStep);
-    const availableForCells = usableWidth - totalOverhead;
-
-    const optimalCellWidth = Math.floor(availableForCells / steps);
-
-    // Clamp between minimum (16px) and maximum (40px)
-    // 16px is still usable for small icons/letters
-    const clampedWidth = Math.max(16, Math.min(40, optimalCellWidth));
-
-    // Cache the calculated value and the step count it was calculated for
-    state.uiState.mobileCellSize = clampedWidth;
-    state.uiState.mobileCellSteps = steps;
-
-    return clampedWidth;
-  };
-
-  const mobileCellSize = calculateMobileCellSize();
+  // Calculate cell size fresh on every render (pure functional - no caching)
+  const steps = activeSection?.steps || 12;
+  const subdivision = activeSection?.subdivision || 4;
+  const mobileCellSize = calculateMobileCellSize(viewportWidth, steps, subdivision, safeAreaLeft, safeAreaRight);
 
   return `
     <div class="flex flex-col h-full bg-gray-950 text-gray-100 font-sans selection:bg-cyan-500 selection:text-black select-none pl-[var(--safe-area-left)] pr-[var(--safe-area-right)]">

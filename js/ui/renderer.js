@@ -1,6 +1,6 @@
 import { state } from '../store.js';
 import { TubsGrid, autoScrollGrid } from '../components/tubsGrid.js';
-import { MobileLayout } from './mobile/layout.js';
+import { MobileLayout, calculateMobileCellSize } from './mobile/layout.js';
 import { DesktopLayout } from './desktop/layout.js';
 
 const root = document.getElementById('root');
@@ -67,6 +67,22 @@ export const refreshGrid = () => {
     const scrollTop = scrollContainer ? scrollContainer.scrollTop : 0;
     const scrollLeft = scrollContainer ? scrollContainer.scrollLeft : 0;
 
+    // Calculate cell size fresh for mobile (pure functional - no caching)
+    let mobileCellSize = null;
+    if (isMobile && activeSection) {
+      const viewportWidth = window.innerWidth;
+      const computedStyle = getComputedStyle(document.documentElement);
+      const safeAreaLeft = parseInt(computedStyle.getPropertyValue('--safe-area-left') || '0', 10) || 0;
+      const safeAreaRight = parseInt(computedStyle.getPropertyValue('--safe-area-right') || '0', 10) || 0;
+      mobileCellSize = calculateMobileCellSize(
+        viewportWidth,
+        activeSection.steps || 12,
+        activeSection.subdivision || 4,
+        safeAreaLeft,
+        safeAreaRight
+      );
+    }
+
     container.innerHTML = TubsGrid({
       section: activeSection,
       globalBpm: state.toque.globalBpm,
@@ -75,7 +91,7 @@ export const refreshGrid = () => {
       uiState: state.uiState,
       readOnly: isMobile,
       isMobile: isMobile,
-      mobileCellSize: isMobile ? state.uiState.mobileCellSize : null
+      mobileCellSize
     });
 
     // Restore scroll position
