@@ -406,4 +406,15 @@ export const setupMobileEvents = () => {
             }
         }
     });
+
+    // Orientation change / resize handler
+    // Re-render when viewport dimensions change (e.g., rotation from portrait to landscape)
+    let resizeTimeout = null;
+    window.addEventListener('resize', () => {
+        // Debounce to avoid multiple rapid re-renders during rotation animation
+        if (resizeTimeout) clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+            renderApp();
+        }, 100);
+    });
 };
