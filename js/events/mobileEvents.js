@@ -255,52 +255,87 @@ export const setupMobileEvents = () => {
     let activeBpmContainer = null;
     let activeBpmInput = null;
 
+    // Volume slider touch drag tracking
+    let activeVolContainer = null;
+    let activeVolInput = null;
+
     root.addEventListener('touchstart', (e) => {
+        // 1. Check for BPM Slider
         const bpmContainer = e.target.closest('.group\\/bpm');
-        if (!bpmContainer) return;
+        if (bpmContainer) {
+            const bpmInput = bpmContainer.querySelector('input[data-action="update-global-bpm"]');
+            if (bpmInput) {
+                activeBpmContainer = bpmContainer;
+                activeBpmInput = bpmInput;
+                window.__bpmDragging = true;
 
-        const bpmInput = bpmContainer.querySelector('input[data-action="update-global-bpm"]');
-        if (!bpmInput) return;
+                const touch = e.touches[0];
+                const rect = bpmContainer.getBoundingClientRect();
+                let percentage = (touch.clientX - rect.left) / rect.width;
+                percentage = Math.max(0, Math.min(1, percentage));
+                const newBpm = Math.round(40 + percentage * 200);
 
-        activeBpmContainer = bpmContainer;
-        activeBpmInput = bpmInput;
+                bpmInput.value = newBpm;
+                bpmInput.dispatchEvent(new Event('input', { bubbles: true }));
+                updateBpmSliderVisuals(bpmContainer, newBpm);
 
-        // Set global flag to prevent refreshGrid during drag
-        window.__bpmDragging = true;
+                e.preventDefault();
+                return;
+            }
+        }
 
-        // Get first touch position
-        const touch = e.touches[0];
-        const rect = bpmContainer.getBoundingClientRect();
-        let percentage = (touch.clientX - rect.left) / rect.width;
-        percentage = Math.max(0, Math.min(1, percentage));
-        const newBpm = Math.round(40 + percentage * 200); // 40-240 BPM range
-        bpmInput.value = newBpm;
-        bpmInput.dispatchEvent(new Event('input', { bubbles: true }));
+        // 2. Check for Volume Slider
+        const volContainer = e.target.closest('.group\\/vol');
+        if (volContainer) {
+            const volInput = volContainer.querySelector('input[data-action="update-volume"]');
+            if (volInput) {
+                activeVolContainer = volContainer;
+                activeVolInput = volInput;
+                // No global flag needed for volume as it doesn't trigger grid refresh
 
-        // Direct DOM update for immediate visual feedback
-        updateBpmSliderVisuals(bpmContainer, newBpm);
+                const touch = e.touches[0];
+                const rect = volContainer.getBoundingClientRect();
+                let percentage = (touch.clientX - rect.left) / rect.width;
+                percentage = Math.max(0, Math.min(1, percentage));
+                // Volume is 0 to 1
+                const newVol = parseFloat(percentage.toFixed(2));
 
-        // Prevent default to avoid scroll interference
-        e.preventDefault();
+                volInput.value = newVol;
+                volInput.dispatchEvent(new Event('input', { bubbles: true }));
+                updateVolumeSliderVisuals(volContainer, newVol);
+
+                e.preventDefault();
+                return;
+            }
+        }
     }, { passive: false });
 
     document.addEventListener('touchmove', (e) => {
-        if (!activeBpmInput || !activeBpmContainer) return;
+        // Handle BPM Drag
+        if (activeBpmInput && activeBpmContainer) {
+            const touch = e.touches[0];
+            const rect = activeBpmContainer.getBoundingClientRect();
+            let percentage = (touch.clientX - rect.left) / rect.width;
+            percentage = Math.max(0, Math.min(1, percentage));
+            const newBpm = Math.round(40 + percentage * 200);
 
-        const touch = e.touches[0];
-        const rect = activeBpmContainer.getBoundingClientRect();
-        let percentage = (touch.clientX - rect.left) / rect.width;
-        percentage = Math.max(0, Math.min(1, percentage));
-        const newBpm = Math.round(40 + percentage * 200); // 40-240 BPM range
+            activeBpmInput.value = newBpm;
+            activeBpmInput.dispatchEvent(new Event('input', { bubbles: true }));
+            updateBpmSliderVisuals(activeBpmContainer, newBpm);
+        }
 
-        // Update the input value
-        activeBpmInput.value = newBpm;
+        // Handle Volume Drag
+        if (activeVolInput && activeVolContainer) {
+            const touch = e.touches[0];
+            const rect = activeVolContainer.getBoundingClientRect();
+            let percentage = (touch.clientX - rect.left) / rect.width;
+            percentage = Math.max(0, Math.min(1, percentage));
+            const newVol = parseFloat(percentage.toFixed(2));
 
-        // Trigger the input event to update state
-        activeBpmInput.dispatchEvent(new Event('input', { bubbles: true }));
-
-        // Direct DOM update for immediate visual feedback
-        updateBpmSliderVisuals(activeBpmContainer, newBpm);
+            activeVolInput.value = newVol;
+            activeVolInput.dispatchEvent(new Event('input', { bubbles: true }));
+            updateVolumeSliderVisuals(activeVolContainer, newVol);
+        }
     }, { passive: true });
 
     document.addEventListener('touchend', () => {
@@ -308,6 +343,10 @@ export const setupMobileEvents = () => {
             window.__bpmDragging = false;
             activeBpmInput = null;
             activeBpmContainer = null;
+        }
+        if (activeVolInput) {
+            activeVolInput = null;
+            activeVolContainer = null;
         }
     });
 
@@ -324,6 +363,24 @@ export const setupMobileEvents = () => {
         // Update handle position (6px offset for 3x3 handle on mobile)
         const handle = container.querySelector('div[class*="bg-white"]');
         if (handle) handle.style.left = `calc(${percentage}% - 6px)`;
+    }
+
+    /**
+     * Update Volume slider visuals directly (no re-render)
+     * @param {HTMLElement} container - The slider container
+     * @param {number} volume - The new volume value (0-1)
+     */
+    function updateVolumeSliderVisuals(container, volume) {
+        const percentage = Math.round(volume * 100);
+        // Update fill bar
+        const fillBar = container.querySelector('div[class*="bg-gradient"]');
+        if (fillBar) fillBar.style.width = `${percentage}%`;
+        // Update handle position (8px offset for 4x4 handle - see trackRow.js)
+        const handle = container.querySelector('div[class*="bg-white"]');
+        if (handle) handle.style.left = `calc(${percentage}% - 8px)`;
+        // Update percentage text
+        const percentLabel = container.querySelector('span[class*="font-medium"]');
+        if (percentLabel) percentLabel.textContent = `${percentage}%`;
     }
 
     // Timeline section select
