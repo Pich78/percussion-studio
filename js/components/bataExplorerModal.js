@@ -193,7 +193,7 @@ export const BataExplorerModal = ({ isMobile = false }) => {
     const searchIcon = '<svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>';
 
     return `
-        <div class="fixed inset-0 z-50 flex bg-black/80 backdrop-blur-sm" data-action="close-bata-explorer-bg">
+        <div class="fixed inset-y-0 left-[var(--safe-area-left)] right-[var(--safe-area-right)] z-50 flex bg-black/80 backdrop-blur-sm" data-action="close-bata-explorer-bg">
             <div class="flex-1 flex flex-col bg-gray-950 overflow-hidden ${isMobile ? '' : 'max-w-6xl mx-auto my-4 rounded-xl border border-gray-800'}">
 
                 <!-- Header -->
