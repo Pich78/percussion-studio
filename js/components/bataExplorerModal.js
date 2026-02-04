@@ -138,7 +138,7 @@ export const BataExplorerModal = ({ isMobile = false }) => {
     const metadata = bata.metadata;
     if (!metadata) {
         return `
-            <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+            <div class="fixed inset-y-0 left-[var(--safe-area-left)] right-[var(--safe-area-right)] z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
                 <div class="bg-gray-900 border border-gray-700 rounded-xl p-8 text-center">
                     <div class="animate-spin inline-block w-8 h-8 border-2 border-gray-500 border-t-amber-400 rounded-full mb-4"></div>
                     <p class="text-gray-400">Loading Batà rhythms...</p>
