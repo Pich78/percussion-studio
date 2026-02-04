@@ -34,7 +34,7 @@ The desktop interface consists of four main areas:
 - **Hamburger Menu (☰)**: Access file operations and user guide
 - **Title**: Shows "Percussion Studio"
 - **Rhythm Info**: Current rhythm name, active section, repetition count, and live BPM
-- **Global BPM Slider**: Adjust the base tempo (40-240 BPM)
+- **Global BPM Slider**: Adjust the base tempo (40-240 BPM) with the visual slider
 - **Count-In Button**: Toggle count-in before playback (shows beat count: 4 or 6)
 - **Playback Buttons**: Stop (■) and Play/Pause (▶/❚❚)
 
@@ -61,17 +61,17 @@ Click the **☰** icon in the top-left to access:
 | Option | Description |
 |--------|-------------|
 | **New Rhythm** | Create a new empty rhythm (prompts for confirmation) |
-| **Load Rhythm...** | Browse and select from available rhythms |
+| **Load Rhythm...** | Browse and select from available rhythms (including Batà Rhythms) |
 | **Download Rhythm** | Save current rhythm as a YAML file to your computer |
 | **Share Rhythm** | Copy a shareable link to the current rhythm (only for library rhythms) |
 | **User Guide** | Access this documentation (choose language) |
 
-### Loading Rhythms
+### Loading Rhythms (Library & Batà)
 
-1. Click **Load Rhythm...**
-2. Browse the folder tree (click ▶ to expand folders)
-3. Click a rhythm name to load it
-4. Alternatively, click **Load from PC** to select a local `.yaml` file
+1. Click **Load Rhythm...** to open the browser.
+2. Navigate the folder tree (click ▶ to expand folders like "Batà").
+3. Click a rhythm name to load it.
+4. **Local Files**: Click **Load from PC** to open a `.yaml` file from your computer.
 
 ---
 
@@ -150,23 +150,22 @@ Located in the sticky left column for each track:
 
 | Control | Description |
 |---------|-------------|
-| **Name** | Click to change instrument/sound pack |
+| **Name** | Click (the text) to open the **Change Instrument Modal** |
 | **Mute (🔊/🔇)** | Toggle audio for this track |
 | **Volume Slider** | Adjust track volume (0-100%) |
 | **Delete (🗑)** | Remove track from rhythm |
 
 ### Adding Tracks
 
-1. Click **+ Add Track** below the last track
-2. **Select Instrument** from the left column
-3. **Select Sound Pack** from the right column
-4. Click **OK** to confirm
+1. Click **+ Add Track** below the last track in a measure.
+2. Select Instrument and Sound Pack.
+3. Click **OK** to confirm.
 
-### Changing Instruments
+### Change Instrument Modal
 
-1. Click the **track name** to open the instrument modal
-2. Choose a new instrument and sound pack
-3. Click **OK** to apply
+1. Click the **track name** (or the instrument label) on the left side.
+2. A modal will open allowing you to select a different **Instrument** (e.g., Conga, Itotele) or **Sound Pack**.
+3. Click **OK** to apply changes.
 
 > **Note**: Volume and mute settings are global — they apply to all instances of that instrument across all sections.
 
@@ -178,12 +177,9 @@ Sections can contain multiple measures, providing more complex patterns.
 
 ### Measure Controls
 
-Each measure has a header with:
-
-| Action | Description |
-|--------|-------------|
-| **Duplicate (📄)** | Copy this measure and insert after |
-| **Delete (🗑)** | Remove this measure |
+Each measure header allows you to:
+- **Duplicate**: Copy the play pattern to a new measure.
+- **Delete**: Remove the measure.
 
 ### Adding Measures
 
@@ -204,9 +200,9 @@ Each measure has a header with:
 
 ### BPM Controls
 
-- **Global BPM Slider**: Sets the base tempo for all sections
-- **Section BPM Override**: Lock icon in section settings to set custom tempo
-- **Live BPM Display**: Shows actual tempo during playback (reflects acceleration)
+- **Global BPM Slider**: The main slider in the header sets the base tempo.
+- **Section BPM Override**: Use the lock icon in section settings to set a custom tempo for that specific section.
+- **Live BPM Display**: Shows actual tempo during playback (reflects acceleration).
 
 ### Repetition Counter
 
@@ -244,17 +240,12 @@ You can share and receive direct links to specific rhythms.
 
 ### Sharing a Rhythm
 
-1. Open the rhythm you want to share
-2. Click **☰** → **Share Rhythm**
-3. The link is copied to your clipboard
+1. Open the rhythm you want to share.
+2. Click **☰** → **Share Rhythm**.
+3. The link is copied to your clipboard.
 4. Send the link to anyone!
 
-### Opening a Shared Link
-
-- When you open a link with `?rhythm=...`, that rhythm loads automatically
-- Example: `desktop.html?rhythm=Batà/Dadà/dada_base`
-
-> **Note**: Share Rhythm is only available for rhythms from the library. Rhythms loaded from local files or newly created cannot be shared via URL.
+> **Note**: Share Rhythm is only available for rhythms from the library (GitHub repository). Rhythms loaded from local files or newly created cannot be shared via URL.
 
 ---
 
@@ -262,13 +253,13 @@ You can share and receive direct links to specific rhythms.
 
 1. **Use sections for song structure**: Create separate sections for Intro, Verse, Chorus, etc.
 
-2. **Start with existing rhythms**: Load a rhythm similar to what you want, then modify it
+2. **Start with existing rhythms**: Load a rhythm similar to what you want, then modify it.
 
-3. **Download regularly**: Save your work by downloading the rhythm file
+3. **Download regularly**: Save your work by downloading the rhythm file.
 
-4. **Use tempo acceleration**: Create exciting build-ups with gradual tempo increases
+4. **Use tempo acceleration**: Create exciting build-ups with gradual tempo increases.
 
-5. **Organize with measures**: Use multiple measures for call-and-response patterns
+5. **Organize with measures**: Use multiple measures for call-and-response patterns.
 
 ---
 
