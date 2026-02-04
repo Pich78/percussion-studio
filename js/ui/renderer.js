@@ -77,7 +77,6 @@ export const refreshGrid = () => {
       mobileCellSize = calculateMobileCellSize(
         viewportWidth,
         activeSection.steps || 12,
-        activeSection.subdivision || 4,
         safeAreaLeft,
         safeAreaRight
       );

@@ -103,25 +103,16 @@ const renderHeader = (activeSection) => {
 };
 
 /**
- * Pure function to calculate optimal mobile cell size
- * Cells should fill the available width after accounting for:
- * - Safe areas (dynamic island)
- * - Sticky instrument label (w-44=176px + border-l-4 + border-r = ~181px)
- * - Cell container padding (p-1 = 4px each side = 8px)
- * - Margin between label and cells (ml-1 = 4px)
- * - Small buffer for rounding (2px)
- * 
- * NOTE: Cells are adjacent (no gaps between them), just borders which are
- * rendered inside the cell width, not adding to it.
+ * Pure function to calculate optimal mobile cell size.
+ * Cells fill available width after subtracting layout overhead (195px).
  * 
  * @param {number} viewportWidth - Current window.innerWidth
  * @param {number} steps - Number of steps in the section
- * @param {number} subdivision - Section subdivision (not used, kept for API compatibility)
  * @param {number} safeAreaLeft - Left safe area inset
  * @param {number} safeAreaRight - Right safe area inset
  * @returns {number} Optimal cell size in pixels (16-40px)
  */
-export const calculateMobileCellSize = (viewportWidth, steps, subdivision, safeAreaLeft, safeAreaRight) => {
+export const calculateMobileCellSize = (viewportWidth, steps, safeAreaLeft, safeAreaRight) => {
   // Usable width after safe areas
   const usableWidth = viewportWidth - safeAreaLeft - safeAreaRight;
 
@@ -152,8 +143,7 @@ export const MobileLayout = () => {
 
   // Calculate cell size fresh on every render (pure functional - no caching)
   const steps = activeSection?.steps || 12;
-  const subdivision = activeSection?.subdivision || 4;
-  const mobileCellSize = calculateMobileCellSize(viewportWidth, steps, subdivision, safeAreaLeft, safeAreaRight);
+  const mobileCellSize = calculateMobileCellSize(viewportWidth, steps, safeAreaLeft, safeAreaRight);
 
   return `
     <div class="flex flex-col h-full bg-gray-950 text-gray-100 font-sans selection:bg-cyan-500 selection:text-black select-none pl-[var(--safe-area-left)] pr-[var(--safe-area-right)]">
