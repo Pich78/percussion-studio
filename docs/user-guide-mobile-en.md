@@ -1,84 +1,24 @@
 # Percussion Studio - Mobile User Guide
 
-Welcome to Percussion Studio Mobile! This guide covers all features available in the mobile version.
+Percussion Studio Mobile is optimized for **playback and practice**. While it shares the core engine with the desktop version, the interface is streamlined for small touch screens.
+
+> **Important**: This application requires **Landscape Mode** on mobile devices.
 
 ---
 
 ## Table of Contents
 
 1. [Getting Started](#getting-started)
-2. [Device Requirements](#device-requirements)
-3. [Main Interface Overview](#main-interface-overview)
-4. [Menu Options](#menu-options)
-5. [Viewing Rhythms](#viewing-rhythms)
-6. [Track Controls](#track-controls)
-7. [Playback Controls](#playback-controls)
+2. [Mobile Interface](#mobile-interface)
+3. [Navigation Menu](#navigation-menu)
+4. [Playback Controls](#playback-controls)
+5. [The Grid View](#the-grid-view)
+6. [Differences from Desktop](#differences-from-desktop)
 
 ---
 
 ## Getting Started
 
-1. Open `mobile.html` on your mobile device's browser
-2. **Rotate your device to landscape mode** (required)
-3. Wait for the loading screen to complete
-4. The default rhythm will load automatically
-
----
-
-## Device Requirements
-
-- **Orientation**: Landscape mode is required
-- **Browser**: Chrome, Safari, or Firefox (latest versions)
-- **Audio**: Ensure your device is not in silent mode
-- **Screen**: Best experienced on tablets or phones with larger screens
-
-> **Note**: If you see a "Please Rotate Your Device" screen, turn your device sideways to landscape orientation.
-
----
-
-## Main Interface Overview
-
-The mobile interface is optimized for viewing and playback (read-only).
-
-### Header Bar
-
-| Element | Description |
-|---------|-------------|
-| **Menu (☰)** | Opens the side menu |
-| **Rhythm Name** | Current rhythm (amber text) |
-| **Section Name** | Active section (white text) |
-| **Rep Counter** | Current / Total repetitions |
-| **Live BPM** | Real-time tempo display |
-| **Global BPM Slider** | Adjust base tempo |
-| **Count-In (CNT)** | Toggle count-in before playback (shows 4 or 6) |
-| **Stop (■)** | Stop playback |
-| **Play/Pause (▶/❚❚)** | Toggle playback |
-
-### Grid View
-
-- **Track Names**: Fixed on the left side
-- **Pattern Grid**: Shows all steps for current section
-- **Mute/Volume**: Controls for each track
-- **Auto-scroll**: Grid follows playhead during playback
-
----
-
-## Menu Options
-
-Tap the **☰** icon in the top-left to open the menu.
-
-### Load Rhythm
-
-1. Tap **Load Rhythm**
-2. Browse the folder tree (tap ▶ to expand folders)
-3. Tap a rhythm name to select it
-4. The rhythm loads with a loading screen
-
-### Show Structure
-
-1. Tap **Show Structure**
-2. View all sections in the rhythm
-3. Tap any section to switch to it
 4. Tap **✕** or outside to close
 
 ### Share Rhythm
