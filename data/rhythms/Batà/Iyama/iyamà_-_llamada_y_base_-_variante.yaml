@@ -26,6 +26,6 @@ playback_flow:
   steps: 12
   measures:
   - pattern:
-      oko_2: "||O-O|S--|O-O|S--||"
-      ito_2: "||S--|---|S-O|-O-||"
-      iya_2: "||--S|--S|-OS|-S-||"
+      oko: "||O-O|S--|O-O|S--||"
+      ito: "||S--|---|S-O|-O-||"
+      iya: "||--S|--S|-OS|-S-||"
