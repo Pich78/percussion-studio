@@ -1,0 +1,28 @@
+name: "Agguere 1 - Base"
+global_bpm: 80
+
+sound_kit:
+  oko:
+    instrument: "OKO"
+    pack: "cp_bata_chaworo"
+  ito:
+    instrument: "ITO"
+    pack: "cp_bata_chaworo"
+  iya:
+    instrument: "IYA"
+    pack: "cp_bata_chaworo"
+
+playback_flow:
+  - name: "Base"
+    repetitions: 1
+    steps: 16
+    subdivision: 4
+    measures:
+      - pattern:
+          oko: "||O-R-|O-S-|O-R-|O-S-||"
+          ito: "||S---|S-O-|S---|S-O-||"
+          iya: "||R--S|O-S-|R--S|O-S-||"
+      - pattern:
+          oko: "||O-R-|O-S-|O-R-|O-S-||"
+          ito: "||S---|S-O-|SO-O|S-O-||"
+          iya: "||R--S|O-S-|R--S|O-S-||"

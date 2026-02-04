@@ -54,7 +54,18 @@ const renderHeader = (activeSection) => {
                   <span class="text-[8px] font-bold text-gray-500 uppercase tracking-wider">Global</span>
                   <span class="text-[10px] font-mono font-bold text-cyan-400" id="header-global-bpm">${state.toque.globalBpm} <span class="text-[8px] text-gray-600">BPM</span></span>
               </div>
-              <input type="range" min="40" max="240" value="${state.toque.globalBpm}" data-action="update-global-bpm" class="w-24 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-500 hover:accent-cyan-400" />
+              <!-- BPM Slider with Handle (matching volume slider style) -->
+              <div class="relative w-20 h-4 flex items-center group/bpm cursor-pointer">
+                <!-- Background track -->
+                <div class="absolute left-0 right-0 h-1.5 bg-gray-700 rounded-full cursor-pointer"></div>
+                <!-- Fill bar (cyan gradient) -->
+                <div class="absolute left-0 h-1.5 bg-gradient-to-r from-cyan-600 to-cyan-400 rounded-full cursor-pointer" style="width: ${((state.toque.globalBpm - 40) / 200) * 100}%"></div>
+                <!-- Handle -->
+                <div class="absolute w-3 h-3 bg-white rounded-full shadow-md border border-cyan-400 cursor-pointer z-[15]" style="left: calc(${((state.toque.globalBpm - 40) / 200) * 100}% - 6px)"></div>
+                <!-- Range input (invisible but captures interactions) -->
+                <input type="range" min="40" max="240" value="${state.toque.globalBpm}" data-action="update-global-bpm" 
+                  class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" />
+              </div>
             </div>
             ${(() => {
       const subdivision = activeSection?.subdivision || 4;
@@ -91,59 +102,48 @@ const renderHeader = (activeSection) => {
   `;
 };
 
+/**
+ * Pure function to calculate optimal mobile cell size.
+ * Cells fill available width after subtracting layout overhead (195px).
+ * 
+ * @param {number} viewportWidth - Current window.innerWidth
+ * @param {number} steps - Number of steps in the section
+ * @param {number} safeAreaLeft - Left safe area inset
+ * @param {number} safeAreaRight - Right safe area inset
+ * @returns {number} Optimal cell size in pixels (16-40px)
+ */
+export const calculateMobileCellSize = (viewportWidth, steps, safeAreaLeft, safeAreaRight) => {
+  // Usable width after safe areas
+  const usableWidth = viewportWidth - safeAreaLeft - safeAreaRight;
+
+  // Layout overhead (accurate breakdown):
+  // - Sticky label: w-44 (176px) + border-l-4 (4px) + border-r (1px) = 181px
+  // - Cell container: p-1 = 8px total (4px each side)
+  // - ml-1 between label and cells = 4px
+  // - Small buffer for sub-pixel rounding = 2px
+  const totalOverhead = 181 + 8 + 4 + 2; // = 195px
+
+  const availableForCells = usableWidth - totalOverhead;
+
+  // Calculate optimal cell width - cells are adjacent (no gaps)
+  const optimalCellWidth = Math.floor(availableForCells / steps);
+
+  // Clamp between minimum (16px) and maximum (40px)
+  return Math.max(16, Math.min(40, optimalCellWidth));
+};
+
 export const MobileLayout = () => {
   const activeSection = state.toque.sections.find(s => s.id === state.activeSectionId) || state.toque.sections[0];
 
-  // Calculate optimal cell size based on available screen width
-  // Only recalculate if step count changes, otherwise use cached value
-  const calculateMobileCellSize = () => {
-    const steps = activeSection?.steps || 12;
+  // Get current viewport and safe area dimensions
+  const viewportWidth = window.innerWidth;
+  const computedStyle = getComputedStyle(document.documentElement);
+  const safeAreaLeft = parseInt(computedStyle.getPropertyValue('--safe-area-left') || '0', 10) || 0;
+  const safeAreaRight = parseInt(computedStyle.getPropertyValue('--safe-area-right') || '0', 10) || 0;
 
-    // Use cached value if step count hasn't changed
-    if (state.uiState.mobileCellSize !== null && state.uiState.mobileCellSteps === steps) {
-      return state.uiState.mobileCellSize;
-    }
-
-    // Get safe area insets from CSS custom properties (set via env() in mobile.html)
-    const computedStyle = getComputedStyle(document.documentElement);
-    const safeAreaLeft = parseInt(computedStyle.getPropertyValue('--safe-area-left') || '0', 10) || 0;
-    const safeAreaRight = parseInt(computedStyle.getPropertyValue('--safe-area-right') || '0', 10) || 0;
-
-    const viewportWidth = window.innerWidth;
-    // Subtract safe areas to get usable width (excludes dynamic island area)
-    const usableWidth = viewportWidth - safeAreaLeft - safeAreaRight;
-
-    const subdivision = activeSection?.subdivision || 4;
-
-    // Account for all horizontal space consumers:
-    // - Sticky instrument label: 144px (w-36)
-    // - Gap between cells: ~5px per cell (gap-1 = 4px + border)
-    // - Separators between groups: 2px each
-    // - Cell container padding: 8px (p-1 on both sides = 4px + 4px)
-    // - Some buffer for scrollbar and rendering: 10px
-    const stickyLabelWidth = 144;
-    const gapPerStep = 5;
-    const separatorCount = Math.floor((steps - 1) / subdivision);
-    const containerPadding = 8;
-    const buffer = 15;
-
-    const totalOverhead = stickyLabelWidth + containerPadding + buffer + (separatorCount * 2) + (steps * gapPerStep);
-    const availableForCells = usableWidth - totalOverhead;
-
-    const optimalCellWidth = Math.floor(availableForCells / steps);
-
-    // Clamp between minimum (16px) and maximum (40px)
-    // 16px is still usable for small icons/letters
-    const clampedWidth = Math.max(16, Math.min(40, optimalCellWidth));
-
-    // Cache the calculated value and the step count it was calculated for
-    state.uiState.mobileCellSize = clampedWidth;
-    state.uiState.mobileCellSteps = steps;
-
-    return clampedWidth;
-  };
-
-  const mobileCellSize = calculateMobileCellSize();
+  // Calculate cell size fresh on every render (pure functional - no caching)
+  const steps = activeSection?.steps || 12;
+  const mobileCellSize = calculateMobileCellSize(viewportWidth, steps, safeAreaLeft, safeAreaRight);
 
   return `
     <div class="flex flex-col h-full bg-gray-950 text-gray-100 font-sans selection:bg-cyan-500 selection:text-black select-none pl-[var(--safe-area-left)] pr-[var(--safe-area-right)]">

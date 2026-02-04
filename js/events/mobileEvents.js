@@ -1,423 +1,389 @@
+/*
+  js/events/mobileEvents.js
+  Mobile-specific event handler setup.
+  REFACTORED: Now delegates to modular handler functions.
+*/
+
 import { state, playback } from '../store.js';
 import { actions } from '../actions.js';
 import { togglePlay, stopPlayback } from '../services/sequencer.js';
-import { renderApp, refreshGrid } from '../ui/renderer.js';
+import { renderApp } from '../ui/renderer.js';
 import { audioEngine } from '../services/audioEngine.js';
-import { dataLoader } from '../services/dataLoader.js';
+
+// Import modular handlers
+import * as playbackHandlers from './handlers/playbackEvents.js';
+import * as menuHandlers from './handlers/menuEvents.js';
+import * as modalHandlers from './handlers/modalEvents.js';
+import * as bataHandlers from './handlers/bataExplorerEvents.js';
+
+/**
+ * List of actions allowed on mobile (subset of desktop)
+ */
+const MOBILE_ALLOWED_ACTIONS = [
+    'toggle-play', 'stop', 'toggle-menu', 'close-menu', 'load-rhythm',
+    'select-rhythm-confirm', 'toggle-mute', 'update-global-bpm', 'toggle-folder',
+    'update-volume', 'close-modal', 'close-modal-bg', 'open-structure',
+    'toggle-user-guide-submenu', 'open-user-guide', 'share-rhythm', 'toggle-count-in',
+    // BataExplorer actions
+    'close-bata-explorer', 'close-bata-explorer-bg', 'toggle-filter-dropdown',
+    'toggle-orisha-filter', 'remove-orisha-filter', 'toggle-type-filter',
+    'remove-type-filter', 'clear-bata-filters', 'select-toque', 'close-toque-details',
+    'load-toque-confirm'
+];
+
+/**
+ * Handle mobile share rhythm (uses native share API if available)
+ */
+const handleMobileShareRhythm = () => {
+    if (state.rhythmSource === 'repo' && state.currentRhythmId) {
+        const baseUrl = window.location.origin + window.location.pathname;
+        const shareUrl = `${baseUrl}?rhythm=${encodeURIComponent(state.currentRhythmId)}`;
+
+        if (navigator.share) {
+            navigator.share({
+                title: state.toque?.name || 'Percussion Studio Rhythm',
+                text: `Check out this rhythm: ${state.toque?.name}`,
+                url: shareUrl
+            }).catch((err) => {
+                if (err.name === 'AbortError') return;
+                navigator.clipboard.writeText(shareUrl);
+                alert('Link copied to clipboard!');
+            });
+        } else {
+            navigator.clipboard.writeText(shareUrl).then(() => {
+                alert(`Link copied to clipboard!\n\n${shareUrl}`);
+            }).catch(() => {
+                prompt('Copy this link:', shareUrl);
+            });
+        }
+    }
+    state.uiState.isMenuOpen = false;
+    renderApp();
+};
+
+/**
+ * Handle select rhythm confirm (mobile-specific with loading screen)
+ */
+const handleMobileSelectRhythmConfirm = (target) => {
+    const rhythmId = target.dataset.rhythmId;
+    const rhythmName = rhythmId.split('/').pop().replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+
+    state.uiState.modalOpen = false;
+    state.uiState.isLoadingRhythm = true;
+    state.uiState.loadingRhythmName = rhythmName;
+    renderApp();
+
+    actions.loadRhythm(rhythmId).then(() => {
+        state.uiState.isLoadingRhythm = false;
+        state.uiState.loadingRhythmName = null;
+        renderApp();
+    }).catch(() => {
+        state.uiState.isLoadingRhythm = false;
+        state.uiState.loadingRhythmName = null;
+        renderApp();
+    });
+};
+
+/**
+ * Handle load toque confirm (mobile-specific with loading screen)
+ */
+const handleMobileLoadToqueConfirm = (target) => {
+    const toqueId = target.dataset.toqueId;
+    const rhythmName = toqueId.split('/').pop().replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+
+    state.uiState.bataExplorer.isOpen = false;
+    state.uiState.isLoadingRhythm = true;
+    state.uiState.loadingRhythmName = rhythmName;
+    renderApp();
+
+    actions.loadRhythm(toqueId).then(() => {
+        state.uiState.bataExplorer.selectedToqueId = null;
+        state.uiState.bataExplorer.selectedOrishas = [];
+        state.uiState.bataExplorer.selectedTypes = [];
+        state.uiState.bataExplorer.searchTerm = '';
+        state.uiState.isLoadingRhythm = false;
+        state.uiState.loadingRhythmName = null;
+        renderApp();
+    }).catch(() => {
+        state.uiState.isLoadingRhythm = false;
+        state.uiState.loadingRhythmName = null;
+        renderApp();
+    });
+};
+
+/**
+ * Create mobile action router
+ */
+const createMobileActionRouter = () => ({
+    // Playback
+    'toggle-play': () => togglePlay(),
+    'stop': () => stopPlayback(),
+    'toggle-count-in': playbackHandlers.handleToggleCountIn,
+
+    // Menu
+    'toggle-menu': () => {
+        state.uiState.isMenuOpen = !state.uiState.isMenuOpen;
+        state.uiState.userGuideSubmenuOpen = false;
+        renderApp();
+    },
+    'close-menu': (e, target) => {
+        if (target.tagName === 'DIV' && e.target !== target) return;
+        state.uiState.isMenuOpen = false;
+        state.uiState.userGuideSubmenuOpen = false;
+        renderApp();
+    },
+    'toggle-user-guide-submenu': menuHandlers.handleToggleUserGuideSubmenu,
+    'open-user-guide': (e, target) => modalHandlers.handleOpenUserGuide(target, true), // isMobile = true
+    'share-rhythm': handleMobileShareRhythm,
+
+    // Load rhythm
+    'load-rhythm': menuHandlers.handleLoadRhythm,
+    'toggle-folder': (e, target) => modalHandlers.handleToggleFolder(target),
+    'select-rhythm-confirm': (e, target) => handleMobileSelectRhythmConfirm(target),
+
+    // Bata Explorer
+    'close-bata-explorer': () => bataHandlers.handleCloseBataExplorer(),
+    'close-bata-explorer-bg': (e, target) => { if (e.target === target) bataHandlers.handleCloseBataExplorer(); },
+    'toggle-filter-dropdown': (e, target) => bataHandlers.handleToggleFilterDropdown(target),
+    'toggle-orisha-filter': (e, target) => bataHandlers.handleToggleOrishaFilter(target),
+    'remove-orisha-filter': (e, target) => bataHandlers.handleRemoveOrishaFilter(target),
+    'toggle-type-filter': (e, target) => bataHandlers.handleToggleTypeFilter(target),
+    'remove-type-filter': (e, target) => bataHandlers.handleRemoveTypeFilter(target),
+    'clear-bata-filters': () => bataHandlers.handleClearBataFilters(),
+    'select-toque': (e, target) => bataHandlers.handleSelectToque(target),
+    'close-toque-details': () => bataHandlers.handleCloseToqueDetails(),
+    'load-toque-confirm': (e, target) => handleMobileLoadToqueConfirm(target),
+
+    // Mute/Track controls
+    'toggle-mute': (e, target) => {
+        const section = state.toque?.sections.find(s => s.id === state.activeSectionId);
+        const tIdx = parseInt(target.dataset.trackIndex);
+        const track = section?.measures[0]?.tracks[tIdx];
+        if (track) {
+            const newMutedState = !track.muted;
+            actions.setGlobalMute(track.instrument, newMutedState);
+        }
+    },
+
+    // Structure modal
+    'open-structure': () => {
+        state.uiState.isMenuOpen = false;
+        state.uiState.modalType = 'structure';
+        state.uiState.modalOpen = true;
+        renderApp();
+    },
+
+    // Close modal
+    'close-modal': () => modalHandlers.handleCloseModal(),
+    'close-modal-bg': (e, target) => { if (e.target === target) modalHandlers.handleCloseModal(); },
+});
 
 export const setupMobileEvents = () => {
     const root = document.getElementById('root');
+    const actionRouter = createMobileActionRouter();
 
+    // Click handler
     root.addEventListener('click', (e) => {
-        // --- Fullscreen & Wake Lock Logic ---
-        // (Fullscreen removed by user request)
-
         // Resume Audio Context (Mobile Fix)
         audioEngine.init();
         audioEngine.resume();
-        // ------------------------------------
-        // ------------------------------------
 
         const target = e.target.closest('[data-action], [data-role]');
         if (!target) return;
+
         const action = target.dataset.action;
 
-        // Allowed actions for mobile
-        const allowedActions = [
-            'toggle-play', 'stop', 'toggle-menu', 'close-menu', 'load-rhythm',
-            'select-rhythm-confirm', 'toggle-mute', 'update-global-bpm', 'toggle-folder',
-            'update-volume', 'close-modal', 'close-modal-bg', 'open-structure',
-            'toggle-user-guide-submenu', 'open-user-guide', 'share-rhythm', 'toggle-count-in',
-            // BataExplorer actions
-            'close-bata-explorer', 'close-bata-explorer-bg', 'toggle-filter-dropdown',
-            'toggle-orisha-filter', 'remove-orisha-filter', 'toggle-type-filter',
-            'remove-type-filter', 'clear-bata-filters', 'select-toque', 'close-toque-details',
-            'load-toque-confirm'
-        ];
-        if (!allowedActions.includes(action)) return;
+        // Check if action is allowed on mobile
+        if (!MOBILE_ALLOWED_ACTIONS.includes(action)) return;
 
-        if (action === 'toggle-play') togglePlay();
-        if (action === 'stop') stopPlayback();
-
-        if (action === 'toggle-menu') {
-            state.uiState.isMenuOpen = !state.uiState.isMenuOpen;
-            state.uiState.userGuideSubmenuOpen = false; // Reset submenu when toggling main menu
-            renderApp();
-        }
-        if (action === 'toggle-count-in') {
-            state.countInEnabled = !state.countInEnabled;
-            renderApp();
-        }
-        if (action === 'close-menu') {
-            // Only check target match for backdrop (div), not for button clicks
-            if (target.tagName === 'DIV' && e.target !== target) return;
-            state.uiState.isMenuOpen = false;
-            state.uiState.userGuideSubmenuOpen = false;
-            renderApp();
-        }
-
-        if (action === 'toggle-user-guide-submenu') {
-            state.uiState.userGuideSubmenuOpen = !state.uiState.userGuideSubmenuOpen;
-            renderApp();
-        }
-        if (action === 'open-user-guide') {
-            const lang = target.dataset.lang;
-            const filePath = `docs/user-guide-mobile-${lang}.md`;
-
-            state.uiState.userGuideLanguage = lang;
-            state.uiState.userGuideContent = '<div class="text-center text-gray-500 py-8"><div class="animate-spin inline-block w-6 h-6 border-2 border-gray-500 border-t-cyan-400 rounded-full mb-2"></div><div>Loading...</div></div>';
-            state.uiState.modalType = 'userGuide';
-            state.uiState.modalOpen = true;
-            state.uiState.isMenuOpen = false;
-            state.uiState.userGuideSubmenuOpen = false;
-            renderApp();
-
-            // Fetch and render markdown
-            fetch(filePath)
-                .then(response => response.text())
-                .then(markdown => {
-                    // Simple markdown to HTML conversion
-                    let html = markdown
-                        // Escape HTML
-                        .replace(/</g, '&lt;')
-                        .replace(/>/g, '&gt;')
-                        // Headers
-                        .replace(/^### (.*$)/gim, '<h3 class="text-base font-bold text-cyan-400 mt-4 mb-2">$1</h3>')
-                        .replace(/^## (.*$)/gim, '<h2 class="text-lg font-bold text-white mt-6 mb-2 border-b border-gray-700 pb-2">$1</h2>')
-                        .replace(/^# (.*$)/gim, '<h1 class="text-xl font-bold text-white mb-3">$1</h1>')
-                        // Bold and italic
-                        .replace(/\*\*\*(.*?)\*\*\*/g, '<strong><em>$1</em></strong>')
-                        .replace(/\*\*(.*?)\*\*/g, '<strong class="text-white">$1</strong>')
-                        .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                        // Code
-                        .replace(/`(.*?)`/g, '<code class="bg-gray-800 px-1 py-0.5 rounded text-cyan-300 text-xs">$1</code>')
-                        // Links  
-                        .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" class="text-cyan-400 hover:underline">$1</a>')
-                        // Horizontal rules
-                        .replace(/^---$/gim, '<hr class="border-gray-700 my-4">')
-                        // Lists
-                        .replace(/^\d+\. (.*$)/gim, '<li class="ml-4 mb-1">$1</li>')
-                        .replace(/^- (.*$)/gim, '<li class="ml-4 mb-1 list-disc">$1</li>')
-                        // Tables - basic support
-                        .replace(/^\|(.+)\|$/gim, (match, content) => {
-                            const cells = content.split('|').map(c => c.trim());
-                            if (cells.every(c => /^[-:]+$/.test(c))) return ''; // Skip separator row
-                            const cellTags = cells.map(c => `<td class="border border-gray-700 px-2 py-1 text-xs">${c}</td>`).join('');
-                            return `<tr>${cellTags}</tr>`;
-                        })
-                        // Blockquotes
-                        .replace(/^&gt; \*\*Note\*\*: (.*$)/gim, '<div class="bg-blue-900/20 border-l-4 border-blue-500 p-2 my-2 text-blue-300 text-xs">$1</div>')
-                        .replace(/^&gt; (.*$)/gim, '<blockquote class="border-l-4 border-gray-600 pl-3 my-2 text-gray-400 text-xs">$1</blockquote>')
-                        // Paragraphs
-                        .replace(/\n\n/g, '</p><p class="mb-2 text-gray-300">')
-                        .replace(/\n/g, '<br>');
-
-                    // Wrap tables
-                    html = html.replace(/(<tr>[\s\S]*?<\/tr>)+/g, '<table class="w-full border-collapse border border-gray-700 my-3 text-xs">$&</table>');
-
-                    state.uiState.userGuideContent = `<div class="text-gray-300"><p class="mb-2 text-gray-300">${html}</p></div>`;
-                    renderApp();
-                })
-                .catch(err => {
-                    state.uiState.userGuideContent = `<div class="text-center text-red-400 py-8">Failed to load user guide: ${err.message}</div>`;
-                    renderApp();
-                });
-        }
-
-        if (action === 'share-rhythm') {
-            if (state.rhythmSource === 'repo' && state.currentRhythmId) {
-                // Build shareable URL
-                const baseUrl = window.location.origin + window.location.pathname;
-                const shareUrl = `${baseUrl}?rhythm=${encodeURIComponent(state.currentRhythmId)}`;
-
-                // Try native share API (better on mobile)
-                if (navigator.share) {
-                    navigator.share({
-                        title: state.toque?.name || 'Percussion Studio Rhythm',
-                        text: `Check out this rhythm: ${state.toque?.name}`,
-                        url: shareUrl
-                    }).catch((err) => {
-                        // User cancelled the share - don't show any message
-                        if (err.name === 'AbortError') return;
-                        // Fallback to clipboard only on actual errors
-                        navigator.clipboard.writeText(shareUrl);
-                        alert('Link copied to clipboard!');
-                    });
-                } else {
-                    // Fallback to clipboard
-                    navigator.clipboard.writeText(shareUrl).then(() => {
-                        alert(`Link copied to clipboard!\n\n${shareUrl}`);
-                    }).catch(() => {
-                        prompt('Copy this link:', shareUrl);
-                    });
-                }
-            }
-            state.uiState.isMenuOpen = false;
-            renderApp();
-        }
-
-        if (action === 'load-rhythm') {
-            state.uiState.modalType = 'rhythm';
-            state.uiState.modalOpen = true;
-            state.uiState.isMenuOpen = false;
-            renderApp();
-        }
-
-        if (action === 'toggle-folder') {
-            const folderPath = target.dataset.folderPath;
-
-            // Special handling for Batà folder: Open BataExplorer modal
-            if (folderPath === 'Batà') {
-                state.uiState.modalOpen = false; // Close rhythm modal
-                state.uiState.bataExplorer.isOpen = true;
-
-                // Load metadata if not already loaded
-                if (!state.uiState.bataExplorer.metadata) {
-                    dataLoader.loadBataMetadata().then(metadata => {
-                        state.uiState.bataExplorer.metadata = metadata;
-                        renderApp();
-                    });
-                }
-                renderApp();
-                return;
-            }
-
-            // Save scroll position before re-render
-            const scrollContainer = document.getElementById('rhythm-modal-scroll');
-            const scrollTop = scrollContainer ? scrollContainer.scrollTop : 0;
-
-            if (state.uiState.expandedFolders.has(folderPath)) {
-                state.uiState.expandedFolders.delete(folderPath);
-            } else {
-                state.uiState.expandedFolders.add(folderPath);
-            }
-            renderApp();
-
-            // Restore scroll position after re-render
-            requestAnimationFrame(() => {
-                const newScrollContainer = document.getElementById('rhythm-modal-scroll');
-                if (newScrollContainer) {
-                    newScrollContainer.scrollTop = scrollTop;
-                }
-            });
-        }
-
-        // --- BataExplorer Event Handlers ---
-
-        // Close BataExplorer modal
-        if (action === 'close-bata-explorer' ||
-            (action === 'close-bata-explorer-bg' && e.target === target)) {
-            state.uiState.bataExplorer.isOpen = false;
-            state.uiState.bataExplorer.selectedToqueId = null;
-            state.uiState.bataExplorer.orishaDropdownOpen = false;
-            state.uiState.bataExplorer.typeDropdownOpen = false;
-            renderApp();
-        }
-
-        // Toggle filter dropdowns
-        if (action === 'toggle-filter-dropdown') {
-            const dropdownId = target.dataset.dropdownId;
-            if (dropdownId === 'orisha') {
-                state.uiState.bataExplorer.orishaDropdownOpen = !state.uiState.bataExplorer.orishaDropdownOpen;
-                state.uiState.bataExplorer.typeDropdownOpen = false;
-            } else if (dropdownId === 'type') {
-                state.uiState.bataExplorer.typeDropdownOpen = !state.uiState.bataExplorer.typeDropdownOpen;
-                state.uiState.bataExplorer.orishaDropdownOpen = false;
-            }
-            renderApp();
-        }
-
-        // Toggle Orisha filter
-        if (action === 'toggle-orisha-filter') {
-            const orisha = target.dataset.value;
-            const arr = state.uiState.bataExplorer.selectedOrishas;
-            const idx = arr.indexOf(orisha);
-            if (idx >= 0) {
-                arr.splice(idx, 1);
-            } else {
-                arr.push(orisha);
-            }
-            state.uiState.bataExplorer.orishaDropdownOpen = false; // Close dropdown after selection
-            renderApp();
-        }
-
-        // Remove Orisha filter (from token)
-        if (action === 'remove-orisha-filter') {
-            const orisha = target.dataset.orisha;
-            const arr = state.uiState.bataExplorer.selectedOrishas;
-            const idx = arr.indexOf(orisha);
-            if (idx >= 0) arr.splice(idx, 1);
-            renderApp();
-        }
-
-        // Toggle Type filter
-        if (action === 'toggle-type-filter') {
-            const type = target.dataset.value;
-            const arr = state.uiState.bataExplorer.selectedTypes;
-            const idx = arr.indexOf(type);
-            if (idx >= 0) {
-                arr.splice(idx, 1);
-            } else {
-                arr.push(type);
-            }
-            state.uiState.bataExplorer.typeDropdownOpen = false; // Close dropdown after selection
-            renderApp();
-        }
-
-        // Remove Type filter (from token)
-        if (action === 'remove-type-filter') {
-            const type = target.dataset.type;
-            const arr = state.uiState.bataExplorer.selectedTypes;
-            const idx = arr.indexOf(type);
-            if (idx >= 0) arr.splice(idx, 1);
-            renderApp();
-        }
-
-        // Clear all BataExplorer filters
-        if (action === 'clear-bata-filters') {
-            state.uiState.bataExplorer.searchTerm = '';
-            state.uiState.bataExplorer.selectedOrishas = [];
-            state.uiState.bataExplorer.selectedTypes = [];
-            state.uiState.bataExplorer.selectedToqueId = null;
-            const searchInput = document.getElementById('bata-search-input');
-            if (searchInput) searchInput.value = '';
-            renderApp();
-        }
-
-        // Select toque card (show in details panel)
-        if (action === 'select-toque') {
-            const toqueId = target.dataset.toqueId;
-            state.uiState.bataExplorer.selectedToqueId = toqueId;
-            state.uiState.bataExplorer.orishaDropdownOpen = false;
-            state.uiState.bataExplorer.typeDropdownOpen = false;
-            renderApp();
-        }
-
-        // Close toque details panel
-        if (action === 'close-toque-details') {
-            state.uiState.bataExplorer.selectedToqueId = null;
-            renderApp();
-        }
-
-        // Load selected toque
-        if (action === 'load-toque-confirm') {
-            const toqueId = target.dataset.toqueId;
-            const rhythmName = toqueId.split('/').pop().replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-
-            state.uiState.bataExplorer.isOpen = false;
-            state.uiState.isLoadingRhythm = true;
-            state.uiState.loadingRhythmName = rhythmName;
-            renderApp();
-
-            actions.loadRhythm(toqueId).then(() => {
-                state.uiState.bataExplorer.selectedToqueId = null;
-                state.uiState.bataExplorer.selectedOrishas = [];
-                state.uiState.bataExplorer.selectedTypes = [];
-                state.uiState.bataExplorer.searchTerm = '';
-                state.uiState.isLoadingRhythm = false;
-                state.uiState.loadingRhythmName = null;
-                renderApp();
-            }).catch(() => {
-                state.uiState.isLoadingRhythm = false;
-                state.uiState.loadingRhythmName = null;
-                renderApp();
-            });
-        }
-
-        if (action === 'select-rhythm-confirm') {
-            const rhythmId = target.dataset.rhythmId;
-            // Mobile: Close modal immediately and show loading screen
-            // Extract readable name from rhythmId (e.g. "bata/chachalokafun" -> "Chachalokafun")
-            const rhythmName = rhythmId.split('/').pop().replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-
-            state.uiState.modalOpen = false;
-            state.uiState.isLoadingRhythm = true;
-            state.uiState.loadingRhythmName = rhythmName;
-            renderApp();
-
-            // Load rhythm asynchronously
-            actions.loadRhythm(rhythmId).then(() => {
-                state.uiState.isLoadingRhythm = false;
-                state.uiState.loadingRhythmName = null;
-                renderApp();
-            }).catch(() => {
-                state.uiState.isLoadingRhythm = false;
-                state.uiState.loadingRhythmName = null;
-                renderApp();
-            });
-        }
-
-        if (action === 'toggle-mute') {
-            const section = state.toque.sections.find(s => s.id === state.activeSectionId);
-            const tIdx = parseInt(target.dataset.trackIndex);
-
-            // Mobile assumes track structure is consistent, so grab from first measure to identify instrument
-            const track = section.measures[0].tracks[tIdx];
-            if (track) {
-                const newMutedState = !track.muted;
-                actions.setGlobalMute(track.instrument, newMutedState);
-            }
-        }
-
-        if (action === 'open-structure') {
-            state.uiState.isMenuOpen = false;
-            state.uiState.modalType = 'structure';
-            state.uiState.modalOpen = true;
-            renderApp();
-        }
-
-        if (action === 'close-modal' || (action === 'close-modal-bg' && e.target === target)) {
-            state.uiState.modalOpen = false;
-            renderApp();
+        // Route to handler if exists
+        if (action && actionRouter[action]) {
+            actionRouter[action](e, target);
         }
     });
 
+    // Input handler (volume, BPM, search)
     root.addEventListener('input', (e) => {
         const target = e.target;
         const action = target.dataset.action;
         if (!action) return;
 
-        // Only allow specific inputs
         if (action === 'bata-search-input') {
-            state.uiState.bataExplorer.searchTerm = target.value;
-            clearTimeout(window._bataSearchTimeout);
-            window._bataSearchTimeout = setTimeout(() => renderApp(), 150);
+            bataHandlers.handleBataSearchInput(target);
             return;
         }
 
-        if (action !== 'update-global-bpm' && action !== 'update-volume') return;
-
-        const section = state.toque.sections.find(s => s.id === state.activeSectionId);
+        if (action === 'update-volume') {
+            const section = state.toque?.sections.find(s => s.id === state.activeSectionId);
+            const tIdx = parseInt(target.dataset.trackIndex);
+            const newVolume = parseFloat(target.value);
+            const track = section?.measures[0]?.tracks[tIdx];
+            if (track) {
+                actions.setGlobalVolume(track.instrument, newVolume);
+            }
+            return;
+        }
 
         if (action === 'update-global-bpm') {
             state.toque.globalBpm = Number(target.value);
-            if (!section.bpm) playback.currentPlayheadBpm = state.toque.globalBpm;
+            const section = state.toque?.sections.find(s => s.id === state.activeSectionId);
+            if (!section?.bpm) playback.currentPlayheadBpm = state.toque.globalBpm;
             const display = document.getElementById('header-global-bpm');
-            if (display) display.innerHTML = `${state.toque.globalBpm} <span class="text-[9px] text-gray-600">BPM</span>`;
-        }
+            if (display) display.innerHTML = `${state.toque.globalBpm} <span class="text-[8px] text-gray-600">BPM</span>`;
 
-        if (action === 'update-volume') {
-            const tIdx = parseInt(target.dataset.trackIndex);
-            const newVolume = parseFloat(target.value);
-            // Get instrument from first measure
-            const track = section.measures[0].tracks[tIdx];
-            if (track) {
-                actions.setGlobalVolume(track.instrument, newVolume);
+            // Direct DOM update for BPM slider visual feedback
+            const bpmContainer = target.closest('.group\\/bpm');
+            if (bpmContainer) {
+                updateBpmSliderVisuals(bpmContainer, state.toque.globalBpm);
             }
         }
     });
 
+    // Change handler (BPM finalize)
     root.addEventListener('change', (e) => {
         const target = e.target;
         const action = target.dataset.action;
         if (action === 'update-global-bpm') {
             state.toque.globalBpm = Number(target.value);
-            const section = state.toque.sections.find(s => s.id === state.activeSectionId);
-            if (!section.bpm) playback.currentPlayheadBpm = state.toque.globalBpm;
+            const section = state.toque?.sections.find(s => s.id === state.activeSectionId);
+            if (!section?.bpm) playback.currentPlayheadBpm = state.toque.globalBpm;
             renderApp();
         }
     });
 
+    // BPM slider touch drag tracking for smooth mobile interaction
+    let activeBpmContainer = null;
+    let activeBpmInput = null;
+
+    // Volume slider touch drag tracking
+    let activeVolContainer = null;
+    let activeVolInput = null;
+
+    root.addEventListener('touchstart', (e) => {
+        // 1. Check for BPM Slider
+        const bpmContainer = e.target.closest('.group\\/bpm');
+        if (bpmContainer) {
+            const bpmInput = bpmContainer.querySelector('input[data-action="update-global-bpm"]');
+            if (bpmInput) {
+                activeBpmContainer = bpmContainer;
+                activeBpmInput = bpmInput;
+                window.__bpmDragging = true;
+
+                const touch = e.touches[0];
+                const rect = bpmContainer.getBoundingClientRect();
+                let percentage = (touch.clientX - rect.left) / rect.width;
+                percentage = Math.max(0, Math.min(1, percentage));
+                const newBpm = Math.round(40 + percentage * 200);
+
+                bpmInput.value = newBpm;
+                bpmInput.dispatchEvent(new Event('input', { bubbles: true }));
+                updateBpmSliderVisuals(bpmContainer, newBpm);
+
+                e.preventDefault();
+                return;
+            }
+        }
+
+        // 2. Check for Volume Slider
+        const volContainer = e.target.closest('.group\\/vol');
+        if (volContainer) {
+            const volInput = volContainer.querySelector('input[data-action="update-volume"]');
+            if (volInput) {
+                activeVolContainer = volContainer;
+                activeVolInput = volInput;
+                // No global flag needed for volume as it doesn't trigger grid refresh
+
+                const touch = e.touches[0];
+                const rect = volContainer.getBoundingClientRect();
+                let percentage = (touch.clientX - rect.left) / rect.width;
+                percentage = Math.max(0, Math.min(1, percentage));
+                // Volume is 0 to 1
+                const newVol = parseFloat(percentage.toFixed(2));
+
+                volInput.value = newVol;
+                volInput.dispatchEvent(new Event('input', { bubbles: true }));
+                updateVolumeSliderVisuals(volContainer, newVol);
+
+                e.preventDefault();
+                return;
+            }
+        }
+    }, { passive: false });
+
+    document.addEventListener('touchmove', (e) => {
+        // Handle BPM Drag
+        if (activeBpmInput && activeBpmContainer) {
+            const touch = e.touches[0];
+            const rect = activeBpmContainer.getBoundingClientRect();
+            let percentage = (touch.clientX - rect.left) / rect.width;
+            percentage = Math.max(0, Math.min(1, percentage));
+            const newBpm = Math.round(40 + percentage * 200);
+
+            activeBpmInput.value = newBpm;
+            activeBpmInput.dispatchEvent(new Event('input', { bubbles: true }));
+            updateBpmSliderVisuals(activeBpmContainer, newBpm);
+        }
+
+        // Handle Volume Drag
+        if (activeVolInput && activeVolContainer) {
+            const touch = e.touches[0];
+            const rect = activeVolContainer.getBoundingClientRect();
+            let percentage = (touch.clientX - rect.left) / rect.width;
+            percentage = Math.max(0, Math.min(1, percentage));
+            const newVol = parseFloat(percentage.toFixed(2));
+
+            activeVolInput.value = newVol;
+            activeVolInput.dispatchEvent(new Event('input', { bubbles: true }));
+            updateVolumeSliderVisuals(activeVolContainer, newVol);
+        }
+    }, { passive: true });
+
+    document.addEventListener('touchend', () => {
+        if (activeBpmInput) {
+            window.__bpmDragging = false;
+            activeBpmInput = null;
+            activeBpmContainer = null;
+        }
+        if (activeVolInput) {
+            activeVolInput = null;
+            activeVolContainer = null;
+        }
+    });
+
+    /**
+     * Update BPM slider visuals directly (no re-render)
+     * @param {HTMLElement} container - The slider container
+     * @param {number} bpm - The new BPM value
+     */
+    function updateBpmSliderVisuals(container, bpm) {
+        const percentage = ((bpm - 40) / 200) * 100;
+        // Update fill bar
+        const fillBar = container.querySelector('div[class*="bg-gradient"]');
+        if (fillBar) fillBar.style.width = `${percentage}%`;
+        // Update handle position (6px offset for 3x3 handle on mobile)
+        const handle = container.querySelector('div[class*="bg-white"]');
+        if (handle) handle.style.left = `calc(${percentage}% - 6px)`;
+    }
+
+    /**
+     * Update Volume slider visuals directly (no re-render)
+     * @param {HTMLElement} container - The slider container
+     * @param {number} volume - The new volume value (0-1)
+     */
+    function updateVolumeSliderVisuals(container, volume) {
+        const percentage = Math.round(volume * 100);
+        // Update fill bar
+        const fillBar = container.querySelector('div[class*="bg-gradient"]');
+        if (fillBar) fillBar.style.width = `${percentage}%`;
+        // Update handle position (8px offset for 4x4 handle - see trackRow.js)
+        const handle = container.querySelector('div[class*="bg-white"]');
+        if (handle) handle.style.left = `calc(${percentage}% - 8px)`;
+        // Update percentage text
+        const percentLabel = container.querySelector('span[class*="font-medium"]');
+        if (percentLabel) percentLabel.textContent = `${percentage}%`;
+    }
+
+    // Timeline section select
     document.addEventListener('timeline-select', (e) => {
         actions.updateActiveSection(e.detail);
         state.uiState.isMenuOpen = false;
@@ -439,5 +405,16 @@ export const setupMobileEvents = () => {
                 togglePlay();
             }
         }
+    });
+
+    // Orientation change / resize handler
+    // Re-render when viewport dimensions change (e.g., rotation from portrait to landscape)
+    let resizeTimeout = null;
+    window.addEventListener('resize', () => {
+        // Debounce to avoid multiple rapid re-renders during rotation animation
+        if (resizeTimeout) clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+            renderApp();
+        }, 100);
     });
 };

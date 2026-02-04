@@ -111,7 +111,7 @@ sound_kit:
 playback_flow:
   - name: "Intro"
     repetitions: 1
-    time_signature: "4/4"
+    subdivision: 4      # 4 for binary (4/4), 3 for ternary (6/8)
     steps: 16
     measures:
       - pattern:

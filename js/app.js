@@ -7,6 +7,8 @@
 import { setupEventListeners } from './events.js';
 import { dataLoader } from './services/dataLoader.js';
 import { actions } from './actions.js';
+import { initStrokeCursors, updateGlobalCursor } from './utils/strokeCursors.js';
+import { state } from './store.js';
 
 // Expose actions to global scope for inline onclick handlers
 window.actions = actions;
@@ -22,6 +24,10 @@ const init = async () => {
         await dataLoader.init();
         // Load Batà metadata (Orishas, colors, etc.) immediately so it's available for UI
         await dataLoader.loadBataMetadata();
+        // Preload stroke cursors for custom cursor feature
+        await initStrokeCursors();
+        // Initialize global cursor with default stroke
+        updateGlobalCursor(state.selectedStroke);
     } catch (error) {
         console.error("Critical: Failed to load manifest.", error);
         document.getElementById('root').innerHTML = `
@@ -72,4 +78,15 @@ const init = async () => {
 };
 
 // Start the application
-init();
+init().then(() => {
+    // On mobile, CSS safe area custom properties may not be computed on first render.
+    // Force a re-render after layout to ensure correct grid sizing.
+    if (window.IS_MOBILE_VIEW) {
+        requestAnimationFrame(() => {
+            // Import dynamically to avoid circular dependencies
+            import('./ui/renderer.js').then(({ renderApp }) => {
+                renderApp();
+            });
+        });
+    }
+});

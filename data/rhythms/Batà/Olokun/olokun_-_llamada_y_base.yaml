@@ -1,0 +1,40 @@
+name: "Olokun - Llamada y Base"
+global_bpm: 80
+is_bata: true
+orisha:
+  - "Olokun"
+  - "Eleggua"
+  - "Oggun"
+  - "Eggun"
+classification: "Shared"
+
+sound_kit:
+  oko:
+    instrument: "OKO"
+    pack: "cp_bata_chaworo"
+  ito:
+    instrument: "ITO"
+    pack: "cp_bata_chaworo"
+  iya:
+    instrument: "IYA"
+    pack: "cp_bata_chaworo"
+
+playback_flow:
+  - name: "Llamada"
+    repetitions: 1
+    steps: 16
+    subdivision: 4
+    measures:
+      - pattern:
+          oko: "||----|----|----|OSO-||"
+          ito: "||----|----|P-S-|--S-||"
+          iya: "||S--O|--S-|--M-|M---||"
+  - name: "Base"
+    repetitions: 16
+    steps: 16
+    subdivision: 4
+    measures:
+      - pattern:
+          oko: "||S---|O-O-|S---|OSO-||"
+          ito: "||O-S-|--S-|P-S-|--S-||"
+          iya: "||S--O|--S-|--M-|M---||"

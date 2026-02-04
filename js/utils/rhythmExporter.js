@@ -1,21 +1,10 @@
-/**
- * Helper function to convert stroke array to pattern string
- * Example: ['O', '.', 'S', '.'] => "||O-S-||"
- */
-const strokesToPatternString = (strokes, subdivision = 4) => {
-    let pattern = '||';
-    for (let i = 0; i < strokes.length; i++) {
-        const stroke = strokes[i];
-        // Convert space (None) to dash
-        pattern += (stroke === ' ' || stroke === '.') ? '-' : stroke;
-        // Add separator after each group
-        if ((i + 1) % subdivision === 0 && i < strokes.length - 1) {
-            pattern += '|';
-        }
-    }
-    pattern += '||';
-    return pattern;
-};
+/*
+  js/utils/rhythmExporter.js
+  Exports rhythm state to YAML format for saving.
+*/
+
+import { strokesToPatternString } from './patternParser.js';
+
 
 /**
  * Exports the current rhythm state to YAML format
@@ -110,8 +99,8 @@ export const exportRhythmToYAML = (state) => {
     toque.sections.forEach((section, idx) => {
         yaml += `  - name: "${section.name}"\n`;
         yaml += `    repetitions: ${section.repetitions || 1}\n`;
-        yaml += `    time_signature: "${section.timeSignature}"\n`;
         yaml += `    steps: ${section.steps}\n`;
+        yaml += `    subdivision: ${section.subdivision}\n`;
 
         // Add optional BPM override
         if (section.bpm !== undefined) {

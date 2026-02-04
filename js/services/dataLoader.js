@@ -18,7 +18,7 @@ class DataLoaderService {
      */
     async init() {
         try {
-            const response = await fetch(this.MANIFEST_URL);
+            const response = await fetch(this.MANIFEST_URL, { cache: 'no-store' });
             if (!response.ok) throw new Error(`Failed to load manifest: ${response.status}`);
             this.manifest = await response.json();
             console.log('✅ Manifest loaded:', this.manifest);
@@ -39,23 +39,11 @@ class DataLoaderService {
         }
 
         try {
-            // Add cache-busting parameter in development mode
-            const cacheBustUrl = config.isDevelopment ? `${url}?_=${Date.now()}` : url;
-
             if (config.verboseLogging) {
-                console.log(`[DataLoader] Fetching YAML from: ${cacheBustUrl}`);
+                console.log(`[DataLoader] Fetching YAML from: ${url}`);
             }
 
-            const fetchOptions = config.isDevelopment ? {
-                cache: 'no-store',
-                headers: {
-                    'Cache-Control': 'no-cache, no-store, must-revalidate',
-                    'Pragma': 'no-cache',
-                    'Expires': '0'
-                }
-            } : {};
-
-            const response = await fetch(cacheBustUrl, fetchOptions);
+            const response = await fetch(url, { cache: 'no-store' });
 
             if (!response.ok) throw new Error(`HTTP ${response.status} for ${url}`);
             const text = await response.text();
@@ -154,22 +142,14 @@ class DataLoaderService {
      * Contains Orisha associations, classifications, and descriptions for Batà rhythms
      */
     async loadBataMetadata() {
-        if (this._bataMetadataCache) {
-            return this._bataMetadataCache;
-        }
-
+        // Always fetch fresh data - no caching
         try {
             const url = 'data/rhythms/Batà/bata_metadata.json';
-            const cacheBustUrl = config.isDevelopment ? `${url}?_=${Date.now()}` : url;
-
-            const response = await fetch(cacheBustUrl, config.isDevelopment ? {
-                cache: 'no-store'
-            } : {});
+            const response = await fetch(url, { cache: 'no-store' });
 
             if (!response.ok) throw new Error(`HTTP ${response.status} for ${url}`);
 
             const data = await response.json();
-            this._bataMetadataCache = data;
             console.log('✅ Batà metadata loaded:', Object.keys(data.toques).length, 'rhythms');
             return data;
         } catch (error) {

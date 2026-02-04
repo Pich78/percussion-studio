@@ -3,17 +3,17 @@ global_bpm: 100
 sound_kit:
   oko:
     instrument: "OKO"
-    pack: "basic_bata"
+    pack: "cp_bata_chaworo"
   ito:
     instrument: "ITO"
-    pack: "basic_bata"
+    pack: "cp_bata_chaworo"
   iya:
     instrument: "IYA"
-    pack: "basic_bata"
+    pack: "cp_bata_chaworo"
 playback_flow:
 - name: "Base"
   repetitions: 1
-  time_signature: "6/8"
+  subdivision: 3
   steps: 12
   measures:
   - pattern:
