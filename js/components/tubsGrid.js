@@ -159,7 +159,7 @@ export const autoScrollGrid = (currentStep) => {
     const containerRect = container.getBoundingClientRect();
     const stepRect = stepElement.getBoundingClientRect();
 
-    const stickyHeaderWidth = 144; // w-36
+    const stickyHeaderWidth = 181; // w-44 + borders
     const viewableWidth = containerRect.width - stickyHeaderWidth;
     const viewableCenter = stickyHeaderWidth + (viewableWidth / 2);
 
