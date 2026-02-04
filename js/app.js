@@ -78,4 +78,15 @@ const init = async () => {
 };
 
 // Start the application
-init();
+init().then(() => {
+    // On mobile, CSS safe area custom properties may not be computed on first render.
+    // Force a re-render after layout to ensure correct grid sizing.
+    if (window.IS_MOBILE_VIEW) {
+        requestAnimationFrame(() => {
+            // Import dynamically to avoid circular dependencies
+            import('./ui/renderer.js').then(({ renderApp }) => {
+                renderApp();
+            });
+        });
+    }
+});
