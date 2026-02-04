@@ -127,12 +127,12 @@ export const MobileLayout = () => {
     const subdivision = activeSection?.subdivision || 4;
 
     // Account for all horizontal space consumers:
-    // - Sticky instrument label: 144px (w-36)
+    // - Sticky instrument label: ~181px (w-44=176px + border-l-4 + border-r ~ 5px)
     // - Gap between cells: ~5px per cell (gap-1 = 4px + border)
     // - Separators between groups: 2px each
     // - Cell container padding: 8px (p-1 on both sides = 4px + 4px)
     // - Some buffer for scrollbar and rendering: 10px
-    const stickyLabelWidth = 144;
+    const stickyLabelWidth = 181;
     const gapPerStep = 5;
     const separatorCount = Math.floor((steps - 1) / subdivision);
     const containerPadding = 8;
