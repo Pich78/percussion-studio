@@ -10,19 +10,10 @@ sound_kit:
   iya:
     instrument: "IYA"
     pack: "cp_bata_chaworo"
-  oko_2:
-    instrument: "OKO"
-    pack: "basic_bata"
-  ito_2:
-    instrument: "ITO"
-    pack: "basic_bata"
-  iya_2:
-    instrument: "IYA"
-    pack: "basic_bata"
 playback_flow:
 - name: "LLamada"
   repetitions: 1
-  time_signature: "6/8"
+  subdivision: 3
   steps: 12
   measures:
   - pattern:
@@ -31,10 +22,10 @@ playback_flow:
       iya: "||---|-R-|OOS|-S-||"
 - name: "Base"
   repetitions: 16
-  time_signature: "6/8"
+  subdivision: 3
   steps: 12
   measures:
   - pattern:
-      oko_2: "||O-O|S--|O-O|S--||"
-      ito_2: "||S--|---|S-O|-O-||"
-      iya_2: "||--S|--S|-OS|-S-||"
+      oko: "||O-O|S--|O-O|S--||"
+      ito: "||S--|---|S-O|-O-||"
+      iya: "||--S|--S|-OS|-S-||"

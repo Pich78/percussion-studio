@@ -13,7 +13,7 @@ sound_kit:
 playback_flow:
 - name: "Base"
   repetitions: 1
-  time_signature: "4/4"
+  subdivision: 4
   steps: 16
   measures:
   - pattern:

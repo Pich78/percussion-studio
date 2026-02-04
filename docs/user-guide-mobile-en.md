@@ -188,8 +188,7 @@ The **CNT** button in the header enables a count-in before playback starts.
 1. Tap **☰** → **Show Structure**
 2. View all sections with their properties:
    - Name
-   - Time signature
-   - Steps
+   - Meter
    - Repetitions
    - Tempo settings
 3. Tap any section card to jump to it

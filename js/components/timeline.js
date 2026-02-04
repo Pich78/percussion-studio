@@ -112,16 +112,14 @@ export const Timeline = ({
         <!-- Content Container -->
         <div class="flex flex-col gap-1 flex-1 min-w-0 pointer-events-none">
           
-          <!-- Line 1: Name - TimeSig - Steps - Repeats -->
+          <!-- Line 1: Name - Meter - Repeats -->
           <div class="flex items-center justify-between gap-2">
             <span class="text-xs font-bold truncate flex-1 leading-tight" title="${section.name}">
               ${section.name}
             </span>
             
             <div class="flex items-center gap-1.5 flex-shrink-0 text-[10px] font-mono opacity-80">
-              <span title="Time Signature">${section.timeSignature}</span>
-              <span class="opacity-30">|</span>
-              <span title="Steps">${section.steps}s</span>
+              <span title="Meter">${section.subdivision === 3 ? '6/8' : '4/4'} (${section.steps})</span>
               <div 
                 class="flex items-center px-1.5 py-0.5 rounded ml-1 ${isActive ? 'bg-cyan-900/40 text-cyan-200' : 'bg-gray-950/50 text-gray-400'}"
                 title="Repetitions"

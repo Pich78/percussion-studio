@@ -154,6 +154,13 @@
     "Generic"
   ],
   "toques": {
+    "Batà/Agguere/agguere_1_-_base": {
+      "displayName": "Agguere 1 - Base",
+      "classification": "Specific",
+      "associatedOrishas": [
+        "Ochosi"
+      ]
+    },
     "Batà/Alumbanche/alumbanche_base": {
       "displayName": "Alumbanche Base",
       "classification": "Specific",
@@ -215,6 +222,13 @@
         "Chango"
       ]
     },
+    "Batà/Latopa/latopa_2_part_base": {
+      "displayName": "Latopa 2 part Base",
+      "classification": "Specific",
+      "associatedOrishas": [
+        "Eleggua"
+      ]
+    },
     "Batà/Latopa/latopa_base": {
       "displayName": "Latopa Base",
       "classification": "Specific",
@@ -252,6 +266,26 @@
       "classification": "Specific",
       "associatedOrishas": [
         "Oggun"
+      ]
+    },
+    "Batà/Olokun/olokun_-_base": {
+      "displayName": "Olokun - Base",
+      "classification": "Shared",
+      "associatedOrishas": [
+        "Olokun",
+        "Eleggua",
+        "Oggun",
+        "Eggun"
+      ]
+    },
+    "Batà/Olokun/olokun_-_llamada_y_base": {
+      "displayName": "Olokun - Llamada y Base",
+      "classification": "Shared",
+      "associatedOrishas": [
+        "Olokun",
+        "Eleggua",
+        "Oggun",
+        "Eggun"
       ]
     },
     "Batà/Yakota/yakota_-_base": {

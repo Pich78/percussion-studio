@@ -83,8 +83,7 @@ Il pannello timeline sulla sinistra gestisce la struttura del tuo ritmo.
 
 Ogni scheda sezione mostra:
 - **Nome**: Identificatore della sezione
-- **Tempo in Chiave**: 4/4 (binario), 6/8 (ternario), o 12/8
-- **Passi**: Numero di passi nella griglia (es. 16s)
+- **Metro**: Tempo in Chiave e Step (es. 4/4 (16))
 - **Ripetizioni**: Quante volte la sezione si ripete (es. x4)
 - **Tempo**: BPM (ambra = personalizzato, grigio = globale)
 - **Accelerazione**: Variazione del tempo per ripetizione (%)
@@ -113,8 +112,7 @@ In cima alla griglia, configura la sezione corrente:
 | Impostazione | Descrizione |
 |--------------|-------------|
 | **Nome** | Nome della sezione (campo di testo modificabile) |
-| **Tempo in Chiave** | Binario (4/4), Ternario (6/8), o 12/8 |
-| **Passi** | Numero di passi per misura (4-64) |
+| **Metro** | Tempo in Chiave e Step combinati (es. "4/4 (16)") |
 | **Ripetizioni** | Quante volte la sezione viene eseguita (1-99) |
 | **Tempo** | L'icona lucchetto alterna BPM globale/personalizzato |
 | **Accel/Decel %** | Variazione del tempo per ripetizione (-10% a +10%) |
