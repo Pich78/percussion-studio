@@ -275,7 +275,7 @@ export const MobileLayout = () => {
             <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" data-action="close-modal-bg"></div>
             
             <!-- Modal Content -->
-            <div class="relative w-full h-full sm:w-4/5 sm:max-w-sm bg-gray-900 border-r border-gray-800 shadow-2xl flex flex-col animate-in fade-in slide-in-from-bottom duration-200">
+            <div class="relative w-full h-full sm:w-4/5 sm:max-w-sm bg-gray-900 border-r border-gray-800 shadow-2xl flex flex-col animate-in fade-in slide-in-from-bottom duration-200 pl-[var(--safe-area-left)] pr-[var(--safe-area-right)]">
                 <div class="p-4 border-b border-gray-800 flex justify-between items-center bg-gray-950">
                     <h2 class="text-lg font-bold text-white">Rhythm Structure</h2>
                     <button data-action="close-modal" class="p-2 text-gray-500 hover:text-white">
