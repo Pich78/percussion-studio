@@ -20,7 +20,8 @@ export const Timeline = ({
   classification = null,
   description = '',
   isBata = false,
-  readOnly = false
+  readOnly = false,
+  isMobile = false
 }) => {
   /* 
      Dynamic Metadata Access:
@@ -187,7 +188,7 @@ export const Timeline = ({
   };
 
   return `
-    <div class="w-72 bg-gray-900 border-r border-gray-800 flex flex-col h-full flex-shrink-0">
+    <div class="${isMobile ? 'w-full' : 'w-72'} bg-gray-900 border-r border-gray-800 flex flex-col h-full flex-shrink-0">
       ${renderHeader()}
       ${renderMetadataSection()}
       <!-- Sections List -->
