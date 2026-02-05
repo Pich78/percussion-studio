@@ -288,7 +288,8 @@ export const MobileLayout = () => {
     globalBpm: state.toque.globalBpm,
     activeSectionId: state.activeSectionId,
     rhythmName: state.toque.name,
-    readOnly: true
+    readOnly: true,
+    isMobile: true
   })}
                 </div>
                 <div class="p-4 border-t border-gray-800 text-xs text-gray-500 text-center">
