@@ -1,0 +1,28 @@
+name: "Latopa 3"
+global_bpm: 111
+
+sound_kit:
+  oko:
+    instrument: "OKO"
+    pack: "cp_bata_chaworo"
+  ito:
+    instrument: "ITO"
+    pack: "cp_bata_chaworo"
+  iya:
+    instrument: "IYA"
+    pack: "cp_bata_chaworo"
+
+playback_flow:
+  - name: "Section 1"
+    repetitions: 1
+    steps: 12
+    subdivision: 3
+    measures:
+      - pattern:
+          oko: "||S--|-O-|S--|---||"
+          ito: "||O--|S--|---|S--||"
+          iya: "||S--|R--|O--|O--||"
+      - pattern:
+          oko: "||S-O|---|R--|---||"
+          ito: "||O--|S--|---|S--||"
+          iya: "||S--|---|---|-O-||"
