@@ -1,0 +1,28 @@
+name: "Eni So"
+global_bpm: 89
+
+sound_kit:
+  oko:
+    instrument: "OKO"
+    pack: "cp_bata_chaworo"
+  ito:
+    instrument: "ITO"
+    pack: "cp_bata_chaworo"
+  iya:
+    instrument: "IYA"
+    pack: "cp_bata_chaworo"
+
+playback_flow:
+  - name: "Section 1"
+    repetitions: 1
+    steps: 12
+    subdivision: 3
+    measures:
+      - pattern:
+          oko: "||S--|SO-|R--|S--||"
+          ito: "||OS-|OS-|-S-|-S-||"
+          iya: "||--R|--S|--S|--R||"
+      - pattern:
+          oko: "||S-O|S--|R--|S--||"
+          ito: "||OS-|-S-|-S-|-S-||"
+          iya: "||--S|--S|--S|--R||"

@@ -188,6 +188,13 @@
         "Ochun"
       ]
     },
+    "Batà/Eni So/eni_so": {
+      "displayName": "Eni So",
+      "classification": "Specific",
+      "associatedOrishas": [
+        "Chango"
+      ]
+    },
     "Batà/Ewi Bami/ewi_bami": {
       "displayName": "Ewi Bami",
       "classification": "Specific",
@@ -224,6 +231,13 @@
     },
     "Batà/Latopa/latopa_2_part_base": {
       "displayName": "Latopa 2 part Base",
+      "classification": "Specific",
+      "associatedOrishas": [
+        "Eleggua"
+      ]
+    },
+    "Batà/Latopa/latopa_3": {
+      "displayName": "Latopa 3",
       "classification": "Specific",
       "associatedOrishas": [
         "Eleggua"
@@ -288,13 +302,23 @@
         "Eggun"
       ]
     },
+    "Batà/Wemilere/wemilere": {
+      "displayName": "Wemilere",
+      "classification": "Shared",
+      "associatedOrishas": [
+        "Chango",
+        "Yemaya"
+      ]
+    },
     "Batà/Yakota/yakota_-_base": {
       "displayName": "Yakota - Base",
       "classification": "Generic",
       "associatedOrishas": [
         "Yemaya",
         "Ochun",
-        "Eggun"
+        "Eggun",
+        "Yewa",
+        "Oya"
       ]
     },
     "Batà/Yakota/yakota_-_llamada_y_base": {
@@ -303,7 +327,9 @@
       "associatedOrishas": [
         "Yemaya",
         "Ochun",
-        "Eggun"
+        "Eggun",
+        "Yewa",
+        "Oya"
       ]
     }
   }
