@@ -50,6 +50,7 @@ export const state = {
             metadata: null // Loaded from bata_metadata.json
         },
         // Rhythm metadata editor state in timeline
+        sectionDropdownOpen: false, // Mobile header section switcher
         metadataEditor: {
             orishaDropdownOpen: false
         }

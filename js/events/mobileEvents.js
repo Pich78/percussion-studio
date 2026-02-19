@@ -24,6 +24,8 @@ const MOBILE_ALLOWED_ACTIONS = [
     'select-rhythm-confirm', 'toggle-mute', 'update-global-bpm', 'toggle-folder',
     'update-volume', 'close-modal', 'close-modal-bg', 'open-structure',
     'toggle-user-guide-submenu', 'open-user-guide', 'share-rhythm', 'toggle-count-in',
+    // Section dropdown
+    'toggle-section-dropdown', 'select-section-item',
     // BataExplorer actions
     'close-bata-explorer', 'close-bata-explorer-bg', 'toggle-filter-dropdown',
     'toggle-orisha-filter', 'remove-orisha-filter', 'toggle-type-filter',
@@ -120,16 +122,31 @@ const createMobileActionRouter = () => ({
     'stop': () => stopPlayback(),
     'toggle-count-in': playbackHandlers.handleToggleCountIn,
 
+    // Section dropdown
+    'toggle-section-dropdown': () => {
+        state.uiState.sectionDropdownOpen = !state.uiState.sectionDropdownOpen;
+        renderApp();
+    },
+    'select-section-item': (e, target) => {
+        const sectionId = target.dataset.sectionId;
+        if (sectionId) {
+            state.uiState.sectionDropdownOpen = false;
+            document.dispatchEvent(new CustomEvent('timeline-select', { detail: sectionId }));
+        }
+    },
+
     // Menu
     'toggle-menu': () => {
         state.uiState.isMenuOpen = !state.uiState.isMenuOpen;
         state.uiState.userGuideSubmenuOpen = false;
+        state.uiState.sectionDropdownOpen = false;
         renderApp();
     },
     'close-menu': (e, target) => {
         if (target.tagName === 'DIV' && e.target !== target) return;
         state.uiState.isMenuOpen = false;
         state.uiState.userGuideSubmenuOpen = false;
+        state.uiState.sectionDropdownOpen = false;
         renderApp();
     },
     'toggle-user-guide-submenu': menuHandlers.handleToggleUserGuideSubmenu,
