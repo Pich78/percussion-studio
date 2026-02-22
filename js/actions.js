@@ -16,23 +16,24 @@ export { actions } from './actions/index.js';
 
 // Also re-export individual actions for direct imports
 export {
-    loadRhythm,
-    loadRhythmFromFile,
-    createNewRhythm,
-    updateActiveSection,
-    addSection,
-    deleteSection,
-    duplicateSection,
-    resizeTracks,
-    handleUpdateStroke,
-    updateTrackSteps,
-    addTrack,
-    updateTrackInstrument,
-    addMeasure,
-    deleteMeasure,
-    duplicateMeasure,
-    setGlobalVolume,
-    setGlobalMute
+  loadRhythm,
+  loadRhythmFromFile,
+  createNewRhythm,
+  updateActiveSection,
+  addSection,
+  deleteSection,
+  duplicateSection,
+  resizeTracks,
+  handleUpdateStroke,
+  handleUpdateStrokeDirectly,
+  updateTrackSteps,
+  addTrack,
+  updateTrackInstrument,
+  addMeasure,
+  deleteMeasure,
+  duplicateMeasure,
+  setGlobalVolume,
+  setGlobalMute
 } from './actions/index.js';
 
 // Legacy: Also export parsePatternString for any external usage

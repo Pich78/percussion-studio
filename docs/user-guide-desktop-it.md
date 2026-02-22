@@ -117,19 +117,24 @@ In cima alla griglia, configura la sezione corrente:
 | **Tempo** | L'icona lucchetto commuta tra BPM globale/personalizzato |
 | **Accel/Decel %** | Cambio di tempo per ripetizione (da -10% a +10%) |
 
-### Inserimento Colpi
+### Modalità di Modifica e Inserimento Colpi
 
-1. **Seleziona un colpo** dalla tavolozza in basso:
-   - **Open** (O) - Tono aperto
-   - **Slap** (S) - Colpo secco
-   - **Bass** (B) - Tono basso
-   - **Tip** (T) - Tocco/punta
-   - **Muff** (M) - Tono smorzato
-   - **Rest** (-) - Pausa (gomma)
+Puoi personalizzare come aggiungere i simboli alla griglia aprendo il **Menu Hamburger (☰)** e selezionando **Editing options**. Ci sono tre modalità di flusso di lavoro principali:
 
-2. **Clicca qualsiasi cella** per inserire il colpo selezionato
+1. **Standard (Tavolozza in Basso)**
+   - Clicca un tipo di colpo (Open, Slap, Bass, ecc.) dalla tavolozza in basso.
+   - **Clicca col tasto sinistro** su qualsiasi cella della griglia per inserire il colpo selezionato.
+   - **Clicca col tasto destro** su una cella per cancellarla rapidamente a Pausa (Rest).
 
-3. **Clicca col tasto destro** su una cella per cancellarla rapidamente
+2. **Menu a Torta (Pie Menu)**
+   - Un menu circolare e veloce che appare direttamente sotto il tuo cursore, mostrando solo i suoni validi per la traccia su cui stai passando il mouse.
+   - Puoi configurare l'apertura del menu tramite **Click Destro** (consigliato), **Pressione Lunga (Long Press)** o **Passaggio del Mouse (Hover)**.
+   - Seleziona un simbolo dal menu a torta per inserirlo immediatamente nella cella della griglia.
+
+3. **Rotellina del Mouse (Mouse Wheel)**
+   - Passa il mouse su qualsiasi cella della griglia e **scorri la rotellina del mouse** su o giù.
+   - Il tuo cursore globale scorrerà rapidamente attraverso tutti i simboli disponibili per quello specifico strumento.
+   - Clicca col tasto sinistro per inserire il simbolo.
 
 ### Feedback Visivo
 

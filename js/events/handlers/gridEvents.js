@@ -10,11 +10,28 @@ import { StrokeType } from '../../types.js';
 import { getValidInstrumentSteps } from '../../utils/gridUtils.js';
 import { updateGlobalCursor } from '../../utils/strokeCursors.js';
 
+// Timers and state for pie menu interactions
+let pieMenuTimer = null;
+let pieMenuCloseTimer = null;
+let justOpenedByLongPress = false;
+
 /**
  * Handle cell click (update stroke)
  * @param {HTMLElement} target - The clicked cell element
  */
 export const handleCellClick = (target) => {
+    // If this click is the release of a long press that opened the menu, ignore it
+    if (justOpenedByLongPress) {
+        justOpenedByLongPress = false;
+        return;
+    }
+
+    // If pie menu is open and we click a cell normally, just close the menu and ignore click
+    if (state.uiState.pieMenu.isOpen) {
+        closePieMenu();
+        return;
+    }
+
     const section = state.toque.sections.find(s => s.id === state.activeSectionId);
     const trackIdx = parseInt(target.dataset.trackIndex);
     const measureIdx = parseInt(target.dataset.measureIndex || 0);
@@ -173,5 +190,233 @@ export const handleClearPattern = () => {
         });
         refreshGrid();
     }
+};
+
+/**
+ * Helper to open pie menu
+ */
+const triggerPieMenuOpen = (target, delayMs, isLongPress) => {
+    const section = state.toque.sections.find(s => s.id === state.activeSectionId);
+    if (!section) return;
+
+    const trackIdx = parseInt(target.dataset.trackIndex);
+    const measureIdx = parseInt(target.dataset.measureIndex || 0);
+    const stepIdx = parseInt(target.dataset.stepIndex);
+
+    const track = section.measures[measureIdx]?.tracks[trackIdx];
+    if (!track) return;
+
+    const instDef = state.instrumentDefinitions[track.instrument];
+    if (!instDef || !instDef.sounds || instDef.sounds.length === 0) return;
+
+    const openFn = () => {
+        if (isLongPress) justOpenedByLongPress = true;
+        const rect = target.getBoundingClientRect();
+
+        let targetStepIdx = stepIdx;
+        if (track.snapToGrid) {
+            const divisor = track.trackSteps || section.subdivision || 4;
+            const groupSize = section.steps / divisor;
+            targetStepIdx = Math.floor(stepIdx / groupSize) * groupSize;
+            if (targetStepIdx >= section.steps) targetStepIdx = section.steps - groupSize;
+        }
+
+        state.uiState.pieMenu = {
+            ...state.uiState.pieMenu,
+            isOpen: true,
+            x: rect.left + (rect.width / 2) + window.scrollX,
+            y: rect.top + (rect.height / 2) + window.scrollY,
+            trackIndex: trackIdx,
+            stepIndex: targetStepIdx,
+            measureIndex: measureIdx,
+            instrumentDef: instDef
+        };
+        renderApp();
+    };
+
+    if (delayMs > 0) {
+        pieMenuTimer = setTimeout(openFn, delayMs);
+    } else {
+        openFn();
+    }
+};
+
+/**
+ * Handle mouse down on a tubs-cell (trigger long-press pie menu)
+ */
+export const handleCellMouseDown = (e, target) => {
+    if (window.IS_MOBILE_VIEW || state.isPlaying) return;
+
+    if (state.uiState.pieMenu.isOpen) {
+        closePieMenu();
+        return;
+    }
+
+    justOpenedByLongPress = false;
+
+    if (state.uiState.pieMenu.editingMode === 'pie-menu' && state.uiState.pieMenu.pieMenuTrigger === 'long-press') {
+        const delay = state.uiState.pieMenu.pressTimeMs;
+        triggerPieMenuOpen(target, delay, true);
+    }
+};
+
+/**
+ * Handle mouse enter on a tubs-cell (trigger hover pie menu)
+ */
+export const handleCellMouseEnter = (e, target) => {
+    if (window.IS_MOBILE_VIEW || state.isPlaying) return;
+
+    if (pieMenuCloseTimer) {
+        clearTimeout(pieMenuCloseTimer);
+        pieMenuCloseTimer = null;
+    }
+
+    if (state.uiState.pieMenu.editingMode === 'pie-menu' && state.uiState.pieMenu.pieMenuTrigger === 'hover') {
+        const delay = state.uiState.pieMenu.hoverTimeMs;
+        triggerPieMenuOpen(target, delay, false);
+    }
+};
+
+/**
+ * Handle mouse leave from a tubs-cell
+ */
+export const handleCellMouseLeave = (e, target) => {
+    if (pieMenuTimer) {
+        clearTimeout(pieMenuTimer);
+        pieMenuTimer = null;
+    }
+
+    if (state.uiState.pieMenu.isOpen && state.uiState.pieMenu.editingMode === 'pie-menu' && state.uiState.pieMenu.pieMenuTrigger === 'hover') {
+        pieMenuCloseTimer = setTimeout(() => {
+            closePieMenu();
+        }, 300);
+    }
+};
+
+/**
+ * Handle mouse enter on the pie menu itself (cancel closing)
+ */
+export const handlePieMenuMouseEnter = () => {
+    if (pieMenuCloseTimer) {
+        clearTimeout(pieMenuCloseTimer);
+        pieMenuCloseTimer = null;
+    }
+};
+
+/**
+ * Handle mouse leave from the pie menu (trigger close)
+ */
+export const handlePieMenuMouseLeave = () => {
+    if (state.uiState.pieMenu.editingMode === 'pie-menu' && state.uiState.pieMenu.pieMenuTrigger === 'hover') {
+        pieMenuCloseTimer = setTimeout(() => {
+            closePieMenu();
+        }, 200);
+    }
+};
+
+/**
+ * Handle cell right click when pie menu is in right-click mode
+ */
+export const handleCellRightClickOpenPieMenu = (e, target) => {
+    if (window.IS_MOBILE_VIEW || state.isPlaying) return;
+    triggerPieMenuOpen(target, 0, false);
+};
+
+/**
+ * Cancel any pending intent timer (e.g. mouseup or mouseout)
+ */
+export const cancelPieMenuPress = () => {
+    if (pieMenuTimer) {
+        clearTimeout(pieMenuTimer);
+        pieMenuTimer = null;
+    }
+};
+
+/**
+ * Handle selection of an item in the pie menu
+ */
+export const handlePieMenuSelect = (e, target) => {
+    const stroke = target.dataset.stroke;
+    const pm = state.uiState.pieMenu;
+
+    if (pm.isOpen && pm.trackIndex !== null) {
+        actions.handleUpdateStrokeDirectly(pm.trackIndex, pm.stepIndex, pm.measureIndex, stroke);
+
+        if (pm.updateGlobalCursor) {
+            state.selectedStroke = stroke;
+            updateGlobalCursor(stroke);
+        }
+    }
+    closePieMenu();
+};
+
+/**
+ * Closes the pie menu and renders
+ */
+export const closePieMenu = () => {
+    if (state.uiState.pieMenu.isOpen) {
+        state.uiState.pieMenu.isOpen = false;
+        renderApp();
+    }
+};
+
+/**
+ * Handle mouse wheel to cycle through instrument symbols
+ */
+export const handleCellMouseWheel = (e, target) => {
+    // Only intercept if we're in mouse-wheel editing mode
+    if (state.uiState.pieMenu.editingMode !== 'mouse-wheel') return;
+
+    // Prevent default scrolling behaviour when scrolling over grid cells/rows
+    e.preventDefault();
+    if (window.IS_MOBILE_VIEW || state.isPlaying) return;
+
+    // The target could be a cell or a track row, we need the trackIndex
+    const trackIdx = parseInt(target.dataset.trackIndex);
+    if (isNaN(trackIdx)) return;
+
+    const section = state.toque.sections.find(s => s.id === state.activeSectionId);
+    if (!section) return;
+
+    const measureIdx = parseInt(target.dataset.measureIndex || 0);
+    const track = section.measures[measureIdx]?.tracks[trackIdx];
+    if (!track) return;
+
+    const instDef = state.instrumentDefinitions[track.instrument];
+    if (!instDef || !instDef.sounds || instDef.sounds.length === 0) return;
+
+    // Build the array of allowed strokes (including rest)
+    const options = [
+        ...instDef.sounds.map(s => s.letter),
+        StrokeType.None
+    ];
+
+    // Find the index of the currently selected global cursor in this track's options
+    let currentIndex = options.indexOf(state.selectedStroke);
+
+    // If current stroke isn't valid for this instrument, default to first option
+    if (currentIndex === -1) {
+        currentIndex = 0;
+    }
+
+    // Determine direction from e.deltaY (positive is scroll down, negative is scroll up)
+    if (e.deltaY > 0) {
+        // Scroll down: next item
+        currentIndex = (currentIndex + 1) % options.length;
+    } else if (e.deltaY < 0) {
+        // Scroll up: previous item
+        currentIndex = (currentIndex - 1 + options.length) % options.length;
+    } else {
+        return;
+    }
+
+    const nextStroke = options[currentIndex];
+
+    // Update the global cursor and visual state
+    state.selectedStroke = nextStroke;
+    updateGlobalCursor(nextStroke);
+
+    // Re-render the app to naturally update the bottom palette selection UI
+    renderApp();
 };
 

@@ -42,7 +42,7 @@
 // Import all action modules
 import { loadRhythm, loadRhythmFromFile, createNewRhythm } from './rhythmActions.js';
 import { updateActiveSection, addSection, deleteSection, duplicateSection, resizeTracks } from './sectionActions.js';
-import { handleUpdateStroke, updateTrackSteps, addTrack, updateTrackInstrument } from './trackActions.js';
+import { handleUpdateStroke, handleUpdateStrokeDirectly, updateTrackSteps, addTrack, updateTrackInstrument } from './trackActions.js';
 import { addMeasure, deleteMeasure, duplicateMeasure } from './measureActions.js';
 import { setGlobalVolume, setGlobalMute } from './mixerActions.js';
 
@@ -65,6 +65,7 @@ export const actions = {
 
   // Track actions
   handleUpdateStroke,
+  handleUpdateStrokeDirectly,
   updateTrackSteps,
   addTrack,
   updateTrackInstrument,
@@ -95,6 +96,7 @@ export {
 
   // Track
   handleUpdateStroke,
+  handleUpdateStrokeDirectly,
   updateTrackSteps,
   addTrack,
   updateTrackInstrument,

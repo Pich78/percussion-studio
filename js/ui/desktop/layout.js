@@ -10,6 +10,8 @@ import { StopIcon } from '../../icons/stopIcon.js';
 import { PlayIcon } from '../../icons/playIcon.js';
 import { PauseIcon } from '../../icons/pauseIcon.js';
 import { BataExplorerModal } from '../../components/bataExplorerModal.js';
+import { PieMenu } from '../../components/pieMenu.js';
+import { EditingOptionsModal } from '../../components/editingOptionsModal.js';
 
 const renderHeader = () => {
   const activeSection = state.toque.sections.find(s => s.id === state.activeSectionId) || state.toque.sections[0];
@@ -39,6 +41,10 @@ const renderHeader = () => {
                         Share Rhythm${state.rhythmSource !== 'repo' ? ' (N/A)' : ''}
                     </button>
                     ` : ''}
+                    <button data-action="open-editing-options" class="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition-colors flex items-center gap-2 border-b border-gray-800">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-pink-500 pointer-events-none"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm0 0H4.5m0 12h9.75M10.5 18a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm0 0H4.5m6-6h9.75M16.5 12a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm0 0H4.5" /></svg>
+                        Editing Options
+                    </button>
                     <div class="relative">
                         <button data-action="toggle-user-guide-submenu" class="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition-colors flex items-center justify-between gap-2">
                             <span class="flex items-center gap-2">
@@ -206,5 +212,7 @@ export const DesktopLayout = () => {
     </div>
     ${renderUserGuideModal()}
     ${BataExplorerModal({ isMobile: false })}
+    ${EditingOptionsModal({ isMobile: false })}
+    ${PieMenu(state.uiState.pieMenu)}
   `;
 };

@@ -61,6 +61,32 @@ export const handleUpdateStroke = (trackIdx, stepIdx, measureIdx = 0) => {
 };
 
 /**
+ * Handle updating a stroke directly without checking state.selectedStroke
+ * @param {number} trackIdx - Track index
+ * @param {number} stepIdx - Step index
+ * @param {number} measureIdx - Measure index
+ * @param {string} strokeLetter - The specific stroke to apply
+ */
+export const handleUpdateStrokeDirectly = (trackIdx, stepIdx, measureIdx, strokeLetter) => {
+    const section = state.toque.sections.find(s => s.id === state.activeSectionId);
+    if (!section) return;
+    const measure = section.measures[measureIdx];
+    if (!measure || !measure.tracks[trackIdx]) return;
+
+    const track = measure.tracks[trackIdx];
+
+    // We already validate when creating the pie menu, so we can just apply it.
+    track.strokes[stepIdx] = strokeLetter;
+
+    refreshGrid();
+
+    // Play sound immediately for UI feedback
+    if (strokeLetter !== StrokeType.None) {
+        audioEngine.playStrokeNow(track.instrument, strokeLetter, track.volume);
+    }
+};
+
+/**
  * Updates the subdivision step count for a specific track
  * @param {number} trackIdx - Track index
  * @param {number} measureIdx - Measure index

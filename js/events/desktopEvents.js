@@ -38,6 +38,12 @@ const createActionRouter = () => {
         'share-rhythm': menuHandlers.handleShareRhythm,
         'toggle-user-guide-submenu': menuHandlers.handleToggleUserGuideSubmenu,
         'open-user-guide': (e, target) => modalHandlers.handleOpenUserGuide(target),
+        'open-editing-options': () => {
+            state.uiState.isMenuOpen = false;
+            state.uiState.modalType = 'editingOptions';
+            state.uiState.modalOpen = true;
+            renderApp();
+        },
 
         // Measures
         'add-measure': () => actions.addMeasure(),
@@ -99,6 +105,9 @@ const createActionRouter = () => {
         },
         'select-stroke': (e, target) => gridHandlers.handleSelectStroke(target),
         'clear-pattern': () => gridHandlers.handleClearPattern(),
+
+        // Pie Menu
+        'pie-menu-select': (e, target) => gridHandlers.handlePieMenuSelect(e, target)
     };
 };
 
@@ -129,10 +138,15 @@ const handleTubsCellClick = (target) => {
 };
 
 /**
- * Handle tubs-cell right-click (clear stroke)
+ * Handle tubs-cell right-click (clear stroke OR open pie menu)
  */
 const handleTubsCellRightClick = (e, target) => {
     e.preventDefault();
+    if (state.uiState.pieMenu.editingMode === 'pie-menu' && state.uiState.pieMenu.pieMenuTrigger === 'right-click') {
+        gridHandlers.handleCellRightClickOpenPieMenu(e, target);
+        return;
+    }
+
     const trackIdx = parseInt(target.dataset.trackIndex);
     const measureIdx = parseInt(target.dataset.measureIndex || 0);
     const stepIdx = parseInt(target.dataset.stepIndex);
@@ -177,6 +191,63 @@ export const setupDesktopEvents = () => {
             handleTubsCellRightClick(e, target);
         }
     });
+
+    // Mouse events for Long-Press Pie Menu support
+    root.addEventListener('mousedown', (e) => {
+        const cell = e.target.closest('[data-role="tubs-cell"]');
+
+        if (state.uiState.pieMenu.isOpen) {
+            const pieMenuContainer = e.target.closest('#pie-menu-container');
+            // If we click outside the pie menu entirely
+            if (!pieMenuContainer) {
+                gridHandlers.closePieMenu();
+                // If we clicked a cell while closing the menu, we don't want to start a new long press.
+                return;
+            }
+        }
+
+        if (cell) {
+            gridHandlers.handleCellMouseDown(e, cell);
+        }
+    });
+
+    root.addEventListener('mouseup', () => {
+        gridHandlers.cancelPieMenuPress();
+    });
+
+    root.addEventListener('mouseover', (e) => {
+        const cell = e.target.closest('[data-role="tubs-cell"]');
+        if (cell) {
+            gridHandlers.handleCellMouseEnter(e, cell);
+            return;
+        }
+        const pieMenuBridge = e.target.closest('[data-role="pie-menu-bridge"]');
+        if (pieMenuBridge || e.target.closest('#pie-menu-container')) {
+            gridHandlers.handlePieMenuMouseEnter();
+        }
+    });
+
+    root.addEventListener('mouseout', (e) => {
+        const related = e.relatedTarget;
+
+        const cell = e.target.closest('[data-role="tubs-cell"]');
+        if (cell && (!related || !cell.contains(related))) {
+            gridHandlers.handleCellMouseLeave(e, cell);
+            gridHandlers.cancelPieMenuPress(); // double check to cancel press too
+        }
+
+        const pieContainer = e.target.closest('#pie-menu-container');
+        if (pieContainer && (!related || !pieContainer.contains(related))) {
+            gridHandlers.handlePieMenuMouseLeave();
+        }
+    });
+
+    root.addEventListener('wheel', (e) => {
+        const target = e.target.closest('[data-role="tubs-cell"]') || e.target.closest('[data-role="track-row"]');
+        if (target) {
+            gridHandlers.handleCellMouseWheel(e, target);
+        }
+    }, { passive: false });
 
     // Volume slider drag tracking (document-level for consistent drag)
     let activeVolumeSlider = null;
@@ -339,6 +410,13 @@ export const setupDesktopEvents = () => {
             playbackHandlers.handleAccelerationInput(target);
             return;
         }
+
+        if (action === 'update-pie-timing') {
+            const key = target.dataset.target;
+            state.uiState.pieMenu[key] = Math.max(0, parseInt(target.value) || 0);
+            renderApp();
+            return;
+        }
     });
 
     // Change handler for select/number inputs
@@ -346,6 +424,13 @@ export const setupDesktopEvents = () => {
         const target = e.target;
         const action = target.dataset.action;
         const section = state.toque?.sections.find(s => s.id === state.activeSectionId);
+
+        if (action === 'update-pie-behavior') {
+            const setting = target.dataset.setting;
+            state.uiState.pieMenu[setting] = target.checked;
+            renderApp();
+            return;
+        }
 
         if (action === 'load-rhythm-file' && target.files[0]) {
             actions.loadRhythmFromFile(target.files[0]).then(() => {
@@ -409,6 +494,18 @@ export const setupDesktopEvents = () => {
 
         if (action === 'update-rhythm-name') {
             timelineHandlers.handleUpdateRhythmName(target);
+            return;
+        }
+
+        if (action === 'update-editing-mode') {
+            state.uiState.pieMenu.editingMode = target.value;
+            renderApp();
+            return;
+        }
+
+        if (action === 'update-pie-trigger') {
+            state.uiState.pieMenu.pieMenuTrigger = target.value;
+            renderApp();
             return;
         }
     });

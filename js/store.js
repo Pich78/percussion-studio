@@ -40,6 +40,22 @@ export const state = {
         userGuideSubmenuOpen: false, // Tracks if user guide language submenu is open
         userGuideContent: null, // Loaded markdown content for user guide modal
         userGuideLanguage: null, // 'en' | 'it' - currently selected language
+        // Pie Menu state for editing symbols on hover
+        pieMenu: {
+            isOpen: false,
+            x: 0,
+            y: 0,
+            trackIndex: null,
+            stepIndex: null,
+            measureIndex: null,
+            instrumentDef: null,
+            editingMode: 'pie-menu', // 'standard' | 'pie-menu' | 'mouse-wheel'
+            pieMenuTrigger: 'right-click', // 'hover' | 'long-press' | 'right-click'
+            hoverTimeMs: 250,
+            pressTimeMs: 400,
+            updateGlobalCursor: false, // If true, selecting from pie menu updates bottom palette
+            hideCurrentCursor: false // If true, current global cursor symbol is hidden from pie menu
+        },
         // BataExplorer state
         bataExplorer: {
             isOpen: false,
