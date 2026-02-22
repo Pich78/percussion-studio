@@ -181,33 +181,35 @@ export const setupDesktopEvents = () => {
         }
     });
 
-    // Hover (Mouse Enter / Leave) for Pie Menu support
-    root.addEventListener('mouseover', (e) => {
+    // Mouse events for Long-Press Pie Menu support
+    root.addEventListener('mousedown', (e) => {
         const cell = e.target.closest('[data-role="tubs-cell"]');
-        if (cell) {
-            gridHandlers.handleCellMouseEnter(e, cell);
-            return;
+
+        if (state.uiState.pieMenu.isOpen) {
+            const pieMenuContainer = e.target.closest('#pie-menu-container');
+            // If we click outside the pie menu entirely
+            if (!pieMenuContainer) {
+                gridHandlers.closePieMenu();
+                // If we clicked a cell while closing the menu, we don't want to start a new long press.
+                return;
+            }
         }
 
-        const pieMenuBridge = e.target.closest('[data-role="pie-menu-bridge"]');
-        if (pieMenuBridge || e.target.closest('#pie-menu-container')) {
-            gridHandlers.handlePieMenuMouseEnter(e, pieMenuBridge);
+        if (cell) {
+            gridHandlers.handleCellMouseDown(e, cell);
         }
     });
 
+    root.addEventListener('mouseup', () => {
+        gridHandlers.cancelPieMenuPress();
+    });
+
     root.addEventListener('mouseout', (e) => {
-        // Need to check relatedTarget to see if we truly left the element
-        const related = e.relatedTarget;
-
+        // Cancel long press if mouse leaves the cell before timer fires
         const cell = e.target.closest('[data-role="tubs-cell"]');
+        const related = e.relatedTarget;
         if (cell && (!related || !cell.contains(related))) {
-            gridHandlers.handleCellMouseLeave(e, cell);
-            return;
-        }
-
-        const pieContainer = e.target.closest('#pie-menu-container');
-        if (pieContainer && (!related || !pieContainer.contains(related))) {
-            gridHandlers.handlePieMenuMouseLeave(e, pieContainer);
+            gridHandlers.cancelPieMenuPress();
         }
     });
 

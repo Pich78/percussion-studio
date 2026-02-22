@@ -10,15 +10,27 @@ import { StrokeType } from '../../types.js';
 import { getValidInstrumentSteps } from '../../utils/gridUtils.js';
 import { updateGlobalCursor } from '../../utils/strokeCursors.js';
 
-// Timer for hover intent
-let pieMenuHoverTimer = null;
-let pieMenuCloseTimer = null;
+// Timer for long press intent
+let pieMenuPressTimer = null;
+let justOpenedByLongPress = false;
 
 /**
  * Handle cell click (update stroke)
  * @param {HTMLElement} target - The clicked cell element
  */
 export const handleCellClick = (target) => {
+    // If this click is the release of a long press that opened the menu, ignore it
+    if (justOpenedByLongPress) {
+        justOpenedByLongPress = false;
+        return;
+    }
+
+    // If pie menu is open and we click a cell normally, just close the menu and ignore click
+    if (state.uiState.pieMenu.isOpen) {
+        closePieMenu();
+        return;
+    }
+
     const section = state.toque.sections.find(s => s.id === state.activeSectionId);
     const trackIdx = parseInt(target.dataset.trackIndex);
     const measureIdx = parseInt(target.dataset.measureIndex || 0);
@@ -180,17 +192,18 @@ export const handleClearPattern = () => {
 };
 
 /**
- * Handle mouse enter on a tubs-cell (trigger pie menu)
+ * Handle mouse down on a tubs-cell (trigger long-press pie menu)
  */
-export const handleCellMouseEnter = (e, target) => {
-    // Only desktop makes sense for hover pie menu
+export const handleCellMouseDown = (e, target) => {
+    // Only desktop makes sense for hover/long-press pie menu
     if (window.IS_MOBILE_VIEW || state.isPlaying) return;
 
-    // Clear any pending close
-    if (pieMenuCloseTimer) {
-        clearTimeout(pieMenuCloseTimer);
-        pieMenuCloseTimer = null;
+    if (state.uiState.pieMenu.isOpen) {
+        closePieMenu();
+        return;
     }
+
+    justOpenedByLongPress = false;
 
     const section = state.toque.sections.find(s => s.id === state.activeSectionId);
     if (!section) return;
@@ -205,8 +218,9 @@ export const handleCellMouseEnter = (e, target) => {
     const instDef = state.instrumentDefinitions[track.instrument];
     if (!instDef || !instDef.sounds || instDef.sounds.length === 0) return;
 
-    // Wait slightly before opening to prevent flashing when moving mouse fast across cells
-    pieMenuHoverTimer = setTimeout(() => {
+    // Start long-press timer
+    pieMenuPressTimer = setTimeout(() => {
+        justOpenedByLongPress = true; // flag to prevent the upcoming 'click' event from acting
         const rect = target.getBoundingClientRect();
 
         // Snap logic adjustment for the pie menu context record
@@ -230,44 +244,17 @@ export const handleCellMouseEnter = (e, target) => {
         };
 
         renderApp();
-    }, 250); // 250ms hover intent
+    }, 400); // 400ms long press duration
 };
 
 /**
- * Handle mouse leave from a tubs-cell
+ * Cancel the long-press timer if mouse moves away or finishes click early
  */
-export const handleCellMouseLeave = (e, target) => {
-    // Cancel opening if we leave before timer finishes
-    if (pieMenuHoverTimer) {
-        clearTimeout(pieMenuHoverTimer);
-        pieMenuHoverTimer = null;
+export const cancelPieMenuPress = () => {
+    if (pieMenuPressTimer) {
+        clearTimeout(pieMenuPressTimer);
+        pieMenuPressTimer = null;
     }
-
-    // Attempt to close if it is open (with a delay to allow moving into the pie menu)
-    if (state.uiState.pieMenu.isOpen) {
-        pieMenuCloseTimer = setTimeout(() => {
-            closePieMenu();
-        }, 300); // 300ms grace period to move mouse into the pie menu bridge
-    }
-};
-
-/**
- * Handle mouse enter on the pie menu itself (cancel closing)
- */
-export const handlePieMenuMouseEnter = () => {
-    if (pieMenuCloseTimer) {
-        clearTimeout(pieMenuCloseTimer);
-        pieMenuCloseTimer = null;
-    }
-};
-
-/**
- * Handle mouse leave from the pie menu (trigger close)
- */
-export const handlePieMenuMouseLeave = () => {
-    pieMenuCloseTimer = setTimeout(() => {
-        closePieMenu();
-    }, 200);
 };
 
 /**
@@ -286,7 +273,7 @@ export const handlePieMenuSelect = (e, target) => {
 /**
  * Closes the pie menu and renders
  */
-const closePieMenu = () => {
+export const closePieMenu = () => {
     if (state.uiState.pieMenu.isOpen) {
         state.uiState.pieMenu.isOpen = false;
         renderApp();
