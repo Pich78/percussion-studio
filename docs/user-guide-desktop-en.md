@@ -117,19 +117,24 @@ At the top of the grid, configure the current section:
 | **Tempo** | Lock icon toggles global/custom BPM |
 | **Accel/Decel %** | Tempo change per repetition (-10% to +10%) |
 
-### Painting Strokes
+### Editing Modes & Painting Strokes
 
-1. **Select a stroke** from the palette at the bottom:
-   - **Open** (O) - Open tone
-   - **Slap** (S) - Slap stroke
-   - **Bass** (B) - Bass tone
-   - **Tip** (T) - Tip/finger stroke
-   - **Muff** (M) - Muffled tone
-   - **Rest** (-) - Silence (eraser)
+You can customize how you add symbols to the grid by opening the **Hamburger Menu (☰)** and selecting **Editing options**. There are three main workflow modes:
 
-2. **Click any grid cell** to paint the selected stroke
+1. **Standard (Bottom Palette)**
+   - Click a stroke type (Open, Slap, Bass, etc.) from the palette at the bottom.
+   - **Left-click** any grid cell to paint the selected stroke.
+   - **Right-click** a cell to quickly clear it to a Rest.
 
-3. **Right-click a cell** to quickly clear it
+2. **Pie Menu**
+   - A quick, circular menu that appears directly under your cursor, showing only the valid sounds for the track you are hovering over.
+   - You can configure the menu to open via **Right Click** (recommended), **Long Press**, or **Hover**.
+   - Select a symbol from the pie menu to immediately drop it into the grid cell.
+
+3. **Mouse Wheel**
+   - Hover your mouse over any cell in the grid and **scroll the mouse wheel** up or down.
+   - Your global cursor will rapidly cycle through all the available symbols for that specific instrument.
+   - Left-click to drop the symbol.
 
 ### Visual Feedback
 
