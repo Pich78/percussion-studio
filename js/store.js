@@ -49,7 +49,8 @@ export const state = {
             stepIndex: null,
             measureIndex: null,
             instrumentDef: null,
-            editingMode: 'right-click', // 'disabled' | 'hover' | 'long-press' | 'right-click'
+            editingMode: 'pie-menu', // 'standard' | 'pie-menu' | 'mouse-wheel'
+            pieMenuTrigger: 'right-click', // 'hover' | 'long-press' | 'right-click'
             hoverTimeMs: 250,
             pressTimeMs: 400,
             updateGlobalCursor: false, // If true, selecting from pie menu updates bottom palette

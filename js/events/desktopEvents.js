@@ -142,7 +142,7 @@ const handleTubsCellClick = (target) => {
  */
 const handleTubsCellRightClick = (e, target) => {
     e.preventDefault();
-    if (state.uiState.pieMenu.editingMode === 'right-click') {
+    if (state.uiState.pieMenu.editingMode === 'pie-menu' && state.uiState.pieMenu.pieMenuTrigger === 'right-click') {
         gridHandlers.handleCellRightClickOpenPieMenu(e, target);
         return;
     }
@@ -241,6 +241,13 @@ export const setupDesktopEvents = () => {
             gridHandlers.handlePieMenuMouseLeave();
         }
     });
+
+    root.addEventListener('wheel', (e) => {
+        const target = e.target.closest('[data-role="tubs-cell"]') || e.target.closest('[data-role="track-row"]');
+        if (target) {
+            gridHandlers.handleCellMouseWheel(e, target);
+        }
+    }, { passive: false });
 
     // Volume slider drag tracking (document-level for consistent drag)
     let activeVolumeSlider = null;
@@ -492,6 +499,12 @@ export const setupDesktopEvents = () => {
 
         if (action === 'update-editing-mode') {
             state.uiState.pieMenu.editingMode = target.value;
+            renderApp();
+            return;
+        }
+
+        if (action === 'update-pie-trigger') {
+            state.uiState.pieMenu.pieMenuTrigger = target.value;
             renderApp();
             return;
         }

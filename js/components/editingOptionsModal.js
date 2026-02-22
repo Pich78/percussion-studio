@@ -27,69 +27,86 @@ export const EditingOptionsModal = ({ isMobile = false } = {}) => {
             
             <!-- Content -->
             <div class="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
-                <!-- Trigger Mode -->
+                <!-- Editing Mode -->
                 <div>
-                    <h4 class="text-sm font-semibold text-gray-300 mb-3 uppercase tracking-wider">Pie Menu Trigger Mode</h4>
+                    <h4 class="text-sm font-semibold text-gray-300 mb-3 uppercase tracking-wider">Editing Mode</h4>
                     <div class="flex flex-col gap-3">
+                        
+                        <!-- Standard Mode -->
                         <label class="flex items-center gap-3 cursor-pointer group">
-                            <input type="radio" name="editingMode" value="right-click" class="w-4 h-4 text-pink-500 bg-gray-800 border-gray-600 focus:ring-pink-500 focus:ring-2" data-action="update-editing-mode" ${mode === 'right-click' ? 'checked' : ''}>
+                            <input type="radio" name="editingMode" value="standard" class="w-4 h-4 text-pink-500 bg-gray-800 border-gray-600 focus:ring-pink-500 focus:ring-2" data-action="update-editing-mode" ${mode === 'standard' ? 'checked' : ''}>
                             <div class="flex flex-col">
-                                <span class="text-gray-200 font-medium group-hover:text-white transition-colors">Right Click (Recommended)</span>
-                                <span class="text-xs text-gray-500">Fastest editing mode out of the box. Left click cleared cells.</span>
-                            </div>
-                        </label>
-
-                        <label class="flex items-start gap-3 cursor-pointer group mt-2">
-                            <input type="radio" name="editingMode" value="long-press" class="w-4 h-4 mt-0.5 text-pink-500 bg-gray-800 border-gray-600 focus:ring-pink-500 focus:ring-2" data-action="update-editing-mode" ${mode === 'long-press' ? 'checked' : ''}>
-                            <div class="flex flex-col flex-1">
-                                <span class="text-gray-200 font-medium group-hover:text-white transition-colors">Long Press</span>
-                                <span class="text-xs text-gray-500 mb-2">Hold down the left mouse button.</span>
-                                <div class="flex items-center gap-2 mt-1 ${mode === 'long-press' ? '' : 'opacity-50 pointer-events-none'}">
-                                    <input type="number" min="100" max="2000" step="50" value="${pressMs}" class="w-20 bg-gray-950 border border-gray-700 rounded px-2 py-1 text-sm text-white focus:outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500 transition-all" data-action="update-pie-timing" data-target="pressTimeMs">
-                                    <span class="text-xs text-gray-500">ms delay</span>
-                                </div>
-                            </div>
-                        </label>
-
-                        <label class="flex items-start gap-3 cursor-pointer group mt-2">
-                            <input type="radio" name="editingMode" value="hover" class="w-4 h-4 mt-0.5 text-pink-500 bg-gray-800 border-gray-600 focus:ring-pink-500 focus:ring-2" data-action="update-editing-mode" ${mode === 'hover' ? 'checked' : ''}>
-                            <div class="flex flex-col flex-1">
-                                <span class="text-gray-200 font-medium group-hover:text-white transition-colors">Hover</span>
-                                <span class="text-xs text-gray-500 mb-2">Rest the mouse cursor over a cell.</span>
-                                <div class="flex items-center gap-2 mt-1 ${mode === 'hover' ? '' : 'opacity-50 pointer-events-none'}">
-                                    <input type="number" min="50" max="2000" step="50" value="${hoverMs}" class="w-20 bg-gray-950 border border-gray-700 rounded px-2 py-1 text-sm text-white focus:outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500 transition-all" data-action="update-pie-timing" data-target="hoverTimeMs">
-                                    <span class="text-xs text-gray-500">ms delay</span>
-                                </div>
-                            </div>
-                        </label>
-
-                        <label class="flex items-center gap-3 cursor-pointer group mt-2">
-                            <input type="radio" name="editingMode" value="disabled" class="w-4 h-4 text-pink-500 bg-gray-800 border-gray-600 focus:ring-pink-500 focus:ring-2" data-action="update-editing-mode" ${mode === 'disabled' ? 'checked' : ''}>
-                            <div class="flex flex-col">
-                                <span class="text-gray-200 font-medium group-hover:text-white transition-colors">Disabled</span>
+                                <span class="text-gray-200 font-medium group-hover:text-white transition-colors">Standard (Bottom Palette)</span>
                                 <span class="text-xs text-gray-500">Only use the global palette at the bottom to single-click drops.</span>
                             </div>
                         </label>
-                    </div>
-                </div>
 
-                <!-- Behavior Options -->
-                <div class="mt-2">
-                    <h4 class="text-sm font-semibold text-gray-300 mb-3 uppercase tracking-wider">Pie Menu Behavior</h4>
-                    <div class="flex flex-col gap-3">
-                        <label class="flex items-start gap-3 cursor-pointer group">
-                            <input type="checkbox" class="w-4 h-4 mt-0.5 text-pink-500 bg-gray-800 border-gray-600 focus:ring-pink-500 focus:ring-2 rounded" data-action="update-pie-behavior" data-setting="updateGlobalCursor" ${state.uiState.pieMenu.updateGlobalCursor ? 'checked' : ''}>
-                            <div class="flex flex-col">
-                                <span class="text-gray-200 font-medium group-hover:text-white transition-colors">Update Palette Tool</span>
-                                <span class="text-xs text-gray-500">Choosing a symbol from the pie menu also changes your main tool selected in the bottom palette.</span>
+                        <!-- Pie Menu Mode -->
+                        <label class="flex items-start gap-3 cursor-pointer group mt-2">
+                            <input type="radio" name="editingMode" value="pie-menu" class="w-4 h-4 mt-0.5 text-pink-500 bg-gray-800 border-gray-600 focus:ring-pink-500 focus:ring-2" data-action="update-editing-mode" ${mode === 'pie-menu' ? 'checked' : ''}>
+                            <div class="flex flex-col flex-1">
+                                <span class="text-gray-200 font-medium group-hover:text-white transition-colors">Pie Menu</span>
+                                <span class="text-xs text-gray-500 mb-1">Contextual radial menu to select valid symbols.</span>
+                                
+                                <!-- Pie Menu Sub-options -->
+                                <div class="${mode === 'pie-menu' ? 'flex' : 'hidden'} flex-col gap-4 p-4 mt-2 bg-gray-950/50 rounded-lg border border-gray-800">
+                                    
+                                    <!-- Trigger Mode Sub-section -->
+                                    <div>
+                                        <h5 class="text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wider">Trigger</h5>
+                                        <div class="flex flex-col gap-3">
+                                            <label class="flex items-center gap-3 cursor-pointer group">
+                                                <input type="radio" name="pieMenuTrigger" value="right-click" class="w-4 h-4 text-pink-500 bg-gray-800 border-gray-600 focus:ring-pink-500 focus:ring-2" data-action="update-pie-trigger" ${state.uiState.pieMenu.pieMenuTrigger === 'right-click' ? 'checked' : ''}>
+                                                <div class="flex flex-col">
+                                                    <span class="text-gray-200 text-sm font-medium group-hover:text-white transition-colors">Right Click (Recommended)</span>
+                                                </div>
+                                            </label>
+
+                                            <label class="flex items-center gap-3 cursor-pointer group">
+                                                <input type="radio" name="pieMenuTrigger" value="long-press" class="w-4 h-4 text-pink-500 bg-gray-800 border-gray-600 focus:ring-pink-500 focus:ring-2" data-action="update-pie-trigger" ${state.uiState.pieMenu.pieMenuTrigger === 'long-press' ? 'checked' : ''}>
+                                                <div class="flex items-center gap-2">
+                                                    <span class="text-gray-200 text-sm font-medium group-hover:text-white transition-colors w-20">Long Press</span>
+                                                    <input type="number" min="100" max="2000" step="50" value="${pressMs}" class="w-16 bg-gray-900 border border-gray-700 rounded px-1 py-0.5 text-xs text-white focus:outline-none focus:border-pink-500 ${state.uiState.pieMenu.pieMenuTrigger !== 'long-press' ? 'opacity-50 pointer-events-none' : ''}" data-action="update-pie-timing" data-target="pressTimeMs">
+                                                    <span class="text-xs text-gray-500 ${state.uiState.pieMenu.pieMenuTrigger !== 'long-press' ? 'opacity-50 pointer-events-none' : ''}">ms</span>
+                                                </div>
+                                            </label>
+
+                                            <label class="flex items-center gap-3 cursor-pointer group">
+                                                <input type="radio" name="pieMenuTrigger" value="hover" class="w-4 h-4 text-pink-500 bg-gray-800 border-gray-600 focus:ring-pink-500 focus:ring-2" data-action="update-pie-trigger" ${state.uiState.pieMenu.pieMenuTrigger === 'hover' ? 'checked' : ''}>
+                                                <div class="flex items-center gap-2">
+                                                    <span class="text-gray-200 text-sm font-medium group-hover:text-white transition-colors w-20">Hover</span>
+                                                    <input type="number" min="50" max="2000" step="50" value="${hoverMs}" class="w-16 bg-gray-900 border border-gray-700 rounded px-1 py-0.5 text-xs text-white focus:outline-none focus:border-pink-500 ${state.uiState.pieMenu.pieMenuTrigger !== 'hover' ? 'opacity-50 pointer-events-none' : ''}" data-action="update-pie-timing" data-target="hoverTimeMs">
+                                                    <span class="text-xs text-gray-500 ${state.uiState.pieMenu.pieMenuTrigger !== 'hover' ? 'opacity-50 pointer-events-none' : ''}">ms</span>
+                                                </div>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <!-- Behavior Sub-section -->
+                                    <div>
+                                        <h5 class="text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wider">Behavior</h5>
+                                        <div class="flex flex-col gap-2">
+                                            <label class="flex items-center gap-3 cursor-pointer group">
+                                                <input type="checkbox" class="w-4 h-4 text-pink-500 bg-gray-800 border-gray-600 focus:ring-pink-500 focus:ring-2 rounded" data-action="update-pie-behavior" data-setting="updateGlobalCursor" ${state.uiState.pieMenu.updateGlobalCursor ? 'checked' : ''}>
+                                                <span class="text-gray-200 text-sm font-medium group-hover:text-white transition-colors">Update Palette Tool on Select</span>
+                                            </label>
+
+                                            <label class="flex items-center gap-3 cursor-pointer group">
+                                                <input type="checkbox" class="w-4 h-4 text-pink-500 bg-gray-800 border-gray-600 focus:ring-pink-500 focus:ring-2 rounded" data-action="update-pie-behavior" data-setting="hideCurrentCursor" ${state.uiState.pieMenu.hideCurrentCursor ? 'checked' : ''}>
+                                                <span class="text-gray-200 text-sm font-medium group-hover:text-white transition-colors">Hide Current Tool from Menu</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </label>
-
-                        <label class="flex items-start gap-3 cursor-pointer group">
-                            <input type="checkbox" class="w-4 h-4 mt-0.5 text-pink-500 bg-gray-800 border-gray-600 focus:ring-pink-500 focus:ring-2 rounded" data-action="update-pie-behavior" data-setting="hideCurrentCursor" ${state.uiState.pieMenu.hideCurrentCursor ? 'checked' : ''}>
+                        
+                        <!-- Mouse Wheel Mode -->
+                        <label class="flex items-center gap-3 cursor-pointer group mt-2">
+                            <input type="radio" name="editingMode" value="mouse-wheel" class="w-4 h-4 text-pink-500 bg-gray-800 border-gray-600 focus:ring-pink-500 focus:ring-2" data-action="update-editing-mode" ${mode === 'mouse-wheel' ? 'checked' : ''}>
                             <div class="flex flex-col">
-                                <span class="text-gray-200 font-medium group-hover:text-white transition-colors">Hide Current Tool</span>
-                                <span class="text-xs text-gray-500">Hide the symbol you already have selected from appearing as an option in the pie menu.</span>
+                                <span class="text-gray-200 font-medium group-hover:text-white transition-colors">Mouse Wheel</span>
+                                <span class="text-xs text-gray-500">Scroll the mouse wheel over a cell to cycle through valid symbols.</span>
                             </div>
                         </label>
                     </div>
