@@ -32,12 +32,10 @@ Percussion Studio is a browser-based application for creating, editing, and play
    cd percussion-studio
    ```
 
-2. Start a local web server:
+2. Start the local web server (this will automatically generate the manifest and open your browser):
    ```bash
-   python -m http.server 8000
+   python launch_local.py
    ```
-
-3. Open your browser to `http://localhost:8000`
 
 ### Project Structure
 
