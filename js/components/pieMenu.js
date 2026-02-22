@@ -49,16 +49,21 @@ export const PieMenu = ({
     if (!isOpen || !instrumentDef || !instrumentDef.sounds) return '';
 
     // Create an array of options. We always add the "Rest/None" option to the list.
-    const options = [
+    let options = [
         ...instrumentDef.sounds,
         { letter: StrokeType.None, name: 'Rest', isRest: true, svg: 'rest.svg' } // Synthesized Rest option
     ];
+
+    if (state.uiState.pieMenu.hideCurrentCursor) {
+        options = options.filter(s => s.letter !== state.selectedStroke);
+    }
 
     const totalItems = options.length;
 
     // Size heuristics based on number of items
     const radius = totalItems <= 4 ? 45 : (totalItems <= 6 ? 55 : 65);
     const itemSize = totalItems <= 4 ? 40 : 36;
+
 
     const slicesHtml = options.map((sound, i) => {
         const pos = getSlicePosition(totalItems, i, radius);
@@ -105,7 +110,6 @@ export const PieMenu = ({
                 transform: translate(-50%, -50%);
             "
         >
-            <!-- Hit Area Container / Backdrop -->
             <div 
                 class="absolute rounded-full bg-gray-950/80 backdrop-blur-sm border border-gray-700/50 shadow-2xl"
                 style="
@@ -115,6 +119,9 @@ export const PieMenu = ({
                     top: -${hitAreaSize / 2}px;
                 "
                 data-role="pie-menu-bridge"
+                data-debug-hide-cursor="${state.uiState.pieMenu.hideCurrentCursor}"
+                data-debug-selected-stroke="${state.selectedStroke}"
+                data-debug-options-length="${options.length}"
             ></div>
             
             <!-- Central Node (Optional, maybe an indicator of instrument) -->

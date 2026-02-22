@@ -48,7 +48,12 @@ export const state = {
             trackIndex: null,
             stepIndex: null,
             measureIndex: null,
-            instrumentDef: null
+            instrumentDef: null,
+            editingMode: 'right-click', // 'disabled' | 'hover' | 'long-press' | 'right-click'
+            hoverTimeMs: 250,
+            pressTimeMs: 400,
+            updateGlobalCursor: false, // If true, selecting from pie menu updates bottom palette
+            hideCurrentCursor: false // If true, current global cursor symbol is hidden from pie menu
         },
         // BataExplorer state
         bataExplorer: {
