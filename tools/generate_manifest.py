@@ -81,16 +81,14 @@ def generate_bata_metadata(rhythms_map):
             continue
 
         # metadata file is now named [folder_name]_metadata.yaml
-        # We need to handle case sensitivity appropriately or just use the folder name as is
-        # Assuming folder name matches the file prefix
-        meta_filename = f"{folder_name}_metadata.yaml"
-        meta_file = os.path.join(folder_full_path, meta_filename)
+        # Find the metadata file in the folder
+        meta_file = None
+        for file in os.listdir(folder_full_path):
+            if file.endswith("_metadata.yaml") or file == "metadata.yaml":
+                meta_file = os.path.join(folder_full_path, file)
+                break
         
-        # Fallback check for old metadata.yaml just in case (optional, but good for safety)
-        if not os.path.exists(meta_file) and os.path.exists(os.path.join(folder_full_path, "metadata.yaml")):
-             meta_file = os.path.join(folder_full_path, "metadata.yaml")
-
-        if not os.path.exists(meta_file):
+        if meta_file is None or not os.path.exists(meta_file):
             continue
 
         try:
@@ -160,7 +158,7 @@ def generate_bata_metadata(rhythms_map):
     with open(BATA_METADATA_FILE, "w", encoding='utf-8') as f:
         json.dump(metadata, f, indent=2, ensure_ascii=False)
         
-    print(f"✅ Generated {BATA_METADATA_FILE}")
+    print(f"Generated {BATA_METADATA_FILE}")
     print(f"   - Batà Rhythms Found: {count}")
 
 def generate():
@@ -175,7 +173,7 @@ def generate():
     with open(MANIFEST_FILE, "w") as f:
         json.dump(manifest, f, indent=2)
         
-    print(f"✅ Generated {MANIFEST_FILE}")
+    print(f"Generated {MANIFEST_FILE}")
     print(f"   - Instruments: {len(manifest['instruments'])}")
     print(f"   - Sound Packs: {len(manifest['sound_packs'])}")
     print(f"   - Rhythms:     {len(manifest['rhythms'])}")

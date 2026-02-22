@@ -168,6 +168,15 @@
         "Eleggua"
       ]
     },
+    "Batà/Cierre de Yakota/cierre_de_yakota": {
+      "displayName": "Cierre de Yakota",
+      "classification": "Generic",
+      "associatedOrishas": [
+        "Yemaya",
+        "Ochun",
+        "Chango"
+      ]
+    },
     "Batà/Dadà/dada_base": {
       "displayName": "Dada base",
       "classification": "Shared",
