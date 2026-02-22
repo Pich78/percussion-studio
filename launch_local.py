@@ -6,13 +6,8 @@ import sys
 
 PORT = 8000
 
-class NoCacheHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
-    def end_headers(self):
-        # Add headers to disable caching
-        self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
-        self.send_header("Pragma", "no-cache")
-        self.send_header("Expires", "0")
-        super().end_headers()
+class StandardHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
+    pass
 
 def open_browser():
     """Opens the default web browser at the local server address."""
@@ -36,8 +31,8 @@ if __name__ == '__main__':
     # Set a timer to run the open_browser function after 1 second.
     threading.Timer(1.0, open_browser).start()
 
-    with socketserver.TCPServer(("", PORT), NoCacheHTTPRequestHandler) as httpd:
-        print(f"Server started on port {PORT} (Cache disabled)")
+    with socketserver.TCPServer(("", PORT), StandardHTTPRequestHandler) as httpd:
+        print(f"Server started on port {PORT}")
         print("Press Ctrl+C to stop the server.")
         
         try:
