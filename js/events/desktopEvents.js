@@ -99,6 +99,9 @@ const createActionRouter = () => {
         },
         'select-stroke': (e, target) => gridHandlers.handleSelectStroke(target),
         'clear-pattern': () => gridHandlers.handleClearPattern(),
+
+        // Pie Menu
+        'pie-menu-select': (e, target) => gridHandlers.handlePieMenuSelect(e, target)
     };
 };
 
@@ -175,6 +178,36 @@ export const setupDesktopEvents = () => {
         const target = e.target.closest('[data-role="tubs-cell"]');
         if (target) {
             handleTubsCellRightClick(e, target);
+        }
+    });
+
+    // Hover (Mouse Enter / Leave) for Pie Menu support
+    root.addEventListener('mouseover', (e) => {
+        const cell = e.target.closest('[data-role="tubs-cell"]');
+        if (cell) {
+            gridHandlers.handleCellMouseEnter(e, cell);
+            return;
+        }
+
+        const pieMenuBridge = e.target.closest('[data-role="pie-menu-bridge"]');
+        if (pieMenuBridge || e.target.closest('#pie-menu-container')) {
+            gridHandlers.handlePieMenuMouseEnter(e, pieMenuBridge);
+        }
+    });
+
+    root.addEventListener('mouseout', (e) => {
+        // Need to check relatedTarget to see if we truly left the element
+        const related = e.relatedTarget;
+
+        const cell = e.target.closest('[data-role="tubs-cell"]');
+        if (cell && (!related || !cell.contains(related))) {
+            gridHandlers.handleCellMouseLeave(e, cell);
+            return;
+        }
+
+        const pieContainer = e.target.closest('#pie-menu-container');
+        if (pieContainer && (!related || !pieContainer.contains(related))) {
+            gridHandlers.handlePieMenuMouseLeave(e, pieContainer);
         }
     });
 

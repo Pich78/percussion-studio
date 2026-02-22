@@ -10,6 +10,7 @@ import { StopIcon } from '../../icons/stopIcon.js';
 import { PlayIcon } from '../../icons/playIcon.js';
 import { PauseIcon } from '../../icons/pauseIcon.js';
 import { BataExplorerModal } from '../../components/bataExplorerModal.js';
+import { PieMenu } from '../../components/pieMenu.js';
 
 const renderHeader = () => {
   const activeSection = state.toque.sections.find(s => s.id === state.activeSectionId) || state.toque.sections[0];
@@ -206,5 +207,6 @@ export const DesktopLayout = () => {
     </div>
     ${renderUserGuideModal()}
     ${BataExplorerModal({ isMobile: false })}
+    ${PieMenu(state.uiState.pieMenu)}
   `;
 };

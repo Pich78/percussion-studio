@@ -40,6 +40,16 @@ export const state = {
         userGuideSubmenuOpen: false, // Tracks if user guide language submenu is open
         userGuideContent: null, // Loaded markdown content for user guide modal
         userGuideLanguage: null, // 'en' | 'it' - currently selected language
+        // Pie Menu state for editing symbols on hover
+        pieMenu: {
+            isOpen: false,
+            x: 0,
+            y: 0,
+            trackIndex: null,
+            stepIndex: null,
+            measureIndex: null,
+            instrumentDef: null
+        },
         // BataExplorer state
         bataExplorer: {
             isOpen: false,
