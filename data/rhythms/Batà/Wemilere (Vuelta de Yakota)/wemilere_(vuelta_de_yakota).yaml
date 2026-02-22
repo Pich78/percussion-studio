@@ -1,5 +1,10 @@
-name: "Wemilere"
+name: "Wemilere (Vuelta de Yakota)"
 global_bpm: 111
+is_bata: true
+orisha:
+  - "Chango"
+  - "Yemaya"
+classification: "Shared"
 
 sound_kit:
   oko:
