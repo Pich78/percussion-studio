@@ -3,7 +3,7 @@
   Actions for measure management (add, delete, duplicate).
 */
 
-import { state } from '../store.js';
+import { state, commit } from '../store.js';
 import { getActiveSection } from '../store/stateSelectors.js';
 import { refreshGrid, scrollToMeasure } from '../ui/renderer.js';
 import { StrokeType } from '../types.js';
@@ -38,7 +38,7 @@ export const addMeasure = () => {
     }
 
     const newIndex = section.measures.length;
-    section.measures.push(newMeasure);
+    commit('pushMeasure', { section, measure: newMeasure });
     refreshGrid();
 
     // Scroll to the new measure
@@ -57,7 +57,7 @@ export const deleteMeasure = (measureIdx) => {
     }
 
     if (confirm("Delete this measure?")) {
-        section.measures.splice(measureIdx, 1);
+        commit('deleteMeasure', { section, measureIdx });
         refreshGrid();
     }
 };
@@ -74,6 +74,6 @@ export const duplicateMeasure = (measureIdx) => {
     const newMeasure = cloneMeasure(sourceMeasure);
 
     // Insert after the source measure
-    section.measures.splice(measureIdx + 1, 0, newMeasure);
+    commit('insertMeasure', { section, measureIdx: measureIdx + 1, measure: newMeasure });
     refreshGrid();
 };

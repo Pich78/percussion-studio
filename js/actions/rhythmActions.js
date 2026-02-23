@@ -3,7 +3,7 @@
   Actions for loading and creating rhythms.
 */
 
-import { state } from '../store.js';
+import { state, commit } from '../store.js';
 import { stopPlayback } from '../services/sequencer.js';
 import { audioEngine } from '../services/audioEngine.js';
 import { dataLoader } from '../services/dataLoader.js';
@@ -27,7 +27,7 @@ const loadInstrumentsInParallel = async (trackConfig) => {
             instDef = await dataLoader.loadInstrumentDefinition(config.instrument);
             console.log(`[LoadRhythm] Loaded definition for '${config.instrument}':`, instDef);
             console.log(`[LoadRhythm] Available sounds for '${config.instrument}':`, instDef?.sounds?.map(s => s.letter).join(', '));
-            state.instrumentDefinitions[config.instrument] = instDef;
+            commit('setInstrumentDefinition', { symbol: config.instrument, definition: instDef });
         } else {
             console.log(`[LoadRhythm] Using cached definition for '${config.instrument}'`);
         }
@@ -48,9 +48,7 @@ const loadInstrumentsInParallel = async (trackConfig) => {
  */
 export const loadRhythm = async (rhythmId) => {
     stopPlayback();
-
-    // Reset Global Mix
-    state.mix = {};
+    commit('resetMix');
 
     try {
         // 1. Fetch Rhythm YAML
@@ -68,12 +66,9 @@ export const loadRhythm = async (rhythmId) => {
         // 4. Check for additional metadata from Bata Explorer
         const explorerMeta = getExplorerRhythmMeta(state, rhythmId);
 
-        // 5. Update State
-        state.toque = buildToqueState(rhythmId, rhythmDef, sections, explorerMeta);
-
-        // Track rhythm source for sharing
-        state.rhythmSource = 'repo';
-        state.currentRhythmId = rhythmId;
+        // 5. Update State via commit
+        commit('setToque', { toque: buildToqueState(rhythmId, rhythmDef, sections, explorerMeta) });
+        commit('setRhythmSource', { source: 'repo', rhythmId });
 
         updateActiveSection(sections[0].id);
 
@@ -85,13 +80,12 @@ export const loadRhythm = async (rhythmId) => {
 
 /**
  * Loads a rhythm from a local file (using browser File API)
+ * Uses the same buildToqueState path as loadRhythm (Pattern I fix)
  * @param {File} file - The File object from file input
  */
 export const loadRhythmFromFile = async (file) => {
     stopPlayback();
-
-    // Reset Global Mix
-    state.mix = {};
+    commit('resetMix');
 
     try {
         // 1. Read file content
@@ -111,21 +105,10 @@ export const loadRhythmFromFile = async (file) => {
         // 4. Build Runtime Sections
         const sections = buildRuntimeSections(rhythmDef);
 
-        // 5. Update State
-        state.toque = {
-            id: crypto.randomUUID(),
-            name: rhythmDef.name,
-            globalBpm: rhythmDef.global_bpm,
-            isBata: rhythmDef.is_bata || (!!(rhythmDef.orisha || rhythmDef.classification || rhythmDef.description)),
-            orisha: rhythmDef.orisha || [],
-            classification: rhythmDef.classification || null,
-            description: rhythmDef.description || '',
-            sections: sections
-        };
-
-        // Track rhythm source - local files cannot be shared via URL
-        state.rhythmSource = 'local';
-        state.currentRhythmId = null;
+        // 5. Update State — uses buildToqueState() like loadRhythm (Pattern I fix)
+        const localId = `local/${crypto.randomUUID()}`;
+        commit('setToque', { toque: buildToqueState(localId, rhythmDef, sections) });
+        commit('setRhythmSource', { source: 'local' });
 
         updateActiveSection(sections[0].id);
 
@@ -142,30 +125,27 @@ export const createNewRhythm = () => {
     stopPlayback();
     const newId = crypto.randomUUID();
 
-    // Reset Global Mix
-    state.mix = {};
+    commit('resetMix');
 
-    // Create a blank slate
-    state.toque = {
-        id: crypto.randomUUID(),
-        name: "New Rhythm",
-        globalBpm: 120,
-        sections: [{
-            id: newId,
-            name: "Section 1",
-            steps: 16,
-            subdivision: 4,
-            repetitions: 1,
-            measures: [{
-                id: crypto.randomUUID(),
-                tracks: []
+    commit('setToque', {
+        toque: {
+            id: crypto.randomUUID(),
+            name: "New Rhythm",
+            globalBpm: 120,
+            sections: [{
+                id: newId,
+                name: "Section 1",
+                steps: 16,
+                subdivision: 4,
+                repetitions: 1,
+                measures: [{
+                    id: crypto.randomUUID(),
+                    tracks: []
+                }]
             }]
-        }]
-    };
+        }
+    });
 
-    // Track rhythm source - new rhythms cannot be shared via URL
-    state.rhythmSource = 'new';
-    state.currentRhythmId = null;
-
+    commit('setRhythmSource', { source: 'new' });
     updateActiveSection(newId);
 };

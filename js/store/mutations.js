@@ -189,6 +189,259 @@ export const removeTrack = (state, { section, trackIdx }) => {
     });
 };
 
+/**
+ * Update a stroke at a specific cell position
+ * @param {object} state
+ * @param {{ track: object, stepIdx: number, stroke: string, dynamic: string }} payload
+ */
+export const setStroke = (state, { track, stepIdx, stroke, dynamic }) => {
+    track.strokes[stepIdx] = stroke;
+    if (!track.dynamics) track.dynamics = Array(track.strokes.length).fill('N');
+    track.dynamics[stepIdx] = dynamic;
+};
+
+/**
+ * Set a track's visual subdivision steps
+ * @param {object} state
+ * @param {{ track: object, trackSteps: number }} payload
+ */
+export const setTrackSteps = (state, { track, trackSteps }) => {
+    track.trackSteps = trackSteps;
+};
+
+/**
+ * Add a track to all measures in a section
+ * @param {object} state
+ * @param {{ section: object, trackTemplate: object }} payload
+ */
+export const addTrackToSection = (state, { section, trackTemplate }) => {
+    section.measures.forEach(measure => {
+        measure.tracks.push({
+            ...trackTemplate,
+            id: crypto.randomUUID()
+        });
+    });
+};
+
+/**
+ * Update a track's instrument across all measures
+ * @param {object} state
+ * @param {{ section: object, trackIdx: number, instrument: string, pack: string, volume: number, muted: boolean }} payload
+ */
+export const updateTrackInstrumentInSection = (state, { section, trackIdx, instrument, pack, volume, muted }) => {
+    section.measures.forEach(measure => {
+        if (measure.tracks[trackIdx]) {
+            measure.tracks[trackIdx].instrument = instrument;
+            measure.tracks[trackIdx].pack = pack;
+            measure.tracks[trackIdx].volume = volume;
+            measure.tracks[trackIdx].muted = muted;
+        }
+    });
+};
+
+// ─── Instrument Definition Mutations ────────────────────────────────────────
+
+/**
+ * Cache an instrument definition
+ * @param {object} state
+ * @param {{ symbol: string, definition: object }} payload
+ */
+export const setInstrumentDefinition = (state, { symbol, definition }) => {
+    state.instrumentDefinitions[symbol] = definition;
+};
+
+// ─── Rhythm / Toque Mutations ───────────────────────────────────────────────
+
+/**
+ * Set the entire toque state (rhythm loaded/created)
+ * @param {object} state
+ * @param {{ toque: object }} payload
+ */
+export const setToque = (state, { toque }) => {
+    state.toque = toque;
+};
+
+/**
+ * Set rhythm source tracking ('repo', 'local', 'new')
+ * @param {object} state
+ * @param {{ source: string, rhythmId: string|null }} payload
+ */
+export const setRhythmSource = (state, { source, rhythmId = null }) => {
+    state.rhythmSource = source;
+    state.currentRhythmId = rhythmId;
+};
+
+/**
+ * Reset the global mix state
+ * @param {object} state
+ */
+export const resetMix = (state) => {
+    state.mix = {};
+};
+
+/**
+ * Set the active section ID (state + playback sync)
+ * @param {object} state
+ * @param {{ id: string }} payload
+ */
+export const setActiveSectionId = (state, { id }) => {
+    state.activeSectionId = id;
+};
+
+// ─── Section CRUD Mutations ─────────────────────────────────────────────────
+
+/**
+ * Push a new section to the toque
+ * @param {object} state
+ * @param {{ section: object }} payload
+ */
+export const pushSection = (state, { section }) => {
+    state.toque.sections.push(section);
+};
+
+/**
+ * Delete a section by ID
+ * @param {object} state
+ * @param {{ id: string }} payload
+ */
+export const deleteSection = (state, { id }) => {
+    state.toque.sections = state.toque.sections.filter(s => s.id !== id);
+};
+
+// ─── Measure CRUD Mutations ─────────────────────────────────────────────────
+
+/**
+ * Push a measure to the active section
+ * @param {object} state
+ * @param {{ section: object, measure: object }} payload
+ */
+export const pushMeasure = (state, { section, measure }) => {
+    section.measures.push(measure);
+};
+
+/**
+ * Delete a measure from a section
+ * @param {object} state
+ * @param {{ section: object, measureIdx: number }} payload
+ */
+export const deleteMeasure = (state, { section, measureIdx }) => {
+    section.measures.splice(measureIdx, 1);
+};
+
+/**
+ * Insert a measure at a specific position
+ * @param {object} state
+ * @param {{ section: object, measureIdx: number, measure: object }} payload
+ */
+export const insertMeasure = (state, { section, measureIdx, measure }) => {
+    section.measures.splice(measureIdx, 0, measure);
+};
+
+// ─── Mixer Mutations ────────────────────────────────────────────────────────
+
+/**
+ * Ensure a mix entry exists for an instrument
+ * @param {object} state
+ * @param {{ symbol: string, defaults?: { volume: number, muted: boolean } }} payload
+ */
+export const ensureMixEntry = (state, { symbol, defaults = { volume: 1.0, muted: false } }) => {
+    if (!state.mix[symbol]) {
+        state.mix[symbol] = { ...defaults, lastVolume: defaults.volume };
+    }
+};
+
+/**
+ * Update the global volume for an instrument in the mix
+ * @param {object} state
+ * @param {{ symbol: string, volume: number }} payload
+ */
+export const setMixVolume = (state, { symbol, volume }) => {
+    const mix = state.mix[symbol];
+    if (!mix) return;
+    mix.volume = volume;
+    if (volume > 0) mix.lastVolume = volume;
+    // Sync mute state
+    if (volume === 0 && !mix.muted) mix.muted = true;
+    else if (volume > 0 && mix.muted) mix.muted = false;
+};
+
+/**
+ * Set the global mute state for an instrument
+ * @param {object} state
+ * @param {{ symbol: string, muted: boolean }} payload
+ */
+export const setMixMuted = (state, { symbol, muted }) => {
+    const mix = state.mix[symbol];
+    if (!mix) return;
+    mix.muted = muted;
+    if (muted) {
+        if (mix.volume > 0) mix.lastVolume = mix.volume;
+        mix.volume = 0;
+    } else {
+        mix.volume = mix.lastVolume || 1.0;
+    }
+};
+
+/**
+ * Propagate mix volume/mute to all tracks of an instrument across all sections
+ * @param {object} state
+ * @param {{ symbol: string, volume: number, muted: boolean }} payload
+ */
+export const propagateMixToTracks = (state, { symbol, volume, muted }) => {
+    if (!state.toque?.sections) return;
+    state.toque.sections.forEach(section => {
+        section.measures.forEach(measure => {
+            measure.tracks.forEach(track => {
+                if (track.instrument === symbol) {
+                    track.volume = volume;
+                    track.muted = muted;
+                }
+            });
+        });
+    });
+};
+
+// ─── Track Resize Mutations ─────────────────────────────────────────────────
+
+/**
+ * Resize tracks in a section to match new step count
+ * @param {object} state
+ * @param {{ section: object, emptyStroke: string }} payload
+ */
+export const resizeTracksToSteps = (state, { section, emptyStroke }) => {
+    const newSteps = section.steps;
+    section.measures.forEach(measure => {
+        measure.tracks.forEach(track => {
+            // Adjust trackSteps if needed
+            if (track.trackSteps && track.trackSteps > newSteps) {
+                const validDivisors = [];
+                for (let i = 1; i <= newSteps; i++) {
+                    if (newSteps % i === 0) validDivisors.push(i);
+                }
+                track.trackSteps = validDivisors.reduce((prev, curr) =>
+                    Math.abs(curr - track.trackSteps) < Math.abs(prev - track.trackSteps) ? curr : prev
+                );
+            }
+            // Resize strokes array
+            if (newSteps > track.strokes.length) {
+                const diff = newSteps - track.strokes.length;
+                for (let i = 0; i < diff; i++) track.strokes.push(emptyStroke);
+            } else {
+                track.strokes.length = newSteps;
+            }
+            // Resize dynamics array if present
+            if (track.dynamics) {
+                if (newSteps > track.dynamics.length) {
+                    const diff = newSteps - track.dynamics.length;
+                    for (let i = 0; i < diff; i++) track.dynamics.push('N');
+                } else {
+                    track.dynamics.length = newSteps;
+                }
+            }
+        });
+    });
+};
+
 // ─── Mutation Registry ──────────────────────────────────────────────────────
 
 /**
@@ -218,4 +471,30 @@ export const MUTATIONS = {
     toggleTrackSnap,
     clearSectionPattern,
     removeTrack,
+    setStroke,
+    setTrackSteps,
+    addTrackToSection,
+    updateTrackInstrumentInSection,
+    // Instrument Definitions
+    setInstrumentDefinition,
+    // Rhythm / Toque
+    setToque,
+    setRhythmSource,
+    resetMix,
+    setActiveSectionId,
+    // Section CRUD
+    pushSection,
+    deleteSection,
+    // Measure CRUD
+    pushMeasure,
+    deleteMeasure,
+    insertMeasure,
+    // Mixer
+    ensureMixEntry,
+    setMixVolume,
+    setMixMuted,
+    propagateMixToTracks,
+    // Track Resize
+    resizeTracksToSteps,
 };
+
