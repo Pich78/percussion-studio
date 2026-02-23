@@ -143,6 +143,24 @@ You can customize how you add symbols to the grid by opening the **Hamburger Men
 - **Muted tracks**: Appear dimmed with strikethrough name
 - **Invalid strokes**: Indicated when stroke doesn't exist for that instrument
 
+### Dynamics
+
+Dynamics control the **volume and visual intensity** of individual steps. The dynamics selector sits above the stroke palette at the bottom of the screen.
+
+1. Select a dynamic level from the selector bar.
+2. Paint strokes as usual — each stroke receives the selected dynamic.
+3. Steps with non-normal dynamics show visual changes in the grid.
+
+| Level | Effect | Visual Hint |
+|-------|--------|-------------|
+| **Ghost** | Very quiet (30%) | Small, faded icon |
+| **Soft** | Quiet (60%) | Slightly smaller, slightly faded |
+| **Normal** | Default (100%) | Standard icon |
+| **Loud** | Loud (130%) | Larger icon with orange glow |
+| **Accent** | Strong (160%) | Largest icon with red glow |
+
+> **Tip**: Dynamics are saved in the YAML file and are preserved when downloading or loading rhythms.
+
 ---
 
 ## Track Management

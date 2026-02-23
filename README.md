@@ -133,6 +133,8 @@ playback_flow:
       - pattern:
           conga_1: "||O---|S---|O---|S---|"
           conga_2: "||--B-|--B-|--B-|--B-|"
+        dynamics:                              # Optional
+          conga_1: "||a---|----|l---|----|"
 ```
 
 ### 4. Creating Batà Rhythms
@@ -162,6 +164,32 @@ python generate_manifest.py
 - **Binary (4/4)**: Use 16 steps, subdivision of 4
 - **Ternary (6/8)**: Use 12 steps, subdivision of 3
 - **Compound (12/8)**: Use 24 steps, subdivision of 3
+
+### Dynamics
+
+Each measure can include an optional `dynamics` block that mirrors the `pattern` block. The dynamics string uses the same visual separator format and must have the same number of steps. Each character controls the volume and visual intensity of the corresponding step:
+
+| Character | Level | Volume | Visual Effect |
+|-----------|-------|--------|---------------|
+| `g` | Ghost | 30% | Small (50%), faded |
+| `s` | Soft | 60% | Reduced (75%), slightly faded |
+| `-` | Normal | 100% | Default size and brightness |
+| `l` | Loud | 130% | Larger (120%), orange glow |
+| `a` | Accent | 160% | Largest (140%), red glow |
+
+- Dynamics are **optional** — if omitted, all steps default to Normal (`-`).
+- You only need to include dynamics for tracks that have non-normal dynamics.
+- A `-` in the dynamics string means "normal" (not silence — silence is controlled by the pattern).
+
+**Example:**
+```yaml
+measures:
+  - pattern:
+      conga_1: "||O---|S---|O---|S---|"
+    dynamics:
+      conga_1: "||a---|----|l---|----|"
+      # Beat 1: Accent, Beat 3: Loud, rest: Normal
+```
 
 ### Common Patterns
 

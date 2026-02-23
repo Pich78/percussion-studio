@@ -94,6 +94,7 @@ files:
 *   **`playback_flow`**: An ordered list of musical sections.
     *   **`measures`**: An ordered list of measures within the section.
         *   **`pattern`**: A mapping of Track IDs to ASCII pattern strings.
+        *   **`dynamics`** *(optional)*: A mapping of Track IDs to ASCII dynamics strings. Same format and length as `pattern`. Only needs to be specified for tracks that contain non-normal dynamics.
 
 ```yaml
 name: "Iyakota Sequence 1"
@@ -117,6 +118,8 @@ playback_flow:
       - pattern:
           itotele_main:  "||O-S-|P---|O---|----||"
           okonkolo_main: "||--T-|--T-|--T-|--T-||"
+        dynamics:
+          itotele_main:  "||a---|s---|l---|----||"
       - pattern:
           itotele_main:  "||O-S-|----|O---|P---||"
           okonkolo_main: "||--T-|--T-|--T-|--T-||"
@@ -135,6 +138,23 @@ The string format used in `playback_flow` follows these strict rules:
 4.  **Resolution:** 1 Character = 1 Step.
     *   A 16-step pattern must contain exactly 16 valid characters (excluding separators).
 5.  **Case Sensitivity:** The parser is case-insensitive (e.g., `o` and `O` are treated as the same sound), but uppercase is recommended for consistency.
+
+### Dynamics Syntax
+
+Dynamics strings follow the same separator and resolution rules as pattern strings. Each character maps to a dynamic level that controls volume and visual intensity:
+
+| Character | Level    | Volume Multiplier | Visual Effect                              |
+|-----------|----------|-------------------:|--------------------------------------------|
+| `g`       | Ghost    |               0.3× | Half size (50%), faded (40% opacity)       |
+| `s`       | Soft     |               0.6× | Reduced size (75%), slightly faded (70%)   |
+| `-`       | Normal   |               1.0× | Default size and brightness                |
+| `l`       | Loud     |               1.3× | Enlarged (120%), orange glow               |
+| `a`       | Accent   |               1.6× | Largest (140%), red glow                   |
+
+*   A `-` in the dynamics string means **Normal** (default volume), not a rest.
+*   If a track's dynamics are entirely Normal, it can be omitted from the `dynamics` block.
+*   If the `dynamics` block is omitted entirely from a measure, all tracks default to Normal.
+*   The dynamics string must have the same number of valid characters (excluding `|`) as the corresponding pattern string.
 
 ---
 
