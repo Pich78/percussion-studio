@@ -442,6 +442,37 @@ export const resizeTracksToSteps = (state, { section, emptyStroke }) => {
     });
 };
 
+// ─── Playback Mutations ─────────────────────────────────────────────────────
+
+/**
+ * Set playing state
+ * @param {object} state
+ * @param {{ isPlaying: boolean }} payload
+ */
+export const setPlaying = (state, { isPlaying }) => {
+    state.isPlaying = isPlaying;
+};
+
+/**
+ * Sync the state-level current step (for rendering)
+ * @param {object} state
+ * @param {{ step: number }} payload
+ */
+export const setCurrentStep = (state, { step }) => {
+    state.currentStep = step;
+};
+
+/**
+ * Reset playback to the first section (called on stop)
+ * @param {object} state
+ * @param {{ sectionId: string }} payload
+ */
+export const resetPlayback = (state, { sectionId }) => {
+    state.isPlaying = false;
+    state.currentStep = -1;
+    state.activeSectionId = sectionId;
+};
+
 // ─── Mutation Registry ──────────────────────────────────────────────────────
 
 /**
@@ -496,5 +527,9 @@ export const MUTATIONS = {
     propagateMixToTracks,
     // Track Resize
     resizeTracksToSteps,
+    // Playback
+    setPlaying,
+    setCurrentStep,
+    resetPlayback,
 };
 

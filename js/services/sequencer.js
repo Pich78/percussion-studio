@@ -9,9 +9,12 @@
  * - lookahead: How often to check for notes to schedule (25ms)
  * - Notes are scheduled using audioContext.currentTime (sample-accurate)
  * - setTimeout only controls WHEN to check, not WHEN to play
+ * 
+ * REFACTORED: State mutations flow through commit(), advanceStep() is pure,
+ * DOM manipulation removed (renderer handles all visual updates).
  */
 
-import { state, playback } from '../store.js';
+import { state, playback, commit } from '../store.js';
 import { audioEngine } from './audioEngine.js';
 import { renderApp, updateVisualStep, scrollToMeasure } from '../ui/renderer.js';
 
@@ -111,20 +114,26 @@ const getStepDuration = (bpm, subdivision) => {
 };
 
 /**
- * Advance to the next step, handling measure/section transitions
- * Returns the new step duration for timing calculations
+ * PURE FUNCTION: Compute the next step, handling measure/section transitions.
+ * Does NOT mutate any state — returns a result object.
+ * 
+ * @param {object} toque - The current toque (rhythm) data
+ * @param {object} pb - Snapshot of current playback state
+ * @returns {object} Next state: { nextStep, nextMeasure, nextSectionId, nextBpm, 
+ *                    nextRepetition, sectionChanged, activeSec, tempoAccelerated }
  */
-const advanceStep = () => {
-    const currentToque = state.toque;
-    const currentId = playback.activeSectionId;
-
-    let sectionIndex = currentToque.sections.findIndex(s => s.id === currentId);
+const computeNextStep = (toque, pb) => {
+    let sectionIndex = toque.sections.findIndex(s => s.id === pb.activeSectionId);
     if (sectionIndex === -1) sectionIndex = 0;
-    let activeSec = currentToque.sections[sectionIndex];
+    let activeSec = toque.sections[sectionIndex];
 
-    let nextStep = playback.currentStep + 1;
-    let nextMeasure = playback.currentMeasureIndex;
+    let nextStep = pb.currentStep + 1;
+    let nextMeasure = pb.currentMeasureIndex;
+    let nextSectionId = pb.activeSectionId;
+    let nextBpm = pb.currentPlayheadBpm;
+    let nextRepetition = pb.repetitionCounter;
     let sectionChanged = false;
+    let tempoAccelerated = false;
 
     if (nextStep >= activeSec.steps) {
         // End of current measure - move to next measure or repeat
@@ -132,41 +141,32 @@ const advanceStep = () => {
 
         if (nextMeasure >= activeSec.measures.length) {
             // End of all measures - check repetitions
-            if (playback.repetitionCounter < (activeSec.repetitions || 1)) {
-                playback.repetitionCounter += 1;
+            if (nextRepetition < (activeSec.repetitions || 1)) {
+                nextRepetition += 1;
                 nextStep = 0;
                 nextMeasure = 0;
 
                 // Apply tempo acceleration
                 if (activeSec.tempoAcceleration && activeSec.tempoAcceleration !== 0) {
                     const multiplier = 1 + (activeSec.tempoAcceleration / 100);
-                    playback.currentPlayheadBpm = playback.currentPlayheadBpm * multiplier;
+                    nextBpm = nextBpm * multiplier;
+                    tempoAccelerated = true;
                 }
-
-                // Update UI elements
-                const repEl = document.getElementById('header-rep-count');
-                if (repEl) repEl.innerText = playback.repetitionCounter;
-                const liveBpmEl = document.getElementById('header-live-bpm');
-                if (liveBpmEl) liveBpmEl.innerText = Math.round(playback.currentPlayheadBpm);
             } else {
                 // Next Section
-                const nextIndex = (sectionIndex + 1) % currentToque.sections.length;
-                const nextSection = currentToque.sections[nextIndex];
+                const nextIndex = (sectionIndex + 1) % toque.sections.length;
+                const nextSection = toque.sections[nextIndex];
 
-                // Switch Active Section
-                state.activeSectionId = nextSection.id;
-                playback.activeSectionId = nextSection.id;
-                playback.repetitionCounter = 1;
-                playback.currentMeasureIndex = 0;
-
-                if (nextSection.bpm !== undefined) {
-                    playback.currentPlayheadBpm = nextSection.bpm;
-                }
-
-                nextStep = 0;
+                nextSectionId = nextSection.id;
+                nextRepetition = 1;
                 nextMeasure = 0;
+                nextStep = 0;
                 activeSec = nextSection;
                 sectionChanged = true;
+
+                if (nextSection.bpm !== undefined) {
+                    nextBpm = nextSection.bpm;
+                }
             }
         } else {
             // Move to next measure in same section
@@ -174,11 +174,29 @@ const advanceStep = () => {
         }
     }
 
-    playback.currentStep = nextStep;
-    playback.currentMeasureIndex = nextMeasure;
-    state.currentStep = nextStep;
+    return {
+        nextStep, nextMeasure, nextSectionId, nextBpm,
+        nextRepetition, sectionChanged, activeSec, tempoAccelerated
+    };
+};
 
-    return { activeSec, nextStep, nextMeasure, sectionChanged };
+/**
+ * Apply the computed step result to the mutable playback state.
+ * Separated from computation to keep advanceStep pure.
+ * @param {object} result - Output of computeNextStep()
+ */
+const applyStepResult = (result) => {
+    playback.currentStep = result.nextStep;
+    playback.currentMeasureIndex = result.nextMeasure;
+    playback.currentPlayheadBpm = result.nextBpm;
+    playback.repetitionCounter = result.nextRepetition;
+    commit('setCurrentStep', { step: result.nextStep });
+
+    if (result.sectionChanged) {
+        commit('setActiveSectionId', { id: result.nextSectionId });
+        playback.activeSectionId = result.nextSectionId;
+        playback.currentMeasureIndex = 0;
+    }
 };
 
 /**
@@ -224,12 +242,13 @@ const scheduler = () => {
             }
         }, Math.max(0, timeUntilNote));
 
-        // Advance to next step
-        const advanceResult = advanceStep();
-        activeSec = advanceResult.activeSec;
+        // Advance to next step (pure computation + apply)
+        const result = computeNextStep(currentToque, playback);
+        applyStepResult(result);
+        activeSec = result.activeSec;
 
-        // If section changed, we need to re-render
-        if (advanceResult.sectionChanged) {
+        // If section changed, schedule a re-render
+        if (result.sectionChanged) {
             setTimeout(() => {
                 if (state.isPlaying) renderApp();
             }, Math.max(0, timeUntilNote));
@@ -247,12 +266,10 @@ const scheduler = () => {
  * Stop playback and reset state
  */
 export const stopPlayback = () => {
-    state.isPlaying = false;
     clearTimeout(playback.timeoutId);
     playback.timeoutId = null;
     playback.currentStep = -1;
     playback.currentMeasureIndex = 0;
-    state.currentStep = -1;
     playback.repetitionCounter = 1;
     playback.nextNoteTime = 0;
     playback.isCountingIn = false;
@@ -260,9 +277,12 @@ export const stopPlayback = () => {
 
     if (state.toque && state.toque.sections && state.toque.sections.length > 0) {
         const first = state.toque.sections[0];
-        state.activeSectionId = first.id;
+        commit('resetPlayback', { sectionId: first.id });
         playback.activeSectionId = first.id;
         playback.currentPlayheadBpm = first.bpm ?? state.toque.globalBpm;
+    } else {
+        commit('setPlaying', { isPlaying: false });
+        commit('setCurrentStep', { step: -1 });
     }
     renderApp();
 };
@@ -273,14 +293,14 @@ export const stopPlayback = () => {
 export const togglePlay = () => {
     if (state.isPlaying) {
         // Pause
-        state.isPlaying = false;
+        commit('setPlaying', { isPlaying: false });
         playback.isCountingIn = false;
         clearTimeout(playback.timeoutId);
         playback.timeoutId = null;
         renderApp();
     } else {
         // Play
-        state.isPlaying = true;
+        commit('setPlaying', { isPlaying: true });
         audioEngine.resume();
 
         // Initialize timing - start scheduling from "now"
