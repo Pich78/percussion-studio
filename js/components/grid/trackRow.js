@@ -76,6 +76,7 @@ const renderTrackCells = ({
         if (s < track.strokes.length) {
           groupHtml.push(TubsCell({
             stroke: track.strokes[s],
+            dynamic: track.dynamics ? track.dynamics[s] : '-',
             currentGlobalStep: currentStep,
             isValid: isStrokeValid,
             trackIndex: trackIdx,
@@ -108,6 +109,7 @@ const renderTrackCells = ({
     return track.strokes.map((stroke, stepIdx) => {
       return TubsCell({
         stroke,
+        dynamic: track.dynamics ? track.dynamics[stepIdx] : '-',
         currentGlobalStep: currentStep,
         isValid: isStrokeValid,
         trackIndex: trackIdx,

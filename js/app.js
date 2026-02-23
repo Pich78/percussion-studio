@@ -26,14 +26,17 @@ const init = async () => {
         await dataLoader.loadBataMetadata();
         // Preload stroke cursors for custom cursor feature
         await initStrokeCursors();
-        // Initialize global cursor with default stroke
-        updateGlobalCursor(state.selectedStroke);
+        // Initialize global cursor with default stroke and dynamic
+        updateGlobalCursor(state.selectedStroke, state.selectedDynamic);
     } catch (error) {
         console.error("Critical: Failed to load manifest.", error);
         document.getElementById('root').innerHTML = `
             <div class="flex h-screen items-center justify-center flex-col gap-4 text-gray-500">
                 <h2 class="text-xl font-bold text-red-400">Configuration Error</h2>
                 <p>Could not load manifest.json.</p>
+                <div class="text-left text-xs text-red-500 bg-gray-900 p-4 rounded max-w-lg overflow-auto">
+                    ${error.stack || error.message}
+                </div>
                 <p class="text-sm">Ensure you are running a local server (e.g., python -m http.server)</p>
             </div>
         `;
@@ -56,7 +59,7 @@ const init = async () => {
         } else {
             // Rhythm not found in manifest
             console.warn(`Startup: Requested rhythm '${requestedRhythm}' not found in manifest.`);
-            console.log(`Available rhythms:`, rhythmIds);
+            console.log(`Available rhythms: `, rhythmIds);
 
             // Show brief error then load default
             if (rhythmIds.length > 0) {

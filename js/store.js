@@ -1,4 +1,4 @@
-import { StrokeType } from './types.js';
+import { StrokeType, DynamicType } from './types.js';
 
 export const state = {
     // The active rhythm data. 
@@ -24,6 +24,7 @@ export const state = {
     isPlaying: false,
     currentStep: -1,
     selectedStroke: StrokeType.Open, // Default selected tool
+    selectedDynamic: DynamicType.Normal, // Default selected dynamic indication
     clipboard: null, // For copy/paste measures
     countInEnabled: false, // Toggle for count-in feature (enabled by default)
     uiState: {

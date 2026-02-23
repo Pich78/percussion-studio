@@ -21,6 +21,7 @@ import { getCellBackgroundClass, getGuideNumber, getGuideNumberSize } from '../u
  */
 export const TubsCell = ({
   stroke,
+  dynamic = '-',
   currentGlobalStep = -1,
   isValid = true,
   trackIndex,
@@ -101,6 +102,7 @@ export const TubsCell = ({
       data-step-index="${stepIndex}"
       data-measure-index="${measureIndex || 0}"
       data-stroke="${stroke}"
+      data-dynamic="${dynamic}"
       title="${!isValid ? "Stroke not allowed for this instrument" : ""}"
     >
       
@@ -123,11 +125,26 @@ export const TubsCell = ({
         ${(() => {
       if (isRest) return '';
 
+      // Map dynamics to visual hints
+      let dynClasses = '';
+      let dynStyle = '';
+      if (dynamic === 'g') dynClasses = 'scale-50 opacity-40';
+      else if (dynamic === 's') dynClasses = 'scale-75 opacity-70';
+      else if (dynamic === 'l') {
+        dynClasses = 'scale-[1.2] brightness-110';
+        dynStyle = 'filter: drop-shadow(0 0 6px rgba(251,146,60,1)) drop-shadow(0 0 10px rgba(251,146,60,0.8));';
+      }
+      else if (dynamic === 'a') {
+        dynClasses = 'scale-[1.4] brightness-125';
+        dynStyle = 'filter: drop-shadow(0 0 8px rgba(239,68,68,1)) drop-shadow(0 0 15px rgba(239,68,68,1));';
+      }
+
       // Try to find SVG in instrument definition
       if (instrumentDef && instrumentDef.sounds) {
         const soundDef = instrumentDef.sounds.find(s => s.letter === stroke);
         if (soundDef && soundDef.svg) {
-          return `<img src="data/assets/icons/${soundDef.svg}?v=5" style="width: ${iconSizePx}px; height: ${iconSizePx}px" class="pointer-events-none select-none drop-shadow-md" alt="${stroke}" />`;
+          // Wrap in a span that handles the dynamic scaling/glowing so the image itself isn't distorted
+          return `<img src="data/assets/icons/${soundDef.svg}?v=5" style="width: ${iconSizePx}px; height: ${iconSizePx}px; ${dynStyle}" class="pointer-events-none select-none drop-shadow-md transition-all duration-200 ${dynClasses}" alt="${stroke}${dynamic !== '-' ? dynamic : ''}" />`;
         }
       }
 

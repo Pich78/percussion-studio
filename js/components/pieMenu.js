@@ -73,7 +73,7 @@ export const PieMenu = ({
         if (sound.svg) {
             iconHtml = `<img src="data/assets/icons/${sound.svg}?v=5" class="w-6 h-6 drop-shadow-md pointer-events-none select-none" alt="${sound.name || sound.letter}" />`;
         } else {
-            iconHtml = `<span class="font-bold text-sm text-white">${sound.letter}</span>`;
+            iconHtml = `<span class="font-bold text-sm text-white pointer-events-none select-none">${sound.letter}</span>`;
         }
 
         const isRestHoverClass = sound.isRest ? 'hover:bg-red-500/80 hover:scale-110' : 'hover:bg-cyan-500 hover:scale-110';

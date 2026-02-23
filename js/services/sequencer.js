@@ -92,8 +92,9 @@ const scheduleStep = (section, measureIndex, stepIndex, time) => {
 
         if (isFirstStepOfTrackStep && trackStepIndex < track.strokes.length) {
             const stroke = track.strokes[trackStepIndex];
+            const dynamic = track.dynamics ? track.dynamics[trackStepIndex] : '-';
             // Schedule at the EXACT time (not "now")
-            audioEngine.playStroke(track.instrument, stroke, time, track.volume);
+            audioEngine.playStroke(track.instrument, stroke, time, track.volume, dynamic);
         }
     });
 };

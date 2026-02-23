@@ -104,6 +104,7 @@ const createActionRouter = () => {
             }
         },
         'select-stroke': (e, target) => gridHandlers.handleSelectStroke(target),
+        'select-dynamic': (e, target) => gridHandlers.handleSelectDynamic(target),
         'clear-pattern': () => gridHandlers.handleClearPattern(),
 
         // Pie Menu
@@ -167,6 +168,11 @@ export const setupDesktopEvents = () => {
 
     // Click handler
     root.addEventListener('click', (e) => {
+        if (window.__ignoreNextClick) {
+            window.__ignoreNextClick = false;
+            return;
+        }
+
         const target = e.target.closest('[data-action], [data-role]');
         if (!target) return;
 
@@ -186,6 +192,20 @@ export const setupDesktopEvents = () => {
 
     // Context menu (right-click)
     root.addEventListener('contextmenu', (e) => {
+        if (window.__ignoreNextClick) {
+            window.__ignoreNextClick = false;
+            e.preventDefault();
+            return;
+        }
+
+        // If clicking on the pie menu itself, prevent the browser menu
+        if (e.target.closest('#pie-menu-container')) {
+            e.preventDefault();
+            const btn = e.target.closest('[data-action="pie-menu-select"]');
+            if (btn) gridHandlers.handlePieMenuSelect(e, btn);
+            return;
+        }
+
         const target = e.target.closest('[data-role="tubs-cell"]');
         if (target) {
             handleTubsCellRightClick(e, target);
@@ -194,12 +214,15 @@ export const setupDesktopEvents = () => {
 
     // Mouse events for Long-Press Pie Menu support
     root.addEventListener('mousedown', (e) => {
+        window.__ignoreNextClick = false; // Reset on new sequence
+
         const cell = e.target.closest('[data-role="tubs-cell"]');
 
         if (state.uiState.pieMenu.isOpen) {
             const pieMenuContainer = e.target.closest('#pie-menu-container');
             // If we click outside the pie menu entirely
             if (!pieMenuContainer) {
+                window.__ignoreNextClick = true; // Tell click and contextmenu to ignore the rest of this sequence
                 gridHandlers.closePieMenu();
                 // If we clicked a cell while closing the menu, we don't want to start a new long press.
                 return;

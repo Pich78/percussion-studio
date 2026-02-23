@@ -3,7 +3,8 @@
   Exports rhythm state to YAML format for saving.
 */
 
-import { strokesToPatternString } from './patternParser.js';
+import { strokesToPatternString, dynamicsToPatternString } from './patternParser.js';
+import { DynamicType } from '../types.js';
 
 
 /**
@@ -116,11 +117,32 @@ export const exportRhythmToYAML = (state) => {
         yaml += `    measures:\n`;
         section.measures.forEach((measure) => {
             yaml += `      - pattern:\n`;
+
+            // 1. Export standard pattern strings
             measure.tracks.forEach((track) => {
                 const trackKey = trackIdMap[track.id];
                 const patternStr = strokesToPatternString(track.strokes, section.subdivision);
                 yaml += `          ${trackKey}: "${patternStr}"\n`;
             });
+
+            // 2. Formulate dynamics strings (only if any track has non-normal dynamics)
+            const dynamicsStrings = [];
+            measure.tracks.forEach((track) => {
+                const trackKey = trackIdMap[track.id];
+                const hasDynamics = track.dynamics && track.dynamics.some(d => d !== DynamicType.Normal);
+                if (hasDynamics) {
+                    const dynStr = dynamicsToPatternString(track.dynamics, section.subdivision);
+                    dynamicsStrings.push({ key: trackKey, str: dynStr });
+                }
+            });
+
+            // 3. Export dynamics block perfectly aligned
+            if (dynamicsStrings.length > 0) {
+                yaml += `        dynamics:\n`;
+                dynamicsStrings.forEach(dyn => {
+                    yaml += `          ${dyn.key}: "${dyn.str}"\n`;
+                });
+            }
         });
     });
 

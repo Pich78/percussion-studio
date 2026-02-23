@@ -208,7 +208,7 @@ export const DesktopLayout = () => {
           </div>
         </main>
       </div>
-      ${Controls({ selectedStroke: state.selectedStroke })}
+      ${Controls({ selectedStroke: state.selectedStroke, selectedDynamic: state.selectedDynamic })}
     </div>
     ${renderUserGuideModal()}
     ${BataExplorerModal({ isMobile: false })}

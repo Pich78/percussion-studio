@@ -4,8 +4,8 @@
   No state dependencies - these are pure data transformations.
 */
 
-import { StrokeType } from '../types.js';
-import { parsePatternString } from './patternParser.js';
+import { StrokeType, DynamicType } from '../types.js';
+import { parsePatternString, parseDynamicsString } from './patternParser.js';
 
 /**
  * Create an empty track structure
@@ -22,7 +22,8 @@ export const createEmptyTrack = (instrumentSymbol, pack, steps, volume = 1.0, mu
     pack: pack,
     volume: volume,
     muted: muted,
-    strokes: Array(steps).fill(StrokeType.None)
+    strokes: Array(steps).fill(StrokeType.None),
+    dynamics: Array(steps).fill(DynamicType.Normal)
 });
 
 /**
@@ -83,7 +84,8 @@ export const cloneMeasure = (source) => ({
         pack: track.pack,
         volume: track.volume,
         muted: track.muted,
-        strokes: [...track.strokes]
+        strokes: [...track.strokes],
+        dynamics: track.dynamics ? [...track.dynamics] : Array(source.tracks[0].strokes.length).fill(DynamicType.Normal)
     }))
 });
 
@@ -94,13 +96,14 @@ export const cloneMeasure = (source) => ({
  * @param {number} steps - Number of steps
  * @returns {object} Track object
  */
-export const buildTrackFromPattern = (trackConfig, patternStr, steps) => ({
+export const buildTrackFromPattern = (trackConfig, patternStr, dynamicsStr, steps) => ({
     id: crypto.randomUUID(),
     instrument: trackConfig.instrument,
     pack: trackConfig.pack,
     volume: 1.0,
     muted: false,
-    strokes: parsePatternString(patternStr, steps)
+    strokes: parsePatternString(patternStr, steps),
+    dynamics: dynamicsStr ? parseDynamicsString(dynamicsStr, steps) : Array(steps).fill(DynamicType.Normal)
 });
 
 /**
@@ -119,7 +122,8 @@ export const buildMeasuresFromFlow = (flow, trackConfig) => {
             for (const [trackKey, patternStr] of Object.entries(measureDef.pattern)) {
                 const conf = trackConfig[trackKey];
                 if (!conf) continue;
-                tracks.push(buildTrackFromPattern(conf, patternStr, flow.steps));
+                const dynamicsStr = measureDef.dynamics ? measureDef.dynamics[trackKey] : null;
+                tracks.push(buildTrackFromPattern(conf, patternStr, dynamicsStr, flow.steps));
             }
             return {
                 id: crypto.randomUUID(),
@@ -132,7 +136,8 @@ export const buildMeasuresFromFlow = (flow, trackConfig) => {
         for (const [trackKey, patternStr] of Object.entries(flow.pattern)) {
             const conf = trackConfig[trackKey];
             if (!conf) continue;
-            tracks.push(buildTrackFromPattern(conf, patternStr, flow.steps));
+            const dynamicsStr = flow.dynamics ? flow.dynamics[trackKey] : null;
+            tracks.push(buildTrackFromPattern(conf, patternStr, dynamicsStr, flow.steps));
         }
         return [{
             id: crypto.randomUUID(),
@@ -211,11 +216,17 @@ export const buildToqueState = (rhythmId, rhythmDef, sections, explorerMeta = nu
  * @returns {object} Modified track (mutates in place for performance)
  */
 export const resizeTrackStrokes = (track, newSteps) => {
+    if (!track.dynamics) track.dynamics = Array(track.strokes.length).fill(DynamicType.Normal);
+
     if (newSteps > track.strokes.length) {
         const diff = newSteps - track.strokes.length;
-        for (let i = 0; i < diff; i++) track.strokes.push(StrokeType.None);
+        for (let i = 0; i < diff; i++) {
+            track.strokes.push(StrokeType.None);
+            track.dynamics.push(DynamicType.Normal);
+        }
     } else {
         track.strokes.length = newSteps;
+        track.dynamics.length = newSteps;
     }
     return track;
 };

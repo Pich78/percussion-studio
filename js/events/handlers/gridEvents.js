@@ -175,7 +175,17 @@ export const handleTrackStepsChange = (target) => {
  */
 export const handleSelectStroke = (target) => {
     state.selectedStroke = target.dataset.stroke;
-    updateGlobalCursor(state.selectedStroke);
+    updateGlobalCursor(state.selectedStroke, state.selectedDynamic);
+    renderApp();
+};
+
+/**
+ * Handle dynamic selection
+ * @param {HTMLElement} target - The dynamic button element
+ */
+export const handleSelectDynamic = (target) => {
+    state.selectedDynamic = target.dataset.dynamic;
+    updateGlobalCursor(state.selectedStroke, state.selectedDynamic);
     renderApp();
 };
 
@@ -339,12 +349,22 @@ export const handlePieMenuSelect = (e, target) => {
     const stroke = target.dataset.stroke;
     const pm = state.uiState.pieMenu;
 
+    console.log('[DEBUG handlePieMenuSelect] CLICKED STROKE:', stroke);
+    console.log('[DEBUG handlePieMenuSelect] PIE MENU STATE:', JSON.stringify(pm));
+
     if (pm.isOpen && pm.trackIndex !== null) {
-        actions.handleUpdateStrokeDirectly(pm.trackIndex, pm.stepIndex, pm.measureIndex, stroke);
+        console.log('[DEBUG handlePieMenuSelect] Inside IF! Calling handleUpdateStrokeDirectly', pm.trackIndex, pm.stepIndex, pm.measureIndex, stroke);
+
+        actions.handleUpdateStrokeDirectly(
+            pm.trackIndex,
+            pm.stepIndex,
+            pm.measureIndex,
+            stroke
+        );
 
         if (pm.updateGlobalCursor) {
             state.selectedStroke = stroke;
-            updateGlobalCursor(stroke);
+            updateGlobalCursor(stroke, state.selectedDynamic);
         }
     }
     closePieMenu();
@@ -414,7 +434,7 @@ export const handleCellMouseWheel = (e, target) => {
 
     // Update the global cursor and visual state
     state.selectedStroke = nextStroke;
-    updateGlobalCursor(nextStroke);
+    updateGlobalCursor(nextStroke, state.selectedDynamic);
 
     // Re-render the app to naturally update the bottom palette selection UI
     renderApp();

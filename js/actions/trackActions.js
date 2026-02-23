@@ -7,7 +7,7 @@ import { state } from '../store.js';
 import { refreshGrid } from '../ui/renderer.js';
 import { audioEngine } from '../services/audioEngine.js';
 import { dataLoader } from '../services/dataLoader.js';
-import { StrokeType } from '../types.js';
+import { StrokeType, DynamicType } from '../types.js';
 import { getActiveSection, getInstrumentDefinition, getMixSettings } from '../store/stateSelectors.js';
 import { isValidStroke } from '../utils/patternParser.js';
 
@@ -21,7 +21,16 @@ export const handleUpdateStroke = (trackIdx, stepIdx, measureIdx = 0) => {
     const section = state.toque.sections.find(s => s.id === state.activeSectionId);
     const measure = section.measures[measureIdx];
     const track = measure.tracks[trackIdx];
-    const nextStroke = track.strokes[stepIdx] === state.selectedStroke ? StrokeType.None : state.selectedStroke;
+
+    // Check if the exact same stroke exists here, ignoring dynamics.
+    // Ensure case-insensitive comparison, allowing safe clearing of strokes
+    const existingStroke = track.strokes[stepIdx] || '';
+    const isSameStroke = existingStroke.toUpperCase() === state.selectedStroke.toUpperCase();
+
+    console.log('[DEBUG TOGGLE]', { existingStroke, selectedStroke: state.selectedStroke, isSameStroke, stepIdx });
+
+    const nextStroke = isSameStroke ? StrokeType.None : state.selectedStroke;
+    const nextDynamic = isSameStroke ? DynamicType.Normal : state.selectedDynamic;
 
     // Dynamic Validation against Loaded Instrument Definition
     if (nextStroke !== StrokeType.None) {
@@ -54,10 +63,15 @@ export const handleUpdateStroke = (trackIdx, stepIdx, measureIdx = 0) => {
     }
 
     track.strokes[stepIdx] = nextStroke;
+    if (!track.dynamics) track.dynamics = Array(track.strokes.length).fill(DynamicType.Normal);
+    track.dynamics[stepIdx] = nextDynamic;
+
     refreshGrid();
 
     // Play sound immediately for UI feedback
-    audioEngine.playStrokeNow(track.instrument, nextStroke, track.volume);
+    if (nextStroke !== StrokeType.None) {
+        audioEngine.playStrokeNow(track.instrument, nextStroke, track.volume, nextDynamic);
+    }
 };
 
 /**
@@ -75,14 +89,26 @@ export const handleUpdateStrokeDirectly = (trackIdx, stepIdx, measureIdx, stroke
 
     const track = measure.tracks[trackIdx];
 
+    // Check if the exact same stroke exists here, ignoring dynamics.
+    // Ensure case-insensitive comparison
+    const existingStroke = track.strokes[stepIdx] || '';
+    const isSameStroke = existingStroke.toUpperCase() === strokeLetter.toUpperCase();
+
+    // Toggle logic: If they click the exact same symbol that's already there (via Pie Menu), remove it.
+    const nextStroke = isSameStroke ? StrokeType.None : strokeLetter;
+    const nextDynamic = isSameStroke ? DynamicType.Normal : state.selectedDynamic;
+
     // We already validate when creating the pie menu, so we can just apply it.
-    track.strokes[stepIdx] = strokeLetter;
+    track.strokes[stepIdx] = nextStroke;
+
+    if (!track.dynamics) track.dynamics = Array(track.strokes.length).fill(DynamicType.Normal);
+    track.dynamics[stepIdx] = nextDynamic;
 
     refreshGrid();
 
     // Play sound immediately for UI feedback
-    if (strokeLetter !== StrokeType.None) {
-        audioEngine.playStrokeNow(track.instrument, strokeLetter, track.volume);
+    if (nextStroke !== StrokeType.None) {
+        audioEngine.playStrokeNow(track.instrument, nextStroke, track.volume, nextDynamic);
     }
 };
 
@@ -155,7 +181,8 @@ export const addTrack = async (instrumentSymbol, soundPack = "basic_bata") => {
             pack: pack,
             volume: vol,
             muted: mut,
-            strokes: Array(section.steps).fill(StrokeType.None)
+            strokes: Array(section.steps).fill(StrokeType.None),
+            dynamics: Array(section.steps).fill(DynamicType.Normal)
         });
     });
 
