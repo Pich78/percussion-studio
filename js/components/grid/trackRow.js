@@ -6,7 +6,6 @@
 
 import { INSTRUMENT_COLORS } from '../../constants.js';
 import { TubsCell } from '../tubsCell.js';
-import { state } from '../../store.js';
 import { StrokeType } from '../../types.js';
 
 // Icons
@@ -57,7 +56,8 @@ const renderTrackCells = ({
   iconSizePx,
   fontSizePx,
   readOnly,
-  selectedStroke
+  selectedStroke,
+  isPlaying
 }) => {
   const divisor = track.trackSteps || section.subdivision || 4;
   const totalSteps = section.steps;
@@ -88,7 +88,7 @@ const renderTrackCells = ({
             fontSizePx,
             divisor: divisor,
             gridSteps: totalSteps,
-            isPlaying: state.isPlaying,
+            isPlaying,
             isSnapOn: track.snapToGrid,
             selectedStroke
           }));
@@ -121,7 +121,7 @@ const renderTrackCells = ({
         fontSizePx,
         divisor: divisor,
         gridSteps: section.steps,
-        isPlaying: state.isPlaying,
+        isPlaying,
         selectedStroke
       });
     }).join('');
@@ -143,9 +143,11 @@ export const TrackRow = ({
   cellSizePx,
   iconSizePx,
   fontSizePx,
-  readOnly
+  readOnly,
+  instrumentDefinitions = {},
+  isPlaying = false
 }) => {
-  const instDef = state.instrumentDefinitions[track.instrument];
+  const instDef = instrumentDefinitions[track.instrument];
   let isStrokeValid = true;
 
   if (instDef && selectedStroke !== StrokeType.None) {
@@ -167,7 +169,7 @@ export const TrackRow = ({
             <div class="relative w-44 flex flex-col justify-center px-3 py-1.5">
               <!-- Row 1: Instrument Name -->
               <div class="flex items-center gap-1">
-                ${readOnly || !state.isPlaying
+                ${readOnly || !isPlaying
       ? `<span class="font-bold text-sm select-none text-left truncate flex-1 text-gray-200 ${track.muted || track.volume === 0 ? 'text-gray-500 line-through' : ''}" title="${displayName}">${displayName}</span>`
       : `<button 
                       class="font-bold text-sm cursor-pointer select-none hover:text-cyan-400 text-left truncate ${track.muted || track.volume === 0 ? 'text-gray-500 line-through' : 'text-gray-200'}"
@@ -181,7 +183,7 @@ export const TrackRow = ({
               
               <!-- Row 2: Context-Aware Controls -->
               <div class="flex items-center gap-1 mt-0.5 h-4">
-                ${state.isPlaying ? `
+                ${isPlaying ? `
                 <!-- PLAYING: Mute + Volume -->
                 <button 
                   data-action="toggle-mute" 
@@ -250,7 +252,8 @@ export const TrackRow = ({
       iconSizePx,
       fontSizePx,
       readOnly,
-      selectedStroke
+      selectedStroke,
+      isPlaying
     })}
           </div>
         </div>

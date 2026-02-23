@@ -4,7 +4,6 @@
 */
 
 import { StrokeType } from '../types.js';
-import { state } from '../store.js';
 
 /**
  * Calculates the position for each slice in a radial menu
@@ -44,7 +43,9 @@ export const PieMenu = ({
     instrumentDef,
     trackIndex,
     stepIndex,
-    measureIndex
+    measureIndex,
+    hideCurrentCursor = false,
+    selectedStroke = ''
 }) => {
     if (!isOpen || !instrumentDef || !instrumentDef.sounds) return '';
 
@@ -54,8 +55,8 @@ export const PieMenu = ({
         { letter: StrokeType.None, name: 'Rest', isRest: true, svg: 'rest.svg' } // Synthesized Rest option
     ];
 
-    if (state.uiState.pieMenu.hideCurrentCursor) {
-        options = options.filter(s => s.letter !== state.selectedStroke);
+    if (hideCurrentCursor) {
+        options = options.filter(s => s.letter !== selectedStroke);
     }
 
     const totalItems = options.length;
@@ -119,8 +120,8 @@ export const PieMenu = ({
                     top: -${hitAreaSize / 2}px;
                 "
                 data-role="pie-menu-bridge"
-                data-debug-hide-cursor="${state.uiState.pieMenu.hideCurrentCursor}"
-                data-debug-selected-stroke="${state.selectedStroke}"
+                data-debug-hide-cursor="${hideCurrentCursor}"
+                data-debug-selected-stroke="${selectedStroke}"
                 data-debug-options-length="${options.length}"
             ></div>
             

@@ -4,7 +4,6 @@
   REFACTORED: Now composes smaller modular components.
 */
 
-import { state } from '../store.js';
 
 // Import modular components
 import { SectionSettings } from './grid/sectionSettings.js';
@@ -56,14 +55,14 @@ const renderUserGuideModal = (uiState) => {
  * @param {boolean} isMobile - Mobile mode flag
  * @returns {string} HTML string
  */
-const renderModal = (uiState, isMobile) => {
+const renderModal = (uiState, isMobile, instrumentDefinitions = {}) => {
   if (!uiState.modalOpen) return '';
 
   switch (uiState.modalType) {
     case 'rhythm':
       return RhythmModal(uiState, isMobile);
     case 'instrument':
-      return InstrumentModal(uiState);
+      return InstrumentModal(uiState, instrumentDefinitions);
     case 'userGuide':
       return renderUserGuideModal(uiState);
     default:
@@ -83,7 +82,9 @@ export const TubsGrid = ({
   uiState,
   readOnly = false,
   isMobile = false,
-  mobileCellSize = null
+  mobileCellSize = null,
+  instrumentDefinitions = {},
+  isPlaying = false
 }) => {
   // Safety check: if section is null, return placeholder
   if (!section) {
@@ -120,7 +121,9 @@ export const TubsGrid = ({
       cellSizePx,
       iconSizePx,
       fontSizePx,
-      readOnly
+      readOnly,
+      instrumentDefinitions,
+      isPlaying
     });
   }).join('');
 
@@ -139,7 +142,7 @@ export const TubsGrid = ({
             ${AddMeasureButton(readOnly)}
         </div>
         
-        ${renderModal(uiState, isMobile)}
+        ${renderModal(uiState, isMobile, instrumentDefinitions)}
     `;
 };
 

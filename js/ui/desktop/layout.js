@@ -193,7 +193,8 @@ export const DesktopLayout = () => {
     classification: state.toque.classification || null,
     description: state.toque.description || '',
     isBata: state.toque.isBata || '',
-    readOnly: false
+    readOnly: false,
+    bataExplorerMetadata: state.uiState.bataExplorer.metadata || null
   })}
         </div>
         <main class="flex-1 overflow-hidden relative flex flex-col justify-center items-center bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-900 via-gray-950 to-gray-950">
@@ -204,7 +205,9 @@ export const DesktopLayout = () => {
     currentStep: state.currentStep,
     selectedStroke: state.selectedStroke,
     uiState: state.uiState,
-    readOnly: false
+    readOnly: false,
+    instrumentDefinitions: state.instrumentDefinitions,
+    isPlaying: state.isPlaying
   })}
           </div>
         </main>
@@ -212,8 +215,8 @@ export const DesktopLayout = () => {
       ${Controls({ selectedStroke: state.selectedStroke, selectedDynamic: state.selectedDynamic })}
     </div>
     ${renderUserGuideModal()}
-    ${BataExplorerModal({ isMobile: false })}
-    ${EditingOptionsModal({ isMobile: false })}
-    ${PieMenu(state.uiState.pieMenu)}
+    ${BataExplorerModal({ isMobile: false, bataExplorer: state.uiState.bataExplorer })}
+    ${EditingOptionsModal({ isMobile: false, pieMenu: state.uiState.pieMenu, modalOpen: state.uiState.modalOpen, modalType: state.uiState.modalType })}
+    ${PieMenu({ ...state.uiState.pieMenu, selectedStroke: state.selectedStroke })}
   `;
 };

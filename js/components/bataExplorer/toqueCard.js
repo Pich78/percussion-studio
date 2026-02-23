@@ -5,7 +5,6 @@
 */
 
 import { CLASSIFICATION_COLORS } from '../../constants.js';
-import { state } from '../../store.js';
 
 /**
  * Render an Orisha badge
@@ -13,8 +12,8 @@ import { state } from '../../store.js';
  * @param {string} size - Badge size ('sm' or 'md')
  * @returns {string} HTML string
  */
-export const OrishaBadge = (name, size = 'sm') => {
-    const meta = state.uiState.bataExplorer.metadata || {};
+export const OrishaBadge = (name, size = 'sm', bataExplorerMetadata = null) => {
+    const meta = bataExplorerMetadata || {};
     const orishaColors = meta.orishaColors || {};
     const colors = orishaColors[name] || { border: 'border-stone-500', text: 'text-stone-400', bg: 'bg-stone-800' };
     const sizeClasses = size === 'sm' ? 'px-2 py-0.5 text-xs' : 'px-3 py-1 text-sm';
@@ -47,7 +46,7 @@ export const ClassificationBadge = (classification) => {
  * @param {object} group - Group data with displayName, classification, associatedOrishas, variations
  * @returns {string} HTML string
  */
-export const ToqueCard = (group) => {
+export const ToqueCard = (group, bataExplorerMetadata = null) => {
     const { id, displayName, classification, associatedOrishas, variations } = group;
 
     return `
@@ -73,7 +72,7 @@ export const ToqueCard = (group) => {
             </div>
 
             <div class="flex flex-wrap gap-1 mt-auto pt-2">
-                ${associatedOrishas.slice(0, 4).map(orisha => OrishaBadge(orisha, 'sm')).join('')}
+                ${associatedOrishas.slice(0, 4).map(orisha => OrishaBadge(orisha, 'sm', bataExplorerMetadata)).join('')}
                 ${associatedOrishas.length > 4 ?
             `<span class="text-[10px] text-gray-500 px-1 py-0.5">+${associatedOrishas.length - 4}</span>` : ''}
             </div>
@@ -88,7 +87,7 @@ export const ToqueCard = (group) => {
  * @param {boolean} isMobile - Whether on mobile
  * @returns {string} HTML string
  */
-export const ZoneSection = (zoneName, groups, isMobile = false) => {
+export const ZoneSection = (zoneName, groups, isMobile = false, bataExplorerMetadata = null) => {
     if (groups.length === 0) return '';
 
     const colors = CLASSIFICATION_COLORS[zoneName];
@@ -103,7 +102,7 @@ export const ZoneSection = (zoneName, groups, isMobile = false) => {
                 </div>
             </div>
             <div class="grid grid-cols-1 ${isMobile ? '' : 'md:grid-cols-2'} gap-4">
-                ${groups.map(group => ToqueCard(group)).join('')}
+                ${groups.map(group => ToqueCard(group, bataExplorerMetadata)).join('')}
             </div>
         </section>
     `;

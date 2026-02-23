@@ -5,7 +5,6 @@
 */
 
 import { INSTRUMENT_COLORS } from '../../constants.js';
-import { state } from '../../store.js';
 import { dataLoader } from '../../services/dataLoader.js';
 
 // Icons
@@ -17,7 +16,7 @@ import { XMarkIcon } from '../../icons/xMarkIcon.js';
  * @param {string|null} selectedInstrument - Currently selected instrument
  * @returns {string} HTML string
  */
-const renderInstrumentList = (selectedInstrument) => {
+const renderInstrumentList = (selectedInstrument, instrumentDefinitions = {}) => {
   if (!dataLoader.manifest || !dataLoader.manifest.instruments) {
     return '<div class="text-center text-gray-500 py-8">Loading instruments...</div>';
   }
@@ -36,7 +35,7 @@ const renderInstrumentList = (selectedInstrument) => {
                 ${isSelected ? 'ring-2 ring-amber-400 bg-amber-900/30' : ''}
               "
             >
-              <span class="font-medium ${isSelected ? 'text-amber-300' : 'text-gray-200'} pointer-events-none">${state.instrumentDefinitions[symbol]?.name || symbol}</span>
+              <span class="font-medium ${isSelected ? 'text-amber-300' : 'text-gray-200'} pointer-events-none">${instrumentDefinitions[symbol]?.name || symbol}</span>
             </button>
           `;
   }).join('');
@@ -80,7 +79,7 @@ const renderSoundPackList = (selectedInstrument, selectedPack) => {
  * @param {object} uiState - UI state object
  * @returns {string} HTML string
  */
-export const InstrumentModal = (uiState) => {
+export const InstrumentModal = (uiState, instrumentDefinitions = {}) => {
   const title = uiState.editingTrackIndex !== null ? 'Change Instrument' : 'Add Instrument';
   const selectedInstrument = uiState.pendingInstrument;
   const selectedPack = uiState.pendingSoundPack;
@@ -91,7 +90,7 @@ export const InstrumentModal = (uiState) => {
           <div class="border-r border-gray-800 pr-4">
             <h4 class="text-sm font-bold text-gray-400 uppercase tracking-wide mb-3">Instrument Type</h4>
             <div class="grid grid-cols-1 gap-2">
-              ${renderInstrumentList(selectedInstrument)}
+              ${renderInstrumentList(selectedInstrument, instrumentDefinitions)}
             </div>
           </div>
           

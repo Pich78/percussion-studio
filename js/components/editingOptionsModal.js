@@ -1,11 +1,9 @@
-import { state } from '../store.js';
+export const EditingOptionsModal = ({ isMobile = false, pieMenu = {}, modalOpen = false, modalType = null } = {}) => {
+    if (!modalOpen || modalType !== 'editingOptions') return '';
 
-export const EditingOptionsModal = ({ isMobile = false } = {}) => {
-    if (!state.uiState.modalOpen || state.uiState.modalType !== 'editingOptions') return '';
-
-    const mode = state.uiState.pieMenu.editingMode; // 'disabled', 'hover', 'long-press', 'right-click'
-    const hoverMs = state.uiState.pieMenu.hoverTimeMs;
-    const pressMs = state.uiState.pieMenu.pressTimeMs;
+    const mode = pieMenu.editingMode; // 'disabled', 'hover', 'long-press', 'right-click'
+    const hoverMs = pieMenu.hoverTimeMs;
+    const pressMs = pieMenu.pressTimeMs;
 
     const widthClass = isMobile ? 'w-full h-full' : 'max-w-md w-full rounded-xl';
     const placementClass = isMobile ? 'slide-in-from-bottom' : 'zoom-in-95';
@@ -56,27 +54,27 @@ export const EditingOptionsModal = ({ isMobile = false } = {}) => {
                                         <h5 class="text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wider">Trigger</h5>
                                         <div class="flex flex-col gap-3">
                                             <label class="flex items-center gap-3 cursor-pointer group">
-                                                <input type="radio" name="pieMenuTrigger" value="right-click" class="w-4 h-4 text-pink-500 bg-gray-800 border-gray-600 focus:ring-pink-500 focus:ring-2" data-action="update-pie-trigger" ${state.uiState.pieMenu.pieMenuTrigger === 'right-click' ? 'checked' : ''}>
+                                                <input type="radio" name="pieMenuTrigger" value="right-click" class="w-4 h-4 text-pink-500 bg-gray-800 border-gray-600 focus:ring-pink-500 focus:ring-2" data-action="update-pie-trigger" ${pieMenu.pieMenuTrigger === 'right-click' ? 'checked' : ''}>
                                                 <div class="flex flex-col">
                                                     <span class="text-gray-200 text-sm font-medium group-hover:text-white transition-colors">Right Click (Recommended)</span>
                                                 </div>
                                             </label>
 
                                             <label class="flex items-center gap-3 cursor-pointer group">
-                                                <input type="radio" name="pieMenuTrigger" value="long-press" class="w-4 h-4 text-pink-500 bg-gray-800 border-gray-600 focus:ring-pink-500 focus:ring-2" data-action="update-pie-trigger" ${state.uiState.pieMenu.pieMenuTrigger === 'long-press' ? 'checked' : ''}>
+                                                <input type="radio" name="pieMenuTrigger" value="long-press" class="w-4 h-4 text-pink-500 bg-gray-800 border-gray-600 focus:ring-pink-500 focus:ring-2" data-action="update-pie-trigger" ${pieMenu.pieMenuTrigger === 'long-press' ? 'checked' : ''}>
                                                 <div class="flex items-center gap-2">
                                                     <span class="text-gray-200 text-sm font-medium group-hover:text-white transition-colors w-20">Long Press</span>
-                                                    <input type="number" min="100" max="2000" step="50" value="${pressMs}" class="w-16 bg-gray-900 border border-gray-700 rounded px-1 py-0.5 text-xs text-white focus:outline-none focus:border-pink-500 ${state.uiState.pieMenu.pieMenuTrigger !== 'long-press' ? 'opacity-50 pointer-events-none' : ''}" data-action="update-pie-timing" data-target="pressTimeMs">
-                                                    <span class="text-xs text-gray-500 ${state.uiState.pieMenu.pieMenuTrigger !== 'long-press' ? 'opacity-50 pointer-events-none' : ''}">ms</span>
+                                                    <input type="number" min="100" max="2000" step="50" value="${pressMs}" class="w-16 bg-gray-900 border border-gray-700 rounded px-1 py-0.5 text-xs text-white focus:outline-none focus:border-pink-500 ${pieMenu.pieMenuTrigger !== 'long-press' ? 'opacity-50 pointer-events-none' : ''}" data-action="update-pie-timing" data-target="pressTimeMs">
+                                                    <span class="text-xs text-gray-500 ${pieMenu.pieMenuTrigger !== 'long-press' ? 'opacity-50 pointer-events-none' : ''}">ms</span>
                                                 </div>
                                             </label>
 
                                             <label class="flex items-center gap-3 cursor-pointer group">
-                                                <input type="radio" name="pieMenuTrigger" value="hover" class="w-4 h-4 text-pink-500 bg-gray-800 border-gray-600 focus:ring-pink-500 focus:ring-2" data-action="update-pie-trigger" ${state.uiState.pieMenu.pieMenuTrigger === 'hover' ? 'checked' : ''}>
+                                                <input type="radio" name="pieMenuTrigger" value="hover" class="w-4 h-4 text-pink-500 bg-gray-800 border-gray-600 focus:ring-pink-500 focus:ring-2" data-action="update-pie-trigger" ${pieMenu.pieMenuTrigger === 'hover' ? 'checked' : ''}>
                                                 <div class="flex items-center gap-2">
                                                     <span class="text-gray-200 text-sm font-medium group-hover:text-white transition-colors w-20">Hover</span>
-                                                    <input type="number" min="50" max="2000" step="50" value="${hoverMs}" class="w-16 bg-gray-900 border border-gray-700 rounded px-1 py-0.5 text-xs text-white focus:outline-none focus:border-pink-500 ${state.uiState.pieMenu.pieMenuTrigger !== 'hover' ? 'opacity-50 pointer-events-none' : ''}" data-action="update-pie-timing" data-target="hoverTimeMs">
-                                                    <span class="text-xs text-gray-500 ${state.uiState.pieMenu.pieMenuTrigger !== 'hover' ? 'opacity-50 pointer-events-none' : ''}">ms</span>
+                                                    <input type="number" min="50" max="2000" step="50" value="${hoverMs}" class="w-16 bg-gray-900 border border-gray-700 rounded px-1 py-0.5 text-xs text-white focus:outline-none focus:border-pink-500 ${pieMenu.pieMenuTrigger !== 'hover' ? 'opacity-50 pointer-events-none' : ''}" data-action="update-pie-timing" data-target="hoverTimeMs">
+                                                    <span class="text-xs text-gray-500 ${pieMenu.pieMenuTrigger !== 'hover' ? 'opacity-50 pointer-events-none' : ''}">ms</span>
                                                 </div>
                                             </label>
                                         </div>
@@ -87,12 +85,12 @@ export const EditingOptionsModal = ({ isMobile = false } = {}) => {
                                         <h5 class="text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wider">Behavior</h5>
                                         <div class="flex flex-col gap-2">
                                             <label class="flex items-center gap-3 cursor-pointer group">
-                                                <input type="checkbox" class="w-4 h-4 text-pink-500 bg-gray-800 border-gray-600 focus:ring-pink-500 focus:ring-2 rounded" data-action="update-pie-behavior" data-setting="updateGlobalCursor" ${state.uiState.pieMenu.updateGlobalCursor ? 'checked' : ''}>
+                                                <input type="checkbox" class="w-4 h-4 text-pink-500 bg-gray-800 border-gray-600 focus:ring-pink-500 focus:ring-2 rounded" data-action="update-pie-behavior" data-setting="updateGlobalCursor" ${pieMenu.updateGlobalCursor ? 'checked' : ''}>
                                                 <span class="text-gray-200 text-sm font-medium group-hover:text-white transition-colors">Update Palette Tool on Select</span>
                                             </label>
 
                                             <label class="flex items-center gap-3 cursor-pointer group">
-                                                <input type="checkbox" class="w-4 h-4 text-pink-500 bg-gray-800 border-gray-600 focus:ring-pink-500 focus:ring-2 rounded" data-action="update-pie-behavior" data-setting="hideCurrentCursor" ${state.uiState.pieMenu.hideCurrentCursor ? 'checked' : ''}>
+                                                <input type="checkbox" class="w-4 h-4 text-pink-500 bg-gray-800 border-gray-600 focus:ring-pink-500 focus:ring-2 rounded" data-action="update-pie-behavior" data-setting="hideCurrentCursor" ${pieMenu.hideCurrentCursor ? 'checked' : ''}>
                                                 <span class="text-gray-200 text-sm font-medium group-hover:text-white transition-colors">Hide Current Tool from Menu</span>
                                             </label>
                                         </div>

@@ -40,9 +40,8 @@ const createActionRouter = () => {
         'toggle-user-guide-submenu': menuHandlers.handleToggleUserGuideSubmenu,
         'open-user-guide': (e, target) => modalHandlers.handleOpenUserGuide(target),
         'open-editing-options': () => {
-            state.uiState.isMenuOpen = false;
-            state.uiState.modalType = 'editingOptions';
-            state.uiState.modalOpen = true;
+            commit('setMenuOpen', { isOpen: false });
+            commit('setModal', { open: true, type: 'editingOptions' });
             renderApp();
         },
 

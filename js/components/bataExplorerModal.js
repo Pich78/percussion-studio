@@ -4,7 +4,6 @@
   REFACTORED: Now composes smaller modular components.
 */
 
-import { state } from '../store.js';
 import { TOQUE_CLASSIFICATIONS } from '../constants.js';
 import { XMarkIcon } from '../icons/xMarkIcon.js';
 import { MusicalNoteIcon } from '../icons/musicalNoteIcon.js';
@@ -93,7 +92,7 @@ const ToqueDetailsModal = (groupId, allGroups) => {
                     </div>
 
                     <div class="flex flex-wrap gap-2">
-                        ${associatedOrishas.map(orisha => OrishaBadge(orisha, 'md')).join('')}
+                        ${associatedOrishas.map(orisha => OrishaBadge(orisha, 'md', meta)).join('')}
                     </div>
                 </div>
                 
@@ -127,8 +126,8 @@ const ToqueDetailsModal = (groupId, allGroups) => {
 /**
  * Main Batá Explorer Modal component
  */
-export const BataExplorerModal = ({ isMobile = false }) => {
-    const bata = state.uiState.bataExplorer;
+export const BataExplorerModal = ({ isMobile = false, bataExplorer = {} }) => {
+    const bata = bataExplorer;
     const meta = bata.metadata || {};
     const orishas = meta.orishas || [];
     const orishaColors = meta.orishaColors || {};
@@ -250,12 +249,12 @@ export const BataExplorerModal = ({ isMobile = false }) => {
                                     </button>
                                 </div>
                             ` : showZones ? `
-                                ${ZoneSection('Specific', zoneGroups.Specific, isMobile)}
-                                ${ZoneSection('Shared', zoneGroups.Shared, isMobile)}
-                                ${ZoneSection('Generic', zoneGroups.Generic, isMobile)}
+                                ${ZoneSection('Specific', zoneGroups.Specific, isMobile, meta)}
+                                ${ZoneSection('Shared', zoneGroups.Shared, isMobile, meta)}
+                                ${ZoneSection('Generic', zoneGroups.Generic, isMobile, meta)}
                             ` : `
                                 <div class="grid grid-cols-1 ${isMobile ? '' : 'md:grid-cols-2'} gap-4">
-                                    ${groups.map(group => ToqueCard(group)).join('')}
+                                    ${groups.map(group => ToqueCard(group, meta)).join('')}
                                 </div>
                             `}
                     </div>

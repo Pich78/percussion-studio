@@ -218,7 +218,9 @@ export const MobileLayout = () => {
     uiState: state.uiState,
     readOnly: true,
     isMobile: true,
-    mobileCellSize
+    mobileCellSize,
+    instrumentDefinitions: state.instrumentDefinitions,
+    isPlaying: state.isPlaying
   })}
             </div>
           </main>
@@ -322,7 +324,8 @@ export const MobileLayout = () => {
     activeSectionId: state.activeSectionId,
     rhythmName: state.toque.name,
     readOnly: true,
-    isMobile: true
+    isMobile: true,
+    bataExplorerMetadata: state.uiState.bataExplorer.metadata || null
   })}
                 </div>
                 <div class="p-4 border-t border-gray-800 text-xs text-gray-500 text-center">
@@ -357,7 +360,7 @@ export const MobileLayout = () => {
         </div>
       ` : ''}
 
-      ${BataExplorerModal({ isMobile: true })}
+      ${BataExplorerModal({ isMobile: true, bataExplorer: state.uiState.bataExplorer })}
     </div>
   `;
 };
