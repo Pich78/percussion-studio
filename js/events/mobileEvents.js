@@ -4,7 +4,8 @@
   REFACTORED: Now delegates to modular handler functions.
 */
 
-import { state, playback } from '../store.js';
+import { state, playback, commit } from '../store.js';
+import { getActiveSection, formatRhythmName } from '../store/stateSelectors.js';
 import { actions } from '../actions.js';
 import { togglePlay, stopPlayback } from '../services/sequencer.js';
 import { renderApp } from '../ui/renderer.js';
@@ -59,7 +60,7 @@ const handleMobileShareRhythm = () => {
             });
         }
     }
-    state.uiState.isMenuOpen = false;
+    commit('setMenuOpen', { isOpen: false });
     renderApp();
 };
 
@@ -68,20 +69,17 @@ const handleMobileShareRhythm = () => {
  */
 const handleMobileSelectRhythmConfirm = (target) => {
     const rhythmId = target.dataset.rhythmId;
-    const rhythmName = rhythmId.split('/').pop().replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    const rhythmName = formatRhythmName(rhythmId);
 
-    state.uiState.modalOpen = false;
-    state.uiState.isLoadingRhythm = true;
-    state.uiState.loadingRhythmName = rhythmName;
+    commit('setModal', { open: false });
+    commit('setLoadingRhythm', { isLoading: true, name: rhythmName });
     renderApp();
 
     actions.loadRhythm(rhythmId).then(() => {
-        state.uiState.isLoadingRhythm = false;
-        state.uiState.loadingRhythmName = null;
+        commit('setLoadingRhythm', { isLoading: false });
         renderApp();
     }).catch(() => {
-        state.uiState.isLoadingRhythm = false;
-        state.uiState.loadingRhythmName = null;
+        commit('setLoadingRhythm', { isLoading: false });
         renderApp();
     });
 };
@@ -91,11 +89,10 @@ const handleMobileSelectRhythmConfirm = (target) => {
  */
 const handleMobileLoadToqueConfirm = (target) => {
     const toqueId = target.dataset.toqueId;
-    const rhythmName = toqueId.split('/').pop().replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    const rhythmName = formatRhythmName(toqueId);
 
     state.uiState.bataExplorer.isOpen = false;
-    state.uiState.isLoadingRhythm = true;
-    state.uiState.loadingRhythmName = rhythmName;
+    commit('setLoadingRhythm', { isLoading: true, name: rhythmName });
     renderApp();
 
     actions.loadRhythm(toqueId).then(() => {
@@ -103,12 +100,10 @@ const handleMobileLoadToqueConfirm = (target) => {
         state.uiState.bataExplorer.selectedOrishas = [];
         state.uiState.bataExplorer.selectedTypes = [];
         state.uiState.bataExplorer.searchTerm = '';
-        state.uiState.isLoadingRhythm = false;
-        state.uiState.loadingRhythmName = null;
+        commit('setLoadingRhythm', { isLoading: false });
         renderApp();
     }).catch(() => {
-        state.uiState.isLoadingRhythm = false;
-        state.uiState.loadingRhythmName = null;
+        commit('setLoadingRhythm', { isLoading: false });
         renderApp();
     });
 };
@@ -173,7 +168,7 @@ const createMobileActionRouter = () => ({
 
     // Mute/Track controls
     'toggle-mute': (e, target) => {
-        const section = state.toque?.sections.find(s => s.id === state.activeSectionId);
+        const section = getActiveSection(state);
         const tIdx = parseInt(target.dataset.trackIndex);
         const track = section?.measures[0]?.tracks[tIdx];
         if (track) {
@@ -231,7 +226,7 @@ export const setupMobileEvents = () => {
         }
 
         if (action === 'update-volume') {
-            const section = state.toque?.sections.find(s => s.id === state.activeSectionId);
+            const section = getActiveSection(state);
             const tIdx = parseInt(target.dataset.trackIndex);
             const newVolume = parseFloat(target.value);
             const track = section?.measures[0]?.tracks[tIdx];
@@ -243,7 +238,7 @@ export const setupMobileEvents = () => {
 
         if (action === 'update-global-bpm') {
             state.toque.globalBpm = Number(target.value);
-            const section = state.toque?.sections.find(s => s.id === state.activeSectionId);
+            const section = getActiveSection(state);
             if (!section?.bpm) playback.currentPlayheadBpm = state.toque.globalBpm;
             const display = document.getElementById('header-global-bpm');
             if (display) display.innerHTML = `${state.toque.globalBpm} <span class="text-[8px] text-gray-600">BPM</span>`;
@@ -262,7 +257,7 @@ export const setupMobileEvents = () => {
         const action = target.dataset.action;
         if (action === 'update-global-bpm') {
             state.toque.globalBpm = Number(target.value);
-            const section = state.toque?.sections.find(s => s.id === state.activeSectionId);
+            const section = getActiveSection(state);
             if (!section?.bpm) playback.currentPlayheadBpm = state.toque.globalBpm;
             renderApp();
         }

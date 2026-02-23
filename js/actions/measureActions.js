@@ -4,6 +4,7 @@
 */
 
 import { state } from '../store.js';
+import { getActiveSection } from '../store/stateSelectors.js';
 import { refreshGrid, scrollToMeasure } from '../ui/renderer.js';
 import { StrokeType } from '../types.js';
 import { cloneMeasure } from '../utils/rhythmTransformers.js';
@@ -12,7 +13,7 @@ import { cloneMeasure } from '../utils/rhythmTransformers.js';
  * Adds a new measure to the active section
  */
 export const addMeasure = () => {
-    const section = state.toque.sections.find(s => s.id === state.activeSectionId);
+    const section = getActiveSection(state);
     if (!section) return;
 
     // Create new measure with tracks matching existing ones
@@ -49,7 +50,7 @@ export const addMeasure = () => {
  * @param {number} measureIdx - Measure index to delete
  */
 export const deleteMeasure = (measureIdx) => {
-    const section = state.toque.sections.find(s => s.id === state.activeSectionId);
+    const section = getActiveSection(state);
     if (!section || section.measures.length <= 1) {
         alert("Cannot delete the last measure");
         return;
@@ -66,7 +67,7 @@ export const deleteMeasure = (measureIdx) => {
  * @param {number} measureIdx - Measure index to duplicate
  */
 export const duplicateMeasure = (measureIdx) => {
-    const section = state.toque.sections.find(s => s.id === state.activeSectionId);
+    const section = getActiveSection(state);
     if (!section) return;
 
     const sourceMeasure = section.measures[measureIdx];

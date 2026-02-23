@@ -4,11 +4,11 @@
 */
 
 import { state } from '../store.js';
+import { getActiveSection } from '../store/stateSelectors.js';
 import { refreshGrid } from '../ui/renderer.js';
 import { audioEngine } from '../services/audioEngine.js';
 import { dataLoader } from '../services/dataLoader.js';
 import { StrokeType, DynamicType } from '../types.js';
-import { getActiveSection, getInstrumentDefinition, getMixSettings } from '../store/stateSelectors.js';
 import { isValidStroke } from '../utils/patternParser.js';
 
 /**
@@ -18,7 +18,7 @@ import { isValidStroke } from '../utils/patternParser.js';
  * @param {number} measureIdx - Measure index (default 0)
  */
 export const handleUpdateStroke = (trackIdx, stepIdx, measureIdx = 0) => {
-    const section = state.toque.sections.find(s => s.id === state.activeSectionId);
+    const section = getActiveSection(state);
     const measure = section.measures[measureIdx];
     const track = measure.tracks[trackIdx];
 
@@ -82,7 +82,7 @@ export const handleUpdateStroke = (trackIdx, stepIdx, measureIdx = 0) => {
  * @param {string} strokeLetter - The specific stroke to apply
  */
 export const handleUpdateStrokeDirectly = (trackIdx, stepIdx, measureIdx, strokeLetter) => {
-    const section = state.toque.sections.find(s => s.id === state.activeSectionId);
+    const section = getActiveSection(state);
     if (!section) return;
     const measure = section.measures[measureIdx];
     if (!measure || !measure.tracks[trackIdx]) return;
@@ -119,7 +119,7 @@ export const handleUpdateStrokeDirectly = (trackIdx, stepIdx, measureIdx, stroke
  * @param {number} newTrackSteps - New subdivision count for this track
  */
 export const updateTrackSteps = (trackIdx, measureIdx, newTrackSteps) => {
-    const section = state.toque.sections.find(s => s.id === state.activeSectionId);
+    const section = getActiveSection(state);
     if (!section) return;
 
     const measure = section.measures[measureIdx];
@@ -144,7 +144,7 @@ export const updateTrackSteps = (trackIdx, measureIdx, newTrackSteps) => {
  */
 export const addTrack = async (instrumentSymbol, soundPack = "basic_bata") => {
     if (!state.toque) return;
-    const section = state.toque.sections.find(s => s.id === state.activeSectionId);
+    const section = getActiveSection(state);
     if (!section) return;
 
     const pack = soundPack;
@@ -196,7 +196,7 @@ export const addTrack = async (instrumentSymbol, soundPack = "basic_bata") => {
  * @param {string} soundPack - Sound pack name
  */
 export const updateTrackInstrument = async (trackIdx, newSymbol, soundPack = "basic_bata") => {
-    const section = state.toque.sections.find(s => s.id === state.activeSectionId);
+    const section = getActiveSection(state);
     if (!section || !section.measures[0]) return;
 
     const pack = soundPack;

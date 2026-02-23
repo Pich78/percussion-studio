@@ -4,7 +4,8 @@
   REFACTORED: Now delegates to modular handler functions.
 */
 
-import { state, playback } from '../store.js';
+import { state, playback, commit } from '../store.js';
+import { getActiveSection, snapStepIndex } from '../store/stateSelectors.js';
 import { actions } from '../actions.js';
 import { togglePlay, stopPlayback } from '../services/sequencer.js';
 import { renderApp, refreshGrid } from '../ui/renderer.js';
@@ -97,9 +98,9 @@ const createActionRouter = () => {
 
         // Settings
         'toggle-bpm-override': () => {
-            const section = state.toque?.sections.find(s => s.id === state.activeSectionId);
+            const section = getActiveSection(state);
             if (section) {
-                section.bpm = (section.bpm !== undefined) ? undefined : state.toque.globalBpm;
+                commit('toggleBpmOverride', { section, globalBpm: state.toque.globalBpm });
                 refreshGrid();
             }
         },
@@ -116,7 +117,7 @@ const createActionRouter = () => {
  * Handle tubs-cell click (grid cell interaction)
  */
 const handleTubsCellClick = (target) => {
-    const section = state.toque?.sections.find(s => s.id === state.activeSectionId);
+    const section = getActiveSection(state);
     if (!section) return;
 
     const trackIdx = parseInt(target.dataset.trackIndex);
@@ -125,15 +126,7 @@ const handleTubsCellClick = (target) => {
     const track = section.measures[measureIdx]?.tracks[trackIdx];
     if (!track) return;
 
-    let targetStepIdx = rawStepIdx;
-
-    // Snap Input Logic
-    if (track.snapToGrid) {
-        const divisor = track.trackSteps || section.subdivision || 4;
-        const groupSize = section.steps / divisor;
-        targetStepIdx = Math.floor(rawStepIdx / groupSize) * groupSize;
-        if (targetStepIdx >= section.steps) targetStepIdx = section.steps - groupSize;
-    }
+    const targetStepIdx = snapStepIndex(rawStepIdx, track, section);
 
     actions.handleUpdateStroke(trackIdx, targetStepIdx, measureIdx);
 };
@@ -152,7 +145,7 @@ const handleTubsCellRightClick = (e, target) => {
     const measureIdx = parseInt(target.dataset.measureIndex || 0);
     const stepIdx = parseInt(target.dataset.stepIndex);
 
-    const section = state.toque?.sections.find(s => s.id === state.activeSectionId);
+    const section = getActiveSection(state);
     if (section) {
         const track = section.measures[measureIdx]?.tracks[trackIdx];
         if (track) {
@@ -446,18 +439,18 @@ export const setupDesktopEvents = () => {
     root.addEventListener('change', (e) => {
         const target = e.target;
         const action = target.dataset.action;
-        const section = state.toque?.sections.find(s => s.id === state.activeSectionId);
+        const section = getActiveSection(state);
 
         if (action === 'update-pie-behavior') {
             const setting = target.dataset.setting;
-            state.uiState.pieMenu[setting] = target.checked;
+            commit('setPieMenuBehavior', { setting, checked: target.checked });
             renderApp();
             return;
         }
 
         if (action === 'load-rhythm-file' && target.files[0]) {
             actions.loadRhythmFromFile(target.files[0]).then(() => {
-                state.uiState.modalOpen = false;
+                commit('setModal', { open: false });
                 renderApp();
             });
             return;
@@ -480,7 +473,7 @@ export const setupDesktopEvents = () => {
 
         if (action === 'update-custom-subdivision' && section) {
             const newSubdivision = Math.max(1, Math.min(12, parseInt(target.value) || 1));
-            section.subdivision = newSubdivision;
+            commit('setSectionSubdivision', { section, subdivision: newSubdivision });
             refreshGrid();
             renderApp();
             return;
@@ -500,7 +493,7 @@ export const setupDesktopEvents = () => {
         }
 
         if (action === 'update-bpm' && section) {
-            section.bpm = Number(target.value);
+            commit('setSectionBpm', { section, bpm: Number(target.value) });
             playback.currentPlayheadBpm = section.bpm;
             return;
         }
@@ -521,13 +514,13 @@ export const setupDesktopEvents = () => {
         }
 
         if (action === 'update-editing-mode') {
-            state.uiState.pieMenu.editingMode = target.value;
+            commit('setPieMenuSetting', { key: 'editingMode', value: target.value });
             renderApp();
             return;
         }
 
         if (action === 'update-pie-trigger') {
-            state.uiState.pieMenu.pieMenuTrigger = target.value;
+            commit('setPieMenuSetting', { key: 'pieMenuTrigger', value: target.value });
             renderApp();
             return;
         }

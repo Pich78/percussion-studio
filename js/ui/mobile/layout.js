@@ -1,4 +1,5 @@
 import { state, playback } from '../../store.js';
+import { getActiveSection } from '../../store/stateSelectors.js';
 import { Timeline } from '../../components/timeline.js';
 import { TubsGrid } from '../../components/tubsGrid.js';
 import { Bars3Icon } from '../../icons/bars3Icon.js';
@@ -165,7 +166,7 @@ export const calculateMobileCellSize = (viewportWidth, steps, safeAreaLeft, safe
 };
 
 export const MobileLayout = () => {
-  const activeSection = state.toque.sections.find(s => s.id === state.activeSectionId) || state.toque.sections[0];
+  const activeSection = getActiveSection(state) || state.toque.sections[0];
 
   // Get current viewport and safe area dimensions
   const viewportWidth = window.innerWidth;

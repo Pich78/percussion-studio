@@ -4,6 +4,7 @@
 */
 
 import { state, playback } from '../../store.js';
+import { getActiveSection } from '../../store/stateSelectors.js';
 import { renderApp, refreshGrid } from '../../ui/renderer.js';
 import { actions } from '../../actions.js';
 import { getClosestDivisor } from '../../utils/gridUtils.js';
@@ -44,7 +45,7 @@ export const handleDuplicateSection = (target) => {
  * @param {HTMLInputElement} target - The input element
  */
 export const handleUpdateSectionName = (target) => {
-    const section = state.toque?.sections.find(s => s.id === state.activeSectionId);
+    const section = getActiveSection(state);
     if (section) {
         section.name = target.value;
         renderApp();
@@ -56,7 +57,7 @@ export const handleUpdateSectionName = (target) => {
  * @param {HTMLSelectElement} target - The select element
  */
 export const handleUpdateMeter = (target) => {
-    const section = state.toque?.sections.find(s => s.id === state.activeSectionId);
+    const section = getActiveSection(state);
     if (!section) return;
 
     if (target.value === 'custom') {
@@ -91,7 +92,7 @@ export const handleUpdateMeter = (target) => {
  * @param {HTMLInputElement} target - The input element
  */
 export const handleUpdateCustomSteps = (target) => {
-    const section = state.toque?.sections.find(s => s.id === state.activeSectionId);
+    const section = getActiveSection(state);
     if (!section) return;
 
     const newSteps = Math.max(1, Math.min(64, parseInt(target.value) || 1));
@@ -113,7 +114,7 @@ export const handleUpdateCustomSteps = (target) => {
  * @param {HTMLInputElement} target - The input element
  */
 export const handleUpdateCustomSubdivision = (target) => {
-    const section = state.toque?.sections.find(s => s.id === state.activeSectionId);
+    const section = getActiveSection(state);
     if (!section) return;
 
     const newSubdivision = Math.max(1, Math.min(12, parseInt(target.value) || 1));
@@ -127,7 +128,7 @@ export const handleUpdateCustomSubdivision = (target) => {
  * @param {HTMLInputElement} target - The input element
  */
 export const handleUpdateRepetitions = (target) => {
-    const section = state.toque?.sections.find(s => s.id === state.activeSectionId);
+    const section = getActiveSection(state);
     if (section) {
         section.repetitions = Math.max(1, Number(target.value));
         renderApp();

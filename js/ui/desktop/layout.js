@@ -1,4 +1,5 @@
 import { state, playback } from '../../store.js';
+import { getActiveSection } from '../../store/stateSelectors.js';
 import { Timeline } from '../../components/timeline.js';
 import { TubsGrid } from '../../components/tubsGrid.js';
 import { Controls } from '../../components/controls.js';
@@ -14,7 +15,7 @@ import { PieMenu } from '../../components/pieMenu.js';
 import { EditingOptionsModal } from '../../components/editingOptionsModal.js';
 
 const renderHeader = () => {
-  const activeSection = state.toque.sections.find(s => s.id === state.activeSectionId) || state.toque.sections[0];
+  const activeSection = getActiveSection(state) || state.toque.sections[0];
 
   return `
     <header class="h-16 px-4 border-b border-gray-800 flex justify-between items-center bg-gray-950 flex-shrink-0 z-40 gap-4">
@@ -176,7 +177,7 @@ const renderUserGuideModal = () => {
 };
 
 export const DesktopLayout = () => {
-  const activeSection = state.toque.sections.find(s => s.id === state.activeSectionId) || state.toque.sections[0];
+  const activeSection = getActiveSection(state) || state.toque.sections[0];
 
   return `
     <div class="flex flex-col h-full bg-gray-950 text-gray-100 font-sans selection:bg-cyan-500 selection:text-black select-none">

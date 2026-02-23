@@ -3,7 +3,8 @@
   Event handlers for grid interactions (cell clicks, track controls, volume).
 */
 
-import { state } from '../../store.js';
+import { state, commit } from '../../store.js';
+import { getActiveSection, snapStepIndex } from '../../store/stateSelectors.js';
 import { refreshGrid, renderApp } from '../../ui/renderer.js';
 import { actions } from '../../actions.js';
 import { StrokeType } from '../../types.js';
@@ -32,24 +33,14 @@ export const handleCellClick = (target) => {
         return;
     }
 
-    const section = state.toque.sections.find(s => s.id === state.activeSectionId);
+    const section = getActiveSection(state);
     const trackIdx = parseInt(target.dataset.trackIndex);
     const measureIdx = parseInt(target.dataset.measureIndex || 0);
     const rawStepIdx = parseInt(target.dataset.stepIndex);
 
     const track = section.measures[measureIdx].tracks[trackIdx];
 
-    let targetStepIdx = rawStepIdx;
-
-    // Snap Input Logic
-    if (track.snapToGrid) {
-        const divisor = track.trackSteps || section.subdivision || 4;
-        const groupSize = section.steps / divisor;
-        targetStepIdx = Math.floor(rawStepIdx / groupSize) * groupSize;
-        if (targetStepIdx >= section.steps) {
-            targetStepIdx = section.steps - groupSize;
-        }
-    }
+    const targetStepIdx = snapStepIndex(rawStepIdx, track, section);
 
     actions.handleUpdateStroke(trackIdx, targetStepIdx, measureIdx);
 };
@@ -59,7 +50,7 @@ export const handleCellClick = (target) => {
  * @param {HTMLElement} target - The clicked cell element
  */
 export const handleCellRightClick = (target) => {
-    const section = state.toque.sections.find(s => s.id === state.activeSectionId);
+    const section = getActiveSection(state);
     const trackIdx = parseInt(target.dataset.trackIndex);
     const stepIdx = parseInt(target.dataset.stepIndex);
     section.tracks[trackIdx].strokes[stepIdx] = StrokeType.None;
@@ -71,7 +62,7 @@ export const handleCellRightClick = (target) => {
  * @param {HTMLElement} target - The mute button element
  */
 export const handleToggleMute = (target) => {
-    const section = state.toque.sections.find(s => s.id === state.activeSectionId);
+    const section = getActiveSection(state);
     const tIdx = parseInt(target.dataset.trackIndex);
     const mIdx = parseInt(target.dataset.measureIndex || 0);
     const track = section.measures[mIdx].tracks[tIdx];
@@ -86,11 +77,9 @@ export const handleToggleMute = (target) => {
  */
 export const handleRemoveTrack = (target) => {
     if (confirm("Remove track?")) {
-        const section = state.toque.sections.find(s => s.id === state.activeSectionId);
+        const section = getActiveSection(state);
         const tIdx = parseInt(target.dataset.trackIndex);
-        section.measures.forEach(measure => {
-            measure.tracks.splice(tIdx, 1);
-        });
+        commit('removeTrack', { section, trackIdx: tIdx });
         refreshGrid();
     }
 };
@@ -100,7 +89,7 @@ export const handleRemoveTrack = (target) => {
  * @param {HTMLElement} target - The button element
  */
 export const handleCycleTrackSteps = (target) => {
-    const section = state.toque.sections.find(s => s.id === state.activeSectionId);
+    const section = getActiveSection(state);
     const trackIdx = parseInt(target.dataset.trackIndex);
     const measureIdx = parseInt(target.dataset.measureIndex || 0);
     const track = section.measures[measureIdx].tracks[trackIdx];
@@ -119,12 +108,12 @@ export const handleCycleTrackSteps = (target) => {
  * @param {HTMLElement} target - The button element
  */
 export const handleToggleTrackSnap = (target) => {
-    const section = state.toque.sections.find(s => s.id === state.activeSectionId);
+    const section = getActiveSection(state);
     const trackIdx = parseInt(target.dataset.trackIndex);
     const measureIdx = parseInt(target.dataset.measureIndex || 0);
     const track = section.measures[measureIdx].tracks[trackIdx];
 
-    track.snapToGrid = !track.snapToGrid;
+    commit('toggleTrackSnap', { track });
     refreshGrid();
 };
 
@@ -133,7 +122,7 @@ export const handleToggleTrackSnap = (target) => {
  * @param {HTMLInputElement} target - The slider element
  */
 export const handleVolumeInput = (target) => {
-    const section = state.toque.sections.find(s => s.id === state.activeSectionId);
+    const section = getActiveSection(state);
     const tIdx = parseInt(target.dataset.trackIndex);
     const mIdx = parseInt(target.dataset.measureIndex || 0);
     const track = section.measures[mIdx].tracks[tIdx];
@@ -174,7 +163,7 @@ export const handleTrackStepsChange = (target) => {
  * @param {HTMLElement} target - The stroke button element
  */
 export const handleSelectStroke = (target) => {
-    state.selectedStroke = target.dataset.stroke;
+    commit('setSelectedStroke', { stroke: target.dataset.stroke });
     updateGlobalCursor(state.selectedStroke, state.selectedDynamic);
     renderApp();
 };
@@ -184,7 +173,7 @@ export const handleSelectStroke = (target) => {
  * @param {HTMLElement} target - The dynamic button element
  */
 export const handleSelectDynamic = (target) => {
-    state.selectedDynamic = target.dataset.dynamic;
+    commit('setSelectedDynamic', { dynamic: target.dataset.dynamic });
     updateGlobalCursor(state.selectedStroke, state.selectedDynamic);
     renderApp();
 };
@@ -194,10 +183,8 @@ export const handleSelectDynamic = (target) => {
  */
 export const handleClearPattern = () => {
     if (confirm("Clear all notes in this section?")) {
-        const section = state.toque.sections.find(s => s.id === state.activeSectionId);
-        section.measures.forEach(measure => {
-            measure.tracks.forEach(t => t.strokes.fill(StrokeType.None));
-        });
+        const section = getActiveSection(state);
+        commit('clearSectionPattern', { section, emptyStroke: StrokeType.None });
         refreshGrid();
     }
 };
@@ -206,7 +193,7 @@ export const handleClearPattern = () => {
  * Helper to open pie menu
  */
 const triggerPieMenuOpen = (target, delayMs, isLongPress) => {
-    const section = state.toque.sections.find(s => s.id === state.activeSectionId);
+    const section = getActiveSection(state);
     if (!section) return;
 
     const trackIdx = parseInt(target.dataset.trackIndex);
@@ -223,24 +210,16 @@ const triggerPieMenuOpen = (target, delayMs, isLongPress) => {
         if (isLongPress) justOpenedByLongPress = true;
         const rect = target.getBoundingClientRect();
 
-        let targetStepIdx = stepIdx;
-        if (track.snapToGrid) {
-            const divisor = track.trackSteps || section.subdivision || 4;
-            const groupSize = section.steps / divisor;
-            targetStepIdx = Math.floor(stepIdx / groupSize) * groupSize;
-            if (targetStepIdx >= section.steps) targetStepIdx = section.steps - groupSize;
-        }
+        const targetStepIdx = snapStepIndex(stepIdx, track, section);
 
-        state.uiState.pieMenu = {
-            ...state.uiState.pieMenu,
-            isOpen: true,
+        commit('openPieMenu', {
             x: rect.left + (rect.width / 2) + window.scrollX,
             y: rect.top + (rect.height / 2) + window.scrollY,
             trackIndex: trackIdx,
             stepIndex: targetStepIdx,
             measureIndex: measureIdx,
             instrumentDef: instDef
-        };
+        });
         renderApp();
     };
 
@@ -363,7 +342,7 @@ export const handlePieMenuSelect = (e, target) => {
         );
 
         if (pm.updateGlobalCursor) {
-            state.selectedStroke = stroke;
+            commit('setSelectedStroke', { stroke });
             updateGlobalCursor(stroke, state.selectedDynamic);
         }
     }
@@ -375,7 +354,7 @@ export const handlePieMenuSelect = (e, target) => {
  */
 export const closePieMenu = () => {
     if (state.uiState.pieMenu.isOpen) {
-        state.uiState.pieMenu.isOpen = false;
+        commit('closePieMenu');
         renderApp();
     }
 };
@@ -395,7 +374,7 @@ export const handleCellMouseWheel = (e, target) => {
     const trackIdx = parseInt(target.dataset.trackIndex);
     if (isNaN(trackIdx)) return;
 
-    const section = state.toque.sections.find(s => s.id === state.activeSectionId);
+    const section = getActiveSection(state);
     if (!section) return;
 
     const measureIdx = parseInt(target.dataset.measureIndex || 0);
@@ -433,7 +412,7 @@ export const handleCellMouseWheel = (e, target) => {
     const nextStroke = options[currentIndex];
 
     // Update the global cursor and visual state
-    state.selectedStroke = nextStroke;
+    commit('setSelectedStroke', { stroke: nextStroke });
     updateGlobalCursor(nextStroke, state.selectedDynamic);
 
     // Re-render the app to naturally update the bottom palette selection UI

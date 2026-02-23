@@ -153,3 +153,64 @@ export const getValidStrokes = (state, instrumentSymbol) => {
     if (!def || !def.sounds) return [];
     return def.sounds.map(s => s.letter.toUpperCase());
 };
+
+/**
+ * Snap a raw step index to the nearest grid-aligned position.
+ * Centralizes the snap-to-grid calculation (Pattern B — was duplicated 3×).
+ * 
+ * @param {number} rawStepIdx - Raw step index from user input
+ * @param {object} track - Track object (needs .trackSteps, .snapToGrid)
+ * @param {object} section - Section object (needs .steps, .subdivision)
+ * @returns {number} Snapped step index
+ */
+export const snapStepIndex = (rawStepIdx, track, section) => {
+    if (!track.snapToGrid) return rawStepIdx;
+    const divisor = track.trackSteps || section.subdivision || 4;
+    const groupSize = section.steps / divisor;
+    let snapped = Math.floor(rawStepIdx / groupSize) * groupSize;
+    if (snapped >= section.steps) snapped = section.steps - groupSize;
+    return snapped;
+};
+
+/**
+ * Format a rhythm ID into a human-readable display name.
+ * Centralizes the name formatting logic (Pattern L — was duplicated 2×).
+ * 
+ * @param {string} rhythmId - Rhythm ID like "bata/oru_seco/chachalokuafun"
+ * @returns {string} Formatted name like "Chachalokuafun"
+ */
+export const formatRhythmName = (rhythmId) => {
+    if (!rhythmId) return 'Rhythm';
+    return rhythmId.split('/').pop().replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+};
+
+/**
+ * Build the share URL for the current rhythm.
+ * Centralizes URL construction (Pattern E — was duplicated 2×).
+ * 
+ * @param {object} state - Application state
+ * @returns {string|null} Share URL or null if not shareable
+ */
+export const getShareUrl = (state) => {
+    if (!isRhythmShareable(state)) return null;
+    const baseUrl = window.location.origin + window.location.pathname.replace(/\/[^/]*$/, '/');
+    return `${baseUrl}?rhythm=${encodeURIComponent(state.currentRhythmId)}`;
+};
+
+/**
+ * Convenience: get a track at a specific cell (track + measure index).
+ * Avoids the repeated pattern of section.measures[m].tracks[t].
+ * 
+ * @param {object} state - Application state
+ * @param {number} trackIdx - Track index
+ * @param {number} measureIdx - Measure index (default 0)
+ * @returns {object|null} Track or null
+ */
+export const getTrackAtCell = (state, trackIdx, measureIdx = 0) => {
+    const section = getActiveSection(state);
+    if (!section) return null;
+    const measure = section.measures?.[measureIdx];
+    if (!measure) return null;
+    return measure.tracks?.[trackIdx] || null;
+};
+

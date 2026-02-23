@@ -1,4 +1,5 @@
 import { state } from '../store.js';
+import { getActiveSection } from '../store/stateSelectors.js';
 import { TubsGrid, autoScrollGrid } from '../components/tubsGrid.js';
 import { MobileLayout, calculateMobileCellSize } from './mobile/layout.js';
 import { DesktopLayout } from './desktop/layout.js';
@@ -57,7 +58,7 @@ export const renderApp = () => {
 };
 
 export const refreshGrid = () => {
-  const activeSection = state.toque.sections.find(s => s.id === state.activeSectionId) || state.toque.sections[0];
+  const activeSection = getActiveSection(state) || state.toque.sections[0];
   const container = document.getElementById('grid-container');
   const isMobile = window.IS_MOBILE_VIEW;
 
@@ -125,7 +126,7 @@ export const updateVisualStep = (step, measureIndex = 0) => {
   if (!measureContainer) return;
 
   // Get active section info
-  const activeSection = state?.toque?.sections?.find(s => s.id === state?.activeSectionId);
+  const activeSection = getActiveSection(state);
   if (!activeSection) return;
 
   // Find a reference cell to calculate dimensions (use first track, first cell)
