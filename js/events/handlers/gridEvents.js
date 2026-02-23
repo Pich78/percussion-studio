@@ -10,11 +10,7 @@ import { actions } from '../../actions.js';
 import { StrokeType } from '../../types.js';
 import { getValidInstrumentSteps } from '../../utils/gridUtils.js';
 import { updateGlobalCursor } from '../../utils/strokeCursors.js';
-
-// Timers and state for pie menu interactions
-let pieMenuTimer = null;
-let pieMenuCloseTimer = null;
-let justOpenedByLongPress = false;
+import * as pieMenuState from './pieMenuState.js';
 
 /**
  * Handle cell click (update stroke)
@@ -22,8 +18,7 @@ let justOpenedByLongPress = false;
  */
 export const handleCellClick = (target) => {
     // If this click is the release of a long press that opened the menu, ignore it
-    if (justOpenedByLongPress) {
-        justOpenedByLongPress = false;
+    if (pieMenuState.consumeLongPressFlag()) {
         return;
     }
 
@@ -207,7 +202,7 @@ const triggerPieMenuOpen = (target, delayMs, isLongPress) => {
     if (!instDef || !instDef.sounds || instDef.sounds.length === 0) return;
 
     const openFn = () => {
-        if (isLongPress) justOpenedByLongPress = true;
+        if (isLongPress) pieMenuState.markLongPressOpen();
         const rect = target.getBoundingClientRect();
 
         const targetStepIdx = snapStepIndex(stepIdx, track, section);
@@ -224,7 +219,7 @@ const triggerPieMenuOpen = (target, delayMs, isLongPress) => {
     };
 
     if (delayMs > 0) {
-        pieMenuTimer = setTimeout(openFn, delayMs);
+        pieMenuState.scheduleOpen(openFn, delayMs);
     } else {
         openFn();
     }
@@ -241,7 +236,7 @@ export const handleCellMouseDown = (e, target) => {
         return;
     }
 
-    justOpenedByLongPress = false;
+    pieMenuState.resetLongPressFlag();
 
     if (state.uiState.pieMenu.editingMode === 'pie-menu' && state.uiState.pieMenu.pieMenuTrigger === 'long-press') {
         const delay = state.uiState.pieMenu.pressTimeMs;
@@ -255,10 +250,7 @@ export const handleCellMouseDown = (e, target) => {
 export const handleCellMouseEnter = (e, target) => {
     if (window.IS_MOBILE_VIEW || state.isPlaying) return;
 
-    if (pieMenuCloseTimer) {
-        clearTimeout(pieMenuCloseTimer);
-        pieMenuCloseTimer = null;
-    }
+    pieMenuState.cancelCloseTimer();
 
     if (state.uiState.pieMenu.editingMode === 'pie-menu' && state.uiState.pieMenu.pieMenuTrigger === 'hover') {
         const delay = state.uiState.pieMenu.hoverTimeMs;
@@ -270,13 +262,10 @@ export const handleCellMouseEnter = (e, target) => {
  * Handle mouse leave from a tubs-cell
  */
 export const handleCellMouseLeave = (e, target) => {
-    if (pieMenuTimer) {
-        clearTimeout(pieMenuTimer);
-        pieMenuTimer = null;
-    }
+    pieMenuState.cancelOpenTimer();
 
     if (state.uiState.pieMenu.isOpen && state.uiState.pieMenu.editingMode === 'pie-menu' && state.uiState.pieMenu.pieMenuTrigger === 'hover') {
-        pieMenuCloseTimer = setTimeout(() => {
+        pieMenuState.scheduleClose(() => {
             closePieMenu();
         }, 300);
     }
@@ -286,10 +275,7 @@ export const handleCellMouseLeave = (e, target) => {
  * Handle mouse enter on the pie menu itself (cancel closing)
  */
 export const handlePieMenuMouseEnter = () => {
-    if (pieMenuCloseTimer) {
-        clearTimeout(pieMenuCloseTimer);
-        pieMenuCloseTimer = null;
-    }
+    pieMenuState.cancelCloseTimer();
 };
 
 /**
@@ -297,7 +283,7 @@ export const handlePieMenuMouseEnter = () => {
  */
 export const handlePieMenuMouseLeave = () => {
     if (state.uiState.pieMenu.editingMode === 'pie-menu' && state.uiState.pieMenu.pieMenuTrigger === 'hover') {
-        pieMenuCloseTimer = setTimeout(() => {
+        pieMenuState.scheduleClose(() => {
             closePieMenu();
         }, 200);
     }
@@ -315,10 +301,7 @@ export const handleCellRightClickOpenPieMenu = (e, target) => {
  * Cancel any pending intent timer (e.g. mouseup or mouseout)
  */
 export const cancelPieMenuPress = () => {
-    if (pieMenuTimer) {
-        clearTimeout(pieMenuTimer);
-        pieMenuTimer = null;
-    }
+    pieMenuState.cancelOpenTimer();
 };
 
 /**
