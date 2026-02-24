@@ -64,7 +64,7 @@ const groupToquesByFolder = (toquesMap) => {
  * @param {object[]} allGroups - All groups array
  * @returns {string} HTML string
  */
-const ToqueDetailsModal = (groupId, allGroups) => {
+const ToqueDetailsModal = (groupId, allGroups, meta) => {
     if (!groupId || !allGroups) return '';
 
     const group = allGroups.find(g => g.id === groupId);
@@ -261,7 +261,7 @@ export const BataExplorerModal = ({ isMobile = false, bataExplorer = {} }) => {
                 </div>
 
                 <!-- Details Modal (Overlay) -->
-                ${selectedToqueId ? ToqueDetailsModal(selectedToqueId, groups) : ''}
+                ${selectedToqueId ? ToqueDetailsModal(selectedToqueId, groups, meta) : ''}
             </div>
         </div>
         </div>
