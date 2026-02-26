@@ -231,7 +231,22 @@ export const setupMobileEvents = () => {
             const newVolume = parseFloat(target.value);
             const track = section?.measures[0]?.tracks[tIdx];
             if (track) {
-                actions.setGlobalVolume(track.instrument, newVolume);
+                // During touch drag: update state + audio directly, skip full re-render
+                // (mirrors the BPM slider pattern for smooth mobile interaction)
+                commit('ensureMixEntry', { symbol: track.instrument });
+                commit('setMixVolume', { symbol: track.instrument, volume: newVolume });
+                audioEngine.setInstrumentVolume(track.instrument, newVolume);
+                commit('propagateMixToTracks', {
+                    symbol: track.instrument,
+                    volume: state.mix[track.instrument].volume,
+                    muted: state.mix[track.instrument].muted
+                });
+
+                // Direct DOM update for visual feedback (no re-render)
+                const volContainer = target.closest('.group\\/vol');
+                if (volContainer) {
+                    updateVolumeSliderVisuals(volContainer, newVolume);
+                }
             }
             return;
         }
@@ -251,7 +266,7 @@ export const setupMobileEvents = () => {
         }
     });
 
-    // Change handler (BPM finalize)
+    // Change handler (BPM / Volume finalize on touchend)
     root.addEventListener('change', (e) => {
         const target = e.target;
         const action = target.dataset.action;
@@ -259,6 +274,10 @@ export const setupMobileEvents = () => {
             state.toque.globalBpm = Number(target.value);
             const section = getActiveSection(state);
             if (!section?.bpm) playback.currentPlayheadBpm = state.toque.globalBpm;
+            renderApp();
+        }
+        if (action === 'update-volume') {
+            // Full re-render on drag end to sync all visuals
             renderApp();
         }
     });
@@ -303,7 +322,7 @@ export const setupMobileEvents = () => {
             if (volInput) {
                 activeVolContainer = volContainer;
                 activeVolInput = volInput;
-                // No global flag needed for volume as it doesn't trigger grid refresh
+                window.__volumeDragging = true;
 
                 const touch = e.touches[0];
                 const rect = volContainer.getBoundingClientRect();
@@ -357,6 +376,9 @@ export const setupMobileEvents = () => {
             activeBpmContainer = null;
         }
         if (activeVolInput) {
+            window.__volumeDragging = false;
+            // Dispatch change event to trigger full re-render
+            activeVolInput.dispatchEvent(new Event('change', { bubbles: true }));
             activeVolInput = null;
             activeVolContainer = null;
         }
