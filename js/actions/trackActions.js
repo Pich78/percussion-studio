@@ -3,12 +3,12 @@
   Actions for track operations (add, update, stroke handling).
 */
 
-import { state } from '../store.js';
+import { state, commit } from '../store.js';
+import { getActiveSection } from '../store/stateSelectors.js';
 import { refreshGrid } from '../ui/renderer.js';
 import { audioEngine } from '../services/audioEngine.js';
 import { dataLoader } from '../services/dataLoader.js';
-import { StrokeType } from '../types.js';
-import { getActiveSection, getInstrumentDefinition, getMixSettings } from '../store/stateSelectors.js';
+import { StrokeType, DynamicType } from '../types.js';
 import { isValidStroke } from '../utils/patternParser.js';
 
 /**
@@ -18,10 +18,19 @@ import { isValidStroke } from '../utils/patternParser.js';
  * @param {number} measureIdx - Measure index (default 0)
  */
 export const handleUpdateStroke = (trackIdx, stepIdx, measureIdx = 0) => {
-    const section = state.toque.sections.find(s => s.id === state.activeSectionId);
+    const section = getActiveSection(state);
     const measure = section.measures[measureIdx];
     const track = measure.tracks[trackIdx];
-    const nextStroke = track.strokes[stepIdx] === state.selectedStroke ? StrokeType.None : state.selectedStroke;
+
+    // Check if the exact same stroke exists here, ignoring dynamics.
+    // Ensure case-insensitive comparison, allowing safe clearing of strokes
+    const existingStroke = track.strokes[stepIdx] || '';
+    const isSameStroke = existingStroke.toUpperCase() === state.selectedStroke.toUpperCase();
+
+    console.log('[DEBUG TOGGLE]', { existingStroke, selectedStroke: state.selectedStroke, isSameStroke, stepIdx });
+
+    const nextStroke = isSameStroke ? StrokeType.None : state.selectedStroke;
+    const nextDynamic = isSameStroke ? DynamicType.Normal : state.selectedDynamic;
 
     // Dynamic Validation against Loaded Instrument Definition
     if (nextStroke !== StrokeType.None) {
@@ -53,11 +62,13 @@ export const handleUpdateStroke = (trackIdx, stepIdx, measureIdx = 0) => {
         }
     }
 
-    track.strokes[stepIdx] = nextStroke;
+    commit('setStroke', { track, stepIdx, stroke: nextStroke, dynamic: nextDynamic });
     refreshGrid();
 
     // Play sound immediately for UI feedback
-    audioEngine.playStrokeNow(track.instrument, nextStroke, track.volume);
+    if (nextStroke !== StrokeType.None) {
+        audioEngine.playStrokeNow(track.instrument, nextStroke, track.volume, nextDynamic);
+    }
 };
 
 /**
@@ -68,21 +79,28 @@ export const handleUpdateStroke = (trackIdx, stepIdx, measureIdx = 0) => {
  * @param {string} strokeLetter - The specific stroke to apply
  */
 export const handleUpdateStrokeDirectly = (trackIdx, stepIdx, measureIdx, strokeLetter) => {
-    const section = state.toque.sections.find(s => s.id === state.activeSectionId);
+    const section = getActiveSection(state);
     if (!section) return;
     const measure = section.measures[measureIdx];
     if (!measure || !measure.tracks[trackIdx]) return;
 
     const track = measure.tracks[trackIdx];
 
-    // We already validate when creating the pie menu, so we can just apply it.
-    track.strokes[stepIdx] = strokeLetter;
+    // Check if the exact same stroke exists here, ignoring dynamics.
+    // Ensure case-insensitive comparison
+    const existingStroke = track.strokes[stepIdx] || '';
+    const isSameStroke = existingStroke.toUpperCase() === strokeLetter.toUpperCase();
 
+    // Toggle logic: If they click the exact same symbol that's already there (via Pie Menu), remove it.
+    const nextStroke = isSameStroke ? StrokeType.None : strokeLetter;
+    const nextDynamic = isSameStroke ? DynamicType.Normal : state.selectedDynamic;
+
+    commit('setStroke', { track, stepIdx, stroke: nextStroke, dynamic: nextDynamic });
     refreshGrid();
 
     // Play sound immediately for UI feedback
-    if (strokeLetter !== StrokeType.None) {
-        audioEngine.playStrokeNow(track.instrument, strokeLetter, track.volume);
+    if (nextStroke !== StrokeType.None) {
+        audioEngine.playStrokeNow(track.instrument, nextStroke, track.volume, nextDynamic);
     }
 };
 
@@ -93,20 +111,14 @@ export const handleUpdateStrokeDirectly = (trackIdx, stepIdx, measureIdx, stroke
  * @param {number} newTrackSteps - New subdivision count for this track
  */
 export const updateTrackSteps = (trackIdx, measureIdx, newTrackSteps) => {
-    const section = state.toque.sections.find(s => s.id === state.activeSectionId);
+    const section = getActiveSection(state);
     if (!section) return;
 
     const measure = section.measures[measureIdx];
     if (!measure || !measure.tracks[trackIdx]) return;
 
     const track = measure.tracks[trackIdx];
-
-    // Update the visual subdivision preference
-    track.trackSteps = newTrackSteps;
-
-    // No array resizing or stroke moving! 
-    // We just change the visual grouping.
-
+    commit('setTrackSteps', { track, trackSteps: newTrackSteps });
     refreshGrid();
 };
 
@@ -118,7 +130,7 @@ export const updateTrackSteps = (trackIdx, measureIdx, newTrackSteps) => {
  */
 export const addTrack = async (instrumentSymbol, soundPack = "basic_bata") => {
     if (!state.toque) return;
-    const section = state.toque.sections.find(s => s.id === state.activeSectionId);
+    const section = getActiveSection(state);
     if (!section) return;
 
     const pack = soundPack;
@@ -126,7 +138,7 @@ export const addTrack = async (instrumentSymbol, soundPack = "basic_bata") => {
     // 1. Load Definition if missing
     if (!state.instrumentDefinitions[instrumentSymbol]) {
         const instDef = await dataLoader.loadInstrumentDefinition(instrumentSymbol);
-        state.instrumentDefinitions[instrumentSymbol] = instDef;
+        commit('setInstrumentDefinition', { symbol: instrumentSymbol, definition: instDef });
     }
 
     // 2. Load Audio if missing
@@ -135,28 +147,21 @@ export const addTrack = async (instrumentSymbol, soundPack = "basic_bata") => {
         await audioEngine.loadSoundPack(instrumentSymbol, soundConfig);
     }
 
-    // 3. Add to all measures in section
-    section.measures.forEach(measure => {
-        // Apply Global Mix
-        let vol = 1.0;
-        let mut = false;
+    // 3. Ensure global mix entry
+    commit('ensureMixEntry', { symbol: instrumentSymbol });
+    const mix = state.mix[instrumentSymbol];
 
-        if (state.mix[instrumentSymbol]) {
-            vol = state.mix[instrumentSymbol].volume;
-            mut = state.mix[instrumentSymbol].muted;
-        } else {
-            // Initialize global mix for this new instrument if not present
-            state.mix[instrumentSymbol] = { volume: 1.0, muted: false };
-        }
-
-        measure.tracks.push({
-            id: crypto.randomUUID(),
+    // 4. Add to all measures in section
+    commit('addTrackToSection', {
+        section,
+        trackTemplate: {
             instrument: instrumentSymbol,
             pack: pack,
-            volume: vol,
-            muted: mut,
-            strokes: Array(section.steps).fill(StrokeType.None)
-        });
+            volume: mix.volume,
+            muted: mix.muted,
+            strokes: Array(section.steps).fill(StrokeType.None),
+            dynamics: Array(section.steps).fill(DynamicType.Normal)
+        }
     });
 
     refreshGrid();
@@ -169,7 +174,7 @@ export const addTrack = async (instrumentSymbol, soundPack = "basic_bata") => {
  * @param {string} soundPack - Sound pack name
  */
 export const updateTrackInstrument = async (trackIdx, newSymbol, soundPack = "basic_bata") => {
-    const section = state.toque.sections.find(s => s.id === state.activeSectionId);
+    const section = getActiveSection(state);
     if (!section || !section.measures[0]) return;
 
     const pack = soundPack;
@@ -180,7 +185,7 @@ export const updateTrackInstrument = async (trackIdx, newSymbol, soundPack = "ba
         const instDef = await dataLoader.loadInstrumentDefinition(newSymbol);
         console.log(`[UpdateTrackInstrument] Loaded definition for '${newSymbol}':`, instDef);
         console.log(`[UpdateTrackInstrument] Available sounds:`, instDef?.sounds?.map(s => s.letter).join(', '));
-        state.instrumentDefinitions[newSymbol] = instDef;
+        commit('setInstrumentDefinition', { symbol: newSymbol, definition: instDef });
     } else {
         console.log(`[UpdateTrackInstrument] Using cached definition for '${newSymbol}'`);
         console.log(`[UpdateTrackInstrument] Cached sounds:`, state.instrumentDefinitions[newSymbol]?.sounds?.map(s => s.letter).join(', '));
@@ -191,20 +196,17 @@ export const updateTrackInstrument = async (trackIdx, newSymbol, soundPack = "ba
         await audioEngine.loadSoundPack(newSymbol, soundConfig);
     }
 
-    // Apply Global Mix settings if available for the new instrument
-    if (!state.mix[newSymbol]) {
-        state.mix[newSymbol] = { volume: 1.0, muted: false };
-    }
+    // Ensure mix entry
+    commit('ensureMixEntry', { symbol: newSymbol });
     const mixSettings = state.mix[newSymbol];
 
     // Update all measures
-    section.measures.forEach(measure => {
-        if (measure.tracks[trackIdx]) {
-            measure.tracks[trackIdx].instrument = newSymbol;
-            measure.tracks[trackIdx].pack = pack;
-            measure.tracks[trackIdx].volume = mixSettings.volume;
-            measure.tracks[trackIdx].muted = mixSettings.muted;
-        }
+    commit('updateTrackInstrumentInSection', {
+        section, trackIdx,
+        instrument: newSymbol,
+        pack,
+        volume: mixSettings.volume,
+        muted: mixSettings.muted
     });
 
     refreshGrid();

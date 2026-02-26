@@ -112,6 +112,7 @@ La versione mobile visualizza i ritmi in una griglia in sola lettura.
 - Le **celle piene** mostrano colpi attivi con icone/lettere
 - Le **celle vuote** indicano pause (silenzio)
 - I **separatori** dividono i passi in gruppi basati sulla suddivisione
+- Le **dinamiche** sono mostrate visivamente: i colpi ghost/soft appaiono più piccoli e sbiaditi, mentre i colpi loud/accent appaiono più grandi con un effetto alone
 
 ### Numeri dei Passi
 

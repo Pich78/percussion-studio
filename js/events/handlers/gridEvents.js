@@ -3,17 +3,14 @@
   Event handlers for grid interactions (cell clicks, track controls, volume).
 */
 
-import { state } from '../../store.js';
+import { state, commit } from '../../store.js';
+import { getActiveSection, snapStepIndex } from '../../store/stateSelectors.js';
 import { refreshGrid, renderApp } from '../../ui/renderer.js';
 import { actions } from '../../actions.js';
 import { StrokeType } from '../../types.js';
 import { getValidInstrumentSteps } from '../../utils/gridUtils.js';
 import { updateGlobalCursor } from '../../utils/strokeCursors.js';
-
-// Timers and state for pie menu interactions
-let pieMenuTimer = null;
-let pieMenuCloseTimer = null;
-let justOpenedByLongPress = false;
+import * as pieMenuState from './pieMenuState.js';
 
 /**
  * Handle cell click (update stroke)
@@ -21,8 +18,7 @@ let justOpenedByLongPress = false;
  */
 export const handleCellClick = (target) => {
     // If this click is the release of a long press that opened the menu, ignore it
-    if (justOpenedByLongPress) {
-        justOpenedByLongPress = false;
+    if (pieMenuState.consumeLongPressFlag()) {
         return;
     }
 
@@ -32,24 +28,14 @@ export const handleCellClick = (target) => {
         return;
     }
 
-    const section = state.toque.sections.find(s => s.id === state.activeSectionId);
+    const section = getActiveSection(state);
     const trackIdx = parseInt(target.dataset.trackIndex);
     const measureIdx = parseInt(target.dataset.measureIndex || 0);
     const rawStepIdx = parseInt(target.dataset.stepIndex);
 
     const track = section.measures[measureIdx].tracks[trackIdx];
 
-    let targetStepIdx = rawStepIdx;
-
-    // Snap Input Logic
-    if (track.snapToGrid) {
-        const divisor = track.trackSteps || section.subdivision || 4;
-        const groupSize = section.steps / divisor;
-        targetStepIdx = Math.floor(rawStepIdx / groupSize) * groupSize;
-        if (targetStepIdx >= section.steps) {
-            targetStepIdx = section.steps - groupSize;
-        }
-    }
+    const targetStepIdx = snapStepIndex(rawStepIdx, track, section);
 
     actions.handleUpdateStroke(trackIdx, targetStepIdx, measureIdx);
 };
@@ -59,7 +45,7 @@ export const handleCellClick = (target) => {
  * @param {HTMLElement} target - The clicked cell element
  */
 export const handleCellRightClick = (target) => {
-    const section = state.toque.sections.find(s => s.id === state.activeSectionId);
+    const section = getActiveSection(state);
     const trackIdx = parseInt(target.dataset.trackIndex);
     const stepIdx = parseInt(target.dataset.stepIndex);
     section.tracks[trackIdx].strokes[stepIdx] = StrokeType.None;
@@ -71,7 +57,7 @@ export const handleCellRightClick = (target) => {
  * @param {HTMLElement} target - The mute button element
  */
 export const handleToggleMute = (target) => {
-    const section = state.toque.sections.find(s => s.id === state.activeSectionId);
+    const section = getActiveSection(state);
     const tIdx = parseInt(target.dataset.trackIndex);
     const mIdx = parseInt(target.dataset.measureIndex || 0);
     const track = section.measures[mIdx].tracks[tIdx];
@@ -86,11 +72,9 @@ export const handleToggleMute = (target) => {
  */
 export const handleRemoveTrack = (target) => {
     if (confirm("Remove track?")) {
-        const section = state.toque.sections.find(s => s.id === state.activeSectionId);
+        const section = getActiveSection(state);
         const tIdx = parseInt(target.dataset.trackIndex);
-        section.measures.forEach(measure => {
-            measure.tracks.splice(tIdx, 1);
-        });
+        commit('removeTrack', { section, trackIdx: tIdx });
         refreshGrid();
     }
 };
@@ -100,7 +84,7 @@ export const handleRemoveTrack = (target) => {
  * @param {HTMLElement} target - The button element
  */
 export const handleCycleTrackSteps = (target) => {
-    const section = state.toque.sections.find(s => s.id === state.activeSectionId);
+    const section = getActiveSection(state);
     const trackIdx = parseInt(target.dataset.trackIndex);
     const measureIdx = parseInt(target.dataset.measureIndex || 0);
     const track = section.measures[measureIdx].tracks[trackIdx];
@@ -119,12 +103,12 @@ export const handleCycleTrackSteps = (target) => {
  * @param {HTMLElement} target - The button element
  */
 export const handleToggleTrackSnap = (target) => {
-    const section = state.toque.sections.find(s => s.id === state.activeSectionId);
+    const section = getActiveSection(state);
     const trackIdx = parseInt(target.dataset.trackIndex);
     const measureIdx = parseInt(target.dataset.measureIndex || 0);
     const track = section.measures[measureIdx].tracks[trackIdx];
 
-    track.snapToGrid = !track.snapToGrid;
+    commit('toggleTrackSnap', { track });
     refreshGrid();
 };
 
@@ -133,7 +117,7 @@ export const handleToggleTrackSnap = (target) => {
  * @param {HTMLInputElement} target - The slider element
  */
 export const handleVolumeInput = (target) => {
-    const section = state.toque.sections.find(s => s.id === state.activeSectionId);
+    const section = getActiveSection(state);
     const tIdx = parseInt(target.dataset.trackIndex);
     const mIdx = parseInt(target.dataset.measureIndex || 0);
     const track = section.measures[mIdx].tracks[tIdx];
@@ -174,8 +158,18 @@ export const handleTrackStepsChange = (target) => {
  * @param {HTMLElement} target - The stroke button element
  */
 export const handleSelectStroke = (target) => {
-    state.selectedStroke = target.dataset.stroke;
-    updateGlobalCursor(state.selectedStroke);
+    commit('setSelectedStroke', { stroke: target.dataset.stroke });
+    updateGlobalCursor(state.selectedStroke, state.selectedDynamic);
+    renderApp();
+};
+
+/**
+ * Handle dynamic selection
+ * @param {HTMLElement} target - The dynamic button element
+ */
+export const handleSelectDynamic = (target) => {
+    commit('setSelectedDynamic', { dynamic: target.dataset.dynamic });
+    updateGlobalCursor(state.selectedStroke, state.selectedDynamic);
     renderApp();
 };
 
@@ -184,10 +178,8 @@ export const handleSelectStroke = (target) => {
  */
 export const handleClearPattern = () => {
     if (confirm("Clear all notes in this section?")) {
-        const section = state.toque.sections.find(s => s.id === state.activeSectionId);
-        section.measures.forEach(measure => {
-            measure.tracks.forEach(t => t.strokes.fill(StrokeType.None));
-        });
+        const section = getActiveSection(state);
+        commit('clearSectionPattern', { section, emptyStroke: StrokeType.None });
         refreshGrid();
     }
 };
@@ -196,7 +188,7 @@ export const handleClearPattern = () => {
  * Helper to open pie menu
  */
 const triggerPieMenuOpen = (target, delayMs, isLongPress) => {
-    const section = state.toque.sections.find(s => s.id === state.activeSectionId);
+    const section = getActiveSection(state);
     if (!section) return;
 
     const trackIdx = parseInt(target.dataset.trackIndex);
@@ -210,32 +202,24 @@ const triggerPieMenuOpen = (target, delayMs, isLongPress) => {
     if (!instDef || !instDef.sounds || instDef.sounds.length === 0) return;
 
     const openFn = () => {
-        if (isLongPress) justOpenedByLongPress = true;
+        if (isLongPress) pieMenuState.markLongPressOpen();
         const rect = target.getBoundingClientRect();
 
-        let targetStepIdx = stepIdx;
-        if (track.snapToGrid) {
-            const divisor = track.trackSteps || section.subdivision || 4;
-            const groupSize = section.steps / divisor;
-            targetStepIdx = Math.floor(stepIdx / groupSize) * groupSize;
-            if (targetStepIdx >= section.steps) targetStepIdx = section.steps - groupSize;
-        }
+        const targetStepIdx = snapStepIndex(stepIdx, track, section);
 
-        state.uiState.pieMenu = {
-            ...state.uiState.pieMenu,
-            isOpen: true,
+        commit('openPieMenu', {
             x: rect.left + (rect.width / 2) + window.scrollX,
             y: rect.top + (rect.height / 2) + window.scrollY,
             trackIndex: trackIdx,
             stepIndex: targetStepIdx,
             measureIndex: measureIdx,
             instrumentDef: instDef
-        };
+        });
         renderApp();
     };
 
     if (delayMs > 0) {
-        pieMenuTimer = setTimeout(openFn, delayMs);
+        pieMenuState.scheduleOpen(openFn, delayMs);
     } else {
         openFn();
     }
@@ -252,7 +236,7 @@ export const handleCellMouseDown = (e, target) => {
         return;
     }
 
-    justOpenedByLongPress = false;
+    pieMenuState.resetLongPressFlag();
 
     if (state.uiState.pieMenu.editingMode === 'pie-menu' && state.uiState.pieMenu.pieMenuTrigger === 'long-press') {
         const delay = state.uiState.pieMenu.pressTimeMs;
@@ -266,10 +250,7 @@ export const handleCellMouseDown = (e, target) => {
 export const handleCellMouseEnter = (e, target) => {
     if (window.IS_MOBILE_VIEW || state.isPlaying) return;
 
-    if (pieMenuCloseTimer) {
-        clearTimeout(pieMenuCloseTimer);
-        pieMenuCloseTimer = null;
-    }
+    pieMenuState.cancelCloseTimer();
 
     if (state.uiState.pieMenu.editingMode === 'pie-menu' && state.uiState.pieMenu.pieMenuTrigger === 'hover') {
         const delay = state.uiState.pieMenu.hoverTimeMs;
@@ -281,13 +262,10 @@ export const handleCellMouseEnter = (e, target) => {
  * Handle mouse leave from a tubs-cell
  */
 export const handleCellMouseLeave = (e, target) => {
-    if (pieMenuTimer) {
-        clearTimeout(pieMenuTimer);
-        pieMenuTimer = null;
-    }
+    pieMenuState.cancelOpenTimer();
 
     if (state.uiState.pieMenu.isOpen && state.uiState.pieMenu.editingMode === 'pie-menu' && state.uiState.pieMenu.pieMenuTrigger === 'hover') {
-        pieMenuCloseTimer = setTimeout(() => {
+        pieMenuState.scheduleClose(() => {
             closePieMenu();
         }, 300);
     }
@@ -297,10 +275,7 @@ export const handleCellMouseLeave = (e, target) => {
  * Handle mouse enter on the pie menu itself (cancel closing)
  */
 export const handlePieMenuMouseEnter = () => {
-    if (pieMenuCloseTimer) {
-        clearTimeout(pieMenuCloseTimer);
-        pieMenuCloseTimer = null;
-    }
+    pieMenuState.cancelCloseTimer();
 };
 
 /**
@@ -308,7 +283,7 @@ export const handlePieMenuMouseEnter = () => {
  */
 export const handlePieMenuMouseLeave = () => {
     if (state.uiState.pieMenu.editingMode === 'pie-menu' && state.uiState.pieMenu.pieMenuTrigger === 'hover') {
-        pieMenuCloseTimer = setTimeout(() => {
+        pieMenuState.scheduleClose(() => {
             closePieMenu();
         }, 200);
     }
@@ -326,10 +301,7 @@ export const handleCellRightClickOpenPieMenu = (e, target) => {
  * Cancel any pending intent timer (e.g. mouseup or mouseout)
  */
 export const cancelPieMenuPress = () => {
-    if (pieMenuTimer) {
-        clearTimeout(pieMenuTimer);
-        pieMenuTimer = null;
-    }
+    pieMenuState.cancelOpenTimer();
 };
 
 /**
@@ -339,12 +311,22 @@ export const handlePieMenuSelect = (e, target) => {
     const stroke = target.dataset.stroke;
     const pm = state.uiState.pieMenu;
 
+    console.log('[DEBUG handlePieMenuSelect] CLICKED STROKE:', stroke);
+    console.log('[DEBUG handlePieMenuSelect] PIE MENU STATE:', JSON.stringify(pm));
+
     if (pm.isOpen && pm.trackIndex !== null) {
-        actions.handleUpdateStrokeDirectly(pm.trackIndex, pm.stepIndex, pm.measureIndex, stroke);
+        console.log('[DEBUG handlePieMenuSelect] Inside IF! Calling handleUpdateStrokeDirectly', pm.trackIndex, pm.stepIndex, pm.measureIndex, stroke);
+
+        actions.handleUpdateStrokeDirectly(
+            pm.trackIndex,
+            pm.stepIndex,
+            pm.measureIndex,
+            stroke
+        );
 
         if (pm.updateGlobalCursor) {
-            state.selectedStroke = stroke;
-            updateGlobalCursor(stroke);
+            commit('setSelectedStroke', { stroke });
+            updateGlobalCursor(stroke, state.selectedDynamic);
         }
     }
     closePieMenu();
@@ -355,7 +337,7 @@ export const handlePieMenuSelect = (e, target) => {
  */
 export const closePieMenu = () => {
     if (state.uiState.pieMenu.isOpen) {
-        state.uiState.pieMenu.isOpen = false;
+        commit('closePieMenu');
         renderApp();
     }
 };
@@ -375,7 +357,7 @@ export const handleCellMouseWheel = (e, target) => {
     const trackIdx = parseInt(target.dataset.trackIndex);
     if (isNaN(trackIdx)) return;
 
-    const section = state.toque.sections.find(s => s.id === state.activeSectionId);
+    const section = getActiveSection(state);
     if (!section) return;
 
     const measureIdx = parseInt(target.dataset.measureIndex || 0);
@@ -413,8 +395,8 @@ export const handleCellMouseWheel = (e, target) => {
     const nextStroke = options[currentIndex];
 
     // Update the global cursor and visual state
-    state.selectedStroke = nextStroke;
-    updateGlobalCursor(nextStroke);
+    commit('setSelectedStroke', { stroke: nextStroke });
+    updateGlobalCursor(nextStroke, state.selectedDynamic);
 
     // Re-render the app to naturally update the bottom palette selection UI
     renderApp();

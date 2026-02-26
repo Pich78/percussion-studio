@@ -9,7 +9,6 @@ import { MinusIcon as MinusSvg } from '../icons/minusIcon.js';
 import { Bars3Icon as DragHandleSvg } from '../icons/bars3Icon.js';
 import { ChevronDownIcon } from '../icons/chevronDownIcon.js';
 import { TOQUE_CLASSIFICATIONS, CLASSIFICATION_COLORS } from '../constants.js';
-import { state } from '../store.js';
 
 export const Timeline = ({
   sections,
@@ -21,14 +20,15 @@ export const Timeline = ({
   description = '',
   isBata = false,
   readOnly = false,
-  isMobile = false
+  isMobile = false,
+  bataExplorerMetadata = null
 }) => {
   /* 
      Dynamic Metadata Access:
      - The Orisha list and colors are loaded from bata_metadata.json into state.uiState.bataExplorer.metadata.
      - We fallback to defaults if not yet loaded.
   */
-  const meta = state.uiState.bataExplorer.metadata || {};
+  const meta = bataExplorerMetadata || {};
   const orishaColors = meta.orishaColors || {};
 
   const renderHeader = () => `

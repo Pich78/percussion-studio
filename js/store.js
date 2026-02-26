@@ -1,5 +1,25 @@
-import { StrokeType } from './types.js';
+import { StrokeType, DynamicType } from './types.js';
+import { MUTATIONS } from './store/mutations.js';
 
+/**
+ * Centralized state mutation dispatch.
+ * All state changes should flow through commit() for traceability.
+ * 
+ * @param {string} mutationName - Name of the mutation (key in MUTATIONS map)
+ * @param {object} payload - Data payload for the mutation
+ * @throws {Error} If mutation name is not found in the registry
+ */
+export const commit = (mutationName, payload = {}) => {
+    const mutationFn = MUTATIONS[mutationName];
+    if (!mutationFn) {
+        console.error(`[commit] Unknown mutation: "${mutationName}"`);
+        return;
+    }
+    if (typeof window !== 'undefined' && window.location?.hostname === 'localhost') {
+        console.log(`[commit] ${mutationName}`, payload);
+    }
+    mutationFn(state, payload);
+};
 export const state = {
     // The active rhythm data. 
     // Will be populated by actions.loadRhythm() via the dataLoader.
@@ -24,6 +44,7 @@ export const state = {
     isPlaying: false,
     currentStep: -1,
     selectedStroke: StrokeType.Open, // Default selected tool
+    selectedDynamic: DynamicType.Normal, // Default selected dynamic indication
     clipboard: null, // For copy/paste measures
     countInEnabled: false, // Toggle for count-in feature (enabled by default)
     uiState: {

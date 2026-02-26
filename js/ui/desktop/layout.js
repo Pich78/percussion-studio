@@ -1,4 +1,5 @@
 import { state, playback } from '../../store.js';
+import { getActiveSection } from '../../store/stateSelectors.js';
 import { Timeline } from '../../components/timeline.js';
 import { TubsGrid } from '../../components/tubsGrid.js';
 import { Controls } from '../../components/controls.js';
@@ -14,7 +15,7 @@ import { PieMenu } from '../../components/pieMenu.js';
 import { EditingOptionsModal } from '../../components/editingOptionsModal.js';
 
 const renderHeader = () => {
-  const activeSection = state.toque.sections.find(s => s.id === state.activeSectionId) || state.toque.sections[0];
+  const activeSection = getActiveSection(state) || state.toque.sections[0];
 
   return `
     <header class="h-16 px-4 border-b border-gray-800 flex justify-between items-center bg-gray-950 flex-shrink-0 z-40 gap-4">
@@ -176,7 +177,7 @@ const renderUserGuideModal = () => {
 };
 
 export const DesktopLayout = () => {
-  const activeSection = state.toque.sections.find(s => s.id === state.activeSectionId) || state.toque.sections[0];
+  const activeSection = getActiveSection(state) || state.toque.sections[0];
 
   return `
     <div class="flex flex-col h-full bg-gray-950 text-gray-100 font-sans selection:bg-cyan-500 selection:text-black select-none">
@@ -192,7 +193,8 @@ export const DesktopLayout = () => {
     classification: state.toque.classification || null,
     description: state.toque.description || '',
     isBata: state.toque.isBata || '',
-    readOnly: false
+    readOnly: false,
+    bataExplorerMetadata: state.uiState.bataExplorer.metadata || null
   })}
         </div>
         <main class="flex-1 overflow-hidden relative flex flex-col justify-center items-center bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-900 via-gray-950 to-gray-950">
@@ -203,16 +205,18 @@ export const DesktopLayout = () => {
     currentStep: state.currentStep,
     selectedStroke: state.selectedStroke,
     uiState: state.uiState,
-    readOnly: false
+    readOnly: false,
+    instrumentDefinitions: state.instrumentDefinitions,
+    isPlaying: state.isPlaying
   })}
           </div>
         </main>
       </div>
-      ${Controls({ selectedStroke: state.selectedStroke })}
+      ${Controls({ selectedStroke: state.selectedStroke, selectedDynamic: state.selectedDynamic })}
     </div>
     ${renderUserGuideModal()}
-    ${BataExplorerModal({ isMobile: false })}
-    ${EditingOptionsModal({ isMobile: false })}
-    ${PieMenu(state.uiState.pieMenu)}
+    ${BataExplorerModal({ isMobile: false, bataExplorer: state.uiState.bataExplorer })}
+    ${EditingOptionsModal({ isMobile: false, pieMenu: state.uiState.pieMenu, modalOpen: state.uiState.modalOpen, modalType: state.uiState.modalType })}
+    ${PieMenu({ ...state.uiState.pieMenu, selectedStroke: state.selectedStroke })}
   `;
 };

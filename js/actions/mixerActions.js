@@ -3,7 +3,7 @@
   Actions for volume and mute control (global mixer).
 */
 
-import { state } from '../store.js';
+import { state, commit } from '../store.js';
 import { refreshGrid } from '../ui/renderer.js';
 import { audioEngine } from '../services/audioEngine.js';
 
@@ -17,45 +17,30 @@ import { audioEngine } from '../services/audioEngine.js';
  * @param {number} volume - Volume level 0.0 to 1.0
  */
 export const setGlobalVolume = (instrumentSymbol, volume) => {
-    // 1. Update Global State
-    if (!state.mix[instrumentSymbol]) {
-        state.mix[instrumentSymbol] = { volume: 1.0, muted: false, lastVolume: 1.0 };
-    }
+    // 1. Ensure mix entry exists
+    commit('ensureMixEntry', { symbol: instrumentSymbol });
 
-    const mix = state.mix[instrumentSymbol];
-    mix.volume = volume;
+    // 2. Track previous mute state for change detection
+    const wasMuted = state.mix[instrumentSymbol].muted;
 
-    // Track last known good volume (if not 0)
-    if (volume > 0) mix.lastVolume = volume;
+    // 3. Update mix state via commit
+    commit('setMixVolume', { symbol: instrumentSymbol, volume });
 
-    // REAL-TIME: Update audio engine immediately
+    // 4. REAL-TIME: Update audio engine immediately
     audioEngine.setInstrumentVolume(instrumentSymbol, volume);
 
-    // Sync Mute State
-    let muteChanged = false;
-    if (volume === 0 && !mix.muted) {
-        mix.muted = true;
-        muteChanged = true;
-    } else if (volume > 0 && mix.muted) {
-        mix.muted = false;
-        muteChanged = true;
-    }
+    // 5. Detect mute state change
+    const mix = state.mix[instrumentSymbol];
+    const muteChanged = mix.muted !== wasMuted;
 
-    // 2. Propagate to ALL sections and measures
-    if (state.toque && state.toque.sections) {
-        state.toque.sections.forEach(section => {
-            section.measures.forEach(measure => {
-                measure.tracks.forEach(track => {
-                    if (track.instrument === instrumentSymbol) {
-                        track.volume = volume;
-                        if (muteChanged) track.muted = mix.muted;
-                    }
-                });
-            });
-        });
-    }
+    // 6. Propagate to all tracks
+    commit('propagateMixToTracks', {
+        symbol: instrumentSymbol,
+        volume: mix.volume,
+        muted: mix.muted
+    });
 
-    // 3. Refresh Grid ONLY if mute state changed AND not currently dragging
+    // 7. Refresh Grid ONLY if mute state changed AND not currently dragging
     // (Dragging will refresh on mouseup to avoid breaking the drag)
     if (muteChanged && !window.__volumeDragging) {
         refreshGrid();
@@ -71,44 +56,25 @@ export const setGlobalVolume = (instrumentSymbol, volume) => {
  * @param {boolean} isMuted - True to mute
  */
 export const setGlobalMute = (instrumentSymbol, isMuted) => {
-    // 1. Update Global State
-    if (!state.mix[instrumentSymbol]) {
-        state.mix[instrumentSymbol] = { volume: 1.0, muted: false, lastVolume: 1.0 };
-    }
+    // 1. Ensure mix entry exists
+    commit('ensureMixEntry', { symbol: instrumentSymbol });
 
-    const mix = state.mix[instrumentSymbol];
-    mix.muted = isMuted;
+    // 2. Update mute state via commit
+    commit('setMixMuted', { symbol: instrumentSymbol, muted: isMuted });
 
-    // REAL-TIME: Update audio engine mute state immediately
+    // 3. REAL-TIME: Update audio engine mute state immediately
     audioEngine.setInstrumentMuted(instrumentSymbol, isMuted);
 
-    let targetVolume = mix.volume;
+    // 4. Get resolved volume for propagation
+    const mix = state.mix[instrumentSymbol];
 
-    if (isMuted) {
-        // Store current volume before muting (if meaningful)
-        if (mix.volume > 0) mix.lastVolume = mix.volume;
-        targetVolume = 0;
-    } else {
-        // Restore last volume
-        targetVolume = mix.lastVolume || 1.0;
-    }
+    // 5. Propagate to all tracks
+    commit('propagateMixToTracks', {
+        symbol: instrumentSymbol,
+        volume: mix.volume,
+        muted: mix.muted
+    });
 
-    mix.volume = targetVolume;
-
-    // 2. Propagate
-    if (state.toque && state.toque.sections) {
-        state.toque.sections.forEach(section => {
-            section.measures.forEach(measure => {
-                measure.tracks.forEach(track => {
-                    if (track.instrument === instrumentSymbol) {
-                        track.muted = isMuted;
-                        track.volume = targetVolume;
-                    }
-                });
-            });
-        });
-    }
-
-    // 3. Refresh Grid required to show visual feedback
+    // 6. Refresh Grid required to show visual feedback
     refreshGrid();
 };

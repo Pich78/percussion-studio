@@ -45,6 +45,7 @@ The mobile version displays rhythms in a read-only grid view.
 - **Filled cells** show active strokes with icons/letters
 - **Empty cells** indicate rests (silence)
 - **Separators** divide steps into groups based on subdivision
+- **Dynamics** are shown visually: ghost/soft strokes appear smaller and faded, while loud/accent strokes appear larger with a glow effect
 
 ### Step Numbers
 

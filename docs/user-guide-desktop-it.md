@@ -143,6 +143,24 @@ Puoi personalizzare come aggiungere i simboli alla griglia aprendo il **Menu Ham
 - **Tracce mute**: Appaiono attenuate con il nome barrato
 - **Colpi non validi**: Indicato se il colpo non esiste per quello strumento
 
+### Dinamiche
+
+Le dinamiche controllano il **volume e l'intensità visiva** dei singoli step. Il selettore delle dinamiche si trova sopra la tavolozza dei colpi in basso.
+
+1. Seleziona un livello di dinamica dalla barra del selettore.
+2. Inserisci i colpi come al solito — ogni colpo riceve la dinamica selezionata.
+3. Gli step con dinamiche non-normali mostrano cambiamenti visivi nella griglia.
+
+| Livello | Effetto | Indicazione Visiva |
+|---------|---------|--------------------|
+| **Ghost** | Molto piano (30%) | Icona piccola, sbiadita |
+| **Soft** | Piano (60%) | Leggermente più piccola, leggermente sbiadita |
+| **Normal** | Predefinito (100%) | Icona standard |
+| **Loud** | Forte (130%) | Icona più grande con alone arancione |
+| **Accent** | Molto forte (160%) | Icona più grande con alone rosso |
+
+> **Suggerimento**: Le dinamiche vengono salvate nel file YAML e sono preservate quando scarichi o carichi i ritmi.
+
 ---
 
 ## Gestione Tracce

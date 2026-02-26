@@ -1,0 +1,18 @@
+name: "Test dynamics"
+global_bpm: 120
+
+sound_kit:
+  iya:
+    instrument: "IYA"
+    pack: "cp_bata_chaworo"
+
+playback_flow:
+  - name: "Section 1"
+    repetitions: 1
+    steps: 16
+    subdivision: 4
+    measures:
+      - pattern:
+          iya: "||OOOO|OPPS|SRRH|HMM-||"
+        dynamics:
+          iya: "||gs-l|alal|alal|ala-||"

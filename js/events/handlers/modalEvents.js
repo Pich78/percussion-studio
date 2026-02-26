@@ -3,7 +3,8 @@
   Event handlers for modal dialogs (instrument, rhythm, user guide).
 */
 
-import { state } from '../../store.js';
+import { state, commit } from '../../store.js';
+import { getActiveSection } from '../../store/stateSelectors.js';
 import { renderApp, refreshGrid } from '../../ui/renderer.js';
 import { actions } from '../../actions.js';
 import { dataLoader } from '../../services/dataLoader.js';
@@ -34,7 +35,7 @@ export const handleOpenEditModal = async (target) => {
     state.uiState.modalType = 'instrument';
 
     // Pre-select current instrument only (NOT pack) - user can pick new pack
-    const section = state.toque?.sections.find(s => s.id === state.activeSectionId);
+    const section = getActiveSection(state);
     const track = section?.measures[measureIdx]?.tracks[trackIdx];
     if (track) {
         state.uiState.pendingInstrument = track.instrument;
@@ -61,7 +62,7 @@ export const handleOpenPackModal = async (target) => {
     state.uiState.modalType = 'instrument';
 
     // Pre-select both instrument AND pack - shows current selection
-    const section = state.toque?.sections.find(s => s.id === state.activeSectionId);
+    const section = getActiveSection(state);
     const track = section?.measures[measureIdx]?.tracks[trackIdx];
     if (track) {
         state.uiState.pendingInstrument = track.instrument;
@@ -96,9 +97,7 @@ const preloadInstrumentDefinitions = async () => {
  * Handle close modal
  */
 export const handleCloseModal = () => {
-    state.uiState.modalOpen = false;
-    state.uiState.pendingInstrument = null;
-    state.uiState.pendingSoundPack = null;
+    commit('setModal', { open: false });
     renderApp();
 };
 
@@ -137,9 +136,7 @@ export const handleConfirmInstrumentSelection = async () => {
         await actions.updateTrackInstrument(state.uiState.editingTrackIndex, inst, pack);
     }
 
-    state.uiState.modalOpen = false;
-    state.uiState.pendingInstrument = null;
-    state.uiState.pendingSoundPack = null;
+    commit('setModal', { open: false });
     renderApp();
 };
 

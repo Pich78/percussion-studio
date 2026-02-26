@@ -84,7 +84,9 @@ export const MeasureRenderer = ({
   cellSizePx,
   iconSizePx,
   fontSizePx,
-  readOnly
+  readOnly,
+  instrumentDefinitions = {},
+  isPlaying = false
 }) => {
   // Render all tracks in this measure
   const tracksHtml = measure.tracks.map((track, trackIdx) => {
@@ -98,7 +100,9 @@ export const MeasureRenderer = ({
       cellSizePx,
       iconSizePx,
       fontSizePx,
-      readOnly
+      readOnly,
+      instrumentDefinitions,
+      isPlaying
     });
   }).join('');
 

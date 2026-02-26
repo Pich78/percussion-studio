@@ -4,6 +4,7 @@
 */
 
 import { state, playback } from '../../store.js';
+import { getActiveSection } from '../../store/stateSelectors.js';
 import { togglePlay, stopPlayback } from '../../services/sequencer.js';
 import { renderApp } from '../../ui/renderer.js';
 
@@ -34,7 +35,7 @@ export const handleToggleCountIn = () => {
  * @param {HTMLInputElement} target - The input element
  */
 export const handleGlobalBpmInput = (target) => {
-    const section = state.toque?.sections.find(s => s.id === state.activeSectionId);
+    const section = getActiveSection(state);
     state.toque.globalBpm = Number(target.value);
     if (section && !section.bpm) {
         playback.currentPlayheadBpm = state.toque.globalBpm;
@@ -50,7 +51,7 @@ export const handleGlobalBpmInput = (target) => {
  * @param {HTMLInputElement} target - The input element
  */
 export const handleGlobalBpmChange = (target) => {
-    const section = state.toque?.sections.find(s => s.id === state.activeSectionId);
+    const section = getActiveSection(state);
     state.toque.globalBpm = Number(target.value);
     if (section && !section.bpm) {
         playback.currentPlayheadBpm = state.toque.globalBpm;
@@ -63,7 +64,7 @@ export const handleGlobalBpmChange = (target) => {
  * @param {HTMLInputElement} target - The input element
  */
 export const handleSectionBpmInput = (target) => {
-    const section = state.toque?.sections.find(s => s.id === state.activeSectionId);
+    const section = getActiveSection(state);
     if (section) {
         section.bpm = Number(target.value);
         playback.currentPlayheadBpm = section.bpm;
@@ -75,7 +76,7 @@ export const handleSectionBpmInput = (target) => {
  * @param {HTMLInputElement} target - The input element
  */
 export const handleSectionBpmChange = (target) => {
-    const section = state.toque?.sections.find(s => s.id === state.activeSectionId);
+    const section = getActiveSection(state);
     if (section) {
         section.bpm = Number(target.value);
         playback.currentPlayheadBpm = section.bpm;
@@ -86,7 +87,7 @@ export const handleSectionBpmChange = (target) => {
  * Handle BPM override toggle
  */
 export const handleToggleBpmOverride = () => {
-    const section = state.toque?.sections.find(s => s.id === state.activeSectionId);
+    const section = getActiveSection(state);
     if (section) {
         section.bpm = (section.bpm !== undefined) ? undefined : state.toque.globalBpm;
     }
@@ -97,7 +98,7 @@ export const handleToggleBpmOverride = () => {
  * @param {HTMLInputElement} target - The input element
  */
 export const handleAccelerationInput = (target) => {
-    const section = state.toque?.sections.find(s => s.id === state.activeSectionId);
+    const section = getActiveSection(state);
     if (section) {
         section.tempoAcceleration = parseFloat(target.value);
     }
@@ -108,7 +109,7 @@ export const handleAccelerationInput = (target) => {
  * @param {HTMLInputElement} target - The input element
  */
 export const handleAccelerationChange = (target) => {
-    const section = state.toque?.sections.find(s => s.id === state.activeSectionId);
+    const section = getActiveSection(state);
     if (section) {
         section.tempoAcceleration = parseFloat(target.value);
         renderApp();

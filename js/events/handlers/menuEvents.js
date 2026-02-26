@@ -3,7 +3,8 @@
   Event handlers for menu interactions (new, load, download, share).
 */
 
-import { state } from '../../store.js';
+import { state, commit } from '../../store.js';
+import { getShareUrl } from '../../store/stateSelectors.js';
 import { renderApp } from '../../ui/renderer.js';
 import { actions } from '../../actions.js';
 import { downloadRhythm } from '../../utils/rhythmExporter.js';
@@ -12,7 +13,7 @@ import { downloadRhythm } from '../../utils/rhythmExporter.js';
  * Handle toggle menu
  */
 export const handleToggleMenu = () => {
-    state.uiState.isMenuOpen = !state.uiState.isMenuOpen;
+    commit('setMenuOpen', { isOpen: !state.uiState.isMenuOpen });
     renderApp();
 };
 
@@ -23,7 +24,7 @@ export const handleToggleMenu = () => {
  */
 export const handleCloseMenu = (e, target) => {
     if (e.target !== target) return;
-    state.uiState.isMenuOpen = false;
+    commit('setMenuOpen', { isOpen: false });
     renderApp();
 };
 
@@ -34,7 +35,7 @@ export const handleNewRhythm = () => {
     if (confirm("Create new rhythm? Unsaved changes lost.")) {
         actions.createNewRhythm();
     }
-    state.uiState.isMenuOpen = false;
+    commit('setMenuOpen', { isOpen: false });
     renderApp();
 };
 
@@ -42,9 +43,8 @@ export const handleNewRhythm = () => {
  * Handle load rhythm (open modal)
  */
 export const handleLoadRhythm = () => {
-    state.uiState.modalType = 'rhythm';
-    state.uiState.modalOpen = true;
-    state.uiState.isMenuOpen = false;
+    commit('setModal', { open: true, type: 'rhythm' });
+    commit('setMenuOpen', { isOpen: false });
     renderApp();
 };
 
@@ -53,7 +53,7 @@ export const handleLoadRhythm = () => {
  */
 export const handleDownloadRhythm = () => {
     downloadRhythm(state);
-    state.uiState.isMenuOpen = false;
+    commit('setMenuOpen', { isOpen: false });
     renderApp();
 };
 
@@ -61,10 +61,8 @@ export const handleDownloadRhythm = () => {
  * Handle share rhythm
  */
 export const handleShareRhythm = () => {
-    if (state.rhythmSource === 'repo' && state.currentRhythmId) {
-        const baseUrl = window.location.origin + window.location.pathname;
-        const shareUrl = `${baseUrl}?rhythm=${encodeURIComponent(state.currentRhythmId)}`;
-
+    const shareUrl = getShareUrl(state);
+    if (shareUrl) {
         navigator.clipboard.writeText(shareUrl).then(() => {
             alert(`Link copied to clipboard!\n\n${shareUrl}`);
         }).catch(err => {
@@ -72,7 +70,7 @@ export const handleShareRhythm = () => {
             prompt('Copy this link:', shareUrl);
         });
     }
-    state.uiState.isMenuOpen = false;
+    commit('setMenuOpen', { isOpen: false });
     renderApp();
 };
 

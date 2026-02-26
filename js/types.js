@@ -35,4 +35,12 @@ export const StrokeType = Object.freeze({
     Muff: 'M'
 });
 
+export const DynamicType = Object.freeze({
+    Ghost: 'g',
+    Soft: 's',
+    Normal: '-',
+    Loud: 'l',
+    Accent: 'a'
+});
+
 // TimeSignature type is just a string '4/4' | '6/8' | '12/8' in JS

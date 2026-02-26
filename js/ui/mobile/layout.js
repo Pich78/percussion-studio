@@ -1,4 +1,5 @@
 import { state, playback } from '../../store.js';
+import { getActiveSection } from '../../store/stateSelectors.js';
 import { Timeline } from '../../components/timeline.js';
 import { TubsGrid } from '../../components/tubsGrid.js';
 import { Bars3Icon } from '../../icons/bars3Icon.js';
@@ -165,7 +166,7 @@ export const calculateMobileCellSize = (viewportWidth, steps, safeAreaLeft, safe
 };
 
 export const MobileLayout = () => {
-  const activeSection = state.toque.sections.find(s => s.id === state.activeSectionId) || state.toque.sections[0];
+  const activeSection = getActiveSection(state) || state.toque.sections[0];
 
   // Get current viewport and safe area dimensions
   const viewportWidth = window.innerWidth;
@@ -217,7 +218,9 @@ export const MobileLayout = () => {
     uiState: state.uiState,
     readOnly: true,
     isMobile: true,
-    mobileCellSize
+    mobileCellSize,
+    instrumentDefinitions: state.instrumentDefinitions,
+    isPlaying: state.isPlaying
   })}
             </div>
           </main>
@@ -321,7 +324,8 @@ export const MobileLayout = () => {
     activeSectionId: state.activeSectionId,
     rhythmName: state.toque.name,
     readOnly: true,
-    isMobile: true
+    isMobile: true,
+    bataExplorerMetadata: state.uiState.bataExplorer.metadata || null
   })}
                 </div>
                 <div class="p-4 border-t border-gray-800 text-xs text-gray-500 text-center">
@@ -356,7 +360,7 @@ export const MobileLayout = () => {
         </div>
       ` : ''}
 
-      ${BataExplorerModal({ isMobile: true })}
+      ${BataExplorerModal({ isMobile: true, bataExplorer: state.uiState.bataExplorer })}
     </div>
   `;
 };

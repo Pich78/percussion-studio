@@ -5,7 +5,7 @@
   Supports scheduled playback via absolute audio time.
 */
 
-import { StrokeType } from '../types.js';
+import { StrokeType, DynamicType } from '../types.js';
 import { isBataDrum, emulateStroke } from './bataEmulation.js';
 
 class AudioEngine {
@@ -181,8 +181,9 @@ class AudioEngine {
      * @param {string} stroke - The stroke letter (e.g. 'O', 'S')
      * @param {number} time - Absolute AudioContext time to play (use getCurrentTime() for "now")
      * @param {number} volume - 0.0 to 1.0 (track-level volume)
+     * @param {string} dynamic - Dynamic character (Ghost: g, Soft: s, Normal: -, Loud: l, Accent: a)
      */
-    playStroke(instrumentSymbol, stroke, time = 0, volume = 1.0) {
+    playStroke(instrumentSymbol, stroke, time = 0, volume = 1.0, dynamic = DynamicType.Normal) {
         this.init();
         if (!this.ctx || !this.masterGain) return;
 
@@ -192,6 +193,30 @@ class AudioEngine {
         // Normalize stroke (handle Rest and Case)
         if (!stroke || stroke === StrokeType.None || stroke === '.' || stroke === ' ') return;
         const strokeKey = stroke.toUpperCase();
+
+        // Calculate dynamic volume multiplier
+        let dynamicMultiplier = 1.0;
+        switch (dynamic) {
+            case DynamicType.Ghost:
+                dynamicMultiplier = 0.3;
+                break;
+            case DynamicType.Soft:
+                dynamicMultiplier = 0.6;
+                break;
+            case DynamicType.Normal:
+            default:
+                dynamicMultiplier = 1.0;
+                break;
+            case DynamicType.Loud:
+                dynamicMultiplier = 1.3;
+                break;
+            case DynamicType.Accent:
+                dynamicMultiplier = 1.6;
+                break;
+        }
+
+        // Apply multiplier and ensure volume bounds (max 3.0 to prevent hard clipping)
+        const finalVolume = Math.min(volume * dynamicMultiplier, 3.0);
 
         // Check if instrument and sample exist
         const instBuffers = this.buffers[instrumentSymbol];
@@ -204,7 +229,7 @@ class AudioEngine {
             // Try emulation for Batá drums
             if (isBataDrum(instrumentSymbol)) {
                 const instrumentGain = this.getInstrumentGain(instrumentSymbol);
-                emulateStroke(this.ctx, instBuffers, strokeKey, time, instrumentGain, volume);
+                emulateStroke(this.ctx, instBuffers, strokeKey, time, instrumentGain, finalVolume);
                 return;
             }
             return;
@@ -220,7 +245,7 @@ class AudioEngine {
 
         // Per-note gain for track-level volume
         const noteGain = this.ctx.createGain();
-        noteGain.gain.value = volume;
+        noteGain.gain.value = finalVolume;
 
         // Route through instrument gain for real-time global volume control
         const instrumentGain = this.getInstrumentGain(instrumentSymbol);
@@ -233,8 +258,8 @@ class AudioEngine {
     /**
      * Convenience method: Play a stroke immediately (for UI preview clicks)
      */
-    playStrokeNow(instrumentSymbol, stroke, volume = 1.0) {
-        this.playStroke(instrumentSymbol, stroke, this.getCurrentTime(), volume);
+    playStrokeNow(instrumentSymbol, stroke, volume = 1.0, dynamic = DynamicType.Normal) {
+        this.playStroke(instrumentSymbol, stroke, this.getCurrentTime(), volume, dynamic);
     }
 }
 
