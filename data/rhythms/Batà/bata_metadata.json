@@ -300,6 +300,16 @@
         "Eggun"
       ]
     },
+    "Batà/Olokun/olokun_-_llamada_-_base_-_1_conversacion": {
+      "displayName": "Olokun - Llamada - Base - 1 conversacion",
+      "classification": "Shared",
+      "associatedOrishas": [
+        "Olokun",
+        "Eleggua",
+        "Oggun",
+        "Eggun"
+      ]
+    },
     "Batà/Olokun/olokun_-_llamada_y_base": {
       "displayName": "Olokun - Llamada y Base",
       "classification": "Shared",
