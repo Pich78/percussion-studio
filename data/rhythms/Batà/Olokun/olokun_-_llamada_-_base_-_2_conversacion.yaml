@@ -1,4 +1,4 @@
-name: "Olokun - Llamada - Base - 1 conversacion"
+name: "Olokun - Llamada - Base - 2 conversacion"
 global_bpm: 80
 is_bata: true
 orisha:
@@ -42,18 +42,62 @@ playback_flow:
           iya: "||S--O|--S-|--S-|-S--||"
         dynamics:
           iya: "||----|----|--g-|gg--||"
+  - name: "Conversacion 2"
+    repetitions: 1
+    steps: 16
+    subdivision: 4
+    measures:
+      - pattern:
+          oko: "||S---|O-O-|S---|OSO-||"
+          ito: "||O-S-|--S-|P-S-|--H-||"
+          iya: "||S--O|O---|S-O-|O---||"
+        dynamics:
+          ito: "||----|----|----|--aa||"
+          iya: "||a--a|a-a-|a-a-|a-aa||"
+      - pattern:
+          oko: "||S---|O-O-|S---|OSO-||"
+          ito: "||O-S-|--H-|O-S-|--H-||"
+          iya: "||S--O|O---|S-O-|O---||"
+        dynamics:
+          oko: "||-NNN|-N-N|-NNN|---N||"
+          ito: "||-N-N|aNaN|-N-N|aNaa||"
+          iya: "||a--a|a-a-|a-a-|a---||"
+      - pattern:
+          oko: "||S---|O-O-|S---|OSO-||"
+          ito: "||O-S-|--H-|O-S-|--H-||"
+          iya: "||S--O|O---|S-O-|O---||"
+        dynamics:
+          oko: "||-NNN|-N-N|-NNN|---N||"
+          ito: "||-N-N|aNaN|-N-N|aNaa||"
+          iya: "||a--a|a-a-|a-a-|a---||"
+      - pattern:
+          oko: "||S---|O-O-|S---|OSO-||"
+          ito: "||O-S-|--H-|O-S-|--H-||"
+          iya: "||S--O|O---|S-O-|O---||"
+        dynamics:
+          oko: "||-NNN|-N-N|-NNN|---N||"
+          ito: "||-N-N|aNaN|-N-N|aNaa||"
+          iya: "||a--a|a-a-|a-a-|a---||"
+      - pattern:
+          oko: "||S---|O-O-|S---|OSO-||"
+          ito: "||O-S-|--H-|O-S-|--H-||"
+          iya: "||S--O|O---|S-O-|O---||"
+        dynamics:
+          oko: "||-NNN|-N-N|-NNN|---N||"
+          ito: "||-N-N|aNaN|-N-N|aNaa||"
+          iya: "||a--a|a-a-|a-a-|a---||"
   - name: "Conversacion 1"
-    repetitions: 16
+    repetitions: 1
     steps: 16
     subdivision: 4
     measures:
       - pattern:
           oko: "||S---|O-O-|S---|OSO-||"
           ito: "||O-S-|--S-|P-S-|--S-||"
-          iya: "||S--O|--S-|--R-|O-O-||"
+          iya: "||S--O|O---|S-R-|O-O-||"
         dynamics:
           ito: "||----|----|----|---a||"
-          iya: "||----|----|--a-|a-aa||"
+          iya: "||a--a|a-a-|a-a-|a-aa||"
       - pattern:
           oko: "||S---|O-O-|S---|OSO-||"
           ito: "||O-S-|O-S-|O-S-|--SO||"
