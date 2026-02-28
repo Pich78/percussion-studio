@@ -24,11 +24,23 @@ export const renderApp = () => {
     return;
   }
 
+  // Save scroll position of tubs-scroll-container before full re-render
+  const scrollContainerBefore = document.getElementById('tubs-scroll-container');
+  const savedScrollTop = scrollContainerBefore ? scrollContainerBefore.scrollTop : 0;
+  const savedScrollLeft = scrollContainerBefore ? scrollContainerBefore.scrollLeft : 0;
+
   // Dispatch to correct layout
   if (window.IS_MOBILE_VIEW) {
     root.innerHTML = MobileLayout();
   } else {
     root.innerHTML = DesktopLayout();
+  }
+
+  // Restore scroll position after re-render
+  const scrollContainerAfter = document.getElementById('tubs-scroll-container');
+  if (scrollContainerAfter && (savedScrollTop > 0 || savedScrollLeft > 0)) {
+    scrollContainerAfter.scrollTop = savedScrollTop;
+    scrollContainerAfter.scrollLeft = savedScrollLeft;
   }
 
   // Restore focus if applicable
