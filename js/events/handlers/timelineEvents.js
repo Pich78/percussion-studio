@@ -5,7 +5,7 @@
 
 import { state, playback } from '../../store.js';
 import { getActiveSection } from '../../store/stateSelectors.js';
-import { renderApp, refreshGrid } from '../../ui/renderer.js';
+import { eventBus } from '../../services/eventBus.js';
 import { actions } from '../../actions.js';
 import { getClosestDivisor } from '../../utils/gridUtils.js';
 
@@ -48,7 +48,7 @@ export const handleUpdateSectionName = (target) => {
     const section = getActiveSection(state);
     if (section) {
         section.name = target.value;
-        renderApp();
+        eventBus.emit('render');
     }
 };
 
@@ -69,8 +69,8 @@ export const handleUpdateMeter = (target) => {
         section.measures.forEach(m => m.tracks.forEach(t => delete t.trackSteps));
 
         actions.resizeTracks(section);
-        refreshGrid();
-        renderApp();
+        eventBus.emit('grid-refresh');
+        eventBus.emit('render');
         return;
     }
 
@@ -83,8 +83,8 @@ export const handleUpdateMeter = (target) => {
     section.measures.forEach(m => m.tracks.forEach(t => delete t.trackSteps));
 
     actions.resizeTracks(section);
-    refreshGrid();
-    renderApp();
+    eventBus.emit('grid-refresh');
+    eventBus.emit('render');
 };
 
 /**
@@ -105,8 +105,8 @@ export const handleUpdateCustomSteps = (target) => {
     section.measures.forEach(m => m.tracks.forEach(t => delete t.trackSteps));
 
     actions.resizeTracks(section);
-    refreshGrid();
-    renderApp();
+    eventBus.emit('grid-refresh');
+    eventBus.emit('render');
 };
 
 /**
@@ -119,8 +119,8 @@ export const handleUpdateCustomSubdivision = (target) => {
 
     const newSubdivision = Math.max(1, Math.min(12, parseInt(target.value) || 1));
     section.subdivision = newSubdivision;
-    refreshGrid();
-    renderApp();
+    eventBus.emit('grid-refresh');
+    eventBus.emit('render');
 };
 
 /**
@@ -131,7 +131,7 @@ export const handleUpdateRepetitions = (target) => {
     const section = getActiveSection(state);
     if (section) {
         section.repetitions = Math.max(1, Number(target.value));
-        renderApp();
+        eventBus.emit('render');
     }
 };
 
@@ -142,7 +142,7 @@ export const handleToggleRandomRepetitions = () => {
     const section = getActiveSection(state);
     if (section) {
         section.randomRepetitions = !section.randomRepetitions;
-        renderApp();
+        eventBus.emit('render');
     }
 };
 
@@ -201,7 +201,7 @@ export const handleToggleBataRhythmMode = () => {
         if (state.toque.classification === undefined) state.toque.classification = null;
         if (state.toque.description === undefined) state.toque.description = '';
     }
-    renderApp();
+    eventBus.emit('render');
 };
 
 /**
@@ -209,7 +209,7 @@ export const handleToggleBataRhythmMode = () => {
  */
 export const handleToggleMetadataOrishaDropdown = () => {
     state.uiState.metadataEditor.orishaDropdownOpen = !state.uiState.metadataEditor.orishaDropdownOpen;
-    renderApp();
+    eventBus.emit('render');
 };
 
 /**
@@ -226,7 +226,7 @@ export const handleToggleRhythmOrisha = (target) => {
         state.toque.orisha.push(orisha);
     }
     state.uiState.metadataEditor.orishaDropdownOpen = false;
-    renderApp();
+    eventBus.emit('render');
 };
 
 /**
@@ -239,7 +239,7 @@ export const handleRemoveRhythmOrisha = (target) => {
         const idx = state.toque.orisha.indexOf(orisha);
         if (idx >= 0) state.toque.orisha.splice(idx, 1);
     }
-    renderApp();
+    eventBus.emit('render');
 };
 
 /**
@@ -253,7 +253,7 @@ export const handleSetRhythmClassification = (target) => {
     } else {
         state.toque.classification = classification;
     }
-    renderApp();
+    eventBus.emit('render');
 };
 
 /**
@@ -291,7 +291,7 @@ export const setupDragAndDrop = (root) => {
             if (draggedIndex !== targetIndex) {
                 const moved = state.toque.sections.splice(draggedIndex, 1)[0];
                 state.toque.sections.splice(targetIndex, 0, moved);
-                renderApp();
+                eventBus.emit('render');
             }
             draggedIndex = null;
         }

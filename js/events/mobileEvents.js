@@ -8,7 +8,7 @@ import { state, playback, commit } from '../store.js';
 import { getActiveSection, formatRhythmName } from '../store/stateSelectors.js';
 import { actions } from '../actions.js';
 import { togglePlay, stopPlayback } from '../services/sequencer.js';
-import { renderApp } from '../ui/renderer.js';
+import { eventBus } from '../services/eventBus.js';
 import { audioEngine } from '../services/audioEngine.js';
 
 // Import modular handlers
@@ -61,7 +61,7 @@ const handleMobileShareRhythm = () => {
         }
     }
     commit('setMenuOpen', { isOpen: false });
-    renderApp();
+    eventBus.emit('render');
 };
 
 /**
@@ -73,14 +73,14 @@ const handleMobileSelectRhythmConfirm = (target) => {
 
     commit('setModal', { open: false });
     commit('setLoadingRhythm', { isLoading: true, name: rhythmName });
-    renderApp();
+    eventBus.emit('render');
 
     actions.loadRhythm(rhythmId).then(() => {
         commit('setLoadingRhythm', { isLoading: false });
-        renderApp();
+        eventBus.emit('render');
     }).catch(() => {
         commit('setLoadingRhythm', { isLoading: false });
-        renderApp();
+        eventBus.emit('render');
     });
 };
 
@@ -93,7 +93,7 @@ const handleMobileLoadToqueConfirm = (target) => {
 
     state.uiState.bataExplorer.isOpen = false;
     commit('setLoadingRhythm', { isLoading: true, name: rhythmName });
-    renderApp();
+    eventBus.emit('render');
 
     actions.loadRhythm(toqueId).then(() => {
         state.uiState.bataExplorer.selectedToqueId = null;
@@ -101,10 +101,10 @@ const handleMobileLoadToqueConfirm = (target) => {
         state.uiState.bataExplorer.selectedTypes = [];
         state.uiState.bataExplorer.searchTerm = '';
         commit('setLoadingRhythm', { isLoading: false });
-        renderApp();
+        eventBus.emit('render');
     }).catch(() => {
         commit('setLoadingRhythm', { isLoading: false });
-        renderApp();
+        eventBus.emit('render');
     });
 };
 
@@ -120,7 +120,7 @@ const createMobileActionRouter = () => ({
     // Section dropdown
     'toggle-section-dropdown': () => {
         state.uiState.sectionDropdownOpen = !state.uiState.sectionDropdownOpen;
-        renderApp();
+        eventBus.emit('render');
     },
     'select-section-item': (e, target) => {
         const sectionId = target.dataset.sectionId;
@@ -135,14 +135,14 @@ const createMobileActionRouter = () => ({
         state.uiState.isMenuOpen = !state.uiState.isMenuOpen;
         state.uiState.userGuideSubmenuOpen = false;
         state.uiState.sectionDropdownOpen = false;
-        renderApp();
+        eventBus.emit('render');
     },
     'close-menu': (e, target) => {
         if (target.tagName === 'DIV' && e.target !== target) return;
         state.uiState.isMenuOpen = false;
         state.uiState.userGuideSubmenuOpen = false;
         state.uiState.sectionDropdownOpen = false;
-        renderApp();
+        eventBus.emit('render');
     },
     'toggle-user-guide-submenu': menuHandlers.handleToggleUserGuideSubmenu,
     'open-user-guide': (e, target) => modalHandlers.handleOpenUserGuide(target, true), // isMobile = true
@@ -182,7 +182,7 @@ const createMobileActionRouter = () => ({
         state.uiState.isMenuOpen = false;
         state.uiState.modalType = 'structure';
         state.uiState.modalOpen = true;
-        renderApp();
+        eventBus.emit('render');
     },
 
     // Close modal
@@ -274,11 +274,11 @@ export const setupMobileEvents = () => {
             state.toque.globalBpm = Number(target.value);
             const section = getActiveSection(state);
             if (!section?.bpm) playback.currentPlayheadBpm = state.toque.globalBpm;
-            renderApp();
+            eventBus.emit('render');
         }
         if (action === 'update-volume') {
             // Full re-render on drag end to sync all visuals
-            renderApp();
+            eventBus.emit('render');
         }
     });
 
@@ -422,7 +422,7 @@ export const setupMobileEvents = () => {
         actions.updateActiveSection(e.detail);
         state.uiState.isMenuOpen = false;
         state.uiState.modalOpen = false;
-        renderApp();
+        eventBus.emit('render');
     });
 
     // Global keyboard shortcuts
@@ -448,7 +448,7 @@ export const setupMobileEvents = () => {
         // Debounce to avoid multiple rapid re-renders during rotation animation
         if (resizeTimeout) clearTimeout(resizeTimeout);
         resizeTimeout = setTimeout(() => {
-            renderApp();
+            eventBus.emit('render');
         }, 100);
     });
 };

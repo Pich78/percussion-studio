@@ -4,7 +4,7 @@
 */
 
 import { state, playback, commit } from '../store.js';
-import { renderApp, refreshGrid } from '../ui/renderer.js';
+import { eventBus } from '../services/eventBus.js';
 import { StrokeType } from '../types.js';
 import { createEmptySection, cloneSection } from '../utils/rhythmTransformers.js';
 
@@ -21,7 +21,7 @@ export const updateActiveSection = (id) => {
         const section = state.toque.sections.find(s => s.id === id);
         if (section) playback.currentPlayheadBpm = section.bpm ?? state.toque.globalBpm;
     }
-    renderApp();
+    eventBus.emit('render');
 };
 
 /**
@@ -66,7 +66,7 @@ export const deleteSection = (id) => {
     if (state.activeSectionId === id) {
         updateActiveSection(state.toque.sections[0].id);
     } else {
-        renderApp();
+        eventBus.emit('render');
     }
 };
 

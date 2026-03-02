@@ -5,7 +5,7 @@
 
 import { state, commit } from '../store.js';
 import { getActiveSection } from '../store/stateSelectors.js';
-import { refreshGrid } from '../ui/renderer.js';
+import { eventBus } from '../services/eventBus.js';
 import { audioEngine } from '../services/audioEngine.js';
 import { dataLoader } from '../services/dataLoader.js';
 import { StrokeType, DynamicType } from '../types.js';
@@ -63,7 +63,7 @@ export const handleUpdateStroke = (trackIdx, stepIdx, measureIdx = 0) => {
     }
 
     commit('setStroke', { track, stepIdx, stroke: nextStroke, dynamic: nextDynamic });
-    refreshGrid();
+    eventBus.emit('grid-refresh');
 
     // Play sound immediately for UI feedback
     if (nextStroke !== StrokeType.None) {
@@ -96,7 +96,7 @@ export const handleUpdateStrokeDirectly = (trackIdx, stepIdx, measureIdx, stroke
     const nextDynamic = isSameStroke ? DynamicType.Normal : state.selectedDynamic;
 
     commit('setStroke', { track, stepIdx, stroke: nextStroke, dynamic: nextDynamic });
-    refreshGrid();
+    eventBus.emit('grid-refresh');
 
     // Play sound immediately for UI feedback
     if (nextStroke !== StrokeType.None) {
@@ -119,7 +119,7 @@ export const updateTrackSteps = (trackIdx, measureIdx, newTrackSteps) => {
 
     const track = measure.tracks[trackIdx];
     commit('setTrackSteps', { track, trackSteps: newTrackSteps });
-    refreshGrid();
+    eventBus.emit('grid-refresh');
 };
 
 /**
@@ -164,7 +164,7 @@ export const addTrack = async (instrumentSymbol, soundPack = "basic_bata") => {
         }
     });
 
-    refreshGrid();
+    eventBus.emit('grid-refresh');
 };
 
 /**
@@ -209,5 +209,5 @@ export const updateTrackInstrument = async (trackIdx, newSymbol, soundPack = "ba
         muted: mixSettings.muted
     });
 
-    refreshGrid();
+    eventBus.emit('grid-refresh');
 };

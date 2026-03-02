@@ -6,7 +6,7 @@
 import { state, playback } from '../../store.js';
 import { getActiveSection } from '../../store/stateSelectors.js';
 import { togglePlay, stopPlayback } from '../../services/sequencer.js';
-import { renderApp } from '../../ui/renderer.js';
+import { eventBus } from '../../services/eventBus.js';
 
 /**
  * Handle play/pause toggle
@@ -27,7 +27,7 @@ export const handleStop = () => {
  */
 export const handleToggleCountIn = () => {
     state.countInEnabled = !state.countInEnabled;
-    renderApp();
+    eventBus.emit('render');
 };
 
 /**
@@ -56,7 +56,7 @@ export const handleGlobalBpmChange = (target) => {
     if (section && !section.bpm) {
         playback.currentPlayheadBpm = state.toque.globalBpm;
     }
-    renderApp();
+    eventBus.emit('render');
 };
 
 /**
@@ -112,6 +112,6 @@ export const handleAccelerationChange = (target) => {
     const section = getActiveSection(state);
     if (section) {
         section.tempoAcceleration = parseFloat(target.value);
-        renderApp();
+        eventBus.emit('render');
     }
 };

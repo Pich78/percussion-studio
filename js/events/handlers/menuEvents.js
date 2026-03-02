@@ -5,7 +5,7 @@
 
 import { state, commit } from '../../store.js';
 import { getShareUrl } from '../../store/stateSelectors.js';
-import { renderApp } from '../../ui/renderer.js';
+import { eventBus } from '../../services/eventBus.js';
 import { actions } from '../../actions.js';
 import { downloadRhythm } from '../../utils/rhythmExporter.js';
 
@@ -14,7 +14,7 @@ import { downloadRhythm } from '../../utils/rhythmExporter.js';
  */
 export const handleToggleMenu = () => {
     commit('setMenuOpen', { isOpen: !state.uiState.isMenuOpen });
-    renderApp();
+    eventBus.emit('render');
 };
 
 /**
@@ -25,7 +25,7 @@ export const handleToggleMenu = () => {
 export const handleCloseMenu = (e, target) => {
     if (e.target !== target) return;
     commit('setMenuOpen', { isOpen: false });
-    renderApp();
+    eventBus.emit('render');
 };
 
 /**
@@ -36,7 +36,7 @@ export const handleNewRhythm = () => {
         actions.createNewRhythm();
     }
     commit('setMenuOpen', { isOpen: false });
-    renderApp();
+    eventBus.emit('render');
 };
 
 /**
@@ -45,7 +45,7 @@ export const handleNewRhythm = () => {
 export const handleLoadRhythm = () => {
     commit('setModal', { open: true, type: 'rhythm' });
     commit('setMenuOpen', { isOpen: false });
-    renderApp();
+    eventBus.emit('render');
 };
 
 /**
@@ -54,7 +54,7 @@ export const handleLoadRhythm = () => {
 export const handleDownloadRhythm = () => {
     downloadRhythm(state);
     commit('setMenuOpen', { isOpen: false });
-    renderApp();
+    eventBus.emit('render');
 };
 
 /**
@@ -71,7 +71,7 @@ export const handleShareRhythm = () => {
         });
     }
     commit('setMenuOpen', { isOpen: false });
-    renderApp();
+    eventBus.emit('render');
 };
 
 /**
@@ -79,5 +79,5 @@ export const handleShareRhythm = () => {
  */
 export const handleToggleUserGuideSubmenu = () => {
     state.uiState.userGuideSubmenuOpen = !state.uiState.userGuideSubmenuOpen;
-    renderApp();
+    eventBus.emit('render');
 };

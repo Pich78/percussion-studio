@@ -4,7 +4,7 @@
 */
 
 import { state, commit } from '../store.js';
-import { refreshGrid } from '../ui/renderer.js';
+import { eventBus } from '../services/eventBus.js';
 import { audioEngine } from '../services/audioEngine.js';
 
 /**
@@ -43,7 +43,7 @@ export const setGlobalVolume = (instrumentSymbol, volume) => {
     // 7. Refresh Grid ONLY if mute state changed AND not currently dragging
     // (Dragging will refresh on mouseup to avoid breaking the drag)
     if (muteChanged && !window.__volumeDragging) {
-        refreshGrid();
+        eventBus.emit('grid-refresh');
     }
 };
 
@@ -76,5 +76,5 @@ export const setGlobalMute = (instrumentSymbol, isMuted) => {
     });
 
     // 6. Refresh Grid required to show visual feedback
-    refreshGrid();
+    eventBus.emit('grid-refresh');
 };

@@ -13,6 +13,10 @@ const root = document.getElementById('root');
 
 eventBus.on('render', () => renderApp());
 
+eventBus.on('grid-refresh', () => refreshGrid());
+
+eventBus.on('scroll-to-measure', ({ measure }) => scrollToMeasure(measure));
+
 eventBus.on('step', ({ step, measure, rep }) => {
   updateVisualStep(step, measure);
   scrollToMeasure(measure);
