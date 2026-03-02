@@ -82,7 +82,10 @@ const renderHeader = () => {
                 ${state.isPlaying ? playback.repetitionCounter : 1}
               </span>
               <span class="text-gray-600 font-mono">/</span>
-              <span class="text-gray-500 font-mono">${activeSection.repetitions || 1}</span>
+              ${activeSection.randomRepetitions && state.isPlaying && playback.effectiveRepetitions != null
+                ? `<span class="text-cyan-400 font-mono">🎲${playback.effectiveRepetitions}</span><span class="text-gray-600 font-mono text-[10px] ml-0.5">(${activeSection.repetitions || 1})</span>`
+                : `<span class="text-gray-500 font-mono">${activeSection.randomRepetitions ? '🎲' : ''}${activeSection.repetitions || 1}</span>`
+              }
            </div>
            <div class="flex items-center gap-1 ml-2 bg-gray-900 px-2 py-0.5 rounded border border-gray-800 flex-shrink-0 border-l-2 ${state.isPlaying ? 'border-l-green-500/50' : 'border-l-gray-700'}">
               <span class="text-[10px] uppercase font-bold text-gray-500">Live</span>

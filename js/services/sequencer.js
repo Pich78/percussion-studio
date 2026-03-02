@@ -114,13 +114,27 @@ const getStepDuration = (bpm, subdivision) => {
 };
 
 /**
+ * Resolve effective repetition count for a section.
+ * If randomRepetitions is enabled, picks a random value from 1 to maxReps.
+ * @param {object} section - Section object
+ * @returns {number} Resolved repetition count
+ */
+const resolveEffectiveRepetitions = (section) => {
+    const maxReps = section.repetitions || 1;
+    if (section.randomRepetitions && maxReps > 1) {
+        return Math.floor(Math.random() * maxReps) + 1;
+    }
+    return maxReps;
+};
+
+/**
  * PURE FUNCTION: Compute the next step, handling measure/section transitions.
  * Does NOT mutate any state — returns a result object.
  * 
  * @param {object} toque - The current toque (rhythm) data
  * @param {object} pb - Snapshot of current playback state
  * @returns {object} Next state: { nextStep, nextMeasure, nextSectionId, nextBpm, 
- *                    nextRepetition, sectionChanged, activeSec, tempoAccelerated }
+ *                    nextRepetition, nextEffectiveRepetitions, sectionChanged, activeSec, tempoAccelerated }
  */
 const computeNextStep = (toque, pb) => {
     let sectionIndex = toque.sections.findIndex(s => s.id === pb.activeSectionId);
@@ -132,16 +146,22 @@ const computeNextStep = (toque, pb) => {
     let nextSectionId = pb.activeSectionId;
     let nextBpm = pb.currentPlayheadBpm;
     let nextRepetition = pb.repetitionCounter;
+    let nextEffectiveRepetitions = pb.effectiveRepetitions;
     let sectionChanged = false;
     let tempoAccelerated = false;
+
+    // Resolve effective repetitions if not yet set (first entry into section)
+    if (nextEffectiveRepetitions == null) {
+        nextEffectiveRepetitions = resolveEffectiveRepetitions(activeSec);
+    }
 
     if (nextStep >= activeSec.steps) {
         // End of current measure - move to next measure or repeat
         nextMeasure += 1;
 
         if (nextMeasure >= activeSec.measures.length) {
-            // End of all measures - check repetitions
-            if (nextRepetition < (activeSec.repetitions || 1)) {
+            // End of all measures - check repetitions against effective count
+            if (nextRepetition < nextEffectiveRepetitions) {
                 nextRepetition += 1;
                 nextStep = 0;
                 nextMeasure = 0;
@@ -164,6 +184,9 @@ const computeNextStep = (toque, pb) => {
                 activeSec = nextSection;
                 sectionChanged = true;
 
+                // Resolve effective repetitions for the new section
+                nextEffectiveRepetitions = resolveEffectiveRepetitions(nextSection);
+
                 if (nextSection.bpm !== undefined) {
                     nextBpm = nextSection.bpm;
                 }
@@ -176,7 +199,7 @@ const computeNextStep = (toque, pb) => {
 
     return {
         nextStep, nextMeasure, nextSectionId, nextBpm,
-        nextRepetition, sectionChanged, activeSec, tempoAccelerated
+        nextRepetition, nextEffectiveRepetitions, sectionChanged, activeSec, tempoAccelerated
     };
 };
 
@@ -190,6 +213,7 @@ const applyStepResult = (result) => {
     playback.currentMeasureIndex = result.nextMeasure;
     playback.currentPlayheadBpm = result.nextBpm;
     playback.repetitionCounter = result.nextRepetition;
+    playback.effectiveRepetitions = result.nextEffectiveRepetitions;
     commit('setCurrentStep', { step: result.nextStep });
 
     if (result.sectionChanged) {
@@ -233,12 +257,16 @@ const scheduler = () => {
         // We use setTimeout here because visual updates don't need sample accuracy
         const stepToShow = playback.currentStep;
         const measureToShow = playback.currentMeasureIndex;
+        const repToShow = playback.repetitionCounter;
         const timeUntilNote = (playback.nextNoteTime - currentTime) * 1000;
 
         setTimeout(() => {
             if (state.isPlaying) {
                 updateVisualStep(stepToShow, measureToShow);
                 scrollToMeasure(measureToShow);
+                // Update header rep counter directly (avoid full re-render)
+                const repEl = document.getElementById('header-rep-count');
+                if (repEl) repEl.textContent = repToShow;
             }
         }, Math.max(0, timeUntilNote));
 
@@ -271,6 +299,7 @@ export const stopPlayback = () => {
     playback.currentStep = -1;
     playback.currentMeasureIndex = 0;
     playback.repetitionCounter = 1;
+    playback.effectiveRepetitions = null;
     playback.nextNoteTime = 0;
     playback.isCountingIn = false;
     playback.countInStep = 0;
@@ -311,6 +340,9 @@ export const togglePlay = () => {
         if (playback.currentStep < 0) {
             playback.currentStep = 0;
             playback.currentMeasureIndex = 0;
+            // Resolve effective repetitions for the starting section
+            const startSection = state.toque.sections.find(s => s.id === playback.activeSectionId) || state.toque.sections[0];
+            playback.effectiveRepetitions = resolveEffectiveRepetitions(startSection);
             // Don't set state.currentStep yet - scheduler will update it when the first note plays
             // This prevents the highlight from appearing before the music starts
 

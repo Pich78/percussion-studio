@@ -82,14 +82,21 @@ export const SectionSettings = (section, globalBpm, readOnly = false) => {
       <!-- Repeats -->
       <div class="flex flex-col">
          <label class="text-[10px] text-gray-500 uppercase font-bold">Repeats</label>
-         <input 
-           type="number"
-           min="1"
-           max="99"
-           value="${section.repetitions || 1}"
-           data-action="update-repetitions"
-           class="bg-gray-900 border border-gray-700 text-xs rounded px-2 py-0.5 text-white w-14 h-[26px]"
-         />
+         <div class="flex items-center gap-1">
+           <input 
+             type="number"
+             min="1"
+             max="99"
+             value="${section.repetitions || 1}"
+             data-action="update-repetitions"
+             class="bg-gray-900 border ${section.randomRepetitions ? 'border-dashed border-cyan-700' : 'border-gray-700'} text-xs rounded px-2 py-0.5 text-white w-14 h-[26px]"
+           />
+           <button
+             data-action="toggle-random-repetitions"
+             class="p-1 rounded text-sm leading-none ${section.randomRepetitions ? 'text-cyan-400 bg-cyan-900/30 border border-cyan-700/50' : 'text-gray-600 hover:text-gray-400 border border-transparent'}"
+             title="${section.randomRepetitions ? 'Random: 1-' + (section.repetitions || 1) : 'Enable random repetitions'}"
+           >🎲</button>
+         </div>
       </div>
 
       <div class="w-px h-8 bg-gray-800 mx-1"></div>

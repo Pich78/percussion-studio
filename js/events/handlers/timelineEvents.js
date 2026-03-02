@@ -136,6 +136,17 @@ export const handleUpdateRepetitions = (target) => {
 };
 
 /**
+ * Handle toggle random repetitions
+ */
+export const handleToggleRandomRepetitions = () => {
+    const section = getActiveSection(state);
+    if (section) {
+        section.randomRepetitions = !section.randomRepetitions;
+        renderApp();
+    }
+};
+
+/**
  * Handle rhythm name update
  * @param {HTMLInputElement} target - The input element
  */

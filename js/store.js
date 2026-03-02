@@ -100,6 +100,7 @@ export const playback = {
     currentStep: -1,
     currentMeasureIndex: 0, // Track current measure within section
     repetitionCounter: 1,
+    effectiveRepetitions: null, // Resolved rep count (randomized or fixed) for current section
     currentPlayheadBpm: 120, // Default safe value
     activeSectionId: null,
     nextNoteTime: 0, // For precision look-ahead scheduling (audioContext time)

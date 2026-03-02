@@ -89,6 +89,7 @@ const createActionRouter = () => {
         'load-toque-confirm': (e, target) => bataHandlers.handleLoadToqueConfirm(target),
 
         // Timeline metadata
+        'toggle-random-repetitions': () => timelineHandlers.handleToggleRandomRepetitions(),
         'toggle-bata-rhythm-mode': () => timelineHandlers.handleToggleBataRhythmMode(),
         'toggle-metadata-orisha-dropdown': () => timelineHandlers.handleToggleMetadataOrishaDropdown(),
         'toggle-rhythm-orisha': (e, target) => timelineHandlers.handleToggleRhythmOrisha(target),
