@@ -100,9 +100,6 @@ export const exportRhythmToYAML = (state) => {
     toque.sections.forEach((section, idx) => {
         yaml += `  - name: "${section.name}"\n`;
         yaml += `    repetitions: ${section.repetitions || 1}\n`;
-        if (section.randomRepetitions) {
-            yaml += `    random_repetitions: true\n`;
-        }
         yaml += `    steps: ${section.steps}\n`;
         yaml += `    subdivision: ${section.subdivision}\n`;
 
