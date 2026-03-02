@@ -3,8 +3,23 @@ import { getActiveSection } from '../store/stateSelectors.js';
 import { TubsGrid, autoScrollGrid } from '../components/tubsGrid.js';
 import { MobileLayout, calculateMobileCellSize } from './mobile/layout.js';
 import { DesktopLayout } from './desktop/layout.js';
+import { eventBus } from '../services/eventBus.js';
 
 const root = document.getElementById('root');
+
+// ─── Event Bus Subscriptions ────────────────────────────────────────────────
+// These subscriptions handle events emitted by the sequencer and other services,
+// decoupling the backend from specific UI implementations.
+
+eventBus.on('render', () => renderApp());
+
+eventBus.on('step', ({ step, measure, rep }) => {
+  updateVisualStep(step, measure);
+  scrollToMeasure(measure);
+  // Update header rep counter directly (avoid full re-render)
+  const repEl = document.getElementById('header-rep-count');
+  if (repEl) repEl.textContent = rep;
+});
 
 export const renderApp = () => {
   // Capture focus state before rendering

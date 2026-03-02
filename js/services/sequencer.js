@@ -16,7 +16,7 @@
 
 import { state, playback, commit } from '../store.js';
 import { audioEngine } from './audioEngine.js';
-import { renderApp, updateVisualStep, scrollToMeasure } from '../ui/renderer.js';
+import { eventBus } from './eventBus.js';
 
 // Scheduling constants
 const SCHEDULE_AHEAD_TIME = 0.1;  // Schedule notes 100ms ahead (seconds)
@@ -262,11 +262,7 @@ const scheduler = () => {
 
         setTimeout(() => {
             if (state.isPlaying) {
-                updateVisualStep(stepToShow, measureToShow);
-                scrollToMeasure(measureToShow);
-                // Update header rep counter directly (avoid full re-render)
-                const repEl = document.getElementById('header-rep-count');
-                if (repEl) repEl.textContent = repToShow;
+                eventBus.emit('step', { step: stepToShow, measure: measureToShow, rep: repToShow });
             }
         }, Math.max(0, timeUntilNote));
 
@@ -278,7 +274,7 @@ const scheduler = () => {
         // If section changed, schedule a re-render
         if (result.sectionChanged) {
             setTimeout(() => {
-                if (state.isPlaying) renderApp();
+                if (state.isPlaying) eventBus.emit('render');
             }, Math.max(0, timeUntilNote));
         }
 
@@ -313,7 +309,7 @@ export const stopPlayback = () => {
         commit('setPlaying', { isPlaying: false });
         commit('setCurrentStep', { step: -1 });
     }
-    renderApp();
+    eventBus.emit('render');
 };
 
 /**
@@ -326,7 +322,7 @@ export const togglePlay = () => {
         playback.isCountingIn = false;
         clearTimeout(playback.timeoutId);
         playback.timeoutId = null;
-        renderApp();
+        eventBus.emit('render');
     } else {
         // Play
         commit('setPlaying', { isPlaying: true });
@@ -371,7 +367,7 @@ export const togglePlay = () => {
                     setTimeout(() => {
                         if (state.isPlaying && playback.isCountingIn) {
                             playback.countInStep = beatIndex + 1;
-                            renderApp();
+                            eventBus.emit('render');
                         }
                     }, Math.max(0, timeUntilClick));
 
@@ -387,14 +383,14 @@ export const togglePlay = () => {
                     if (state.isPlaying) {
                         playback.isCountingIn = false;
                         playback.countInStep = 0;
-                        renderApp();
+                        eventBus.emit('render');
                     }
                 }, Math.max(0, countInDuration));
             }
         }
 
         playback.nextNoteTime = startTime;
-        renderApp();
+        eventBus.emit('render');
         scheduler();
     }
 };
