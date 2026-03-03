@@ -7,6 +7,7 @@
 
 import { DesktopLayout } from '../ui/desktop/layout.js';
 import { setupDesktopEvents } from '../events/desktopEvents.js';
+import { updateVisualStep, scrollToMeasure } from '../ui/playheadUtils.js';
 
 export const desktopEditorView = {
     id: 'desktop-editor',
@@ -18,13 +19,10 @@ export const desktopEditorView = {
     /** Sets up desktop-specific event listeners */
     setupEvents: setupDesktopEvents,
 
-    /** Handle playback step visual updates (uses shared renderer utilities at runtime) */
+    /** Handle playback step visual updates */
     onStep({ step, measure, rep }) {
-        // Lazy-import to avoid circular dependency (renderer → viewManager → view → renderer)
-        import('../ui/renderer.js').then(({ updateVisualStep, scrollToMeasure }) => {
-            updateVisualStep(step, measure);
-            scrollToMeasure(measure);
-        });
+        updateVisualStep(step, measure);
+        scrollToMeasure(measure);
         const repEl = document.getElementById('header-rep-count');
         if (repEl) repEl.textContent = rep;
     }

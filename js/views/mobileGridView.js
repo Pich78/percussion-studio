@@ -7,6 +7,7 @@
 
 import { MobileLayout } from '../ui/mobile/layout.js';
 import { setupMobileEvents } from '../events/mobileEvents.js';
+import { updateVisualStep, scrollToMeasure } from '../ui/playheadUtils.js';
 
 export const mobileGridView = {
     id: 'mobile-grid',
@@ -18,13 +19,10 @@ export const mobileGridView = {
     /** Sets up mobile-specific event listeners */
     setupEvents: setupMobileEvents,
 
-    /** Handle playback step visual updates (uses shared renderer utilities at runtime) */
+    /** Handle playback step visual updates */
     onStep({ step, measure, rep }) {
-        // Lazy-import to avoid circular dependency (renderer → viewManager → view → renderer)
-        import('../ui/renderer.js').then(({ updateVisualStep, scrollToMeasure }) => {
-            updateVisualStep(step, measure);
-            scrollToMeasure(measure);
-        });
+        updateVisualStep(step, measure);
+        scrollToMeasure(measure);
         const repEl = document.getElementById('header-rep-count');
         if (repEl) repEl.textContent = rep;
     }
