@@ -1,10 +1,13 @@
-import { setupMobileEvents } from './events/mobileEvents.js';
-import { setupDesktopEvents } from './events/desktopEvents.js';
+/**
+ * js/events.js
+ * 
+ * Event listener setup — delegates to the active view's setupEvents().
+ * The view manager determines which view is active.
+ */
+
+import { viewManager } from './views/viewManager.js';
 
 export const setupEventListeners = () => {
-    if (window.IS_MOBILE_VIEW) {
-        setupMobileEvents();
-    } else {
-        setupDesktopEvents();
-    }
+    const view = viewManager.getActiveView();
+    view.setupEvents();
 };

@@ -5,6 +5,19 @@ import { MobileLayout, calculateMobileCellSize } from './mobile/layout.js';
 import { DesktopLayout } from './desktop/layout.js';
 import { eventBus } from '../services/eventBus.js';
 
+// ─── View Provider ──────────────────────────────────────────────────────────
+// The view provider is set at runtime by app.js after views are registered.
+// This avoids a circular dependency (renderer → viewManager → views → renderer).
+let _viewProvider = null;
+
+/**
+ * Set the view provider (viewManager). Called by app.js after views are registered.
+ * @param {object} provider - Object with getActiveView() method
+ */
+export const setViewProvider = (provider) => {
+  _viewProvider = provider;
+};
+
 const root = document.getElementById('root');
 
 // ─── Event Bus Subscriptions ────────────────────────────────────────────────
@@ -17,12 +30,17 @@ eventBus.on('grid-refresh', () => refreshGrid());
 
 eventBus.on('scroll-to-measure', ({ measure }) => scrollToMeasure(measure));
 
-eventBus.on('step', ({ step, measure, rep }) => {
-  updateVisualStep(step, measure);
-  scrollToMeasure(measure);
-  // Update header rep counter directly (avoid full re-render)
-  const repEl = document.getElementById('header-rep-count');
-  if (repEl) repEl.textContent = rep;
+eventBus.on('step', (payload) => {
+  const view = _viewProvider?.getActiveView();
+  if (view && view.onStep) {
+    view.onStep(payload);
+  } else {
+    // Fallback: use shared utilities directly
+    updateVisualStep(payload.step, payload.measure);
+    scrollToMeasure(payload.measure);
+    const repEl = document.getElementById('header-rep-count');
+    if (repEl) repEl.textContent = payload.rep;
+  }
 });
 
 export const renderApp = () => {
@@ -48,8 +66,11 @@ export const renderApp = () => {
   const savedScrollTop = scrollContainerBefore ? scrollContainerBefore.scrollTop : 0;
   const savedScrollLeft = scrollContainerBefore ? scrollContainerBefore.scrollLeft : 0;
 
-  // Dispatch to correct layout
-  if (window.IS_MOBILE_VIEW) {
+  // Delegate to active view's layout, or fallback to IS_MOBILE_VIEW flag
+  const view = _viewProvider?.getActiveView();
+  if (view) {
+    root.innerHTML = view.layout();
+  } else if (window.IS_MOBILE_VIEW) {
     root.innerHTML = MobileLayout();
   } else {
     root.innerHTML = DesktopLayout();
@@ -246,11 +267,6 @@ export const scrollToMeasure = (measureIndex) => {
 
     // Calculate position to center the measure
     const containerHeight = scrollContainer.clientHeight;
-    // We need relative position within the container logic for scrollTo
-    // offsetTop is relative to the offsetParent. Assuming the container is the offsetParent (relative/absolute)
-    // If not, we might need a different approach, but let's stick to the previous calculation logic if it worked for centering,
-    // just applying it conditionally.
-    // Actually, offsetTop is simpler and matches the previous logic.
     const measureTop = measureElement.offsetTop;
     const measureHeight = measureElement.offsetHeight;
 
