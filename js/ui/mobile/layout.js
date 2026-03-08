@@ -358,7 +358,189 @@ export const MobileLayout = () => {
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                 </div>
-                <div class="flex-1 overflow-hidden">
+                <div class="flex-1 overflow-y-auto p-3 pb-8">
+
+                    <!-- Redesign Exploration (v1) -->
+                    <div class="mb-4">
+                        <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider px-2 mb-2">Redesign Exploration</h3>
+                        <div class="bg-gray-800/50 rounded-2xl border border-gray-700/50">
+                            <!-- P1: The Player -->
+                            <div class="px-4 py-2.5 border-b border-gray-700/30">
+                                <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wider">Proposal 1 — The Player</span>
+                            </div>
+                            <button data-action="select-view-mode" data-view-id="p1" class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
+                                <span class="text-gray-300 text-sm">P1: The Player — Music Player Paradigm</span>
+                            </button>
+                            <button data-action="select-view-mode" data-view-id="p1a" class="w-full px-4 py-2.5 pl-8 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
+                                <span class="text-gray-400 text-xs">1A: Mixer on Swipe</span>
+                            </button>
+                            <button data-action="select-view-mode" data-view-id="p1b" class="w-full px-4 py-2.5 pl-8 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
+                                <span class="text-gray-400 text-xs">1B: Circular Tempo Knob</span>
+                            </button>
+                            <button data-action="select-view-mode" data-view-id="p1c" class="w-full px-4 py-2.5 pl-8 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
+                                <span class="text-gray-400 text-xs">1C: Focus Mode</span>
+                            </button>
+
+                            <!-- P2: The Dashboard -->
+                            <div class="px-4 py-2.5 border-b border-gray-700/30 bg-gray-800/30">
+                                <span class="text-[10px] font-bold text-cyan-400 uppercase tracking-wider">Proposal 2 — The Dashboard</span>
+                            </div>
+                            <button data-action="select-view-mode" data-view-id="p2" class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
+                                <span class="text-gray-300 text-sm">P2: The Dashboard — Card-Based Navigator</span>
+                            </button>
+                            <button data-action="select-view-mode" data-view-id="p2a" class="w-full px-4 py-2.5 pl-8 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
+                                <span class="text-gray-400 text-xs">2A: Stack Layout</span>
+                            </button>
+                            <button data-action="select-view-mode" data-view-id="p2b" class="w-full px-4 py-2.5 pl-8 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
+                                <span class="text-gray-400 text-xs">2B: Split Card</span>
+                            </button>
+                            <button data-action="select-view-mode" data-view-id="p2c" class="w-full px-4 py-2.5 pl-8 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
+                                <span class="text-gray-400 text-xs">2C: Playlist Mode</span>
+                            </button>
+
+                            <!-- P3: The Toolbar -->
+                            <div class="px-4 py-2.5 border-b border-gray-700/30 bg-gray-800/30">
+                                <span class="text-[10px] font-bold text-green-400 uppercase tracking-wider">Proposal 3 — The Toolbar</span>
+                            </div>
+                            <button data-action="select-view-mode" data-view-id="p3" class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
+                                <span class="text-gray-300 text-sm">P3: The Toolbar — Persistent Bottom Drawer</span>
+                            </button>
+                            <button data-action="select-view-mode" data-view-id="p3a" class="w-full px-4 py-2.5 pl-8 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
+                                <span class="text-gray-400 text-xs">3A: Quick-Access Chips</span>
+                            </button>
+                            <button data-action="select-view-mode" data-view-id="p3b" class="w-full px-4 py-2.5 pl-8 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
+                                <span class="text-gray-400 text-xs">3B: Gesture Ring</span>
+                            </button>
+                            <button data-action="select-view-mode" data-view-id="p3c" class="w-full px-4 py-2.5 pl-8 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors rounded-b-2xl">
+                                <span class="text-gray-400 text-xs">3C: Sticky Footer Strip</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Expanded Ideas (v2) -->
+                    <div class="mb-4">
+                        <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider px-2 mb-2">Expanded Ideas (v2)</h3>
+                        <div class="bg-gray-800/50 rounded-2xl border border-gray-700/50">
+                            <!-- Dimension A -->
+                            <div class="px-4 py-2.5 border-b border-gray-700/30">
+                                <span class="text-[10px] font-bold text-purple-400 uppercase tracking-wider">Dimensions</span>
+                            </div>
+                            <button data-action="select-view-mode" data-view-id="dim-a" class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
+                                <span class="text-gray-300 text-sm">A: Portrait ↔ Landscape Dual View</span>
+                            </button>
+                            <button data-action="select-view-mode" data-view-id="dim-a1" class="w-full px-4 py-2.5 pl-8 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
+                                <span class="text-gray-400 text-xs">A1: Auto-Switch by Context</span>
+                            </button>
+                            <button data-action="select-view-mode" data-view-id="dim-a2" class="w-full px-4 py-2.5 pl-8 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
+                                <span class="text-gray-400 text-xs">A2: Portrait Mini-Grid</span>
+                            </button>
+                            <button data-action="select-view-mode" data-view-id="dim-a3" class="w-full px-4 py-2.5 pl-8 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
+                                <span class="text-gray-400 text-xs">A3: Two-App Feeling</span>
+                            </button>
+                            <button data-action="select-view-mode" data-view-id="dim-b" class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
+                                <span class="text-gray-300 text-sm">B: Play Mode vs View Mode</span>
+                            </button>
+                            <button data-action="select-view-mode" data-view-id="dim-c" class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
+                                <span class="text-gray-300 text-sm">C: Elevated Mixer</span>
+                            </button>
+                            <button data-action="select-view-mode" data-view-id="dim-c1" class="w-full px-4 py-2.5 pl-8 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
+                                <span class="text-gray-400 text-xs">C1: Mixer Strip</span>
+                            </button>
+                            <button data-action="select-view-mode" data-view-id="dim-c2" class="w-full px-4 py-2.5 pl-8 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
+                                <span class="text-gray-400 text-xs">C2: Mixer Toggle</span>
+                            </button>
+                            <button data-action="select-view-mode" data-view-id="dim-c3" class="w-full px-4 py-2.5 pl-8 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
+                                <span class="text-gray-400 text-xs">C3: Track Drawer</span>
+                            </button>
+                            <button data-action="select-view-mode" data-view-id="dim-d" class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
+                                <span class="text-gray-300 text-sm">D: Compressed/Zoomable Notation</span>
+                            </button>
+                            <button data-action="select-view-mode" data-view-id="dim-d1" class="w-full px-4 py-2.5 pl-8 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
+                                <span class="text-gray-400 text-xs">D1: Bird's Eye Minimap</span>
+                            </button>
+                            <button data-action="select-view-mode" data-view-id="dim-d2" class="w-full px-4 py-2.5 pl-8 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
+                                <span class="text-gray-400 text-xs">D2: Pattern Blocks</span>
+                            </button>
+                            <button data-action="select-view-mode" data-view-id="dim-d3" class="w-full px-4 py-2.5 pl-8 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
+                                <span class="text-gray-400 text-xs">D3: Zoom Lens</span>
+                            </button>
+                            <button data-action="select-view-mode" data-view-id="dim-e" class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
+                                <span class="text-gray-300 text-sm">E: Section Loop Selection</span>
+                            </button>
+                            <button data-action="select-view-mode" data-view-id="dim-e1" class="w-full px-4 py-2.5 pl-8 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
+                                <span class="text-gray-400 text-xs">E1: Playlist Checkboxes</span>
+                            </button>
+                            <button data-action="select-view-mode" data-view-id="dim-e2" class="w-full px-4 py-2.5 pl-8 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
+                                <span class="text-gray-400 text-xs">E2: Loop Markers (A/B)</span>
+                            </button>
+                            <button data-action="select-view-mode" data-view-id="dim-e3" class="w-full px-4 py-2.5 pl-8 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
+                                <span class="text-gray-400 text-xs">E3: Queue Builder</span>
+                            </button>
+
+                            <!-- Innovative Ideas -->
+                            <div class="px-4 py-2.5 border-b border-gray-700/30 bg-gray-800/30">
+                                <span class="text-[10px] font-bold text-blue-400 uppercase tracking-wider">Innovative Ideas</span>
+                            </div>
+                            <button data-action="select-view-mode" data-view-id="idea-f" class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
+                                <span class="text-gray-300 text-sm">F: Tap Tempo</span>
+                            </button>
+                            <button data-action="select-view-mode" data-view-id="idea-g" class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
+                                <span class="text-gray-300 text-sm">G: Haptic Metronome</span>
+                            </button>
+                            <button data-action="select-view-mode" data-view-id="idea-h" class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
+                                <span class="text-gray-300 text-sm">H: Practice Bookmarks</span>
+                            </button>
+                            <button data-action="select-view-mode" data-view-id="idea-i" class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
+                                <span class="text-gray-300 text-sm">I: Staff / Linear Notation Mode</span>
+                            </button>
+
+                            <!-- Combinations -->
+                            <div class="px-4 py-2.5 border-b border-gray-700/30 bg-gray-800/30">
+                                <span class="text-[10px] font-bold text-orange-400 uppercase tracking-wider">Combinations</span>
+                            </div>
+                            <button data-action="select-view-mode" data-view-id="combo-1" class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
+                                <span class="text-gray-300 text-sm">1: Player + Portrait Control Surface</span>
+                            </button>
+                            <button data-action="select-view-mode" data-view-id="combo-2" class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
+                                <span class="text-gray-300 text-sm">2: Dashboard + Compressed View + Loop</span>
+                            </button>
+                            <button data-action="select-view-mode" data-view-id="combo-3" class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
+                                <span class="text-gray-300 text-sm">3: Toolbar + Adaptive Grid + Tap Tempo</span>
+                            </button>
+                            <button data-action="select-view-mode" data-view-id="combo-4" class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
+                                <span class="text-gray-300 text-sm">4: Portrait Mixer + Landscape Grid</span>
+                            </button>
+                            <button data-action="select-view-mode" data-view-id="combo-5" class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
+                                <span class="text-gray-300 text-sm">5: The Practice Studio</span>
+                            </button>
+                            <button data-action="select-view-mode" data-view-id="combo-6" class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors rounded-b-2xl">
+                                <span class="text-gray-300 text-sm">6: Minimal Player + Power Drawer</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- UX Analysis -->
+                    <div class="mb-4">
+                        <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider px-2 mb-2">UX Analysis</h3>
+                        <div class="bg-gray-800/50 rounded-2xl border border-gray-700/50">
+                            <button data-action="select-view-mode" data-view-id="ux-structure-modal" class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
+                                <span class="text-gray-300 text-sm">Expand Structure Modal</span>
+                            </button>
+                            <button data-action="select-view-mode" data-view-id="ux-a" class="w-full px-4 py-2.5 pl-8 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
+                                <span class="text-gray-400 text-xs">A: Tappable REP Badge</span>
+                            </button>
+                            <button data-action="select-view-mode" data-view-id="ux-b" class="w-full px-4 py-2.5 pl-8 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
+                                <span class="text-gray-400 text-xs">B: Structure Shortcut Button</span>
+                            </button>
+                            <button data-action="select-view-mode" data-view-id="ux-c" class="w-full px-4 py-2.5 pl-8 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
+                                <span class="text-gray-400 text-xs">C: Count-in Label Readability</span>
+                            </button>
+                            <button data-action="select-view-mode" data-view-id="ux-d" class="w-full px-4 py-2.5 pl-8 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors rounded-b-2xl">
+                                <span class="text-gray-400 text-xs">D: BPM Slider Wider Hit Area</span>
+                            </button>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>

@@ -23,7 +23,7 @@ import * as bataHandlers from './handlers/bataExplorerEvents.js';
 const MOBILE_ALLOWED_ACTIONS = [
     'toggle-play', 'stop', 'toggle-menu', 'close-menu', 'load-rhythm',
     'select-rhythm-confirm', 'toggle-mute', 'update-global-bpm', 'toggle-folder',
-    'update-volume', 'close-modal', 'close-modal-bg', 'open-structure', 'open-view-mode',
+    'update-volume', 'close-modal', 'close-modal-bg', 'open-structure', 'open-view-mode', 'select-view-mode',
     'toggle-user-guide-submenu', 'open-user-guide', 'share-rhythm', 'toggle-count-in',
     // Section dropdown
     'toggle-section-dropdown', 'select-section-item',
@@ -190,6 +190,12 @@ const createMobileActionRouter = () => ({
         state.uiState.isMenuOpen = false;
         state.uiState.modalType = 'viewMode';
         state.uiState.modalOpen = true;
+        eventBus.emit('render');
+    },
+
+    // Select a view mode proposal (close modal for now)
+    'select-view-mode': () => {
+        state.uiState.modalOpen = false;
         eventBus.emit('render');
     },
 
