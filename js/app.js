@@ -8,6 +8,7 @@
 import { viewManager } from './views/viewManager.js';
 import { mobileGridView } from './views/mobileGridView.js';
 import { mobilePlayerView } from './views/mobilePlayerView.js';
+import { mobilePlayerMixerView } from './views/mobilePlayerMixerView.js';
 import { desktopEditorView } from './views/desktopEditorView.js';
 import { setViewProvider } from './ui/renderer.js';
 import { setupEventListeners } from './events.js';
@@ -20,6 +21,7 @@ import { state } from './store.js';
 // Register all available views. New views can be added here.
 viewManager.registerView(mobileGridView);
 viewManager.registerView(mobilePlayerView);
+viewManager.registerView(mobilePlayerMixerView);
 viewManager.registerView(desktopEditorView);
 
 // Set the active view based on the page context

@@ -1,12 +1,9 @@
 /**
- * js/ui/mobile/player/layout.js
+ * js/ui/mobile/player-mixer/layout.js
  * 
- * Layout for P1 "The Player" — Music Player Paradigm.
- * Redesigns the mobile view as a music player:
- *   - Slim header (menu + rhythm name + status)
- *   - Grid visualization (middle, scrollable)
- *   - Section navigation bar (prev/next + section name)
- *   - Bottom control deck (large BPM slider + transport controls)
+ * Layout for P1a "Mixer on Swipe" — Player + Bottom Sheet Mixer.
+ * Extends the P1 Player paradigm with a swipe-up mixer panel that
+ * slides over the grid. The mixer contains per-track volume/mute controls.
  * 
  * Reuses existing shared components (TubsGrid, icons, modals).
  */
@@ -29,7 +26,7 @@ import { viewManager } from '../../../views/viewManager.js';
 import { calculateMobileCellSize } from '../standard/layout.js';
 export { calculateMobileCellSize };
 
-// ─── Header (Slim) ─────────────────────────────────────────────────────────
+// ─── Header (Slim — same as P1) ────────────────────────────────────────────
 
 const renderPlayerHeader = (activeSection) => {
   const sections = state.toque.sections;
@@ -74,7 +71,7 @@ const renderPlayerHeader = (activeSection) => {
   `;
 };
 
-// ─── Section Navigation Bar ─────────────────────────────────────────────────
+// ─── Section Navigation Bar (same as P1) ────────────────────────────────────
 
 const renderSectionBar = (activeSection) => {
   const sections = state.toque.sections;
@@ -109,7 +106,79 @@ const renderSectionBar = (activeSection) => {
   `;
 };
 
-// ─── Bottom Control Deck ────────────────────────────────────────────────────
+// ─── Mixer Bottom Sheet ─────────────────────────────────────────────────────
+
+const renderMixerSheet = (activeSection) => {
+  const tracks = activeSection?.measures?.[0]?.tracks || [];
+
+  const trackRows = tracks.map((track, idx) => {
+    const volume = track.volume ?? 1;
+    const isMuted = track.muted ?? false;
+    const volumePercent = Math.round(volume * 100);
+
+    return `
+      <div class="flex items-center gap-2 px-3 py-1.5 ${isMuted ? 'opacity-50' : ''}">
+        <!-- Mute Toggle -->
+        <button data-action="toggle-mute" data-track-index="${idx}"
+          class="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0 transition-colors border ${isMuted
+            ? 'bg-red-900/30 border-red-800/50 text-red-400'
+            : 'bg-gray-800 border-gray-700 text-green-400 hover:bg-gray-700'}">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3.5 h-3.5 pointer-events-none">
+            ${isMuted
+              ? '<path stroke-linecap="round" stroke-linejoin="round" d="M17.25 9.75L19.5 12m0 0l2.25 2.25M19.5 12l2.25-2.25M19.5 12l-2.25 2.25m-10.5-6l4.72-3.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-3.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" />'
+              : '<path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-3.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-3.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" />'}
+          </svg>
+        </button>
+
+        <!-- Instrument Name -->
+        <span class="text-xs font-medium text-gray-300 w-20 truncate flex-shrink-0">${track.instrument}</span>
+
+        <!-- Volume Slider -->
+        <div class="relative flex-1 h-6 flex items-center group/vol cursor-pointer">
+          <!-- Background track -->
+          <div class="absolute left-0 right-0 h-1.5 bg-gray-700 rounded-full cursor-pointer"></div>
+          <!-- Fill bar -->
+          <div class="absolute left-0 h-1.5 bg-gradient-to-r from-emerald-600 to-emerald-400 rounded-full cursor-pointer" style="width: ${volumePercent}%"></div>
+          <!-- Handle -->
+          <div class="absolute w-4 h-4 bg-white rounded-full shadow-md border border-emerald-400 cursor-pointer z-[15]" style="left: calc(${volumePercent}% - 8px)"></div>
+          <!-- Range input (invisible) -->
+          <input type="range" min="0" max="1" step="0.01" value="${volume}" data-action="update-volume" data-track-index="${idx}"
+            class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" />
+        </div>
+
+        <!-- Volume % -->
+        <span class="text-[10px] font-mono text-gray-500 w-8 text-right font-medium">${volumePercent}%</span>
+      </div>
+    `;
+  }).join('');
+
+  return `
+    <!-- Mixer Sheet (toggle visibility via data-action="toggle-mixer-sheet") -->
+    <div id="mixer-sheet" class="absolute bottom-0 left-0 right-0 z-30 transition-transform duration-300 ease-out translate-y-full"
+         style="pointer-events: none;">
+      <div class="bg-gray-900/95 backdrop-blur-md border-t border-gray-700 rounded-t-2xl shadow-2xl shadow-black/60"
+           style="pointer-events: auto;">
+        <!-- Drag Handle -->
+        <div class="flex items-center justify-center pt-2 pb-1">
+          <div class="w-10 h-1 bg-gray-600 rounded-full"></div>
+        </div>
+        <!-- Header -->
+        <div class="flex items-center justify-between px-4 pb-2">
+          <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Mixer</h3>
+          <button data-action="toggle-mixer-sheet" class="text-gray-500 hover:text-white p-1 rounded-md hover:bg-gray-800 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 pointer-events-none"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+          </button>
+        </div>
+        <!-- Track Rows -->
+        <div class="pb-3 max-h-40 overflow-y-auto">
+          ${trackRows}
+        </div>
+      </div>
+    </div>
+  `;
+};
+
+// ─── Bottom Control Deck (P1 base + Mixer toggle) ───────────────────────────
 
 const renderControlDeck = (activeSection) => {
   const subdivision = activeSection?.subdivision || 4;
@@ -129,6 +198,18 @@ const renderControlDeck = (activeSection) => {
 
   return `
     <div class="flex-shrink-0 bg-gray-950 border-t border-gray-800 px-3 py-2 flex flex-col gap-2">
+      <!-- Mixer Toggle Handle -->
+      <button data-action="toggle-mixer-sheet"
+        class="flex items-center justify-center gap-1.5 py-1 rounded-lg bg-gray-900 border border-gray-800 hover:bg-gray-800 transition-colors group">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3.5 h-3.5 text-emerald-400 pointer-events-none">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+        </svg>
+        <span class="text-[9px] font-bold uppercase tracking-wider text-emerald-400 pointer-events-none">Mixer</span>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3 h-3 text-gray-500 pointer-events-none">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
+        </svg>
+      </button>
+
       <!-- BPM Slider (Large) -->
       <div class="flex items-center gap-3">
         <div class="flex flex-col items-start leading-none flex-shrink-0">
@@ -187,7 +268,7 @@ const renderControlDeck = (activeSection) => {
   `;
 };
 
-// ─── Shared Modals (imported pattern from standard layout) ──────────────────
+// ─── Shared Modals ──────────────────────────────────────────────────────────
 
 const renderSharedModals = (activeSection) => {
   const sections = state.toque.sections;
@@ -391,9 +472,9 @@ const renderSharedModals = (activeSection) => {
   return modals;
 };
 
-// ─── Main Player Layout ─────────────────────────────────────────────────────
+// ─── Main Player + Mixer Layout ─────────────────────────────────────────────
 
-export const PlayerLayout = () => {
+export const PlayerMixerLayout = () => {
   const activeSection = getActiveSection(state) || state.toque.sections[0];
 
   // Calculate cell size for grid
@@ -433,8 +514,8 @@ export const PlayerLayout = () => {
       <div class="landscape-only flex flex-col flex-1 overflow-hidden">
         ${renderPlayerHeader(activeSection)}
         
-        <!-- Grid Area (fills remaining space) -->
-        <div class="flex flex-1 overflow-hidden">
+        <!-- Grid Area (fills remaining space) — relative for mixer sheet positioning -->
+        <div class="flex flex-1 overflow-hidden relative">
           <main class="flex-1 overflow-hidden relative flex flex-col justify-center items-center bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-900 via-gray-950 to-gray-950">
             <div id="grid-container" class="w-full max-w-7xl py-1 flex flex-col items-center justify-center overflow-hidden h-full no-pinch-zoom">
               ${TubsGrid({
@@ -451,6 +532,9 @@ export const PlayerLayout = () => {
               })}
             </div>
           </main>
+
+          <!-- Mixer Bottom Sheet (positioned absolutely over the grid) -->
+          ${renderMixerSheet(activeSection)}
         </div>
 
         <!-- Section Navigation Bar -->

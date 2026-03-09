@@ -27,7 +27,7 @@ const MOBILE_ALLOWED_ACTIONS = [
     'update-volume', 'close-modal', 'close-modal-bg', 'open-structure', 'open-view-mode', 'select-view-mode',
     'toggle-user-guide-submenu', 'open-user-guide', 'share-rhythm', 'toggle-count-in',
     // Player view section navigation
-    'player-prev-section', 'player-next-section',
+    'player-prev-section', 'player-next-section', 'toggle-mixer-sheet',
     // Section dropdown
     'toggle-section-dropdown', 'select-section-item',
     // BataExplorer actions
@@ -201,7 +201,8 @@ const createMobileActionRouter = () => ({
         const viewId = target.dataset.viewId;
         const VIEW_MAP = {
             'standard': 'mobile-grid',
-            'p1': 'mobile-player'
+            'p1': 'mobile-player',
+            'p1a': 'mobile-player-mixer'
         };
         const mappedViewId = VIEW_MAP[viewId];
         if (mappedViewId) {
@@ -209,6 +210,21 @@ const createMobileActionRouter = () => ({
         }
         state.uiState.modalOpen = false;
         eventBus.emit('render');
+    },
+
+    // Mixer sheet toggle (P1a view)
+    'toggle-mixer-sheet': () => {
+        const sheet = document.getElementById('mixer-sheet');
+        if (sheet) {
+            const isOpen = !sheet.classList.contains('translate-y-full');
+            if (isOpen) {
+                sheet.classList.add('translate-y-full');
+                sheet.style.pointerEvents = 'none';
+            } else {
+                sheet.classList.remove('translate-y-full');
+                sheet.style.pointerEvents = 'auto';
+            }
+        }
     },
 
     // Player view: previous section
