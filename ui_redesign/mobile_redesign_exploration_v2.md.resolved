@@ -1,0 +1,416 @@
+# Mobile Redesign Exploration v2 — Expanded Ideas
+
+> This document builds on the [original 3 proposals](file:///C:/Users/apicciano/.gemini/antigravity/brain/8666e2c0-3a2d-4d71-be8f-e7ca037ea801/mobile_redesign_exploration.md) (Player, Dashboard, Toolbar). Those proposals remain valid — this document adds 5 new feature dimensions, challenges assumptions, and proposes additional innovative layouts.
+
+---
+
+## New Feature Dimensions
+
+### Dimension A: Portrait ↔ Landscape Dual View
+
+Currently the app blocks portrait mode entirely. This wastes an opportunity.
+
+**Portrait view possibilities:**
+
+```
+┌──────────────────────┐
+│ ☰  Agguere 1 - Base  │
+│                ▶ ■   │
+├──────────────────────┤
+│                      │
+│  ┌─ Now Playing ──┐  │
+│  │  「Base」 1/3   │  │
+│  │   Rep 2 / 4 🎲  │  │
+│  │                 │  │
+│  │   ♩ = 80 BPM    │  │
+│  │  ────●────────  │  │
+│  │                 │  │
+│  │  ◄  ●  ○  ○  ► │  │
+│  └─────────────────┘  │
+│                      │
+├──────── Mixer ───────┤
+│  🔊 Okonkolo    80%  │
+│    ────────●──────── │
+│  🔊 Itotele    100%  │
+│    ──────────────●── │
+│  🔇 Iya         40%  │
+│    ──●────────────── │
+│                      │
+├──────────────────────┤
+│  ×4 🎲 │ CNT ⓸ │ ▶ ■ │
+└──────────────────────┘
+```
+
+**Portrait = control surface. Landscape = notation view.**
+
+This creates a clear mental model:
+- **Turn phone sideways** → see the grid, follow the notation
+- **Hold phone upright** → adjust settings, mix, navigate sections
+
+> [!IMPORTANT]
+> This is perhaps the biggest single UX win in this entire exploration. Portrait mode turns a "blocked screen" into a **dedicated mixing/control surface** that is natural to use while practicing.
+
+**Variant A1: "Auto-switch by context"**
+- When playback starts, if in portrait → stay in portrait (control mode)
+- When user rotates to landscape → show grid (notation mode)
+- When playback stops in landscape → stay in landscape (studying mode)
+
+**Variant A2: "Portrait mini-grid"**
+- Show a tiny compressed version of the grid in portrait too — rotated 90° so tracks run vertically
+
+```
+┌──────────────────────┐
+│   O  I  Y             │  ← Track names horizontal
+│   ○  ×  ⊗  step 1    │
+│   ⊗  .  ×  step 2    │  ← Vertical scrolling grid
+│   .  ×  ○  step 3    │
+│   ○  .  ×  step 4    │
+│   ...                 │
+```
+
+This rotated grid actually matches how some traditional notation systems work (vertical reading).
+
+**Variant A3: "Two-app feeling"**
+- Portrait and landscape feel like two separate apps that share state
+- Portrait: "Practice Companion" (mixer, controls, now-playing card)
+- Landscape: "Score Viewer" (grid, notation, following along)
+
+---
+
+### Dimension B: Play Mode vs View Mode
+
+Two distinct modes the user can switch between:
+
+| | **Play Mode** | **View Mode** |
+|---|---|---|
+| Purpose | Practice along | Study the pattern |
+| Grid | Playhead active, auto-scroll | Static, zoomable, full overview |
+| Controls | BPM, rep, mixer prominent | Zoom, pan, section highlight |
+| Tempo | Adjustable | Irrelevant |
+| Volume | Per-track sliders | Irrelevant (or tap to preview) |
+
+**How to switch:** A prominent toggle in the header or a swipe gesture.
+
+```
+  ┌──────────────────────────────┐
+  │   ▶ PLAY    │    👁 VIEW     │   ← Segmented control
+  └──────────────────────────────┘
+```
+
+**In VIEW mode, the grid transforms:**
+- All measures visible at once (grid shrinks to fit)
+- Pinch-to-zoom for detail on any area
+- Tap a cell to see stroke name + audio preview (hear that single hit)
+- No playhead movement, no auto-scroll
+- Swipe between sections
+
+**Challenge to this idea:** Mode switching adds cognitive overhead. A musician mid-practice shouldn't have to think "am I in the right mode?" Better approach: **the grid is always zoomable** (even during playback), and **play controls are always accessible**. Modes emerge from behavior, not from explicit toggles.
+
+**Improved synthesis:** Instead of explicit modes, use **adaptive behavior**:
+- If playback is active → auto-scroll is on, BPM/mixer are prominent
+- If playback is stopped → auto-scroll is off, pinch-to-zoom is enabled, grid shows all measures
+- This gives the same result without a mode switch
+
+---
+
+### Dimension C: Elevated Mixer
+
+The mixer (volume + mute per instrument) is currently inline with each track row. This works when there are 3 tracks (batá) but becomes problematic with 6+ instruments.
+
+**Idea C1: "Mixer strip" — Always-visible horizontal mixer**
+
+```
+┌─────────────────────────────────────────────────┐
+│  Header...                                       │
+├─────────────────────────────────────────────────┤
+│  Grid...                                         │
+├──────── Mixer Strip ────────────────────────────┤
+│  Oko 🔊    Ito 🔊    Iya 🔇                      │
+│  ──●────   ────●──   ●──────                    │
+└─────────────────────────────────────────────────┘
+```
+
+A persistent horizontal strip below the grid. Each instrument gets a compact vertical-label + horizontal slider. This is like a hardware mixer stripped to its essentials.
+
+**Pro**: Always visible, direct access, familiar to musicians.
+**Con**: Takes vertical space from the grid.
+
+**Idea C2: "Mixer toggle" — Swappable bottom bar**
+
+The bottom bar alternates between two modes via a tab:
+
+```
+  ┌────────┬─────────┐
+  │ ♩ BPM  │ 🎚 MIX  │   ← toggle between BPM controls and Mixer
+  └────────┴─────────┘
+```
+
+One tab shows BPM + rep + random. The other shows per-track volume sliders horizontally.
+
+**Idea C3: "Track drawer" — Tap any track label to expand**
+
+During playback, tap a track name → an inline mini-drawer expands below that track with a volume slider + mute + solo buttons. Only one track expanded at a time.
+
+```
+│  Okonkolo  ○ ⊗ ○ × ○ × ○ ⊗ ○ × ○ ⊗ ○ ×      │
+│   └─ 🔊 ──────●────── 80%   [Solo] [Mute] ─┘  │  ← expanded
+│  Itotele   × . × . ○ . × . × . × . ○ . ×      │
+│  Iya       ⊗ × ○ × ⊗ . ○ × ⊗ × ⊗ . ○ ×        │
+```
+
+**Pro**: Zero space cost when collapsed. Direct connection between track and its controls.
+**Con**: Only one track at a time (but that matches how practice works — you focus on one part).
+
+---
+
+### Dimension D: Compressed/Zoomable Notation
+
+Some musicians memorize rhythms by looking at the full pattern as a visual shape. Think of how a chess grandmaster sees board patterns.
+
+**Idea D1: "Bird's eye" — Minimap view**
+
+Show all measures of all sections in a tiny compressed grid. Each cell is just a colored dot (stroke type = color). The full rhythm becomes a visual fingerprint.
+
+```
+  Section: Base           Section: Variation
+  ┌──────────────────┐   ┌──────────────────┐
+  │ ●○●×●×●○●×●○●×●● │   │ ○●×●○×●●○×●○●×○● │
+  │ ×·×·○·×·×·×·○·×· │   │ ×○·×·○·×○·×·○·×· │
+  │ ○×○×○·○×○×○·○×○× │   │ ○×●×●·○×○×●·○×●× │
+  └──────────────────┘   └──────────────────┘
+```
+
+Pinch to zoom into any area → cells grow, icons appear, letters become visible.
+
+**Idea D2: "Pattern blocks" — Measure summary cards**
+
+Instead of showing every cell, show a visual rhythm pattern per measure as a waveform-like block:
+
+```
+  ┌─ M1 ──┐  ┌─ M2 ──┐  ┌─ M3 ──┐
+  │ █▄█▄█▄ │  │ ▄█▄█▄█ │  │ █▄█▄█▄ │   ← density visualization
+  └────────┘  └────────┘  └────────┘
+```
+
+Each block's shape encodes the density and distribution of hits. Identical measures show identical shapes → instant pattern recognition.
+
+**Idea D3: "Zoom lens" — Fixed grid + floating magnifier**
+
+The grid is always shown compressed (full overview). A floating magnifier circle follows your finger, showing a zoomed-in detail view of whatever area you're touching.
+
+**Challenge to this entire dimension:** Most percussionists learn by **ear and body memory**, not by visual notation. A compressed view is useful for a specific subset of users (especially trained musicians who read notation). This should be opt-in, not the default view.
+
+**Synthesis:** Make the grid default to "fit-to-screen" when stopped (showing all cells small but complete), and switch to "follow playhead" (zoomed in, auto-scrolling) during playback. No explicit zoom controls needed for 80% of users — but add pinch-to-zoom for the power users who want it.
+
+---
+
+### Dimension E: Section Loop Selection
+
+Currently: all sections play in sequence. The user wants to select a subset to loop.
+
+**Idea E1: "Playlist checkboxes"**
+
+In the section list/timeline, each section has a checkbox. Only checked sections play.
+
+```
+  ☑ Base        ×4  ♩=80
+  ☑ Variation   ×2  ♩=80
+  ☐ Bridge      ×1  ♩=100    ← skipped
+  ☑ Coda        ×2  ♩=120
+```
+
+**Pro**: Simple, familiar, immediate.
+**Con**: Doesn't handle more complex scenarios (play sections 1→3→1→3 loop).
+
+**Idea E2: "Loop markers" — A/B points**
+
+Like an audio player's A/B loop. Set a start section and end section, and the player loops between them.
+
+```
+  Base ──── Variation ──── Bridge ──── Coda
+  [A ►─────────────────── B]           ← loop range
+```
+
+**Pro**: Flexible, visual, audiophile-familiar.
+**Con**: Only supports contiguous ranges.
+
+**Idea E3: "Queue builder"**
+
+Create a custom playback queue by dragging sections from the list into a queue:
+
+```
+  Available:          Queue:
+  • Base              1. Base ×4
+  • Variation         2. Variation ×2
+  • Bridge            3. Base ×4     ← can repeat sections
+  • Coda              [+ Add]
+```
+
+**Pro**: Maximum flexibility, can repeat sections in any order.
+**Con**: Complex UI, might be overkill for mobile.
+
+**Challenge:** For practice, E1 (checkboxes) covers 90% of use cases. E3 is a desktop power feature. E2 is elegant but limited. **My recommendation: start with E1** — it's trivial to implement and incredibly useful. If users demand more, E3 can be added later as a desktop feature.
+
+---
+
+## Additional Innovative Ideas
+
+### Idea F: "Tap Tempo" — Set BPM by tapping
+
+Instead of dragging a slider, **tap the screen rhythmically** and the app detects the tempo. This is a standard feature in metronome apps and feels very natural for musicians.
+
+Implementation: a "Tap" button next to the BPM slider. Tap it 4+ times → the app calculates the average interval → sets BPM.
+
+```
+  ♩ = ??   [👆 TAP]  tap...tap...tap...tap → ♩ = 92
+```
+
+### Idea G: "Haptic Metronome"
+
+When playing, the phone vibrates on each downbeat. This lets the musician **feel the pulse** without needing to hear a click or look at the screen.
+
+- Downbeat: strong vibration
+- Subdivision: light vibration (optional)
+- Works even when phone is muted
+
+This is extremely useful for practice in noisy environments or when the musician needs to internalize the pulse physically.
+
+### Idea H: "Practice Bookmarks"
+
+Save per-rhythm practice settings: BPM, muted tracks, loop sections, rep count. These are "practice bookmarks" — named presets like:
+
+- "🐢 Slow study (60 BPM, solo Okonkolo)"
+- "🎯 Full speed, all tracks"
+- "🔄 Variation loop ×8"
+
+This separates **rhythm data** (the notation) from **practice configuration** (how you rehearse it). Currently these two are mixed.
+
+### Idea I: "Staff / Linear Notation Mode"
+
+An alternative to the grid: show the rhythm as traditional Western notation or linear time notation. Some musicians read notation more naturally than grid cells.
+
+```
+  Okonkolo: ○  .  ⊗  .  | ○  .  ×  .  | ○  .  ⊗  .  | ○  .  ×  .  |
+  Itotele:  .  ×  .  ×  | ○  .  ×  .  | .  ×  .  ×  | ○  .  ×  .  |
+```
+
+This is especially relevant for musicians from Western music traditions who encounter batá rhythms for the first time.
+
+**Challenge to my own idea:** The app already uses a TUBS grid, which IS a standard percussion notation system. Adding Western notation is a significant feature that serves a different audience. Worth noting but not a priority for this redesign.
+
+---
+
+## How These Dimensions Combine with the 3 Original Proposals
+
+### Combination 1: "Player + Portrait Control Surface"
+
+> Proposal 1 (Player) + Dimension A (Portrait/Landscape) + Dimension C1 (Mixer Strip)
+
+- **Portrait**: Full control surface — now-playing card, BPM knob, mixer strip, rep/random controls, section navigation. No grid.
+- **Landscape**: Grid + slim playback bar at bottom. The phone resting sideways on a music stand = score view.
+
+This is the **"two apps in one phone"** approach. Rotation = mode switch, which is natural and requires zero learning.
+
+### Combination 2: "Dashboard + Compressed View + Loop Selection"
+
+> Proposal 2 (Dashboard) + Dimension D1 (Bird's Eye) + Dimension E1 (Checkboxes)
+
+- Each section card shows a compressed "pattern fingerprint" (colored dots grid)
+- Cards have checkboxes in the corner to include/exclude from playback
+- Tapping a card zooms into the full detailed grid
+- Section cards are the central navigation — everything is on them
+
+### Combination 3: "Toolbar + Adaptive Grid + Tap Tempo"
+
+> Proposal 3 (Toolbar) + Dimension B (Adaptive behavior) + Idea F (Tap Tempo)
+
+- Grid auto-adapts: compressed overview when stopped, follow-playhead when playing
+- Bottom drawer peek bar includes a "TAP" button for setting tempo
+- Drawer half-open shows BPM + rep + random + section selector
+- Drawer full-open reveals mixer + section checkboxes for loop selection
+
+### Combination 4: "Portrait Mixer + Landscape Grid + Track Drawer"
+
+> Dimension A (Portrait/Landscape) + Dimension C3 (Track Drawer) + Dimension E1 (Checkboxes)
+
+- **Portrait**: Dedicated mixer screen with large vertical sliders per track, section checkboxes at top, play controls at bottom
+- **Landscape**: Clean grid (no inline volume), tap track name to expand mini-drawer for quick volume adjustment
+- Rotating the phone feels like flipping between "mix desk" and "sheet music"
+
+### Combination 5: "The Practice Studio"
+
+> Idea H (Practice Bookmarks) + Dimension B (Adaptive) + Dimension E1 (Checkboxes) + Idea G (Haptic)
+
+A fully practice-oriented redesign:
+
+```
+┌────────────────────────────────────────────────┐
+│ ☰  Agguere 1 - Base          📌 Bookmarks   ▶ │
+├────────────────────────────────────────────────┤
+│                                                │
+│   Grid (adaptive: compressed or scrolling)     │
+│                                                │
+├────────────────────────────────────────────────┤
+│  ♩=80 [TAP]  ──●──────    ×4 🎲   CNT ⓸      │
+├────────────────────────────────────────────────┤
+│  ☑ Base  ☑ Var  ☐ Bridge  ☑ Coda    📳 Haptic │
+└────────────────────────────────────────────────┘
+```
+
+Bottom area has 2 rows:
+1. Tempo + reps + count-in (the practice parameters)
+2. Section checkboxes + haptic toggle (the loop configuration)
+
+### Combination 6: "Minimal Player + Power Drawer"
+
+> Proposal 1C (Focus Mode) + Proposal 3A (Quick-access chips) + Dimension A3 (Two-app feeling)
+
+The most minimal of all:
+- **Landscape**: Grid + peek bar ("×4 🎲 | ♩=80 | Base 1/3"). Tap chips to tweak values. Double-tap tracks to solo/mute.
+- **Portrait**: Full-featured control panel. Large BPM, mixer, sections, bookmarks.
+- Zero clutter in landscape. All power in portrait.
+
+---
+
+## Summary Table: All Ideas at a Glance
+
+| ID | Idea | Impact | Effort | Novel? |
+|----|------|:------:|:------:|:------:|
+| **Original Proposals** | | | | |
+| P1 | Player (bottom control deck) | ⭐⭐⭐⭐ | ⭐⭐⭐ | moderate |
+| P2 | Dashboard (section cards) | ⭐⭐⭐⭐⭐ | ⭐⭐ | high |
+| P3 | Toolbar (bottom drawer) | ⭐⭐⭐⭐ | ⭐⭐⭐ | moderate |
+| **New Dimensions** | | | | |
+| A | Portrait/Landscape dual view | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | **high** |
+| B | Play vs View adaptive behavior | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | moderate |
+| C | Elevated mixer (strip/toggle/drawer) | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | moderate |
+| D | Compressed/zoomable notation | ⭐⭐⭐ | ⭐⭐⭐ | **high** |
+| E | Section loop selection | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | moderate |
+| **Innovative Extras** | | | | |
+| F | Tap Tempo | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | moderate |
+| G | Haptic Metronome | ⭐⭐⭐ | ⭐⭐⭐⭐ | **high** |
+| H | Practice Bookmarks | ⭐⭐⭐ | ⭐⭐ | **high** |
+| I | Staff/Linear Notation | ⭐⭐ | ⭐⭐ | moderate |
+
+> Impact = how much it improves the practice experience.
+> Effort = stars mean easier (5★ = trivial, 1★ = major).
+> Novel = how differentiated this is from typical music apps.
+
+---
+
+## My Top Recommendations
+
+### 🥇 **Combination 6** — Minimal Player + Power Drawer (portrait/landscape split)
+
+This is the most elegant synthesis. It _uses the phone's orientation as the mode switch_, which is genius because:
+- It's zero-learning (everyone knows rotation)
+- It's zero-clutter (each orientation is purpose-built)
+- It matches the real-world scenario: phone on stand sideways (notation) vs phone in hand upright (mixing)
+
+### 🥈 **Combination 3** + Dimension A — Toolbar with adaptive grid + portrait mixer
+
+More conservative, keeps the current grid-first approach, but adds the portrait control surface and the bottom drawer for settings. Best balance of innovation and implementation effort.
+
+### 🥉 **Combination 5** — The Practice Studio
+
+The most feature-rich option. Section checkboxes + tap tempo + haptic metronome + bookmarks. This turns the app from a "rhythm viewer" into a "practice companion." Higher effort but transformative.

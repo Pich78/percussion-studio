@@ -1,22 +1,22 @@
 /**
- * js/views/mobileGridView.js
+ * js/views/mobilePlayerView.js
  * 
- * View definition for the mobile "Classic Grid" view.
- * Wraps the existing mobile layout and events into the view interface.
+ * View definition for the mobile "The Player" view (P1).
+ * Wraps the Player layout and mobile events into the view interface.
  */
 
-import { MobileLayout } from '../ui/mobile/standard/layout.js';
+import { PlayerLayout } from '../ui/mobile/player/layout.js';
 import { setupMobileEvents } from '../events/mobileEvents.js';
 import { updateVisualStep, scrollToMeasure } from '../ui/playheadUtils.js';
 
-export const mobileGridView = {
-    id: 'mobile-grid',
-    name: 'Classic Grid',
+export const mobilePlayerView = {
+    id: 'mobile-player',
+    name: 'The Player',
 
-    /** Returns the full mobile layout HTML */
-    layout: MobileLayout,
+    /** Returns the Player layout HTML */
+    layout: PlayerLayout,
 
-    /** Sets up mobile-specific event listeners */
+    /** Sets up mobile-specific event listeners (shared with standard view) */
     setupEvents: setupMobileEvents,
 
     /** Handle playback step visual updates */

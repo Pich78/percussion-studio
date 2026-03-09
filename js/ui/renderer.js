@@ -12,7 +12,7 @@
 import { state } from '../store.js';
 import { getActiveSection } from '../store/stateSelectors.js';
 import { TubsGrid, autoScrollGrid } from '../components/tubsGrid.js';
-import { MobileLayout, calculateMobileCellSize } from './mobile/layout.js';
+import { MobileLayout, calculateMobileCellSize } from './mobile/standard/layout.js';
 import { DesktopLayout } from './desktop/layout.js';
 import { eventBus } from '../services/eventBus.js';
 import { updateVisualStep, scrollToMeasure } from './playheadUtils.js';

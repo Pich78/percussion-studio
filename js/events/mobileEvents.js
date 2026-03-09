@@ -9,6 +9,7 @@ import { getActiveSection, formatRhythmName } from '../store/stateSelectors.js';
 import { actions } from '../actions.js';
 import { togglePlay, stopPlayback } from '../services/sequencer.js';
 import { eventBus } from '../services/eventBus.js';
+import { viewManager } from '../views/viewManager.js';
 import { audioEngine } from '../services/audioEngine.js';
 
 // Import modular handlers
@@ -25,6 +26,8 @@ const MOBILE_ALLOWED_ACTIONS = [
     'select-rhythm-confirm', 'toggle-mute', 'update-global-bpm', 'toggle-folder',
     'update-volume', 'close-modal', 'close-modal-bg', 'open-structure', 'open-view-mode', 'select-view-mode',
     'toggle-user-guide-submenu', 'open-user-guide', 'share-rhythm', 'toggle-count-in',
+    // Player view section navigation
+    'player-prev-section', 'player-next-section',
     // Section dropdown
     'toggle-section-dropdown', 'select-section-item',
     // BataExplorer actions
@@ -193,10 +196,43 @@ const createMobileActionRouter = () => ({
         eventBus.emit('render');
     },
 
-    // Select a view mode proposal (close modal for now)
-    'select-view-mode': () => {
+    // Select a view mode — switch views for implemented proposals
+    'select-view-mode': (e, target) => {
+        const viewId = target.dataset.viewId;
+        const VIEW_MAP = {
+            'standard': 'mobile-grid',
+            'p1': 'mobile-player'
+        };
+        const mappedViewId = VIEW_MAP[viewId];
+        if (mappedViewId) {
+            viewManager.setActiveView(mappedViewId);
+        }
         state.uiState.modalOpen = false;
         eventBus.emit('render');
+    },
+
+    // Player view: previous section
+    'player-prev-section': () => {
+        const sections = state.toque.sections;
+        const currentIdx = sections.findIndex(s => s.id === state.activeSectionId);
+        if (currentIdx > 0) {
+            document.dispatchEvent(new CustomEvent('timeline-select', { detail: sections[currentIdx - 1].id }));
+        } else if (sections.length > 1) {
+            // Wrap to last
+            document.dispatchEvent(new CustomEvent('timeline-select', { detail: sections[sections.length - 1].id }));
+        }
+    },
+
+    // Player view: next section
+    'player-next-section': () => {
+        const sections = state.toque.sections;
+        const currentIdx = sections.findIndex(s => s.id === state.activeSectionId);
+        if (currentIdx < sections.length - 1) {
+            document.dispatchEvent(new CustomEvent('timeline-select', { detail: sections[currentIdx + 1].id }));
+        } else if (sections.length > 1) {
+            // Wrap to first
+            document.dispatchEvent(new CustomEvent('timeline-select', { detail: sections[0].id }));
+        }
     },
 
     // Close modal
