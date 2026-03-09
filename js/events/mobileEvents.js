@@ -202,7 +202,8 @@ const createMobileActionRouter = () => ({
         const VIEW_MAP = {
             'standard': 'mobile-grid',
             'p1': 'mobile-player',
-            'p1a': 'mobile-player-mixer'
+            'p1a': 'mobile-player-mixer',
+            'p1b': 'mobile-player-knob'
         };
         const mappedViewId = VIEW_MAP[viewId];
         if (mappedViewId) {
@@ -356,7 +357,71 @@ export const setupMobileEvents = () => {
     let activeVolContainer = null;
     let activeVolInput = null;
 
+    // Circular tempo knob drag tracking
+    let activeKnobEl = null;
+
+    // ─── Knob math helpers ──────────────────────────────────────
+    const KNOB_START_ANGLE = 135;  // degrees (bottom-left)
+    const KNOB_ARC_SPAN = 270;    // 270° arc
+    const BPM_MIN = 40;
+    const BPM_MAX = 240;
+
+    /**
+     * Convert a screen touch/mouse position to a BPM value based on
+     * the angle relative to the knob center.
+     */
+    function knobPositionToBpm(clientX, clientY, knobEl) {
+        const rect = knobEl.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        const dx = clientX - cx;
+        const dy = clientY - cy;
+
+        // atan2 gives angle in radians from positive-x axis; convert to degrees
+        let angle = Math.atan2(dy, dx) * (180 / Math.PI);
+        // Normalize to 0–360
+        if (angle < 0) angle += 360;
+
+        // Map from our arc range (135°–405°) to a 0–1 fraction
+        // The arc goes clockwise from 135° (bottom-left) to 405° (= 45° bottom-right)
+        let mapped = angle;
+        // Angles 0–45° correspond to 360–405° in our arc
+        if (mapped < KNOB_START_ANGLE) mapped += 360;
+
+        let fraction = (mapped - KNOB_START_ANGLE) / KNOB_ARC_SPAN;
+        fraction = Math.max(0, Math.min(1, fraction));
+
+        return Math.round(BPM_MIN + fraction * (BPM_MAX - BPM_MIN));
+    }
+
+    /**
+     * Apply a new BPM from knob interaction (direct DOM + state update, no re-render)
+     */
+    function applyKnobBpm(bpm) {
+        state.toque.globalBpm = bpm;
+        const section = getActiveSection(state);
+        if (!section?.bpm) playback.currentPlayheadBpm = bpm;
+        // Update BPM display
+        const display = document.getElementById('header-global-bpm');
+        if (display) display.textContent = bpm;
+        // Update the hidden range input for consistency
+        const rangeInput = document.querySelector('#tempo-knob input[data-action="update-global-bpm"]');
+        if (rangeInput) rangeInput.value = bpm;
+    }
+
     root.addEventListener('touchstart', (e) => {
+        // 0. Check for Circular Tempo Knob
+        const knobEl = e.target.closest('#tempo-knob');
+        if (knobEl) {
+            activeKnobEl = knobEl;
+            window.__bpmDragging = true;
+            const touch = e.touches[0];
+            const newBpm = knobPositionToBpm(touch.clientX, touch.clientY, knobEl);
+            applyKnobBpm(newBpm);
+            e.preventDefault();
+            return;
+        }
+
         // 1. Check for BPM Slider
         const bpmContainer = e.target.closest('.group\\/bpm');
         if (bpmContainer) {
@@ -408,6 +473,13 @@ export const setupMobileEvents = () => {
     }, { passive: false });
 
     document.addEventListener('touchmove', (e) => {
+        // Handle Knob Drag
+        if (activeKnobEl) {
+            const touch = e.touches[0];
+            const newBpm = knobPositionToBpm(touch.clientX, touch.clientY, activeKnobEl);
+            applyKnobBpm(newBpm);
+        }
+
         // Handle BPM Drag
         if (activeBpmInput && activeBpmContainer) {
             const touch = e.touches[0];
@@ -436,6 +508,12 @@ export const setupMobileEvents = () => {
     }, { passive: true });
 
     document.addEventListener('touchend', () => {
+        if (activeKnobEl) {
+            window.__bpmDragging = false;
+            activeKnobEl = null;
+            // Full re-render to update the SVG knob arc visuals
+            eventBus.emit('render');
+        }
         if (activeBpmInput) {
             window.__bpmDragging = false;
             activeBpmInput = null;
@@ -447,6 +525,35 @@ export const setupMobileEvents = () => {
             activeVolInput.dispatchEvent(new Event('change', { bubbles: true }));
             activeVolInput = null;
             activeVolContainer = null;
+        }
+    });
+
+    // ─── Mouse events for tempo knob (desktop) ──────────────────────────
+    let mouseKnobEl = null;
+
+    root.addEventListener('mousedown', (e) => {
+        const knobEl = e.target.closest('#tempo-knob');
+        if (knobEl) {
+            mouseKnobEl = knobEl;
+            window.__bpmDragging = true;
+            const newBpm = knobPositionToBpm(e.clientX, e.clientY, knobEl);
+            applyKnobBpm(newBpm);
+            e.preventDefault();
+        }
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (mouseKnobEl) {
+            const newBpm = knobPositionToBpm(e.clientX, e.clientY, mouseKnobEl);
+            applyKnobBpm(newBpm);
+        }
+    });
+
+    document.addEventListener('mouseup', () => {
+        if (mouseKnobEl) {
+            window.__bpmDragging = false;
+            mouseKnobEl = null;
+            eventBus.emit('render');
         }
     });
 
