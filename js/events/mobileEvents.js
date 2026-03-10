@@ -203,7 +203,8 @@ const createMobileActionRouter = () => ({
             'standard': 'mobile-grid',
             'p1': 'mobile-player',
             'p1a': 'mobile-player-mixer',
-            'p1b': 'mobile-player-knob'
+            'p1b': 'mobile-player-knob',
+            'p1c': 'mobile-player-focus'
         };
         const mappedViewId = VIEW_MAP[viewId];
         if (mappedViewId) {
