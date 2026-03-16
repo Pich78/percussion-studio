@@ -119,6 +119,12 @@ export const renderApp = () => {
       updateVisualStep(state.currentStep, state.currentMeasure || 0);
     }, 0);
   }
+
+  // Call onRender hook if the active view defines it
+  // Use requestAnimationFrame so the DOM is painted before the hook runs
+  if (view && view.onRender) {
+    requestAnimationFrame(() => view.onRender());
+  }
 };
 
 export const refreshGrid = () => {

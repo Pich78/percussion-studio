@@ -12,6 +12,7 @@ import { mobilePlayerMixerView } from './views/mobilePlayerMixerView.js';
 import { mobilePlayerKnobView } from './views/mobilePlayerKnobView.js';
 import { mobilePlayerFocusView } from './views/mobilePlayerFocusView.js';
 import { mobileDashboardView } from './views/mobileDashboardView.js';
+import { mobileDashboardStackView } from './views/mobileDashboardStackView.js';
 import { desktopEditorView } from './views/desktopEditorView.js';
 import { setViewProvider } from './ui/renderer.js';
 import { setupEventListeners } from './events.js';
@@ -28,6 +29,7 @@ viewManager.registerView(mobilePlayerMixerView);
 viewManager.registerView(mobilePlayerKnobView);
 viewManager.registerView(mobilePlayerFocusView);
 viewManager.registerView(mobileDashboardView);
+viewManager.registerView(mobileDashboardStackView);
 viewManager.registerView(desktopEditorView);
 
 // Set the active view based on the page context

@@ -207,7 +207,8 @@ const createMobileActionRouter = () => ({
             'p1a': 'mobile-player-mixer',
             'p1b': 'mobile-player-knob',
             'p1c': 'mobile-player-focus',
-            'p2': 'mobile-dashboard'
+            'p2': 'mobile-dashboard',
+            'p2a': 'mobile-dashboard-stack'
         };
         const mappedViewId = VIEW_MAP[viewId];
         if (mappedViewId) {
