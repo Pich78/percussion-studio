@@ -351,6 +351,7 @@ export const MobileLayout = () => {
         const isStandard = activeViewId === 'mobile-grid';
         const isPlayer = activeViewId === 'mobile-player';
         const isPlayerMixer = activeViewId === 'mobile-player-mixer';
+        const isDashboard = activeViewId === 'mobile-dashboard';
         const activeTag = `<span class="text-[9px] font-bold text-green-400 bg-green-500/15 px-1.5 py-0.5 rounded ml-auto flex-shrink-0">Active</span>`;
         return `
         <div class="fixed inset-0 z-50 flex flex-col">
@@ -385,7 +386,7 @@ export const MobileLayout = () => {
                                 <span class="text-gray-100 text-sm font-medium">The Player</span>
                                 ${isPlayer ? activeTag : '<span class="text-[10px] text-gray-500 ml-auto">Music player paradigm</span>'}
                             </button>
-                            <button data-action="select-view-mode" data-view-id="p1a" class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors rounded-b-2xl">
+                            <button data-action="select-view-mode" data-view-id="p1a" class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
                                 <div class="w-7 h-7 rounded-lg bg-emerald-500/15 flex items-center justify-center flex-shrink-0">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-emerald-400 pointer-events-none">
                                       <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
@@ -393,6 +394,15 @@ export const MobileLayout = () => {
                                 </div>
                                 <span class="text-gray-100 text-sm font-medium">Player + Mixer</span>
                                 ${isPlayerMixer ? activeTag : '<span class="text-[10px] text-gray-500 ml-auto">Mixer on swipe</span>'}
+                            </button>
+                            <button data-action="select-view-mode" data-view-id="p2" class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors rounded-b-2xl">
+                                <div class="w-7 h-7 rounded-lg bg-cyan-500/15 flex items-center justify-center flex-shrink-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-cyan-400 pointer-events-none">
+                                      <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 7.125C2.25 6.504 2.754 6 3.375 6h6c.621 0 1.125.504 1.125 1.125v3.75c0 .621-.504 1.125-1.125 1.125h-6a1.125 1.125 0 01-1.125-1.125v-3.75zM14.25 8.625c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v8.25c0 .621-.504 1.125-1.125 1.125h-5.25a1.125 1.125 0 01-1.125-1.125v-8.25zM3.75 16.125c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v2.25c0 .621-.504 1.125-1.125 1.125h-5.25a1.125 1.125 0 01-1.125-1.125v-2.25z" />
+                                    </svg>
+                                </div>
+                                <span class="text-gray-100 text-sm font-medium">The Dashboard</span>
+                                ${isDashboard ? activeTag : '<span class="text-[10px] text-gray-500 ml-auto">Card-based navigator</span>'}
                             </button>
                         </div>
                     </div>

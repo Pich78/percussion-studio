@@ -30,6 +30,8 @@ const MOBILE_ALLOWED_ACTIONS = [
     'player-prev-section', 'player-next-section', 'toggle-mixer-sheet',
     // Section dropdown
     'toggle-section-dropdown', 'select-section-item',
+    // Dashboard (P2) grid overlay
+    'toggle-grid-overlay',
     // BataExplorer actions
     'close-bata-explorer', 'close-bata-explorer-bg', 'toggle-filter-dropdown',
     'toggle-orisha-filter', 'remove-orisha-filter', 'toggle-type-filter',
@@ -204,7 +206,8 @@ const createMobileActionRouter = () => ({
             'p1': 'mobile-player',
             'p1a': 'mobile-player-mixer',
             'p1b': 'mobile-player-knob',
-            'p1c': 'mobile-player-focus'
+            'p1c': 'mobile-player-focus',
+            'p2': 'mobile-dashboard'
         };
         const mappedViewId = VIEW_MAP[viewId];
         if (mappedViewId) {
@@ -227,6 +230,17 @@ const createMobileActionRouter = () => ({
                 sheet.style.pointerEvents = 'auto';
             }
         }
+    },
+
+    // Dashboard (P2) grid overlay toggle
+    'toggle-grid-overlay': (e, target) => {
+        // If a section id is provided, switch to that section first
+        const sectionId = target?.dataset?.sectionId;
+        if (sectionId) {
+            document.dispatchEvent(new CustomEvent('timeline-select', { detail: sectionId }));
+        }
+        state.uiState.dashboardGridOpen = !state.uiState.dashboardGridOpen;
+        eventBus.emit('render');
     },
 
     // Player view: previous section

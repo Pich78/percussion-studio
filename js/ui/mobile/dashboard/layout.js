@@ -1,15 +1,16 @@
 /**
- * js/ui/mobile/player-focus/layout.js
- * 
- * Layout for P1c "Focus Mode" — Player with Solo/Focus Interaction.
- * Extends The Player (P1) with:
- *   - Double-tap a track name to SOLO it (mute all others)
- *   - Double-tap again to UNSOLO (unmute all)
- *   - Non-soloed tracks are visually dimmed
- *   - A hint indicator shows the focus mode instruction
- * 
- * Uses the same header, section bar, and control deck as P1,
- * with an enhanced grid that supports the solo interaction.
+ * js/ui/mobile/dashboard/layout.js
+ *
+ * Layout for P2 "The Dashboard" — Card-Based Section Navigator.
+ * Replaces the grid-first view with a section-first card navigator:
+ *   - Slim header (menu + rhythm name + play/stop)
+ *   - Horizontally swipeable section cards (one per section)
+ *   - Each card shows: name, meter, BPM slider, reps, random, mini mixer
+ *   - "View Grid" button on each card opens a full-screen grid overlay
+ *   - Page dots + prev/next arrows for section navigation
+ *   - Slim footer with count-in status + live BPM
+ *
+ * Reuses shared modals (menu, structure, viewMode, userGuide, BataExplorer).
  */
 
 import { state, playback } from '../../../store.js';
@@ -20,9 +21,9 @@ import { StopIcon } from '../../../icons/stopIcon.js';
 import { PlayIcon } from '../../../icons/playIcon.js';
 import { PauseIcon } from '../../../icons/pauseIcon.js';
 import { DeviceRotateIcon } from '../../../icons/DeviceRotateIcon.js';
-import { BataExplorerModal } from '../../../components/bataExplorerModal.js';
 import { FolderOpenIcon } from '../../../icons/folderOpenIcon.js';
 import { ChevronDownIcon } from '../../../icons/chevronDownIcon.js';
+import { BataExplorerModal } from '../../../components/bataExplorerModal.js';
 import { Timeline } from '../../../components/timeline.js';
 import { viewManager } from '../../../views/viewManager.js';
 
@@ -30,13 +31,9 @@ import { viewManager } from '../../../views/viewManager.js';
 import { calculateMobileCellSize } from '../standard/layout.js';
 export { calculateMobileCellSize };
 
-// ─── Header (Slim — same as P1) ────────────────────────────────────────────
+// ─── Header (Slim) ──────────────────────────────────────────────────────────
 
-const renderPlayerHeader = (activeSection) => {
-  const sections = state.toque.sections;
-  const totalSections = sections.length;
-  const activeSectionIndex = sections.findIndex(s => s.id === state.activeSectionId) + 1;
-
+const renderDashboardHeader = () => {
   return `
     <header class="h-10 px-2 border-b border-gray-800 flex justify-between items-center bg-gray-950 flex-shrink-0 z-40 gap-2">
       <!-- Left: Menu -->
@@ -46,154 +43,221 @@ const renderPlayerHeader = (activeSection) => {
         </button>
       </div>
 
-      <!-- Center: Rhythm & Section Name -->
-      <div class="flex items-center justify-center flex-1 min-w-0 gap-1.5 overflow-hidden">
+      <!-- Center: Rhythm Name -->
+      <div class="flex items-center justify-center flex-1 min-w-0 overflow-hidden">
         <span class="text-xs font-bold text-amber-400 truncate">${state.toque.name}</span>
-        <span class="text-gray-600 text-xs">/</span>
-        <span class="text-xs font-bold text-gray-200 truncate">${activeSection.name}</span>
-        <span class="text-[9px] font-mono text-gray-500 flex-shrink-0">${activeSectionIndex}/${totalSections}</span>
       </div>
 
-      <!-- Right: Status Badge -->
-      <div class="flex items-center gap-1.5 text-[9px] text-gray-500 font-mono bg-gray-900/50 px-1.5 py-0.5 rounded border border-gray-800/50 flex-shrink-0">
-        <!-- Repetitions -->
-        <span class="flex items-center gap-0.5">
-          <span class="uppercase tracking-wider">Rep</span>
-          <span class="text-white font-bold" id="header-rep-count">${state.isPlaying ? playback.repetitionCounter : 1}</span>
-          <span class="text-gray-600">/</span>
-          <span>${activeSection.repetitions || 1}</span>
-        </span>
-        ${activeSection.randomRepetitions ? '<span class="text-cyan-400">🎲</span>' : ''}
-        <div class="h-2.5 w-px bg-gray-700"></div>
-        <!-- Live BPM -->
-        <span class="flex items-center gap-0.5 ${state.isPlaying ? 'text-green-400' : 'text-gray-600'} font-bold">
-          <span class="text-[8px] uppercase opacity-70">BPM</span>
-          <span id="header-live-bpm">${state.isPlaying ? Math.round(playback.currentPlayheadBpm) : state.toque.globalBpm}</span>
-        </span>
+      <!-- Right: Play/Stop -->
+      <div class="flex items-center gap-1 flex-shrink-0">
+        <button data-action="stop" class="w-8 h-8 rounded-lg flex items-center justify-center bg-gray-800 text-gray-400 hover:bg-red-900/40 hover:text-red-400 transition-all border border-gray-700">
+          ${StopIcon('w-4 h-4 pointer-events-none')}
+        </button>
+        <button data-action="toggle-play" class="w-8 h-8 rounded-lg flex items-center justify-center transition-all shadow-lg ${state.isPlaying ? 'bg-amber-500/15 text-amber-500 border border-amber-500/50' : 'bg-green-600 text-white shadow-green-900/30 border border-green-500'}">
+          ${state.isPlaying ? PauseIcon('w-4 h-4 pointer-events-none') : PlayIcon('w-4 h-4 ml-0.5 pointer-events-none')}
+        </button>
       </div>
     </header>
   `;
 };
 
-// ─── Focus Mode Indicator ───────────────────────────────────────────────────
+// ─── Mini Mixer Row (per track) ─────────────────────────────────────────────
 
-const renderFocusIndicator = (activeSection) => {
-  // Determine if any track is currently soloed (i.e., the only one NOT muted)
-  const tracks = activeSection?.measures?.[0]?.tracks || [];
-  const unmutedCount = tracks.filter(t => !t.muted).length;
-  const totalTracks = tracks.length;
-  const hasSolo = totalTracks > 1 && unmutedCount === 1;
-  const soloedTrack = hasSolo ? tracks.find(t => !t.muted) : null;
-
-  if (hasSolo && soloedTrack) {
-    const instDef = state.instrumentDefinitions?.[soloedTrack.instrument];
-    const soloName = instDef ? instDef.name : soloedTrack.instrument;
-    return `
-      <div class="flex items-center justify-center gap-2 h-6 bg-violet-500/10 border-t border-b border-violet-500/30 px-3 flex-shrink-0">
-        <span class="text-[10px] font-bold text-violet-400 uppercase tracking-wider animate-pulse">🎯 Solo</span>
-        <span class="text-[10px] font-bold text-violet-200">${soloName}</span>
-        <span class="text-[9px] text-violet-400/60 ml-1">double-tap to unsolo</span>
-      </div>
-    `;
-  }
+const renderMiniMixerRow = (track, trackIndex) => {
+  const isMuted = track.muted;
+  const volume = state.mix?.[track.instrument]?.volume ?? 1.0;
+  const volumePct = Math.round(volume * 100);
 
   return `
-    <div class="flex items-center justify-center gap-2 h-6 bg-gray-900/50 border-t border-b border-gray-800/50 px-3 flex-shrink-0">
-      <span class="text-[9px] text-gray-500">💡 Double-tap a track name to <span class="text-violet-400 font-semibold">solo</span></span>
-    </div>
-  `;
-};
-
-// ─── Focus Tap Target Overlay ───────────────────────────────────────────────
-// Invisible buttons positioned over each track label, one per track.
-// The TubsGrid sticky label column is w-44 (176px); these buttons sit above it.
-// double-tap detection lives in focusEvents.js which listens for
-// data-role="focus-track-tap" elements.
-
-const renderFocusTapTargets = (activeSection) => {
-  const tracks = activeSection?.measures?.[0]?.tracks || [];
-  if (tracks.length === 0) return '';
-
-  const unmutedCount = tracks.filter(t => !t.muted).length;
-  const hasSolo = tracks.length > 1 && unmutedCount === 1;
-
-  // Each TrackRow is ~52px tall (py-1.5 padding + name row + control row).
-  // We stack one button per track inside a flex column so they self-size.
-  const buttons = tracks.map((track, idx) => {
-    const isSoloed = hasSolo && !track.muted;
-    const isDimmed = hasSolo && track.muted;
-    const instDef = state.instrumentDefinitions?.[track.instrument];
-    const displayName = instDef ? instDef.name : track.instrument;
-
-    // Visual ring indicates tappable + shows solo state
-    const ringClass = isSoloed
-      ? 'ring-2 ring-violet-500/70 bg-violet-500/10'
-      : isDimmed
-        ? 'opacity-40'
-        : 'hover:bg-white/5 active:bg-white/10';
-
-    return `
-      <button
-        data-role="focus-track-tap"
-        data-track-index="${idx}"
-        class="flex-1 w-44 flex items-center justify-start px-3 rounded-sm transition-all duration-150 cursor-pointer ${ringClass}"
-        title="Double-tap to ${isSoloed ? 'unsolo' : 'solo'} ${displayName}"
-      >
-        ${isSoloed ? '<span class="text-[8px] font-bold text-violet-400 uppercase tracking-wider pointer-events-none">solo</span>' : ''}
+    <div class="flex items-center gap-2 py-0.5">
+      <!-- Mute toggle -->
+      <button data-action="toggle-mute" data-track-index="${trackIndex}"
+        class="flex-shrink-0 w-5 h-5 rounded flex items-center justify-center transition-colors ${isMuted ? 'bg-red-900/40 text-red-400' : 'bg-gray-700/50 text-gray-400 hover:text-gray-200'}">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3 h-3 pointer-events-none">
+          ${isMuted
+            ? '<path stroke-linecap="round" stroke-linejoin="round" d="M17.25 9.75L19.5 12m0 0l2.25 2.25M19.5 12l2.25-2.25M19.5 12l-2.25 2.25m-10.5-6l4.72-4.72a.75.75 0 011.28.531V19.94a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.506-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.395C2.806 8.757 3.63 8.25 4.51 8.25H6.75z" />'
+            : '<path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.506-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.395C2.806 8.757 3.63 8.25 4.51 8.25H6.75z" />'
+          }
+        </svg>
       </button>
-    `;
-  }).join('');
+
+      <!-- Instrument Name -->
+      <span class="text-[10px] text-gray-400 w-14 truncate flex-shrink-0 ${isMuted ? 'line-through opacity-50' : ''}">${track.instrument}</span>
+
+      <!-- Volume bar (read-only visual) -->
+      <div class="flex-1 h-1.5 bg-gray-700/50 rounded-full overflow-hidden">
+        <div class="h-full rounded-full transition-all ${isMuted ? 'bg-gray-600' : 'bg-gradient-to-r from-cyan-700 to-cyan-400'}" style="width: ${isMuted ? 0 : volumePct}%"></div>
+      </div>
+
+      <!-- Volume % -->
+      <span class="text-[9px] font-mono text-gray-600 w-7 text-right flex-shrink-0">${isMuted ? '✕' : volumePct + '%'}</span>
+    </div>
+  `;
+};
+
+// ─── Single Section Card ─────────────────────────────────────────────────────
+
+const renderSectionCard = (section, isActive, sectionIndex, totalSections) => {
+  const bpmPercent = ((state.toque.globalBpm - 40) / 200) * 100;
+  const subdivision = section?.subdivision || 4;
+  const meter = `${subdivision === 3 ? 6 : 4}/${subdivision === 3 ? 8 : 4}`;
+  const tracks = section?.measures?.[0]?.tracks || [];
+
+  const cardBorder = isActive
+    ? 'border-cyan-500/50 ring-1 ring-cyan-500/30'
+    : 'border-gray-700/50';
+
+  const repDisplay = section.repetitions > 1
+    ? `<span class="text-xs font-mono font-bold text-white">×${section.repetitions}</span>`
+    : `<span class="text-xs font-mono text-gray-500">×1</span>`;
 
   return `
-    <div
-      class="absolute top-0 left-0 h-full flex flex-col z-30 pointer-events-none"
-      id="focus-tap-overlay"
-    >
-      <div class="flex flex-col h-full pointer-events-auto">
-        ${buttons}
+    <div class="dashboard-card flex-shrink-0 w-full h-full flex flex-col p-3 gap-2 bg-gray-900/80 rounded-2xl border ${cardBorder} snap-center overflow-hidden"
+         data-section-id="${section.id}"
+         data-card-index="${sectionIndex}">
+
+      <!-- Card Header: Section Name + Active indicator -->
+      <div class="flex items-start justify-between gap-2 flex-shrink-0">
+        <div class="flex flex-col min-w-0">
+          <div class="flex items-center gap-2">
+            ${isActive ? `<div class="w-1.5 h-1.5 rounded-full bg-cyan-400 flex-shrink-0 ${state.isPlaying ? 'animate-pulse' : ''}"></div>` : '<div class="w-1.5 h-1.5 rounded-full bg-gray-600 flex-shrink-0"></div>'}
+            <span class="text-sm font-bold text-gray-100 truncate">「${section.name}」</span>
+          </div>
+          <div class="flex items-center gap-2 mt-0.5 pl-3.5">
+            <span class="text-[10px] font-mono text-gray-500">${meter} · ${section.steps || 16} steps</span>
+            <span class="text-[10px] font-mono text-gray-600">${sectionIndex + 1}/${totalSections}</span>
+          </div>
+        </div>
+
+        <!-- View Grid button -->
+        <button data-action="toggle-grid-overlay" data-section-id="${section.id}"
+          class="flex-shrink-0 flex items-center gap-1 px-2 py-1 rounded-md bg-gray-800/80 text-gray-400 hover:text-white hover:bg-gray-700 border border-gray-700/50 transition-colors text-[10px] font-medium">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3 h-3 pointer-events-none">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+          </svg>
+          Grid
+        </button>
+      </div>
+
+      <!-- BPM Slider (inline, only shown on active card) -->
+      ${isActive ? `
+      <div class="flex items-center gap-2 flex-shrink-0">
+        <div class="flex flex-col items-start leading-none flex-shrink-0">
+          <span class="text-[8px] font-bold text-gray-500 uppercase tracking-wider">Tempo</span>
+          <span class="text-sm font-mono font-bold text-cyan-400" id="header-global-bpm">${state.toque.globalBpm} <span class="text-[9px] text-gray-600">BPM</span></span>
+        </div>
+        <div class="relative flex-1 h-8 flex items-center group/bpm cursor-pointer">
+          <!-- Track -->
+          <div class="absolute left-0 right-0 h-1.5 bg-gray-700 rounded-full"></div>
+          <!-- Fill -->
+          <div class="absolute left-0 h-1.5 bg-gradient-to-r from-cyan-700 to-cyan-400 rounded-full" style="width: ${bpmPercent}%"></div>
+          <!-- Handle -->
+          <div class="absolute w-4 h-4 bg-white rounded-full shadow-lg border-2 border-cyan-400 z-[15]" style="left: calc(${bpmPercent}% - 8px)"></div>
+          <!-- Range input -->
+          <input type="range" min="40" max="240" value="${state.toque.globalBpm}" data-action="update-global-bpm"
+            class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" />
+        </div>
+      </div>
+      ` : `
+      <!-- BPM display (read-only for inactive cards) -->
+      <div class="flex items-center gap-1.5 flex-shrink-0">
+        <span class="text-[8px] font-bold text-gray-500 uppercase tracking-wider">Tempo</span>
+        <span class="text-xs font-mono text-gray-500">${state.toque.globalBpm} BPM</span>
+      </div>
+      `}
+
+      <!-- Rep + Random row -->
+      <div class="flex items-center gap-3 flex-shrink-0">
+        <div class="flex items-center gap-1 bg-gray-800/60 px-2 py-1 rounded-lg border border-gray-700/50">
+          <span class="text-[9px] font-bold text-gray-500 uppercase">Rep</span>
+          ${repDisplay}
+        </div>
+        ${section.randomRepetitions ? `
+        <div class="flex items-center gap-0.5 bg-cyan-900/20 px-2 py-1 rounded-lg border border-cyan-800/40">
+          <span class="text-xs">🎲</span>
+          <span class="text-[9px] text-cyan-400 font-bold uppercase">Rand</span>
+        </div>
+        ` : ''}
+        ${isActive && state.isPlaying ? `
+        <div class="flex items-center gap-1 ml-auto">
+          <span class="text-[9px] text-gray-500 uppercase">Rep</span>
+          <span class="text-xs font-mono font-bold text-white" id="header-rep-count">${playback.repetitionCounter}</span>
+          <span class="text-[9px] text-gray-600">/${section.repetitions || 1}</span>
+        </div>
+        ` : ''}
+      </div>
+
+      <!-- Mini Mixer (scrollable, fills remaining space) -->
+      <div class="flex-1 overflow-y-auto min-h-0">
+        <div class="flex flex-col gap-0.5">
+          ${tracks.length > 0
+            ? tracks.map((track, i) => renderMiniMixerRow(track, i)).join('')
+            : `<span class="text-[10px] text-gray-600 italic">No tracks</span>`
+          }
+        </div>
       </div>
     </div>
   `;
 };
 
-// ─── Section Navigation Bar (same as P1) ────────────────────────────────────
+// ─── Section Card Carousel ───────────────────────────────────────────────────
 
-const renderSectionBar = (activeSection) => {
+const renderCardCarousel = (activeSection) => {
   const sections = state.toque.sections;
   const totalSections = sections.length;
-  const activeSectionIndex = sections.findIndex(s => s.id === state.activeSectionId) + 1;
+  const activeSectionIndex = sections.findIndex(s => s.id === state.activeSectionId);
   const hasMutipleSections = totalSections > 1;
 
   return `
-    <div class="h-9 px-3 flex items-center justify-between bg-gray-900/80 border-t border-b border-gray-800 flex-shrink-0">
-      <!-- Prev Section -->
-      <button data-action="player-prev-section"
-        class="w-7 h-7 rounded-md flex items-center justify-center transition-colors ${hasMutipleSections ? 'text-gray-400 hover:text-white hover:bg-gray-800 active:bg-gray-700' : 'text-gray-700 cursor-default'}"
-        ${!hasMutipleSections ? 'disabled' : ''}
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 pointer-events-none"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
-      </button>
-
-      <!-- Section Name -->
-      <div class="flex items-center gap-2 min-w-0">
-        <span class="text-sm font-bold text-gray-100 truncate">「${activeSection.name}」</span>
-        <span class="text-[10px] font-mono text-gray-500 flex-shrink-0">${activeSectionIndex} of ${totalSections}</span>
+    <div class="flex-1 flex flex-col overflow-hidden px-3 py-2 gap-2">
+      <!-- Cards area -->
+      <div id="dashboard-cards-container"
+        class="flex-1 relative overflow-hidden">
+        <!-- Scrollable strip -->
+        <div id="dashboard-cards-strip"
+          class="flex h-full gap-3 overflow-x-auto snap-x snap-mandatory scroll-smooth no-scrollbar"
+          style="scroll-padding: 0;">
+          ${sections.map((s, i) =>
+            `<div class="flex-shrink-0 snap-center" style="width: 100%; height: 100%;">
+              ${renderSectionCard(s, s.id === state.activeSectionId, i, totalSections)}
+            </div>`
+          ).join('')}
+        </div>
       </div>
 
-      <!-- Next Section -->
-      <button data-action="player-next-section"
-        class="w-7 h-7 rounded-md flex items-center justify-center transition-colors ${hasMutipleSections ? 'text-gray-400 hover:text-white hover:bg-gray-800 active:bg-gray-700' : 'text-gray-700 cursor-default'}"
-        ${!hasMutipleSections ? 'disabled' : ''}
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 pointer-events-none"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
-      </button>
+      <!-- Navigation row: prev arrow · dots · next arrow -->
+      <div class="flex items-center justify-center gap-4 flex-shrink-0 h-7">
+        <!-- Prev -->
+        <button data-action="player-prev-section"
+          class="w-7 h-7 rounded-md flex items-center justify-center transition-colors ${hasMutipleSections ? 'text-gray-400 hover:text-white hover:bg-gray-800 active:bg-gray-700' : 'text-gray-700 cursor-default'}"
+          ${!hasMutipleSections ? 'disabled' : ''}>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 pointer-events-none"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
+        </button>
+
+        <!-- Page dots -->
+        <div class="flex items-center gap-1.5">
+          ${sections.map((s, i) => {
+            const isActive = s.id === state.activeSectionId;
+            return `<button data-action="select-section-item" data-section-id="${s.id}"
+              class="rounded-full transition-all ${isActive ? 'w-4 h-1.5 bg-cyan-400' : 'w-1.5 h-1.5 bg-gray-600 hover:bg-gray-400'}">
+            </button>`;
+          }).join('')}
+        </div>
+
+        <!-- Next -->
+        <button data-action="player-next-section"
+          class="w-7 h-7 rounded-md flex items-center justify-center transition-colors ${hasMutipleSections ? 'text-gray-400 hover:text-white hover:bg-gray-800 active:bg-gray-700' : 'text-gray-700 cursor-default'}"
+          ${!hasMutipleSections ? 'disabled' : ''}>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 pointer-events-none"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+        </button>
+      </div>
     </div>
   `;
 };
 
-// ─── Bottom Control Deck (same as P1) ───────────────────────────────────────
+// ─── Footer (slim status strip) ──────────────────────────────────────────────
 
-const renderControlDeck = (activeSection) => {
+const renderDashboardFooter = (activeSection) => {
   const subdivision = activeSection?.subdivision || 4;
   const countInBeats = subdivision === 3 ? 6 : 4;
   const isCountingIn = playback.isCountingIn;
@@ -201,79 +265,93 @@ const renderControlDeck = (activeSection) => {
 
   const countInEnabledClass = state.countInEnabled
     ? 'bg-cyan-500/15 border-cyan-500/50 text-cyan-400'
-    : 'bg-gray-800 border-gray-700 text-gray-500';
-
-  const countingInClass = isCountingIn
-    ? 'animate-pulse ring-2 ring-cyan-400'
-    : '';
-
-  const bpmPercent = ((state.toque.globalBpm - 40) / 200) * 100;
+    : 'bg-gray-800/60 border-gray-700 text-gray-500';
 
   return `
-    <div class="flex-shrink-0 bg-gray-950 border-t border-gray-800 px-3 py-2 flex flex-col gap-2">
-      <!-- BPM Slider (Large) -->
-      <div class="flex items-center gap-3">
-        <div class="flex flex-col items-start leading-none flex-shrink-0">
-          <span class="text-[8px] font-bold text-gray-500 uppercase tracking-wider">Tempo</span>
-          <span class="text-sm font-mono font-bold text-cyan-400" id="header-global-bpm">${state.toque.globalBpm} <span class="text-[9px] text-gray-600">BPM</span></span>
-        </div>
-        <div class="relative flex-1 h-8 flex items-center group/bpm cursor-pointer">
-          <!-- Background track -->
-          <div class="absolute left-0 right-0 h-2 bg-gray-700 rounded-full cursor-pointer"></div>
-          <!-- Fill bar -->
-          <div class="absolute left-0 h-2 bg-gradient-to-r from-cyan-600 to-cyan-400 rounded-full cursor-pointer" style="width: ${bpmPercent}%"></div>
-          <!-- Handle -->
-          <div class="absolute w-5 h-5 bg-white rounded-full shadow-lg border-2 border-cyan-400 cursor-pointer z-[15]" style="left: calc(${bpmPercent}% - 10px)"></div>
-          <!-- Range input (invisible) -->
-          <input type="range" min="40" max="240" value="${state.toque.globalBpm}" data-action="update-global-bpm"
-            class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" />
-        </div>
+    <div class="flex-shrink-0 h-8 px-3 border-t border-gray-800 flex items-center justify-between gap-3 bg-gray-950/80">
+      <!-- Count-in -->
+      <button data-action="toggle-count-in" class="flex items-center gap-1 px-2 py-0.5 rounded border transition-all text-[9px] ${countInEnabledClass} ${isCountingIn ? 'animate-pulse ring-1 ring-cyan-400' : ''}">
+        <span class="font-bold uppercase">Cnt</span>
+        <span class="font-mono font-bold">${isCountingIn ? countInStep : countInBeats}</span>
+      </button>
+
+      <!-- Section name + live BPM -->
+      <div class="flex items-center gap-2 flex-1 justify-center min-w-0">
+        <span class="text-[9px] text-gray-500 truncate">${activeSection.name}</span>
+        <span class="text-[9px] text-gray-700">·</span>
+        <span class="text-[9px] font-mono ${state.isPlaying ? 'text-green-400' : 'text-gray-600'} font-bold">
+          ♩=${state.isPlaying ? Math.round(playback.currentPlayheadBpm) : state.toque.globalBpm}
+          ${state.isPlaying ? '<span class="text-[8px] text-green-600 font-normal">live</span>' : ''}
+        </span>
       </div>
 
-      <!-- Transport Controls Row -->
-      <div class="flex items-center justify-between gap-2">
-        <!-- Rep & Random -->
+      <!-- Rep counter (live) -->
+      <div class="flex items-center gap-0.5 text-[9px] font-mono text-gray-500">
+        <span class="uppercase tracking-wider">Rep</span>
+        <span class="text-white font-bold" id="header-rep-count">${state.isPlaying ? playback.repetitionCounter : 1}</span>
+        <span class="text-gray-600">/${activeSection.repetitions || 1}</span>
+        ${activeSection.randomRepetitions ? '<span class="text-cyan-400 ml-1">🎲</span>' : ''}
+      </div>
+    </div>
+  `;
+};
+
+// ─── Grid Overlay (shown when user taps "View Grid") ─────────────────────────
+
+const renderGridOverlay = (activeSection) => {
+  if (!state.uiState.dashboardGridOpen) return '';
+
+  const viewportWidth = window.innerWidth;
+  const computedStyle = getComputedStyle(document.documentElement);
+  const safeAreaLeft = parseInt(computedStyle.getPropertyValue('--safe-area-left') || '0', 10) || 0;
+  const safeAreaRight = parseInt(computedStyle.getPropertyValue('--safe-area-right') || '0', 10) || 0;
+  const steps = activeSection?.steps || 12;
+  const mobileCellSize = calculateMobileCellSize(viewportWidth, steps, safeAreaLeft, safeAreaRight);
+
+  return `
+    <div class="fixed inset-0 z-50 flex flex-col bg-gray-950">
+      <!-- Overlay Header -->
+      <div class="flex-shrink-0 h-10 px-3 flex items-center justify-between border-b border-gray-800 bg-gray-950">
+        <button data-action="toggle-grid-overlay"
+          class="flex items-center gap-1.5 text-gray-400 hover:text-white transition-colors text-xs font-medium">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 pointer-events-none">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+          </svg>
+          Back to Dashboard
+        </button>
         <div class="flex items-center gap-2">
-          <div class="flex items-center gap-1 bg-gray-900 px-2 py-1 rounded-lg border border-gray-800">
-            <span class="text-[9px] font-bold text-gray-500 uppercase">Rep</span>
-            <span class="text-sm font-mono font-bold text-white">×${activeSection.repetitions || 1}</span>
-          </div>
-          ${activeSection.randomRepetitions ? `
-          <div class="flex items-center gap-0.5 bg-cyan-900/20 px-2 py-1 rounded-lg border border-cyan-800/50">
-            <span class="text-sm">🎲</span>
-            <span class="text-[9px] text-cyan-400 font-bold uppercase">On</span>
-          </div>
-          ` : ''}
+          <span class="text-xs font-bold text-gray-200">${activeSection.name}</span>
+          <span class="text-[10px] font-mono text-gray-500">${(activeSection.subdivision === 3 ? '6/8' : '4/4')} · ${activeSection.steps || 16} steps</span>
         </div>
+        <div class="w-24"></div>
+      </div>
 
-        <!-- Count-in + Play/Stop -->
-        <div class="flex items-center gap-1.5">
-          <!-- Count-in -->
-          <button data-action="toggle-count-in" class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border transition-all ${countInEnabledClass} ${countingInClass}">
-            <span class="text-[9px] font-bold uppercase">Cnt</span>
-            <span class="font-mono font-bold text-sm">${isCountingIn ? countInStep : countInBeats}</span>
-          </button>
-
-          <!-- Stop -->
-          <button data-action="stop" class="w-10 h-10 rounded-lg flex items-center justify-center bg-gray-800 text-gray-400 hover:bg-red-900/40 hover:text-red-400 transition-all border border-gray-700">
-            ${StopIcon('w-5 h-5 pointer-events-none')}
-          </button>
-
-          <!-- Play/Pause -->
-          <button data-action="toggle-play" class="w-10 h-10 rounded-lg flex items-center justify-center transition-all shadow-lg ${state.isPlaying ? 'bg-amber-500/15 text-amber-500 border border-amber-500/50' : 'bg-green-600 text-white shadow-green-900/30 border border-green-500'}">
-            ${state.isPlaying ? PauseIcon('w-5 h-5 pointer-events-none') : PlayIcon('w-5 h-5 ml-0.5 pointer-events-none')}
-          </button>
+      <!-- Grid -->
+      <div class="flex-1 overflow-hidden flex flex-col justify-center items-center bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-900 via-gray-950 to-gray-950">
+        <div id="grid-container" class="w-full py-1 flex flex-col items-center justify-center overflow-hidden h-full no-pinch-zoom">
+          ${TubsGrid({
+            section: activeSection,
+            globalBpm: state.toque.globalBpm,
+            currentStep: state.currentStep,
+            selectedStroke: state.selectedStroke,
+            uiState: state.uiState,
+            readOnly: true,
+            isMobile: true,
+            mobileCellSize,
+            instrumentDefinitions: state.instrumentDefinitions,
+            isPlaying: state.isPlaying
+          })}
         </div>
       </div>
     </div>
   `;
 };
 
-// ─── Shared Modals (same pattern as Player) ─────────────────────────────────
+// ─── Shared Modals (same pattern as Player layout) ───────────────────────────
 
 const renderSharedModals = (activeSection) => {
   const activeViewId = viewManager.getActiveViewId();
-
+  const isDashboard = activeViewId === 'mobile-dashboard';
   let modals = '';
 
   // ─── Mobile Menu Modal ──────────────────────────────────────────────────
@@ -404,8 +482,9 @@ const renderSharedModals = (activeSection) => {
             </button>
           </div>
           <div class="flex-1 overflow-y-auto p-3 pb-8">
+            <!-- Quick switch group -->
             <div class="mb-4">
-              <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider px-2 mb-2">Views</h3>
+              <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider px-2 mb-2">Current</h3>
               <div class="bg-gray-800/50 rounded-2xl border border-gray-700/50">
                 <button data-action="select-view-mode" data-view-id="standard" class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors rounded-t-2xl border-b border-gray-700/30">
                   <div class="w-7 h-7 rounded-lg bg-gray-600/30 flex items-center justify-center flex-shrink-0">
@@ -414,7 +493,6 @@ const renderSharedModals = (activeSection) => {
                   <span class="text-gray-100 text-sm font-medium">Standard</span>
                   ${isStandard ? activeTag : '<span class="text-[10px] text-gray-500 ml-auto">Classic grid layout</span>'}
                 </button>
-                <!-- P1: The Player -->
                 <button data-action="select-view-mode" data-view-id="p1" class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
                   <div class="w-7 h-7 rounded-lg bg-amber-500/15 flex items-center justify-center flex-shrink-0">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-amber-400 pointer-events-none"><path stroke-linecap="round" stroke-linejoin="round" d="M9 9l10.5-3m0 6.553v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 11-.99-3.467l2.31-.66a2.25 2.25 0 001.632-2.163zm0 0V2.25L9 5.25v10.303m0 0v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 01-.99-3.467l2.31-.66A2.25 2.25 0 009 15.553z" /></svg>
@@ -422,35 +500,14 @@ const renderSharedModals = (activeSection) => {
                   <span class="text-gray-100 text-sm font-medium">The Player</span>
                   ${isPlayer ? activeTag : '<span class="text-[10px] text-gray-500 ml-auto">Music player paradigm</span>'}
                 </button>
-                <!-- P1a: Player + Mixer -->
-                <button data-action="select-view-mode" data-view-id="p1a" class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
-                  <div class="w-7 h-7 rounded-lg bg-emerald-500/15 flex items-center justify-center flex-shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-emerald-400 pointer-events-none">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+                <button data-action="select-view-mode" data-view-id="p2" class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors rounded-b-2xl">
+                  <div class="w-7 h-7 rounded-lg bg-cyan-500/15 flex items-center justify-center flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-cyan-400 pointer-events-none">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 7.125C2.25 6.504 2.754 6 3.375 6h6c.621 0 1.125.504 1.125 1.125v3.75c0 .621-.504 1.125-1.125 1.125h-6a1.125 1.125 0 01-1.125-1.125v-3.75zM14.25 8.625c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v8.25c0 .621-.504 1.125-1.125 1.125h-5.25a1.125 1.125 0 01-1.125-1.125v-8.25zM3.75 16.125c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v2.25c0 .621-.504 1.125-1.125 1.125h-5.25a1.125 1.125 0 01-1.125-1.125v-2.25z" />
                     </svg>
                   </div>
-                  <span class="text-gray-100 text-sm font-medium">Player + Mixer</span>
-                  ${isPlayerMixer ? activeTag : '<span class="text-[10px] text-gray-500 ml-auto">Mixer on swipe</span>'}
-                </button>
-                <!-- P1b: Player + Knob -->
-                <button data-action="select-view-mode" data-view-id="p1b" class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
-                  <div class="w-7 h-7 rounded-lg bg-sky-500/15 flex items-center justify-center flex-shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-sky-400 pointer-events-none">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182M2.985 19.644l3.181-3.183" />
-                    </svg>
-                  </div>
-                  <span class="text-gray-100 text-sm font-medium">Player + Knob</span>
-                  ${isPlayerKnob ? activeTag : '<span class="text-[10px] text-gray-500 ml-auto">Circular tempo knob</span>'}
-                </button>
-                <!-- P1c: Focus Mode -->
-                <button data-action="select-view-mode" data-view-id="p1c" class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors rounded-b-2xl">
-                  <div class="w-7 h-7 rounded-lg bg-violet-500/15 flex items-center justify-center flex-shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-violet-400 pointer-events-none">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 3.75H6A2.25 2.25 0 003.75 6v1.5M16.5 3.75H18A2.25 2.25 0 0120.25 6v1.5m0 9V18A2.25 2.25 0 0118 20.25h-1.5m-9 0H6A2.25 2.25 0 013.75 18v-1.5M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                  </div>
-                  <span class="text-gray-100 text-sm font-medium">Focus Mode</span>
-                  ${isPlayerFocus ? activeTag : '<span class="text-[10px] text-gray-500 ml-auto">Solo tracks on double-tap</span>'}
+                  <span class="text-gray-100 text-sm font-medium">The Dashboard</span>
+                  ${isDashboard ? activeTag : '<span class="text-[10px] text-gray-500 ml-auto">Card-based navigator</span>'}
                 </button>
               </div>
             </div>
@@ -490,18 +547,10 @@ const renderSharedModals = (activeSection) => {
   return modals;
 };
 
-// ─── Main Focus Layout ──────────────────────────────────────────────────────
+// ─── Main Dashboard Layout ───────────────────────────────────────────────────
 
-export const PlayerFocusLayout = () => {
+export const DashboardLayout = () => {
   const activeSection = getActiveSection(state) || state.toque.sections[0];
-
-  // Calculate cell size for grid
-  const viewportWidth = window.innerWidth;
-  const computedStyle = getComputedStyle(document.documentElement);
-  const safeAreaLeft = parseInt(computedStyle.getPropertyValue('--safe-area-left') || '0', 10) || 0;
-  const safeAreaRight = parseInt(computedStyle.getPropertyValue('--safe-area-right') || '0', 10) || 0;
-  const steps = activeSection?.steps || 12;
-  const mobileCellSize = calculateMobileCellSize(viewportWidth, steps, safeAreaLeft, safeAreaRight);
 
   return `
     <div class="flex flex-col h-full bg-gray-950 text-gray-100 font-sans selection:bg-cyan-500 selection:text-black select-none pl-[var(--safe-area-left)] pr-[var(--safe-area-right)]">
@@ -530,39 +579,13 @@ export const PlayerFocusLayout = () => {
 
       <!-- Main content - landscape only -->
       <div class="landscape-only flex flex-col flex-1 overflow-hidden">
-        ${renderPlayerHeader(activeSection)}
-
-        <!-- Focus Mode Indicator -->
-        ${renderFocusIndicator(activeSection)}
-        
-        <!-- Grid Area (fills remaining space) -->
-        <div class="flex flex-1 overflow-hidden">
-          <main class="flex-1 overflow-hidden relative flex flex-col justify-center items-center bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-900 via-gray-950 to-gray-950">
-            <!-- Focus mode tap targets — invisible buttons over the track label column -->
-            ${renderFocusTapTargets(activeSection)}
-            <div id="grid-container" class="w-full max-w-7xl py-1 flex flex-col items-center justify-center overflow-hidden h-full no-pinch-zoom">
-              ${TubsGrid({
-                section: activeSection,
-                globalBpm: state.toque.globalBpm,
-                currentStep: state.currentStep,
-                selectedStroke: state.selectedStroke,
-                uiState: state.uiState,
-                readOnly: true,
-                isMobile: true,
-                mobileCellSize,
-                instrumentDefinitions: state.instrumentDefinitions,
-                isPlaying: state.isPlaying
-              })}
-            </div>
-          </main>
-        </div>
-
-        <!-- Section Navigation Bar -->
-        ${renderSectionBar(activeSection)}
-
-        <!-- Bottom Control Deck -->
-        ${renderControlDeck(activeSection)}
+        ${renderDashboardHeader()}
+        ${renderCardCarousel(activeSection)}
+        ${renderDashboardFooter(activeSection)}
       </div>
+
+      <!-- Grid Overlay (shown when user taps "View Grid") -->
+      ${renderGridOverlay(activeSection)}
 
       <!-- Shared Modals -->
       ${renderSharedModals(activeSection)}
