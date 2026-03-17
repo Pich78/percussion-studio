@@ -20,6 +20,7 @@ import { ChevronDownIcon } from '../../../icons/chevronDownIcon.js';
 import { BataExplorerModal } from '../../../components/bataExplorerModal.js';
 import { Timeline } from '../../../components/timeline.js';
 import { viewManager } from '../../../views/viewManager.js';
+import { ViewModeModal } from '../../../components/viewModeModal.js';
 import { calculateMobileCellSize } from '../standard/layout.js';
 
 export { calculateMobileCellSize };
@@ -366,59 +367,7 @@ const renderSharedModals = () => {
   }
 
   if (state.uiState.modalOpen && state.uiState.modalType === 'viewMode') {
-    const isStandard = activeViewId === 'mobile-grid';
-    const isDashboard = activeViewId === 'mobile-dashboard';
-    const isDashboardStack = activeViewId === 'mobile-dashboard-stack';
-    const isDashboardSplit = activeViewId === 'mobile-dashboard-split-card';
-    const isDashboardPlaylist = activeViewId === 'mobile-dashboard-playlist';
-    const activeTag = `<span class="text-[9px] font-bold text-green-400 bg-green-500/15 px-1.5 py-0.5 rounded ml-auto flex-shrink-0">Active</span>`;
-
-    modals += `
-      <div class="fixed inset-0 z-50 flex flex-col">
-        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" data-action="close-modal-bg"></div>
-        <div class="relative w-full h-full sm:w-4/5 sm:max-w-sm bg-gray-900 border-r border-gray-800 shadow-2xl flex flex-col animate-in fade-in slide-in-from-bottom duration-200 pl-[var(--safe-area-left)] pr-[var(--safe-area-right)]">
-          <div class="p-4 border-b border-gray-800 flex justify-between items-center bg-gray-950">
-            <h2 class="text-lg font-bold text-white">View Mode</h2>
-            <button data-action="close-modal" class="p-2 text-gray-500 hover:text-white">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-            </button>
-          </div>
-          <div class="flex-1 overflow-y-auto p-3 pb-8">
-            <div class="mb-4">
-              <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider px-2 mb-2">Current</h3>
-              <div class="bg-gray-800/50 rounded-2xl border border-gray-700/50">
-                <button data-action="select-view-mode" data-view-id="standard" class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors rounded-t-2xl border-b border-gray-700/30">
-                  <span class="text-gray-100 text-sm font-medium">Standard</span>
-                  ${isStandard ? activeTag : ''}
-                </button>
-                <button data-action="select-view-mode" data-view-id="p2" class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
-                  <span class="text-gray-100 text-sm font-medium">P2: Dashboard</span>
-                  ${isDashboard ? activeTag : ''}
-                </button>
-                <button data-action="select-view-mode" data-view-id="p2a" class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
-                  <span class="text-gray-100 text-sm font-medium">P2A: Dashboard Stack</span>
-                  ${isDashboardStack ? activeTag : ''}
-                </button>
-                <button data-action="select-view-mode" data-view-id="p2b" class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
-                  <span class="text-gray-100 text-sm font-medium">P2B: Split Card</span>
-                  ${isDashboardSplit ? activeTag : ''}
-                </button>
-                <button data-action="select-view-mode" data-view-id="p2c" class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors rounded-b-2xl">
-                  <span class="text-gray-100 text-sm font-medium">P2C: Playlist Mode</span>
-                  ${isDashboardPlaylist ? activeTag : ''}
-                </button>
-              </div>
-            </div>
-            
-            <div class="mb-4">
-                <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider px-2 mb-2">Back to complete menu</h3>
-                <div class="text-xs text-gray-400 px-2">Use Standard view mode modal for full options</div>
-            </div>
-            
-          </div>
-        </div>
-      </div>
-    `;
+    modals += ViewModeModal();
   }
 
   modals += BataExplorerModal({ isMobile: true, bataExplorer: state.uiState.bataExplorer });

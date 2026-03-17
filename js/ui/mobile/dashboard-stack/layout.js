@@ -31,6 +31,7 @@ import { ChevronDownIcon } from '../../../icons/chevronDownIcon.js';
 import { BataExplorerModal } from '../../../components/bataExplorerModal.js';
 import { Timeline } from '../../../components/timeline.js';
 import { viewManager } from '../../../views/viewManager.js';
+import { ViewModeModal } from '../../../components/viewModeModal.js';
 
 // Re-export calculateMobileCellSize from standard (shared utility)
 import { calculateMobileCellSize } from '../standard/layout.js';
@@ -464,68 +465,7 @@ const renderSharedModals = (activeSection) => {
 
   // ─── View Mode Modal ──────────────────────────────────────────────────
   if (state.uiState.modalOpen && state.uiState.modalType === 'viewMode') {
-    const isStandard = activeViewId === 'mobile-grid';
-    const isPlayer = activeViewId === 'mobile-player';
-    const isPlayerMixer = activeViewId === 'mobile-player-mixer';
-    const isPlayerKnob = activeViewId === 'mobile-player-knob';
-    const isPlayerFocus = activeViewId === 'mobile-player-focus';
-    const isDashboard = activeViewId === 'mobile-dashboard';
-
-    const activeTag = `<span class="text-[9px] font-bold text-green-400 bg-green-500/15 px-1.5 py-0.5 rounded ml-auto flex-shrink-0">Active</span>`;
-
-    modals += `
-      <div class="fixed inset-0 z-50 flex flex-col">
-        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" data-action="close-modal-bg"></div>
-        <div class="relative w-full h-full sm:w-4/5 sm:max-w-sm bg-gray-900 border-r border-gray-800 shadow-2xl flex flex-col animate-in fade-in slide-in-from-bottom duration-200 pl-[var(--safe-area-left)] pr-[var(--safe-area-right)]">
-          <div class="p-4 border-b border-gray-800 flex justify-between items-center bg-gray-950">
-            <h2 class="text-lg font-bold text-white">View Mode</h2>
-            <button data-action="close-modal" class="p-2 text-gray-500 hover:text-white">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-            </button>
-          </div>
-          <div class="flex-1 overflow-y-auto p-3 pb-8">
-            <!-- Quick switch group -->
-            <div class="mb-4">
-              <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider px-2 mb-2">Current</h3>
-              <div class="bg-gray-800/50 rounded-2xl border border-gray-700/50">
-                <button data-action="select-view-mode" data-view-id="standard" class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors rounded-t-2xl border-b border-gray-700/30">
-                  <div class="w-7 h-7 rounded-lg bg-gray-600/30 flex items-center justify-center flex-shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-gray-300 pointer-events-none"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" /></svg>
-                  </div>
-                  <span class="text-gray-100 text-sm font-medium">Standard</span>
-                  ${isStandard ? activeTag : '<span class="text-[10px] text-gray-500 ml-auto">Classic grid layout</span>'}
-                </button>
-                <button data-action="select-view-mode" data-view-id="p1" class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
-                  <div class="w-7 h-7 rounded-lg bg-amber-500/15 flex items-center justify-center flex-shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-amber-400 pointer-events-none"><path stroke-linecap="round" stroke-linejoin="round" d="M9 9l10.5-3m0 6.553v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 11-.99-3.467l2.31-.66a2.25 2.25 0 001.632-2.163zm0 0V2.25L9 5.25v10.303m0 0v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 01-.99-3.467l2.31-.66A2.25 2.25 0 009 15.553z" /></svg>
-                  </div>
-                  <span class="text-gray-100 text-sm font-medium">The Player</span>
-                  ${isPlayer ? activeTag : '<span class="text-[10px] text-gray-500 ml-auto">Music player paradigm</span>'}
-                </button>
-                <button data-action="select-view-mode" data-view-id="p2" class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
-                  <div class="w-7 h-7 rounded-lg bg-cyan-500/15 flex items-center justify-center flex-shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-cyan-400 pointer-events-none">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 7.125C2.25 6.504 2.754 6 3.375 6h6c.621 0 1.125.504 1.125 1.125v3.75c0 .621-.504 1.125-1.125 1.125h-6a1.125 1.125 0 01-1.125-1.125v-3.75zM14.25 8.625c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v8.25c0 .621-.504 1.125-1.125 1.125h-5.25a1.125 1.125 0 01-1.125-1.125v-8.25zM3.75 16.125c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v2.25c0 .621-.504 1.125-1.125 1.125h-5.25a1.125 1.125 0 01-1.125-1.125v-2.25z" />
-                    </svg>
-                  </div>
-                  <span class="text-gray-100 text-sm font-medium">The Dashboard</span>
-                  ${isDashboard ? activeTag : '<span class="text-[10px] text-gray-500 ml-auto">Card carousel</span>'}
-                </button>
-                <button data-action="select-view-mode" data-view-id="p2a" class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors rounded-b-2xl">
-                  <div class="w-7 h-7 rounded-lg bg-teal-500/15 flex items-center justify-center flex-shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-teal-400 pointer-events-none">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 010 3.75H5.625a1.875 1.875 0 010-3.75z" />
-                    </svg>
-                  </div>
-                  <span class="text-gray-100 text-sm font-medium">Dashboard — Stack</span>
-                  ${isDashboardStack ? activeTag : '<span class="text-[10px] text-gray-500 ml-auto">Vertical stack layout</span>'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
+    modals += ViewModeModal();
   }
 
   // ─── User Guide Modal ──────────────────────────────────────────────────
