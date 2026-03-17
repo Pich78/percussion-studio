@@ -32,6 +32,8 @@ const MOBILE_ALLOWED_ACTIONS = [
     'toggle-section-dropdown', 'select-section-item',
     // Dashboard (P2) grid overlay
     'toggle-grid-overlay',
+    // Dashboard Playlist (P2c) actions
+    'playlist-select-section', 'playlist-play-pause-active',
     // BataExplorer actions
     'close-bata-explorer', 'close-bata-explorer-bg', 'toggle-filter-dropdown',
     'toggle-orisha-filter', 'remove-orisha-filter', 'toggle-type-filter',
@@ -209,7 +211,8 @@ const createMobileActionRouter = () => ({
             'p1c': 'mobile-player-focus',
             'p2': 'mobile-dashboard',
             'p2a': 'mobile-dashboard-stack',
-            'p2b': 'mobile-dashboard-split-card'
+            'p2b': 'mobile-dashboard-split-card',
+            'p2c': 'mobile-dashboard-playlist'
         };
         const mappedViewId = VIEW_MAP[viewId];
         if (mappedViewId) {
@@ -243,6 +246,20 @@ const createMobileActionRouter = () => ({
         }
         state.uiState.dashboardGridOpen = !state.uiState.dashboardGridOpen;
         eventBus.emit('render');
+    },
+
+    // Dashboard Playlist (P2c) actions
+    'playlist-select-section': (e, target) => {
+        const sectionId = target.dataset.sectionId;
+        if (sectionId && sectionId !== state.activeSectionId) {
+            document.dispatchEvent(new CustomEvent('timeline-select', { detail: sectionId }));
+        } else if (sectionId === state.activeSectionId) {
+            // If tapping already active section, toggle playback
+            togglePlay();
+        }
+    },
+    'playlist-play-pause-active': () => {
+        togglePlay();
     },
 
     // Player view: previous section

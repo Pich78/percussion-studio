@@ -370,6 +370,7 @@ const renderSharedModals = () => {
     const isDashboard = activeViewId === 'mobile-dashboard';
     const isDashboardStack = activeViewId === 'mobile-dashboard-stack';
     const isDashboardSplit = activeViewId === 'mobile-dashboard-split-card';
+    const isDashboardPlaylist = activeViewId === 'mobile-dashboard-playlist';
     const activeTag = `<span class="text-[9px] font-bold text-green-400 bg-green-500/15 px-1.5 py-0.5 rounded ml-auto flex-shrink-0">Active</span>`;
 
     modals += `
@@ -398,9 +399,13 @@ const renderSharedModals = () => {
                   <span class="text-gray-100 text-sm font-medium">P2A: Dashboard Stack</span>
                   ${isDashboardStack ? activeTag : ''}
                 </button>
-                <button data-action="select-view-mode" data-view-id="p2b" class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors rounded-b-2xl">
+                <button data-action="select-view-mode" data-view-id="p2b" class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
                   <span class="text-gray-100 text-sm font-medium">P2B: Split Card</span>
                   ${isDashboardSplit ? activeTag : ''}
+                </button>
+                <button data-action="select-view-mode" data-view-id="p2c" class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors rounded-b-2xl">
+                  <span class="text-gray-100 text-sm font-medium">P2C: Playlist Mode</span>
+                  ${isDashboardPlaylist ? activeTag : ''}
                 </button>
               </div>
             </div>
