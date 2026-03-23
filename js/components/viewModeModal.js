@@ -12,6 +12,7 @@ export const ViewModeModal = () => {
     const isToolbarGestures = activeViewId === 'mobile-toolbar-gestures';
     const isToolbarSticky = activeViewId === 'mobile-toolbar-sticky';
     const isDimA = activeViewId === 'mobile-dual-view';
+    const isDimC = activeViewId === 'mobile-dimension-c';
     const activeTag = `<span class="text-[9px] font-bold text-green-400 bg-green-500/15 px-1.5 py-0.5 rounded ml-auto flex-shrink-0">Active</span>`;
 
     return `
@@ -153,7 +154,8 @@ export const ViewModeModal = () => {
                                 <span class="text-gray-300 text-sm">B: Play Mode vs View Mode</span>
                             </button>
                             <button data-action="select-view-mode" data-view-id="dim-c" class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
-                                <span class="text-gray-300 text-sm">C: Elevated Mixer</span>
+                                <span class="text-sm ${isDimC ? 'text-white font-bold' : 'text-gray-300'}">C: Elevated Mixer</span>
+                                ${isDimC ? activeTag : ''}
                             </button>
                             <button data-action="select-view-mode" data-view-id="dim-c1" class="w-full px-4 py-2.5 pl-8 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
                                 <span class="text-gray-400 text-xs">C1: Mixer Strip</span>

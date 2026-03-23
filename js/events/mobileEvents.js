@@ -224,7 +224,8 @@ const createMobileActionRouter = () => ({
             'p3b': 'mobile-toolbar-gestures',
             'p3c': 'mobile-toolbar-sticky',
             'dim-a': 'mobile-dual-view',
-            'dim-b': 'mobile-dimension-b'
+            'dim-b': 'mobile-dimension-b',
+            'dim-c': 'mobile-dimension-c'
         };
         const mappedViewId = VIEW_MAP[viewId];
         if (mappedViewId) {
