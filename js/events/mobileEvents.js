@@ -37,6 +37,7 @@ const MOBILE_ALLOWED_ACTIONS = [
     // P3 Toolbar Actions
     'toggle-toolbar-drawer',
     'chip-toggle-popover', 'chip-close-popover', 'chip-update-rep', 'chip-toggle-random', 'chip-select-section',
+    'toggle-gestures-bpm', 'toggle-gestures-mixer', 'toggle-gestures-sections',
     // BataExplorer actions
     'close-bata-explorer', 'close-bata-explorer-bg', 'toggle-filter-dropdown',
     'toggle-orisha-filter', 'remove-orisha-filter', 'toggle-type-filter',
@@ -217,7 +218,8 @@ const createMobileActionRouter = () => ({
             'p2b': 'mobile-dashboard-split-card',
             'p2c': 'mobile-dashboard-playlist',
             'p3': 'mobile-toolbar',
-            'p3a': 'mobile-toolbar-chips'
+            'p3a': 'mobile-toolbar-chips',
+            'p3b': 'mobile-toolbar-gestures'
         };
         const mappedViewId = VIEW_MAP[viewId];
         if (mappedViewId) {
@@ -241,6 +243,47 @@ const createMobileActionRouter = () => ({
                 drawer.classList.remove('translate-y-0');
                 drawer.classList.add('translate-y-[calc(100%-48px)]');
                 if (chevron) chevron.classList.remove('rotate-180');
+            }
+        }
+    },
+
+    // Toolbar Gestures toggle panels (P3b view)
+    'toggle-gestures-bpm': () => {
+        const sheet = document.getElementById('gestures-bpm-sheet');
+        if (sheet) {
+            const isOpen = !sheet.classList.contains('translate-y-full');
+            if (isOpen) {
+                sheet.classList.add('translate-y-full');
+                sheet.style.pointerEvents = 'none';
+            } else {
+                sheet.classList.remove('translate-y-full');
+                sheet.style.pointerEvents = 'auto';
+            }
+        }
+    },
+    'toggle-gestures-mixer': () => {
+        const sheet = document.getElementById('gestures-mixer-sheet');
+        if (sheet) {
+            const isOpen = !sheet.classList.contains('translate-x-full');
+            if (isOpen) {
+                sheet.classList.add('translate-x-full');
+                sheet.style.pointerEvents = 'none';
+            } else {
+                sheet.classList.remove('translate-x-full');
+                sheet.style.pointerEvents = 'auto';
+            }
+        }
+    },
+    'toggle-gestures-sections': () => {
+        const sheet = document.getElementById('gestures-sections-sheet');
+        if (sheet) {
+            const isOpen = !sheet.classList.contains('-translate-x-full');
+            if (isOpen) {
+                sheet.classList.add('-translate-x-full');
+                sheet.style.pointerEvents = 'none';
+            } else {
+                sheet.classList.remove('-translate-x-full');
+                sheet.style.pointerEvents = 'auto';
             }
         }
     },

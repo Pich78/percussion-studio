@@ -17,6 +17,7 @@ import { mobileDashboardSplitCardView } from './views/mobileDashboardSplitCardVi
 import { mobileDashboardPlaylistView } from './views/mobileDashboardPlaylistView.js';
 import { mobileToolbarView } from './views/mobileToolbarView.js';
 import { mobileToolbarChipsView } from './views/mobileToolbarChipsView.js';
+import { mobileToolbarGesturesView } from './views/mobileToolbarGesturesView.js';
 import { desktopEditorView } from './views/desktopEditorView.js';
 import { setViewProvider } from './ui/renderer.js';
 import { setupEventListeners } from './events.js';
@@ -38,6 +39,7 @@ viewManager.registerView(mobileDashboardSplitCardView);
 viewManager.registerView(mobileDashboardPlaylistView);
 viewManager.registerView(mobileToolbarView);
 viewManager.registerView(mobileToolbarChipsView);
+viewManager.registerView(mobileToolbarGesturesView);
 viewManager.registerView(desktopEditorView);
 
 // Set the active view based on the page context

@@ -9,6 +9,7 @@ export const ViewModeModal = () => {
     const isPlayer = activeViewId === 'mobile-player';
     const isPlayerMixer = activeViewId === 'mobile-player-mixer';
     const isDashboard = activeViewId === 'mobile-dashboard';
+    const isToolbarGestures = activeViewId === 'mobile-toolbar-gestures';
     const activeTag = `<span class="text-[9px] font-bold text-green-400 bg-green-500/15 px-1.5 py-0.5 rounded ml-auto flex-shrink-0">Active</span>`;
 
     return `
@@ -115,7 +116,8 @@ export const ViewModeModal = () => {
                                 ${activeViewId === 'mobile-toolbar-chips' ? activeTag : ''}
                             </button>
                             <button data-action="select-view-mode" data-view-id="p3b" class="w-full px-4 py-2.5 pl-8 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
-                                <span class="text-gray-400 text-xs">3B: Gesture Ring</span>
+                                <span class="text-xs ${isToolbarGestures ? 'text-white font-bold' : 'text-gray-400'}">3B: Gesture Ring</span>
+                                ${isToolbarGestures ? activeTag : ''}
                             </button>
                             <button data-action="select-view-mode" data-view-id="p3c" class="w-full px-4 py-2.5 pl-8 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors rounded-b-2xl">
                                 <span class="text-gray-400 text-xs">3C: Sticky Footer Strip</span>
