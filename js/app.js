@@ -18,6 +18,7 @@ import { mobileDashboardPlaylistView } from './views/mobileDashboardPlaylistView
 import { mobileToolbarView } from './views/mobileToolbarView.js';
 import { mobileToolbarChipsView } from './views/mobileToolbarChipsView.js';
 import { mobileToolbarGesturesView } from './views/mobileToolbarGesturesView.js';
+import { mobileToolbarStickyView } from './views/mobileToolbarStickyView.js';
 import { desktopEditorView } from './views/desktopEditorView.js';
 import { setViewProvider } from './ui/renderer.js';
 import { setupEventListeners } from './events.js';
@@ -40,6 +41,7 @@ viewManager.registerView(mobileDashboardPlaylistView);
 viewManager.registerView(mobileToolbarView);
 viewManager.registerView(mobileToolbarChipsView);
 viewManager.registerView(mobileToolbarGesturesView);
+viewManager.registerView(mobileToolbarStickyView);
 viewManager.registerView(desktopEditorView);
 
 // Set the active view based on the page context

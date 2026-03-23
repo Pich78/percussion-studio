@@ -219,7 +219,8 @@ const createMobileActionRouter = () => ({
             'p2c': 'mobile-dashboard-playlist',
             'p3': 'mobile-toolbar',
             'p3a': 'mobile-toolbar-chips',
-            'p3b': 'mobile-toolbar-gestures'
+            'p3b': 'mobile-toolbar-gestures',
+            'p3c': 'mobile-toolbar-sticky'
         };
         const mappedViewId = VIEW_MAP[viewId];
         if (mappedViewId) {
