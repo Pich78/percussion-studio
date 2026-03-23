@@ -111,7 +111,8 @@ export const ViewModeModal = () => {
                                 <span class="text-gray-300 text-sm">P3: The Toolbar — Persistent Bottom Drawer</span>
                             </button>
                             <button data-action="select-view-mode" data-view-id="p3a" class="w-full px-4 py-2.5 pl-8 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
-                                <span class="text-gray-400 text-xs">3A: Quick-Access Chips</span>
+                                <span class="text-xs ${activeViewId === 'mobile-toolbar-chips' ? 'text-white font-bold' : 'text-gray-400'}">3A: Quick-Access Chips</span>
+                                ${activeViewId === 'mobile-toolbar-chips' ? activeTag : ''}
                             </button>
                             <button data-action="select-view-mode" data-view-id="p3b" class="w-full px-4 py-2.5 pl-8 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
                                 <span class="text-gray-400 text-xs">3B: Gesture Ring</span>

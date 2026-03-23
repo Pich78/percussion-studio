@@ -36,6 +36,7 @@ const MOBILE_ALLOWED_ACTIONS = [
     'playlist-select-section', 'playlist-play-pause-active',
     // P3 Toolbar Actions
     'toggle-toolbar-drawer',
+    'chip-toggle-popover', 'chip-close-popover', 'chip-update-rep', 'chip-toggle-random', 'chip-select-section',
     // BataExplorer actions
     'close-bata-explorer', 'close-bata-explorer-bg', 'toggle-filter-dropdown',
     'toggle-orisha-filter', 'remove-orisha-filter', 'toggle-type-filter',
@@ -215,7 +216,8 @@ const createMobileActionRouter = () => ({
             'p2a': 'mobile-dashboard-stack',
             'p2b': 'mobile-dashboard-split-card',
             'p2c': 'mobile-dashboard-playlist',
-            'p3': 'mobile-toolbar'
+            'p3': 'mobile-toolbar',
+            'p3a': 'mobile-toolbar-chips'
         };
         const mappedViewId = VIEW_MAP[viewId];
         if (mappedViewId) {
@@ -240,6 +242,38 @@ const createMobileActionRouter = () => ({
                 drawer.classList.add('translate-y-[calc(100%-48px)]');
                 if (chevron) chevron.classList.remove('rotate-180');
             }
+        }
+    },
+
+    // Toolbar P3a chips popovers
+    'chip-toggle-popover': (e, target) => {
+        const popoverId = target.dataset.popoverId;
+        if (state.uiState.activeChipPopover === popoverId) {
+            state.uiState.activeChipPopover = null;
+        } else {
+            state.uiState.activeChipPopover = popoverId;
+        }
+        eventBus.emit('render');
+    },
+    'chip-close-popover': () => {
+        state.uiState.activeChipPopover = null;
+        eventBus.emit('render');
+    },
+    'chip-update-rep': (e, target) => {
+        const delta = parseInt(target.dataset.delta, 10);
+        const section = getActiveSection(state);
+        const currentReps = section.repetitions || 1;
+        actions.updateSectionSettings(section.id, { repetitions: Math.max(1, currentReps + delta) });
+    },
+    'chip-toggle-random': () => {
+        // Placeholder for random sequence UI
+        eventBus.emit('render');
+    },
+    'chip-select-section': (e, target) => {
+        const sectionId = target.dataset.sectionId;
+        if (sectionId) {
+            document.dispatchEvent(new CustomEvent('timeline-select', { detail: sectionId }));
+            state.uiState.activeChipPopover = null;
         }
     },
 
