@@ -220,7 +220,8 @@ const createMobileActionRouter = () => ({
             'p3': 'mobile-toolbar',
             'p3a': 'mobile-toolbar-chips',
             'p3b': 'mobile-toolbar-gestures',
-            'p3c': 'mobile-toolbar-sticky'
+            'p3c': 'mobile-toolbar-sticky',
+            'dim-a': 'mobile-dual-view'
         };
         const mappedViewId = VIEW_MAP[viewId];
         if (mappedViewId) {

@@ -11,6 +11,7 @@ export const ViewModeModal = () => {
     const isDashboard = activeViewId === 'mobile-dashboard';
     const isToolbarGestures = activeViewId === 'mobile-toolbar-gestures';
     const isToolbarSticky = activeViewId === 'mobile-toolbar-sticky';
+    const isDimA = activeViewId === 'mobile-dual-view';
     const activeTag = `<span class="text-[9px] font-bold text-green-400 bg-green-500/15 px-1.5 py-0.5 rounded ml-auto flex-shrink-0">Active</span>`;
 
     return `
@@ -136,7 +137,8 @@ export const ViewModeModal = () => {
                                 <span class="text-[10px] font-bold text-purple-400 uppercase tracking-wider">Dimensions</span>
                             </div>
                             <button data-action="select-view-mode" data-view-id="dim-a" class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
-                                <span class="text-gray-300 text-sm">A: Portrait ↔ Landscape Dual View</span>
+                                <span class="text-sm ${isDimA ? 'text-white font-bold' : 'text-gray-300'}">A: Portrait ↔ Landscape Dual View</span>
+                                ${isDimA ? activeTag : ''}
                             </button>
                             <button data-action="select-view-mode" data-view-id="dim-a1" class="w-full px-4 py-2.5 pl-8 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
                                 <span class="text-gray-400 text-xs">A1: Auto-Switch by Context</span>
