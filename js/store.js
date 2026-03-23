@@ -90,7 +90,8 @@ export const state = {
         sectionDropdownOpen: false, // Mobile header section switcher
         metadataEditor: {
             orishaDropdownOpen: false
-        }
+        },
+        dimensionBMode: 'play' // 'play' | 'view' mode toggle for Dimension B
     }
 };
 

@@ -38,6 +38,8 @@ const MOBILE_ALLOWED_ACTIONS = [
     'toggle-toolbar-drawer',
     'chip-toggle-popover', 'chip-close-popover', 'chip-update-rep', 'chip-toggle-random', 'chip-select-section',
     'toggle-gestures-bpm', 'toggle-gestures-mixer', 'toggle-gestures-sections',
+    // Dimension B Action
+    'toggle-dim-b-mode',
     // BataExplorer actions
     'close-bata-explorer', 'close-bata-explorer-bg', 'toggle-filter-dropdown',
     'toggle-orisha-filter', 'remove-orisha-filter', 'toggle-type-filter',
@@ -221,7 +223,8 @@ const createMobileActionRouter = () => ({
             'p3a': 'mobile-toolbar-chips',
             'p3b': 'mobile-toolbar-gestures',
             'p3c': 'mobile-toolbar-sticky',
-            'dim-a': 'mobile-dual-view'
+            'dim-a': 'mobile-dual-view',
+            'dim-b': 'mobile-dimension-b'
         };
         const mappedViewId = VIEW_MAP[viewId];
         if (mappedViewId) {
@@ -229,6 +232,18 @@ const createMobileActionRouter = () => ({
         }
         state.uiState.modalOpen = false;
         eventBus.emit('render');
+    },
+
+    // Dimension B specific toggles
+    'toggle-dim-b-mode': (e, target) => {
+        const mode = target.dataset.mode;
+        if (mode === 'play' || mode === 'view') {
+            state.uiState.dimensionBMode = mode;
+            if (mode === 'view' && state.isPlaying) {
+                stopPlayback();
+            }
+            eventBus.emit('render');
+        }
     },
 
     // Toolbar drawer toggle (P3 view)
