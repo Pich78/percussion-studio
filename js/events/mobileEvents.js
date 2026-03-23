@@ -34,6 +34,8 @@ const MOBILE_ALLOWED_ACTIONS = [
     'toggle-grid-overlay',
     // Dashboard Playlist (P2c) actions
     'playlist-select-section', 'playlist-play-pause-active',
+    // P3 Toolbar Actions
+    'toggle-toolbar-drawer',
     // BataExplorer actions
     'close-bata-explorer', 'close-bata-explorer-bg', 'toggle-filter-dropdown',
     'toggle-orisha-filter', 'remove-orisha-filter', 'toggle-type-filter',
@@ -212,7 +214,8 @@ const createMobileActionRouter = () => ({
             'p2': 'mobile-dashboard',
             'p2a': 'mobile-dashboard-stack',
             'p2b': 'mobile-dashboard-split-card',
-            'p2c': 'mobile-dashboard-playlist'
+            'p2c': 'mobile-dashboard-playlist',
+            'p3': 'mobile-toolbar'
         };
         const mappedViewId = VIEW_MAP[viewId];
         if (mappedViewId) {
@@ -220,6 +223,24 @@ const createMobileActionRouter = () => ({
         }
         state.uiState.modalOpen = false;
         eventBus.emit('render');
+    },
+
+    // Toolbar drawer toggle (P3 view)
+    'toggle-toolbar-drawer': () => {
+        const drawer = document.getElementById('toolbar-drawer');
+        const chevron = document.getElementById('drawer-chevron');
+        if (drawer) {
+            const isClosed = drawer.classList.contains('translate-y-[calc(100%-48px)]');
+            if (isClosed) {
+                drawer.classList.remove('translate-y-[calc(100%-48px)]');
+                drawer.classList.add('translate-y-0');
+                if (chevron) chevron.classList.add('rotate-180');
+            } else {
+                drawer.classList.remove('translate-y-0');
+                drawer.classList.add('translate-y-[calc(100%-48px)]');
+                if (chevron) chevron.classList.remove('rotate-180');
+            }
+        }
     },
 
     // Mixer sheet toggle (P1a view)
