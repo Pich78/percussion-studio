@@ -6,16 +6,15 @@
  */
 
 import { PlayerFocusLayout } from '../ui/mobile/player-focus/layout.js';
-import { setupMobileEvents } from '../events/mobileEvents.js';
 import { setupFocusModeEvents } from '../ui/mobile/player-focus/focusEvents.js';
 import { updateVisualStep, scrollToMeasure } from '../ui/playheadUtils.js';
 
 /**
- * Combined setup: shared mobile events + Focus Mode double-tap handler.
- * setupFocusModeEvents uses a guard so it's safe to call on every re-init.
+ * Focus Mode setup: register double-tap-to-solo event handler only.
+ * Global mobile events (click delegation, blur, etc.) are already registered
+ * by setupMobileEvents() at app startup via the initial mobile-grid view.
  */
 const setupFocusViewEvents = () => {
-    setupMobileEvents();
     setupFocusModeEvents();
 };
 

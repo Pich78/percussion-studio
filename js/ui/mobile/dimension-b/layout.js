@@ -7,9 +7,8 @@ import { StopIcon } from '../../../icons/stopIcon.js';
 import { PlayIcon } from '../../../icons/playIcon.js';
 import { PauseIcon } from '../../../icons/pauseIcon.js';
 import { DeviceRotateIcon } from '../../../icons/DeviceRotateIcon.js';
-import { FolderOpenIcon } from '../../../icons/folderOpenIcon.js';
-import { ChevronDownIcon } from '../../../icons/chevronDownIcon.js';
 import { BataExplorerModal } from '../../../components/bataExplorerModal.js';
+import { MobileMenuPanel } from '../../../components/mobileMenuPanel.js';
 import { ViewModeModal } from '../../../components/viewModeModal.js';
 import { calculateMobileCellSize } from '../standard/layout.js';
 
@@ -130,28 +129,62 @@ export const DimensionBLayout = () => {
         </div>
       </div>
 
-      <!-- Menus and Modals -->
-      ${state.uiState.isMenuOpen ? `
+      <!-- Mobile Menu -->
+      ${state.uiState.isMenuOpen ? MobileMenuPanel() : ''}
+
+      <!-- Mobile Structure Modal -->
+      ${state.uiState.modalOpen && state.uiState.modalType === 'structure' ? `
         <div class="fixed inset-0 z-50 flex flex-col">
-            <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" data-action="close-menu"></div>
-            <!-- Keep basic menu just to allow navigation away -->
-            <div class="relative w-4/5 max-w-sm h-full bg-gray-900 border-r border-gray-800 shadow-2xl flex flex-col animate-in fade-in slide-in-from-left duration-200 ml-[var(--safe-area-left)]">
+            <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" data-action="close-modal-bg"></div>
+            <div class="relative w-full h-full sm:w-4/5 sm:max-w-sm bg-gray-900 border-r border-gray-800 shadow-2xl flex flex-col animate-in fade-in slide-in-from-bottom duration-200 pl-[var(--safe-area-left)] pr-[var(--safe-area-right)]">
                 <div class="p-4 border-b border-gray-800 flex justify-between items-center bg-gray-950">
-                    <h2 class="text-lg font-bold text-white">Dimension B Options</h2>
-                    <button data-action="close-menu" class="p-2 text-gray-500 hover:text-white">
+                    <h2 class="text-lg font-bold text-white">Rhythm Structure</h2>
+                    <button data-action="close-modal" class="p-2 text-gray-500 hover:text-white">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                 </div>
-                <nav class="flex-1 overflow-y-auto p-3 pb-8">
-                      <button data-action="open-view-mode" class="w-full px-4 py-3.5 flex items-center gap-4 hover:bg-gray-700/50 transition-colors border-b border-gray-700/50 rounded-2xl bg-gray-800/50">
-                          <span class="text-gray-100 font-medium text-base">View Mode Selection</span>
-                      </button>
-                </nav>
+                <div class="flex-1 overflow-hidden">
+                     ${Timeline({
+                       sections: state.toque.sections,
+                       globalBpm: state.toque.globalBpm,
+                       activeSectionId: state.activeSectionId,
+                       rhythmName: state.toque.name,
+                       readOnly: true,
+                       isMobile: true,
+                       bataExplorerMetadata: state.uiState.bataExplorer.metadata || null
+                     })}
+                </div>
+                <div class="p-4 border-t border-gray-800 text-xs text-gray-500 text-center">Select a section to switch playback.</div>
             </div>
         </div>
       ` : ''}
 
+      <!-- Mobile View Mode Modal -->
       ${state.uiState.modalOpen && state.uiState.modalType === 'viewMode' ? ViewModeModal() : ''}
+
+      <!-- Mobile User Guide Modal -->
+      ${state.uiState.modalOpen && state.uiState.modalType === 'userGuide' ? `
+        <div class="fixed inset-0 z-50 flex flex-col">
+            <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" data-action="close-modal-bg"></div>
+            <div class="relative w-full h-full bg-gray-900 shadow-2xl flex flex-col animate-in fade-in slide-in-from-bottom duration-200 pl-[var(--safe-area-left)] pr-[var(--safe-area-right)]">
+                <div class="p-4 border-b border-gray-800 flex justify-between items-center bg-gray-950 flex-shrink-0">
+                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-purple-400"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0118 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" /></svg>
+                        User Guide
+                        <span class="text-sm text-gray-500 font-normal">(${state.uiState.userGuideLanguage === 'it' ? 'Italiano' : 'English'})</span>
+                    </h2>
+                    <button data-action="close-modal" class="p-2 text-gray-500 hover:text-white">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                </div>
+                <div class="flex-1 overflow-y-auto p-4 text-sm" id="user-guide-content">
+                    ${state.uiState.userGuideContent || '<div class="text-center text-gray-500 py-8">Loading...</div>'}
+                </div>
+            </div>
+        </div>
+      ` : ''}
+
+      ${BataExplorerModal({ isMobile: true, bataExplorer: state.uiState.bataExplorer })}
     </div>
   `;
 };

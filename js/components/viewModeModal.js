@@ -5,14 +5,22 @@ export const ViewModeModal = () => {
     if (!state.uiState.modalOpen || state.uiState.modalType !== 'viewMode') return '';
 
     const activeViewId = viewManager.getActiveViewId();
-    const isStandard = activeViewId === 'mobile-grid';
-    const isPlayer = activeViewId === 'mobile-player';
-    const isPlayerMixer = activeViewId === 'mobile-player-mixer';
-    const isDashboard = activeViewId === 'mobile-dashboard';
-    const isToolbarGestures = activeViewId === 'mobile-toolbar-gestures';
-    const isToolbarSticky = activeViewId === 'mobile-toolbar-sticky';
-    const isDimA = activeViewId === 'mobile-dual-view';
-    const isDimC = activeViewId === 'mobile-dimension-c';
+    const isStandard       = activeViewId === 'mobile-grid';
+    const isPlayer         = activeViewId === 'mobile-player';
+    const isPlayerMixer    = activeViewId === 'mobile-player-mixer';
+    const isPlayerKnob     = activeViewId === 'mobile-player-knob';
+    const isPlayerFocus    = activeViewId === 'mobile-player-focus';
+    const isDashboard      = activeViewId === 'mobile-dashboard';
+    const isDashStack      = activeViewId === 'mobile-dashboard-stack';
+    const isDashSplit      = activeViewId === 'mobile-dashboard-split-card';
+    const isDashPlaylist   = activeViewId === 'mobile-dashboard-playlist';
+    const isToolbar        = activeViewId === 'mobile-toolbar';
+    const isToolbarChips   = activeViewId === 'mobile-toolbar-chips';
+    const isToolbarGestures= activeViewId === 'mobile-toolbar-gestures';
+    const isToolbarSticky  = activeViewId === 'mobile-toolbar-sticky';
+    const isDimA           = activeViewId === 'mobile-dual-view';
+    const isDimB           = activeViewId === 'mobile-dimension-b';
+    const isDimC           = activeViewId === 'mobile-dimension-c';
     const activeTag = `<span class="text-[9px] font-bold text-green-400 bg-green-500/15 px-1.5 py-0.5 rounded ml-auto flex-shrink-0">Active</span>`;
 
     return `
@@ -78,16 +86,20 @@ export const ViewModeModal = () => {
                                 <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wider">Proposal 1 — The Player</span>
                             </div>
                             <button data-action="select-view-mode" data-view-id="p1" class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
-                                <span class="text-gray-300 text-sm">P1: The Player — Music Player Paradigm</span>
+                                <span class="text-xs ${isPlayer ? 'text-white font-bold' : 'text-gray-300'}">P1: The Player — Music Player Paradigm</span>
+                                ${isPlayer ? activeTag : ''}
                             </button>
                             <button data-action="select-view-mode" data-view-id="p1a" class="w-full px-4 py-2.5 pl-8 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
-                                <span class="text-gray-400 text-xs">1A: Mixer on Swipe</span>
+                                <span class="text-xs ${isPlayerMixer ? 'text-white font-bold' : 'text-gray-400'}">1A: Mixer on Swipe</span>
+                                ${isPlayerMixer ? activeTag : ''}
                             </button>
                             <button data-action="select-view-mode" data-view-id="p1b" class="w-full px-4 py-2.5 pl-8 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
-                                <span class="text-gray-400 text-xs">1B: Circular Tempo Knob</span>
+                                <span class="text-xs ${isPlayerKnob ? 'text-white font-bold' : 'text-gray-400'}">1B: Circular Tempo Knob</span>
+                                ${isPlayerKnob ? activeTag : ''}
                             </button>
                             <button data-action="select-view-mode" data-view-id="p1c" class="w-full px-4 py-2.5 pl-8 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
-                                <span class="text-gray-400 text-xs">1C: Focus Mode</span>
+                                <span class="text-xs ${isPlayerFocus ? 'text-white font-bold' : 'text-gray-400'}">1C: Focus Mode</span>
+                                ${isPlayerFocus ? activeTag : ''}
                             </button>
 
                             <!-- P2: The Dashboard -->
@@ -95,16 +107,20 @@ export const ViewModeModal = () => {
                                 <span class="text-[10px] font-bold text-cyan-400 uppercase tracking-wider">Proposal 2 — The Dashboard</span>
                             </div>
                             <button data-action="select-view-mode" data-view-id="p2" class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
-                                <span class="text-gray-300 text-sm">P2: The Dashboard — Card-Based Navigator</span>
+                                <span class="text-xs ${isDashboard ? 'text-white font-bold' : 'text-gray-300'}">P2: The Dashboard — Card-Based Navigator</span>
+                                ${isDashboard ? activeTag : ''}
                             </button>
                             <button data-action="select-view-mode" data-view-id="p2a" class="w-full px-4 py-2.5 pl-8 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
-                                <span class="text-gray-400 text-xs">2A: Stack Layout</span>
+                                <span class="text-xs ${isDashStack ? 'text-white font-bold' : 'text-gray-400'}">2A: Stack Layout</span>
+                                ${isDashStack ? activeTag : ''}
                             </button>
                             <button data-action="select-view-mode" data-view-id="p2b" class="w-full px-4 py-2.5 pl-8 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
-                                <span class="text-gray-400 text-xs">2B: Split Card</span>
+                                <span class="text-xs ${isDashSplit ? 'text-white font-bold' : 'text-gray-400'}">2B: Split Card</span>
+                                ${isDashSplit ? activeTag : ''}
                             </button>
                             <button data-action="select-view-mode" data-view-id="p2c" class="w-full px-4 py-2.5 pl-8 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
-                                <span class="text-gray-400 text-xs">2C: Playlist Mode</span>
+                                <span class="text-xs ${isDashPlaylist ? 'text-white font-bold' : 'text-gray-400'}">2C: Playlist Mode</span>
+                                ${isDashPlaylist ? activeTag : ''}
                             </button>
 
                             <!-- P3: The Toolbar -->
@@ -112,11 +128,12 @@ export const ViewModeModal = () => {
                                 <span class="text-[10px] font-bold text-green-400 uppercase tracking-wider">Proposal 3 — The Toolbar</span>
                             </div>
                             <button data-action="select-view-mode" data-view-id="p3" class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
-                                <span class="text-gray-300 text-sm">P3: The Toolbar — Persistent Bottom Drawer</span>
+                                <span class="text-xs ${isToolbar ? 'text-white font-bold' : 'text-gray-300'}">P3: The Toolbar — Persistent Bottom Drawer</span>
+                                ${isToolbar ? activeTag : ''}
                             </button>
                             <button data-action="select-view-mode" data-view-id="p3a" class="w-full px-4 py-2.5 pl-8 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
-                                <span class="text-xs ${activeViewId === 'mobile-toolbar-chips' ? 'text-white font-bold' : 'text-gray-400'}">3A: Quick-Access Chips</span>
-                                ${activeViewId === 'mobile-toolbar-chips' ? activeTag : ''}
+                                <span class="text-xs ${isToolbarChips ? 'text-white font-bold' : 'text-gray-400'}">3A: Quick-Access Chips</span>
+                                ${isToolbarChips ? activeTag : ''}
                             </button>
                             <button data-action="select-view-mode" data-view-id="p3b" class="w-full px-4 py-2.5 pl-8 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
                                 <span class="text-xs ${isToolbarGestures ? 'text-white font-bold' : 'text-gray-400'}">3B: Gesture Ring</span>
@@ -138,7 +155,7 @@ export const ViewModeModal = () => {
                                 <span class="text-[10px] font-bold text-purple-400 uppercase tracking-wider">Dimensions</span>
                             </div>
                             <button data-action="select-view-mode" data-view-id="dim-a" class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
-                                <span class="text-sm ${isDimA ? 'text-white font-bold' : 'text-gray-300'}">A: Portrait ↔ Landscape Dual View</span>
+                                <span class="text-xs ${isDimA ? 'text-white font-bold' : 'text-gray-300'}">A: Portrait ↔ Landscape Dual View</span>
                                 ${isDimA ? activeTag : ''}
                             </button>
                             <button data-action="select-view-mode" data-view-id="dim-a1" class="w-full px-4 py-2.5 pl-8 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
@@ -151,10 +168,11 @@ export const ViewModeModal = () => {
                                 <span class="text-gray-400 text-xs">A3: Two-App Feeling</span>
                             </button>
                             <button data-action="select-view-mode" data-view-id="dim-b" class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
-                                <span class="text-gray-300 text-sm">B: Play Mode vs View Mode</span>
+                                <span class="text-xs ${isDimB ? 'text-white font-bold' : 'text-gray-300'}">B: Play Mode vs View Mode</span>
+                                ${isDimB ? activeTag : ''}
                             </button>
                             <button data-action="select-view-mode" data-view-id="dim-c" class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
-                                <span class="text-sm ${isDimC ? 'text-white font-bold' : 'text-gray-300'}">C: Elevated Mixer</span>
+                                <span class="text-xs ${isDimC ? 'text-white font-bold' : 'text-gray-300'}">C: Elevated Mixer</span>
                                 ${isDimC ? activeTag : ''}
                             </button>
                             <button data-action="select-view-mode" data-view-id="dim-c1" class="w-full px-4 py-2.5 pl-8 flex items-center gap-3 hover:bg-gray-700/50 active:bg-gray-700 transition-colors border-b border-gray-700/30">
