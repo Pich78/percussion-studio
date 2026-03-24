@@ -106,13 +106,11 @@ export const scrollToMeasure = (measureIndex) => {
 
         if (isVisible) return;
 
-        const containerHeight = scrollContainer.clientHeight;
         const measureTop = measureElement.offsetTop;
-        const measureHeight = measureElement.offsetHeight;
-        const scrollTo = measureTop - (containerHeight / 2) + (measureHeight / 2);
 
+        // Scroll to the measure's top edge — matches scroll-snap-align: start on each measure
         scrollContainer.scrollTo({
-            top: scrollTo,
+            top: measureTop,
             behavior: 'smooth'
         });
     }, 10);

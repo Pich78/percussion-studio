@@ -107,7 +107,7 @@ export const MeasureRenderer = ({
   }).join('');
 
   return `
-      <div class="measure-container mb-6" data-measure-index="${measureIdx}">
+      <div class="measure-container mb-6" data-measure-index="${measureIdx}" style="scroll-snap-align: start;">
         <!-- Measure Header -->
         ${renderMeasureHeader(measure, measureIdx, section, cellSizePx, readOnly)}
         

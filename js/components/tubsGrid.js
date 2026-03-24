@@ -129,13 +129,19 @@ export const TubsGrid = ({
 
   // Container classes differ between mobile and desktop
   const containerClasses = isMobile
-    ? 'flex flex-col gap-2 overflow-x-auto overflow-y-auto pb-4 w-full custom-scrollbar relative outline-none ring-0'
+    ? 'flex flex-col gap-2 overflow-x-auto overflow-y-scroll pb-4 w-full h-full custom-scrollbar relative outline-none ring-0'
     : 'flex flex-col gap-4 overflow-x-auto overflow-y-auto pb-8 w-full custom-scrollbar relative bg-gray-900/20 p-4 rounded-xl border border-gray-800';
+
+  // Mobile containers use CSS scroll-snap for paged measure scrolling
+  const containerStyle = isMobile
+    ? 'style="scroll-snap-type: y mandatory; -webkit-overflow-scrolling: touch;"'
+    : '';
 
   return `
         <div 
             id="tubs-scroll-container"
             class="${containerClasses}"
+            ${containerStyle}
         >
             ${SectionSettings(section, globalBpm, readOnly)}
             ${measuresHtml}
