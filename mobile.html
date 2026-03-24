@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Percussion Studio (Mobile)</title>
 
     <!-- Prevent caching during development -->
@@ -43,11 +43,8 @@
         }
     </script>
     <style>
-        /* CSS custom properties for safe area insets - accessible to JavaScript */
+        /* CSS custom property for safe area bottom inset - for home indicator spacing */
         :root {
-            --safe-area-left: env(safe-area-inset-left, 0px);
-            --safe-area-right: env(safe-area-inset-right, 0px);
-            --safe-area-top: env(safe-area-inset-top, 0px);
             --safe-area-bottom: env(safe-area-inset-bottom, 0px);
         }
 
