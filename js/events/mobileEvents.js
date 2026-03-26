@@ -411,46 +411,8 @@ export const setupMobileEvents = () => {
     const root = document.getElementById('root');
     const actionRouter = createMobileActionRouter();
 
-    // Tracks the timestamp of the last touchend-handled action.
-    // Used to suppress the synthetic 300ms click that iOS PWA (standalone) mode
-    // fires after every touch — which would land on a different element after
-    // a re-render triggered by the touchend (e.g. opening the hamburger menu).
-    let lastTouchHandledMs = 0;
-
-    // touchend handler — fires immediately on lift, before iOS synthesises a click.
-    // We call preventDefault() to cancel that synthetic click.
-    root.addEventListener('touchend', (e) => {
-        const touch = e.changedTouches[0];
-        if (!touch) return;
-
-        // Find the action target at the lift position (covers child elements too)
-        const el = document.elementFromPoint(touch.clientX, touch.clientY);
-        const target = el?.closest('[data-action]');
-        if (!target) return;
-
-        const action = target.dataset.action;
-        if (!MOBILE_ALLOWED_ACTIONS.includes(action)) return;
-        if (!actionRouter[action]) return;
-
-        // Resume Audio Context (Mobile Fix)
-        audioEngine.init();
-        audioEngine.resume();
-
-        // Mark time so the follow-up synthetic click is ignored
-        lastTouchHandledMs = Date.now();
-
-        actionRouter[action](e, target);
-
-        // Suppress the 300ms synthetic click from iOS standalone/PWA mode
-        e.preventDefault();
-    }, { passive: false });
-
-    // Click handler (desktop / non-PWA fallback).
-    // Skipped if a touchend already handled this interaction.
+    // Click handler
     root.addEventListener('click', (e) => {
-        // Suppress synthetic click that follows a touchend we already handled
-        if (Date.now() - lastTouchHandledMs < 600) return;
-
         // Resume Audio Context (Mobile Fix)
         audioEngine.init();
         audioEngine.resume();
