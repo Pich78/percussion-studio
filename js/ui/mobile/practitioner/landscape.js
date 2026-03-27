@@ -96,7 +96,7 @@ const renderLandscapeTopBar = (activeSection) => {
         <span class="text-gray-700 flex-shrink-0">﹒</span>
 
         <!-- Rep count -->
-        <span class="text-[10px] font-mono text-gray-400 flex-shrink-0 bg-gray-900 px-1.5 py-0.5 rounded border border-gray-800">
+        <span id="header-rep-count" class="text-[10px] font-mono text-gray-400 flex-shrink-0 bg-gray-900 px-1.5 py-0.5 rounded border border-gray-800">
             Rep ${repLabel(activeSection)}
         </span>
 
