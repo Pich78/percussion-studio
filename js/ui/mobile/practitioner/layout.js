@@ -260,19 +260,8 @@ const renderMixerModal = (activeSection) => {
                     class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
                     ${isMuted ? 'disabled' : ''} />
             </div>
-
-            <!-- Step buttons — identical row to BPM −5 −1 +1 +5 -->
-            <div class="flex gap-2">
-                <button data-action="practitioner-vol-step" data-track-index="${tIdx}" data-delta="-0.1"
-                    class="flex-1 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded-xl py-2 text-sm font-bold text-gray-300 ${isMuted ? 'opacity-40 pointer-events-none' : ''}">−10</button>
-                <button data-action="practitioner-vol-step" data-track-index="${tIdx}" data-delta="-0.01"
-                    class="flex-1 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded-xl py-2 text-sm font-bold text-gray-300 ${isMuted ? 'opacity-40 pointer-events-none' : ''}">−1</button>
-                <button data-action="practitioner-vol-step" data-track-index="${tIdx}" data-delta="0.01"
-                    class="flex-1 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded-xl py-2 text-sm font-bold text-gray-300 ${isMuted ? 'opacity-40 pointer-events-none' : ''}">+1</button>
-                <button data-action="practitioner-vol-step" data-track-index="${tIdx}" data-delta="0.1"
-                    class="flex-1 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded-xl py-2 text-sm font-bold text-gray-300 ${isMuted ? 'opacity-40 pointer-events-none' : ''}">+10</button>
-            </div>
         </div>`;
+
     }).join('');
 
     return `
