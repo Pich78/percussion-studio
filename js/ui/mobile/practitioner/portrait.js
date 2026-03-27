@@ -203,7 +203,7 @@ const renderPortraitSectionBar = (activeSection) => {
 };
 
 const renderPortraitPlayBar = () => `
-    <div class="flex-shrink-0 bg-gray-950 border-t border-gray-800 px-4 pt-3 pb-[calc(var(--safe-area-bottom,0px)+1rem)]">
+    <div class="flex-shrink-0 bg-gray-950 px-4 pt-3 pb-[calc(var(--safe-area-bottom,0px)+1rem)]">
         <div class="flex items-center gap-3 justify-center">
             <button data-action="stop"
                 class="flex-1 max-w-[160px] h-16 rounded-2xl flex items-center justify-center gap-2 bg-gray-800 hover:bg-red-900/30 hover:text-red-400 text-gray-400 border border-gray-700 hover:border-red-900/50 transition-all font-bold text-sm">
