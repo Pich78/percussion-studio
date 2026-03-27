@@ -558,7 +558,8 @@ const renderPortraitSectionBar = (activeSection) => {
     const canEdit = !state.isPlaying;
     const sections = state.toque.sections;
     const sectionIdx = sections.findIndex(s => s.id === state.activeSectionId);
-    const isModalOpen = state.uiState.practitionerPortraitSectionModal === true;
+    const isModalOpen = state.uiState.practitionerPortraitSectionModal === true
+        && !state.isPlaying;  // auto-dismiss when playback starts — keeps mixer unblocked
 
     const sectionModal = isModalOpen ? `
     <div class="fixed inset-x-0 bottom-20 z-[70] mx-4 bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl p-3 flex flex-col gap-2 max-h-[55vh] overflow-y-auto animate-in fade-in">
