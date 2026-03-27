@@ -44,7 +44,12 @@ const MOBILE_ALLOWED_ACTIONS = [
     'close-bata-explorer', 'close-bata-explorer-bg', 'toggle-filter-dropdown',
     'toggle-orisha-filter', 'remove-orisha-filter', 'toggle-type-filter',
     'remove-type-filter', 'clear-bata-filters', 'select-toque', 'close-toque-details',
-    'load-toque-confirm'
+    'load-toque-confirm',
+    // Practitioner (Dim D) actions
+    'practitioner-toggle-popover', 'practitioner-close-popover',
+    'practitioner-bpm-step', 'practitioner-select-section', 'practitioner-rep-step',
+    'practitioner-cycle-colour',
+    'practitioner-portrait-toggle-sections', 'practitioner-portrait-close-sections'
 ];
 
 /**
@@ -225,7 +230,8 @@ const createMobileActionRouter = () => ({
             'p3c': 'mobile-toolbar-sticky',
             'dim-a': 'mobile-dual-view',
             'dim-b': 'mobile-dimension-b',
-            'dim-c': 'mobile-dimension-c'
+            'dim-c': 'mobile-dimension-c',
+            'dim-d': 'mobile-practitioner'
         };
         const mappedViewId = VIEW_MAP[viewId];
         if (mappedViewId) {
@@ -245,6 +251,78 @@ const createMobileActionRouter = () => ({
             }
             eventBus.emit('render');
         }
+    },
+
+    // ── Practitioner (Dimension D) actions ──────────────────────────────────
+
+    // Toggle a chip popover (BPM / Mixer / Section)
+    'practitioner-toggle-popover': (e, target) => {
+        const popoverId = target.dataset.popoverId;
+        if (state.uiState.practitionerPopover === popoverId) {
+            state.uiState.practitionerPopover = null;
+        } else {
+            state.uiState.practitionerPopover = popoverId;
+        }
+        eventBus.emit('render');
+    },
+
+    // Close any open chip popover
+    'practitioner-close-popover': () => {
+        state.uiState.practitionerPopover = null;
+        eventBus.emit('render');
+    },
+
+    // Step the global BPM by delta (used in both orientations)
+    'practitioner-bpm-step': (e, target) => {
+        const delta = parseInt(target.dataset.delta, 10);
+        const newBpm = Math.max(40, Math.min(240, state.toque.globalBpm + delta));
+        state.toque.globalBpm = newBpm;
+        const section = getActiveSection(state);
+        if (!section?.bpm) playback.currentPlayheadBpm = newBpm;
+        eventBus.emit('render');
+    },
+
+    // Select a section via the practitioner chips modal
+    'practitioner-select-section': (e, target) => {
+        const sectionId = target.dataset.sectionId;
+        if (sectionId) {
+            document.dispatchEvent(new CustomEvent('timeline-select', { detail: sectionId }));
+            state.uiState.practitionerPopover = null;
+            state.uiState.practitionerPortraitSectionModal = false;
+        }
+    },
+
+    // Step repetitions for a section from the practitioner section modal
+    'practitioner-rep-step': (e, target) => {
+        const sectionId = target.dataset.sectionId;
+        const delta = parseInt(target.dataset.delta, 10);
+        const section = state.toque.sections.find(s => s.id === sectionId);
+        if (section) {
+            section.repetitions = Math.max(1, (section.repetitions || 1) + delta);
+            eventBus.emit('render');
+        }
+    },
+
+    // Cycle instrument colour metric on the landscape grid by tapping instrument name
+    'practitioner-cycle-colour': (e, target) => {
+        const metrics = [null, 'instrument'];
+        const current = state.uiState.instrumentColourMetric;
+        const nextIdx = (metrics.indexOf(current) + 1) % metrics.length;
+        state.uiState.instrumentColourMetric = metrics[nextIdx];
+        eventBus.emit('render');
+    },
+
+    // Portrait: open/close section modal
+    'practitioner-portrait-toggle-sections': () => {
+        if (state.isPlaying) return;  // disabled during playback
+        state.uiState.practitionerPortraitSectionModal =
+            !state.uiState.practitionerPortraitSectionModal;
+        eventBus.emit('render');
+    },
+
+    'practitioner-portrait-close-sections': () => {
+        state.uiState.practitionerPortraitSectionModal = false;
+        eventBus.emit('render');
     },
 
     // Toolbar drawer toggle (P3 view)

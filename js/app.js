@@ -21,6 +21,7 @@ import { mobileToolbarGesturesView } from './views/mobileToolbarGesturesView.js'
 import { mobileToolbarStickyView } from './views/mobileToolbarStickyView.js';
 import { mobileDualView } from './views/mobileDualView.js';
 import { mobileDimensionBView } from './views/mobileDimensionBView.js';
+import { mobilePractitionerView } from './views/mobilePractitionerView.js';
 import { mobileDimensionCView } from './views/mobileDimensionCView.js';
 import { desktopEditorView } from './views/desktopEditorView.js';
 import { setViewProvider } from './ui/renderer.js';
@@ -48,6 +49,7 @@ viewManager.registerView(mobileToolbarStickyView);
 viewManager.registerView(mobileDualView);
 viewManager.registerView(mobileDimensionBView);
 viewManager.registerView(mobileDimensionCView);
+viewManager.registerView(mobilePractitionerView);
 viewManager.registerView(desktopEditorView);
 
 // Set the active view based on the page context
