@@ -160,7 +160,6 @@ const renderPortraitMixer = (activeSection) => {
 
     return `
     <div class="bg-gray-900 border border-gray-800 rounded-xl mx-4 p-3 flex flex-col gap-3 flex-shrink-0">
-        <span class="text-xs text-gray-400 uppercase font-bold tracking-wider">Mix Console</span>
         ${rows}
     </div>`;
 };
