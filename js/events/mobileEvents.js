@@ -47,7 +47,8 @@ const MOBILE_ALLOWED_ACTIONS = [
     'load-toque-confirm',
     // Practitioner (Dim D) actions
     'practitioner-toggle-popover', 'practitioner-close-popover',
-    'practitioner-bpm-step', 'practitioner-select-section', 'practitioner-rep-step',
+    'practitioner-bpm-step', 'practitioner-vol-step',
+    'practitioner-select-section', 'practitioner-rep-step',
     'practitioner-cycle-colour', 'practitioner-prev-section', 'practitioner-next-section',
     'practitioner-portrait-toggle-sections', 'practitioner-portrait-close-sections'
 ];
@@ -272,13 +273,30 @@ const createMobileActionRouter = () => ({
         eventBus.emit('render');
     },
 
-    // Step the global BPM by delta (used in both orientations)
+    // Step BPM up/down from the practitioner BPM chip modal
     'practitioner-bpm-step': (e, target) => {
         const delta = parseInt(target.dataset.delta, 10);
-        const newBpm = Math.max(40, Math.min(240, state.toque.globalBpm + delta));
-        state.toque.globalBpm = newBpm;
-        const section = getActiveSection(state);
-        if (!section?.bpm) playback.currentPlayheadBpm = newBpm;
+        if (!isNaN(delta)) {
+            const newBpm = Math.max(40, Math.min(240, (state.toque.globalBpm || 120) + delta));
+            state.toque.globalBpm = newBpm;
+            eventBus.emit('render');
+        }
+    },
+
+    // Step volume up/down from the practitioner Mixer chip modal
+    'practitioner-vol-step': (e, target) => {
+        const trackIdx = parseInt(target.dataset.trackIndex, 10);
+        const delta = parseFloat(target.dataset.delta);
+        if (isNaN(trackIdx) || isNaN(delta)) return;
+        const activeSection = state.toque.sections.find(s => s.id === state.activeSectionId);
+        if (!activeSection) return;
+        // Apply to all measures so the volume is consistent
+        activeSection.measures.forEach(measure => {
+            const track = measure.tracks[trackIdx];
+            if (track) {
+                track.volume = Math.max(0, Math.min(1, (track.volume ?? 1.0) + delta));
+            }
+        });
         eventBus.emit('render');
     },
 
