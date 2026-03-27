@@ -54,7 +54,7 @@ viewManager.registerView(desktopEditorView);
 
 // Set the active view based on the page context
 if (window.IS_MOBILE_VIEW) {
-    viewManager.setActiveView('mobile-grid');
+    viewManager.setActiveView('mobile-practitioner');
 } else {
     viewManager.setActiveView('desktop-editor');
 }
