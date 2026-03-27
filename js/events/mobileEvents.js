@@ -49,8 +49,7 @@ const MOBILE_ALLOWED_ACTIONS = [
     'practitioner-toggle-popover', 'practitioner-close-popover',
     'practitioner-bpm-step', 'practitioner-vol-step', 'practitioner-solo',
     'practitioner-select-section', 'practitioner-rep-step', 'practitioner-set-reps', 'practitioner-toggle-random',
-    'practitioner-cycle-colour', 'practitioner-prev-section', 'practitioner-next-section',
-    'practitioner-portrait-toggle-sections', 'practitioner-portrait-close-sections'
+    'practitioner-cycle-colour', 'practitioner-prev-section', 'practitioner-next-section'
 ];
 
 /**
@@ -261,8 +260,14 @@ const createMobileActionRouter = () => ({
         const popoverId = target.dataset.popoverId;
         if (state.uiState.practitionerPopover === popoverId) {
             state.uiState.practitionerPopover = null;
+            if (popoverId === 'prac-section') {
+                state.uiState.practitionerPortraitSectionModal = false;
+            }
         } else {
             state.uiState.practitionerPopover = popoverId;
+            if (popoverId === 'prac-section') {
+                state.uiState.practitionerPortraitSectionModal = true;
+            }
         }
         eventBus.emit('render');
     },
@@ -270,6 +275,7 @@ const createMobileActionRouter = () => ({
     // Close any open chip popover
     'practitioner-close-popover': () => {
         state.uiState.practitionerPopover = null;
+        state.uiState.practitionerPortraitSectionModal = false;
         eventBus.emit('render');
     },
 
@@ -369,19 +375,6 @@ const createMobileActionRouter = () => ({
         const current = state.uiState.instrumentColourMetric;
         const nextIdx = (metrics.indexOf(current) + 1) % metrics.length;
         state.uiState.instrumentColourMetric = metrics[nextIdx];
-        eventBus.emit('render');
-    },
-
-    // Portrait: open/close section modal
-    'practitioner-portrait-toggle-sections': () => {
-        if (state.isPlaying) return;  // disabled during playback
-        state.uiState.practitionerPortraitSectionModal =
-            !state.uiState.practitionerPortraitSectionModal;
-        eventBus.emit('render');
-    },
-
-    'practitioner-portrait-close-sections': () => {
-        state.uiState.practitionerPortraitSectionModal = false;
         eventBus.emit('render');
     },
 
