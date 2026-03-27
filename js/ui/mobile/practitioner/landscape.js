@@ -18,7 +18,7 @@ const liveBpm = () =>
 const repLabel = (section) => {
     const reps = section.repetitions || 1;
     const current = state.isPlaying ? (playback.repetitionCounter || 1) : 1;
-    const isRandom = section.random;
+    const isRandom = section.randomRepetitions;
     const randIndicator = isRandom ? ' 🎲' : '';
     return `${current}/${reps}${randIndicator}`;
 };
