@@ -497,20 +497,33 @@ const renderPortraitInfoRow = (activeSection) => `
 // PORTRAIT — BPM row (Row 2)
 // ─────────────────────────────────────────────────────────────────────────────
 
-const renderPortraitBpmRow = () => `
+const renderPortraitBpmRow = () => {
+    const bpm = state.toque.globalBpm;
+    const pct = ((bpm - 40) / 200) * 100;
+    return `
     <div class="bg-gray-900 border border-gray-800 rounded-2xl mx-4 p-4 flex-shrink-0">
         <div class="flex justify-between items-center mb-3">
             <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Tempo</span>
-            <span class="text-sm font-mono font-bold text-indigo-400">${state.toque.globalBpm} BPM</span>
+            <span id="portrait-bpm-display" class="text-sm font-mono font-bold text-indigo-400">${bpm} BPM</span>
         </div>
-        <div class="relative w-full h-10 flex items-center group/bpm cursor-pointer py-2 px-1">
-            <div class="absolute left-1 right-1 h-3 bg-gray-800 rounded-full"></div>
-            <div class="absolute left-1 h-3 bg-gradient-to-r from-indigo-600 to-indigo-400 rounded-full"
-                 style="width: calc(${((state.toque.globalBpm - 40) / 200) * 100}% - 2px)"></div>
-            <div class="absolute w-7 h-7 bg-white rounded-full shadow-lg border-2 border-indigo-400 z-[15] touch-none"
-                 style="left: calc(${((state.toque.globalBpm - 40) / 200) * 100}% - 14px + 4px)"></div>
-            <input type="range" min="40" max="240" value="${state.toque.globalBpm}"
+        <div class="relative w-full h-10 flex items-center cursor-pointer py-2 px-1">
+            <div class="absolute left-1 right-1 h-3 bg-gray-800 rounded-full border border-gray-700"></div>
+            <div id="portrait-bpm-fill" class="absolute left-1 h-3 bg-gradient-to-r from-indigo-600 to-indigo-400 rounded-full"
+                 style="width: calc(${pct}% - 2px)"></div>
+            <div id="portrait-bpm-thumb" class="absolute w-7 h-7 bg-white rounded-full shadow-lg border-2 border-indigo-400 z-[15] touch-none"
+                 style="left: calc(${pct}% - 14px + 4px)"></div>
+            <input type="range" min="40" max="240" value="${bpm}"
                    data-action="update-global-bpm"
+                   oninput="(() => {
+                       const v = parseInt(this.value, 10);
+                       const p = ((v - 40) / 200) * 100;
+                       const fill = document.getElementById('portrait-bpm-fill');
+                       const thumb = document.getElementById('portrait-bpm-thumb');
+                       const disp = document.getElementById('portrait-bpm-display');
+                       if (fill) fill.style.width = 'calc(' + p + '% - 2px)';
+                       if (thumb) thumb.style.left = 'calc(' + p + '% - 14px + 4px)';
+                       if (disp) disp.textContent = v + ' BPM';
+                   })()"
                    class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" />
         </div>
         <!-- Quick BPM nudge buttons -->
@@ -529,6 +542,7 @@ const renderPortraitBpmRow = () => `
                 class="flex-1 py-1.5 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded-lg text-xs font-bold text-gray-400">+10</button>
         </div>
     </div>`;
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PORTRAIT — mixer block (Row 3)
@@ -539,33 +553,72 @@ const renderPortraitMixer = (activeSection) => {
 
     const rows = tracks.map((track, tIdx) => {
         const def = state.instrumentDefinitions[track.instrument] || {};
-        const mix = state.mix[track.instrument] || { volume: 1.0, muted: false };
+        const mix = state.mix?.[track.instrument] || { volume: track.volume ?? 1.0, muted: track.muted ?? false };
+        const vol = mix.volume ?? 1.0;
+        const isMuted = mix.muted ?? false;
+        // Solo = only this track is audible (all others muted)
+        const isSolo = state.soloTrack === tIdx;
+        const pct = Math.round(vol * 100);
+        const nameColor = (isMuted || (state.soloTrack !== undefined && state.soloTrack !== null && !isSolo))
+            ? '#6b7280' : (def.color || '#d1d5db');
+
+        const fillId = `portrait-vol-fill-${tIdx}`;
+        const thumbId = `portrait-vol-thumb-${tIdx}`;
+        const dispId = `portrait-vol-disp-${tIdx}`;
+
         return `
-        <div class="flex flex-col w-full gap-2">
-            <div class="flex justify-between items-center px-1">
-                <span class="text-sm font-bold ${mix.muted ? 'text-gray-600' : ''}"
-                      style="color: ${mix.muted ? '' : (def.color || '#d1d5db')}">${def.name || track.instrument}</span>
-                <div class="flex gap-2 items-center">
-                    <span class="text-xs font-mono text-gray-500 ${mix.muted ? 'opacity-30' : ''}">${Math.round(mix.volume * 100)}%</span>
-                    <button data-action="toggle-mute" data-track-index="${tIdx}"
-                        class="px-2 py-0.5 rounded text-[10px] font-bold uppercase transition-colors border
-                               ${mix.muted ? 'bg-red-900/30 text-red-500 border-red-900/50' : 'bg-gray-800 text-gray-400 border-gray-700'}">
-                        ${mix.muted ? 'Muted' : 'Mute'}
-                    </button>
+        <div class="flex flex-col w-full gap-2.5">
+            <!-- Instrument name row -->
+            <div class="flex items-center justify-between">
+                <span class="text-sm font-bold truncate max-w-[60%]" style="color: ${nameColor};">
+                    ${def.name || track.instrument}${isSolo ? ' ◉' : ''}
+                </span>
+                <span id="${dispId}" class="text-sm font-mono font-bold ${isMuted ? 'text-gray-600' : 'text-indigo-400'}">${pct}%</span>
+            </div>
+
+            <!-- Controls row: Solo | Mute | ───────slider─────── -->
+            <div class="flex items-center gap-2">
+                <!-- Solo button -->
+                <button data-action="practitioner-solo" data-track-index="${tIdx}"
+                    class="h-10 px-3 rounded-xl flex items-center justify-center flex-shrink-0 font-bold text-xs uppercase tracking-wider transition-colors border
+                           ${isSolo ? 'bg-amber-500/20 text-amber-400 border-amber-500/40' : 'bg-gray-800 text-gray-500 border-gray-700 hover:text-amber-400 hover:border-amber-500/30'}"
+                    title="Solo">
+                    S
+                </button>
+
+                <!-- Mute button -->
+                <button data-action="toggle-mute" data-track-index="${tIdx}" data-measure-index="0"
+                    class="h-10 px-3 rounded-xl flex items-center justify-center flex-shrink-0 font-bold text-xs uppercase tracking-wider transition-colors border
+                           ${isMuted ? 'bg-red-900/30 text-red-400 border-red-900/50' : 'bg-gray-800 text-gray-500 border-gray-700 hover:text-red-400 hover:border-red-900/30'}"
+                    title="${isMuted ? 'Unmute' : 'Mute'}">
+                    M
+                </button>
+
+                <!-- Volume slider -->
+                <div class="flex-1 h-10 relative flex items-center cursor-pointer ${isMuted ? 'opacity-40' : ''}">
+                    <div class="absolute left-0 right-0 h-3 bg-gray-800 rounded-full border border-gray-700"></div>
+                    <div id="${fillId}" class="absolute left-0 h-3 bg-gradient-to-r from-indigo-600 to-indigo-400 rounded-full pointer-events-none"
+                         style="width: ${pct}%"></div>
+                    <div id="${thumbId}" class="absolute w-6 h-6 bg-white rounded-full shadow-md border-2 border-indigo-400 z-[15] touch-none pointer-events-none"
+                         style="left: calc(${pct}% - 12px)"></div>
+                    <input type="range" min="0" max="1" step="0.01" value="${vol}"
+                           data-action="update-volume" data-track-index="${tIdx}" data-measure-index="0"
+                           oninput="(() => {
+                               const v = parseFloat(this.value);
+                               const p = Math.round(v * 100);
+                               const fill = document.getElementById('${fillId}');
+                               const thumb = document.getElementById('${thumbId}');
+                               const disp = document.getElementById('${dispId}');
+                               if (fill) fill.style.width = p + '%';
+                               if (thumb) thumb.style.left = 'calc(' + p + '% - 12px)';
+                               if (disp) disp.textContent = p + '%';
+                           })()"
+                           class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
+                           ${isMuted ? 'disabled' : ''} />
                 </div>
             </div>
-            <div class="flex-1 h-8 relative flex items-center group/vol cursor-pointer ${mix.muted ? 'opacity-30' : ''}">
-                <div class="absolute left-0 right-0 h-2 bg-gray-800 rounded-full"></div>
-                <div class="absolute left-0 h-2 bg-gradient-to-r from-indigo-500 to-indigo-400 rounded-full pointer-events-none"
-                     style="width: ${Math.round(mix.volume * 100)}%"></div>
-                <div class="absolute w-5 h-5 bg-white rounded-full shadow-md z-[15] touch-none pointer-events-none"
-                     style="left: calc(${Math.round(mix.volume * 100)}% - 10px)"></div>
-                <input type="range" min="0" max="1" step="0.01" value="${mix.volume}"
-                       data-action="update-volume" data-track-index="${tIdx}"
-                       class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" />
-            </div>
         </div>`;
-    }).join('');
+    }).join('<div class="h-px bg-gray-800"></div>');
 
     return `
     <div class="bg-gray-900 border border-gray-800 rounded-2xl mx-4 p-4 flex flex-col gap-4 flex-shrink-0">

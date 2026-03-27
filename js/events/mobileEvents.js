@@ -47,7 +47,7 @@ const MOBILE_ALLOWED_ACTIONS = [
     'load-toque-confirm',
     // Practitioner (Dim D) actions
     'practitioner-toggle-popover', 'practitioner-close-popover',
-    'practitioner-bpm-step', 'practitioner-vol-step',
+    'practitioner-bpm-step', 'practitioner-vol-step', 'practitioner-solo',
     'practitioner-select-section', 'practitioner-rep-step',
     'practitioner-cycle-colour', 'practitioner-prev-section', 'practitioner-next-section',
     'practitioner-portrait-toggle-sections', 'practitioner-portrait-close-sections'
@@ -297,6 +297,18 @@ const createMobileActionRouter = () => ({
                 track.volume = Math.max(0, Math.min(1, (track.volume ?? 1.0) + delta));
             }
         });
+        eventBus.emit('render');
+    },
+
+    // Toggle solo on a track: solos this instrument, un-solos if already soloed
+    'practitioner-solo': (e, target) => {
+        const trackIdx = parseInt(target.dataset.trackIndex, 10);
+        if (isNaN(trackIdx)) return;
+        if (state.soloTrack === trackIdx) {
+            state.soloTrack = null;  // un-solo
+        } else {
+            state.soloTrack = trackIdx;  // solo this one
+        }
         eventBus.emit('render');
     },
 
