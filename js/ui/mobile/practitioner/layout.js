@@ -495,11 +495,11 @@ const renderPortraitBpmRow = () => {
             <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Tempo</span>
             <span id="portrait-bpm-display" class="text-sm font-mono font-bold text-indigo-400">${bpm} BPM</span>
         </div>
-        <div class="relative w-full h-10 flex items-center cursor-pointer py-2 px-1">
-            <div class="absolute left-1 right-1 h-3 bg-gray-800 rounded-full border border-gray-700"></div>
-            <div id="portrait-bpm-fill" class="absolute left-1 h-3 bg-gradient-to-r from-indigo-600 to-indigo-400 rounded-full"
+        <div class="relative w-full h-10 flex items-center cursor-pointer py-2 px-1 mx-2">
+            <div class="absolute left-1 right-1 h-3 bg-gray-800 rounded-full border border-gray-700 pointer-events-none"></div>
+            <div id="portrait-bpm-fill" class="absolute left-1 h-3 bg-gradient-to-r from-indigo-600 to-indigo-400 rounded-full pointer-events-none"
                  style="width: calc(${pct}% - 2px)"></div>
-            <div id="portrait-bpm-thumb" class="absolute w-7 h-7 bg-white rounded-full shadow-lg border-2 border-indigo-400 z-[15] touch-none"
+            <div id="portrait-bpm-thumb" class="absolute w-7 h-7 bg-white rounded-full shadow-lg border-2 border-indigo-400 z-[15] touch-none pointer-events-none"
                  style="left: calc(${pct}% - 14px + 4px)"></div>
             <input type="range" min="40" max="240" value="${bpm}"
                    data-action="update-global-bpm"
@@ -513,7 +513,7 @@ const renderPortraitBpmRow = () => {
                        if (thumb) thumb.style.left = 'calc(' + p + '% - 14px + 4px)';
                        if (disp) disp.textContent = v + ' BPM';
                    })()"
-                   class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" />
+                   class="absolute -inset-x-3 inset-y-0 w-[calc(100%+24px)] h-full opacity-0 cursor-pointer z-20" />
         </div>
         <!-- Quick BPM nudge buttons -->
         <div class="flex gap-2 mt-1">
@@ -584,8 +584,8 @@ const renderPortraitMixer = (activeSection) => {
                 </button>
 
                 <!-- Volume slider -->
-                <div class="flex-1 h-10 relative flex items-center cursor-pointer ${isMuted ? 'opacity-40' : ''}">
-                    <div class="absolute left-0 right-0 h-3 bg-gray-800 rounded-full border border-gray-700"></div>
+                <div class="flex-1 h-10 relative flex items-center cursor-pointer ml-2 mr-2 ${isMuted ? 'opacity-40' : ''}">
+                    <div class="absolute left-0 right-0 h-3 bg-gray-800 rounded-full border border-gray-700 pointer-events-none"></div>
                     <div id="${fillId}" class="absolute left-0 h-3 bg-gradient-to-r from-indigo-600 to-indigo-400 rounded-full pointer-events-none"
                          style="width: ${pct}%"></div>
                     <div id="${thumbId}" class="absolute w-6 h-6 bg-white rounded-full shadow-md border-2 border-indigo-400 z-[15] touch-none pointer-events-none"
@@ -602,7 +602,7 @@ const renderPortraitMixer = (activeSection) => {
                                if (thumb) thumb.style.left = 'calc(' + p + '% - 12px)';
                                if (disp) disp.textContent = p + '%';
                            })()"
-                           class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
+                           class="absolute -inset-x-3 inset-y-0 w-[calc(100%+24px)] h-full opacity-0 cursor-pointer z-20"
                            ${isMuted ? 'disabled' : ''} />
                 </div>
             </div>
