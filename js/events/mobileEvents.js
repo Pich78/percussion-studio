@@ -48,7 +48,7 @@ const MOBILE_ALLOWED_ACTIONS = [
     // Practitioner (Dim D) actions
     'practitioner-toggle-popover', 'practitioner-close-popover',
     'practitioner-bpm-step', 'practitioner-select-section', 'practitioner-rep-step',
-    'practitioner-cycle-colour',
+    'practitioner-cycle-colour', 'practitioner-prev-section', 'practitioner-next-section',
     'practitioner-portrait-toggle-sections', 'practitioner-portrait-close-sections'
 ];
 
@@ -289,6 +289,26 @@ const createMobileActionRouter = () => ({
             document.dispatchEvent(new CustomEvent('timeline-select', { detail: sectionId }));
             state.uiState.practitionerPopover = null;
             state.uiState.practitionerPortraitSectionModal = false;
+        }
+    },
+
+    // Navigate to the previous section (top-bar chevron and swipe right)
+    'practitioner-prev-section': () => {
+        if (!state.toque) return;
+        const sections = state.toque.sections;
+        const idx = sections.findIndex(s => s.id === state.activeSectionId);
+        if (idx > 0) {
+            document.dispatchEvent(new CustomEvent('timeline-select', { detail: sections[idx - 1].id }));
+        }
+    },
+
+    // Navigate to the next section (top-bar chevron and swipe left)
+    'practitioner-next-section': () => {
+        if (!state.toque) return;
+        const sections = state.toque.sections;
+        const idx = sections.findIndex(s => s.id === state.activeSectionId);
+        if (idx < sections.length - 1) {
+            document.dispatchEvent(new CustomEvent('timeline-select', { detail: sections[idx + 1].id }));
         }
     },
 

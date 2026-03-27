@@ -16,10 +16,52 @@ export const mobilePractitionerView = {
     /** Returns the full page HTML */
     layout: PractitionerLayout,
 
-    /** Sets up DOM event listeners unique to this view */
+    /**
+     * Attach a horizontal swipe listener to the landscape top bar.
+     * The header never scrolls horizontally so there is no conflict with the
+     * grid's own overflow-x scroll. A swipe > 50px that is more horizontal
+     * than vertical navigates to the prev/next section.
+     */
     setupEvents: () => {
-        // All events are handled by the global mobileEvents.js delegator
-        // via the practitioner-* action handlers registered there.
+        let touchStartX = 0;
+        let touchStartY = 0;
+
+        const onTouchStart = (e) => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        };
+
+        const onTouchEnd = (e) => {
+            const dx = e.changedTouches[0].clientX - touchStartX;
+            const dy = e.changedTouches[0].clientY - touchStartY;
+
+            // Require a predominantly horizontal swipe of at least 50px
+            if (Math.abs(dx) < 50 || Math.abs(dy) > Math.abs(dx) * 0.8) return;
+
+            const header = document.getElementById('practitioner-landscape-header');
+            if (!header) return;
+
+            // Fire a synthetic data-action click so the existing mobileEvents router handles it
+            const action = dx < 0 ? 'practitioner-next-section' : 'practitioner-prev-section';
+            const syntheticTarget = { dataset: { action } };
+            // Dispatch to the global mobile action handler via a fake click on a well-known target
+            const btn = header.querySelector(`[data-action="${action}"]`);
+            if (btn && !btn.disabled) btn.click();
+        };
+
+        // Attach to the whole landscape wrapper so the swipe zone is generous.
+        // We re-attach on every setupEvents call (view switch) so use a named
+        // function so we can clean up stale listeners if needed.
+        const root = document.getElementById('root');
+        if (root) {
+            // Remove any previous listeners from this view (idempotent)
+            root.removeEventListener('touchstart', root.__practitionerSwipeStart);
+            root.removeEventListener('touchend',   root.__practitionerSwipeEnd);
+            root.__practitionerSwipeStart = onTouchStart;
+            root.__practitionerSwipeEnd   = onTouchEnd;
+            root.addEventListener('touchstart', onTouchStart, { passive: true });
+            root.addEventListener('touchend',   onTouchEnd,   { passive: true });
+        }
     },
 
     /**

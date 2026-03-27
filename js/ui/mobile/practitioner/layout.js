@@ -118,10 +118,20 @@ const renderPractitionerGrid = (activeSection, cellSizePx, iconSizePx, fontSizeP
 const renderLandscapeTopBar = (activeSection) => {
     const sections = state.toque.sections;
     const sectionIdx = sections.findIndex(s => s.id === state.activeSectionId);
-    const sectionLabel = `${activeSection.name} (${sectionIdx + 1}/${sections.length})`;
+    const hasPrev = sectionIdx > 0;
+    const hasNext = sectionIdx < sections.length - 1;
+
+    const navBtn = (action, enabled, icon) =>
+        `<button data-action="${action}"
+            class="w-7 h-7 flex items-center justify-center rounded-md transition-colors flex-shrink-0
+                   ${enabled ? 'text-gray-300 hover:text-white hover:bg-gray-800 active:bg-gray-700' : 'text-gray-700 cursor-not-allowed'}"
+            ${enabled ? '' : 'disabled'}
+            title="${action === 'practitioner-prev-section' ? 'Previous section' : 'Next section'}"
+        >${icon}</button>`;
 
     return `
-    <header class="h-10 bg-gray-950 border-b border-gray-800 flex items-center px-3 gap-3 z-40 flex-shrink-0">
+    <header id="practitioner-landscape-header"
+        class="h-10 bg-gray-950 border-b border-gray-800 flex items-center px-3 gap-2 z-40 flex-shrink-0">
         <!-- Hamburger -->
         <button data-action="toggle-menu"
             class="text-gray-400 hover:text-white p-1 rounded-md hover:bg-gray-800 transition-colors flex-shrink-0 ${state.uiState.isMenuOpen ? 'bg-gray-800 text-white' : ''}">
@@ -129,12 +139,20 @@ const renderLandscapeTopBar = (activeSection) => {
         </button>
 
         <!-- Track Name -->
-        <span class="text-sm font-bold text-indigo-400 truncate flex-shrink-0 max-w-[140px]">${state.toque.name}</span>
+        <span class="text-sm font-bold text-indigo-400 truncate flex-shrink-0 max-w-[120px]">${state.toque.name}</span>
 
         <span class="text-gray-700 flex-shrink-0">﹒</span>
 
-        <!-- Section Name (not clickable) -->
-        <span class="text-xs text-gray-300 font-medium truncate flex-shrink-0 max-w-[120px]">${sectionLabel}</span>
+        <!-- Section navigation: < Name (n/N) > -->
+        <div class="flex items-center gap-1 flex-shrink-0">
+            ${navBtn('practitioner-prev-section', hasPrev,
+                '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3.5 h-3.5 pointer-events-none"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/></svg>')}
+            <span class="text-xs text-gray-300 font-medium whitespace-nowrap">${activeSection.name}
+                <span class="text-gray-600 font-normal">${sectionIdx + 1}/${sections.length}</span>
+            </span>
+            ${navBtn('practitioner-next-section', hasNext,
+                '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3.5 h-3.5 pointer-events-none"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>')}
+        </div>
 
         <span class="text-gray-700 flex-shrink-0">﹒</span>
 
@@ -151,6 +169,8 @@ const renderLandscapeTopBar = (activeSection) => {
         </span>
     </header>`;
 };
+
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // LANDSCAPE — BPM chip modal
