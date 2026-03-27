@@ -23,7 +23,7 @@ const renderSharedModals = () => {
     if (state.uiState.isMenuOpen) { modals += MobileMenuPanel(); }
 
     if (state.uiState.modalOpen && state.uiState.modalType === 'rhythm') {
-        modals += RhythmModal();
+        modals += RhythmModal(state.uiState, true);
     }
 
     if (state.uiState.modalOpen && state.uiState.modalType === 'structure') {
