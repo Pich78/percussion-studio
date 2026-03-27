@@ -742,7 +742,7 @@ export const PractitionerLayout = () => {
 
     return `
     <div class="flex flex-col h-full bg-gray-950 text-gray-100 font-sans selection:bg-indigo-500 selection:text-black select-none
-                pl-[var(--safe-area-left)] pr-[var(--safe-area-right)] overflow-hidden">
+                pl-[var(--safe-area-left)] pr-[var(--safe-area-right)]">
 
         <!-- App loading overlay -->
         ${state.uiState.isLoadingRhythm ? `
