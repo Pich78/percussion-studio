@@ -177,10 +177,19 @@ const renderLandscapeTopBar = (activeSection) => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 const renderBpmModal = () => `
-    <div class="fixed bottom-[52px] left-4 bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl p-5 w-72 flex flex-col gap-4 z-[65] animate-in fade-in">
+    <div class="fixed bottom-[52px] left-1/2 -translate-x-1/2 bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl p-5 w-72 flex flex-col gap-4 z-[65] animate-in fade-in">
         <div class="flex justify-between items-center">
-            <span class="text-xs text-gray-400 font-bold uppercase tracking-wider">Tempo</span>
-            <span class="text-xl font-mono text-indigo-400 font-bold">${state.toque.globalBpm} BPM</span>
+            <div class="flex flex-col">
+                <span class="text-xs text-gray-400 font-bold uppercase tracking-wider">Tempo</span>
+                <span class="text-xl font-mono text-indigo-400 font-bold">${state.toque.globalBpm} BPM</span>
+            </div>
+            <button data-action="practitioner-close-popover"
+                class="w-8 h-8 flex items-center justify-center rounded-xl text-gray-500 hover:text-white hover:bg-gray-800 transition-colors"
+                title="Close">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 pointer-events-none">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
         </div>
         <div class="relative w-full h-10 flex items-center group/bpm cursor-pointer py-2 px-1">
             <div class="absolute left-1 right-1 h-3 bg-gray-800 rounded-full border border-gray-700"></div>
@@ -267,7 +276,18 @@ const renderMixerModal = (activeSection) => {
     }).join('');
 
     return `
-    <div class="fixed bottom-[52px] left-4 bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl p-5 w-72 flex flex-col gap-4 z-[65] animate-in fade-in max-h-[70vh] overflow-y-auto custom-scrollbar">
+    <div class="fixed bottom-[52px] left-1/2 -translate-x-1/2 bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl p-5 w-72 flex flex-col gap-4 z-[65] animate-in fade-in max-h-[70vh] overflow-y-auto custom-scrollbar">
+        <!-- Mixer header with X -->
+        <div class="flex justify-between items-center pb-2 border-b border-gray-800">
+            <span class="text-xs text-gray-400 font-bold uppercase tracking-wider">Mixer</span>
+            <button data-action="practitioner-close-popover"
+                class="w-8 h-8 flex items-center justify-center rounded-xl text-gray-500 hover:text-white hover:bg-gray-800 transition-colors"
+                title="Close">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 pointer-events-none">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
         ${rows}
     </div>`;
 };
@@ -308,10 +328,19 @@ const renderSectionModal = (activeSection) => {
     }).join('');
 
     return `
-    <div class="fixed bottom-[52px] right-4 bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl p-3 flex flex-col gap-2 w-80 max-w-[90vw] max-h-[55vh] overflow-y-auto z-[65] animate-in fade-in">
-        <div class="flex justify-between items-center pb-1 border-b border-gray-800 mb-1">
-            <span class="text-xs text-gray-400 font-bold uppercase tracking-wider">Sections</span>
-            <span class="text-[10px] text-gray-600">Tap to jump • Edit reps inline</span>
+    <div class="fixed bottom-[52px] left-1/2 -translate-x-1/2 bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl p-5 w-80 max-w-[90vw] max-h-[60vh] overflow-y-auto z-[65] animate-in fade-in flex flex-col gap-3">
+        <div class="flex justify-between items-center pb-2 border-b border-gray-800">
+            <div>
+                <span class="text-xs text-gray-400 font-bold uppercase tracking-wider">Sections</span>
+                <span class="text-[10px] text-gray-600 ml-2">Tap to jump • edit reps inline</span>
+            </div>
+            <button data-action="practitioner-close-popover"
+                class="w-8 h-8 flex items-center justify-center rounded-xl text-gray-500 hover:text-white hover:bg-gray-800 transition-colors"
+                title="Close">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 pointer-events-none">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
         </div>
         ${sectionRows}
     </div>`;
