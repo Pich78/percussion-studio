@@ -8,6 +8,7 @@
  */
 
 import { PractitionerLayout } from '../ui/mobile/practitioner/layout.js';
+import { updateVisualStep, scrollToMeasure } from '../ui/playheadUtils.js';
 
 export const mobilePractitionerView = {
     id: 'mobile-practitioner',
@@ -66,8 +67,12 @@ export const mobilePractitionerView = {
 
     /**
      * Visual update hook called every sequencer tick.
-     * Step highlighting is handled by TubsCell reading state.currentStep on
-     * each render — same as all other mobile views. No custom DOM patching needed.
+     * Uses the same playheadUtils as the standard mobile grid — works because
+     * PractitionerMeasureRenderer uses identical DOM structure:
+     * #tubs-scroll-container → .measure-container → TubsCell with data-step-marker.
      */
-    onStep: () => {}
+    onStep: ({ step, measure }) => {
+        updateVisualStep(step, measure);
+        scrollToMeasure(measure);
+    }
 };
