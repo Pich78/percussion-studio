@@ -157,7 +157,7 @@ const renderLandscapeTopBar = (activeSection) => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 const renderBpmModal = () => `
-    <div class="absolute bottom-[52px] left-4 bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl p-5 w-72 flex flex-col gap-4 z-[65] animate-in fade-in">
+    <div class="fixed bottom-[52px] left-4 bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl p-5 w-72 flex flex-col gap-4 z-[65] animate-in fade-in">
         <div class="flex justify-between items-center">
             <span class="text-xs text-gray-400 font-bold uppercase tracking-wider">Tempo</span>
             <span class="text-xl font-mono text-indigo-400 font-bold">${state.toque.globalBpm} BPM</span>
@@ -218,7 +218,7 @@ const renderMixerModal = (activeSection) => {
     }).join('');
 
     return `
-    <div class="absolute bottom-[52px] left-1/2 -translate-x-1/2 bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl p-4 flex flex-col gap-3 w-80 max-w-[90vw] z-[65] animate-in fade-in">
+    <div class="fixed bottom-[52px] left-1/2 -translate-x-1/2 bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl p-4 flex flex-col gap-3 w-80 max-w-[90vw] z-[65] animate-in fade-in">
         <span class="text-xs text-gray-400 font-bold uppercase tracking-wider">Mixer</span>
         ${rows}
     </div>`;
@@ -258,7 +258,7 @@ const renderSectionModal = (activeSection) => {
     }).join('');
 
     return `
-    <div class="absolute bottom-[52px] right-4 bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl p-3 flex flex-col gap-2 w-80 max-w-[90vw] max-h-[55vh] overflow-y-auto z-[65] animate-in fade-in">
+    <div class="fixed bottom-[52px] right-4 bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl p-3 flex flex-col gap-2 w-80 max-w-[90vw] max-h-[55vh] overflow-y-auto z-[65] animate-in fade-in">
         <div class="flex justify-between items-center pb-1 border-b border-gray-800 mb-1">
             <span class="text-xs text-gray-400 font-bold uppercase tracking-wider">Sections</span>
             <span class="text-[10px] text-gray-600">Tap to jump • Edit reps inline</span>
@@ -303,14 +303,15 @@ const renderLandscapeBottomBar = (activeSection) => {
         </button>`;
     };
 
-    const popoverContent = () => {
-        if (activePopover === 'prac-bpm') return renderBpmModal();
-        if (activePopover === 'prac-mixer') return renderMixerModal(activeSection);
-        if (activePopover === 'prac-section') return renderSectionModal(activeSection);
-        return '';
-    };
+    const activePopoverHtml = activePopover
+        ? (activePopover === 'prac-bpm'     ? renderBpmModal()
+         : activePopover === 'prac-mixer'   ? renderMixerModal(activeSection)
+         : activePopover === 'prac-section' ? renderSectionModal(activeSection)
+         : '')
+        : '';
 
-    return `
+    return {
+        barHtml: `
     <div class="h-13 border-t border-gray-800 bg-gray-950 flex items-center px-3 gap-2 flex-shrink-0 relative z-50"
          style="height: 52px;">
 
@@ -339,16 +340,16 @@ const renderLandscapeBottomBar = (activeSection) => {
                 ${state.isPlaying ? PauseIcon('w-4 h-4 pointer-events-none') : PlayIcon('w-4 h-4 ml-0.5 pointer-events-none')}
             </button>
         </div>
+    </div>`,
 
-        <!-- Active popover -->
-        ${popoverContent()}
-
-        <!-- Backdrop to close popover -->
-        ${activePopover ? `
+        // Popover + backdrop rendered OUTSIDE the bottom bar so they live in the
+        // root stacking context (z-[60]/z-[65]) and are not trapped under z-50.
+        overlayHtml: activePopover ? `
+        ${activePopoverHtml}
         <div data-action="practitioner-close-popover"
              class="fixed inset-x-0 top-0 z-[60]" style="bottom: 52px; background: rgba(0,0,0,0.4); backdrop-filter: blur(2px);">
-        </div>` : ''}
-    </div>`;
+        </div>` : ''
+    };
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -368,6 +369,9 @@ const renderLandscape = (activeSection) => {
     const iconSizePx = cellSizePx >= 36 ? 32 : cellSizePx >= 28 ? 24 : 16;
     const fontSizePx = cellSizePx >= 36 ? '0.875rem' : cellSizePx >= 28 ? '0.75rem' : '0.625rem';
 
+    // Bottom bar returns barHtml + overlayHtml separately so popovers sit at root z-level
+    const { barHtml, overlayHtml } = renderLandscapeBottomBar(activeSection);
+
     return `
     <div class="landscape:flex portrait:hidden flex-col flex-1 h-full w-full">
         ${renderLandscapeTopBar(activeSection)}
@@ -375,7 +379,8 @@ const renderLandscape = (activeSection) => {
                      bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-900 via-gray-950 to-gray-950">
             ${renderPractitionerGrid(activeSection, cellSizePx, iconSizePx, fontSizePx)}
         </main>
-        ${renderLandscapeBottomBar(activeSection)}
+        ${barHtml}
+        ${overlayHtml}
     </div>`;
 };
 
