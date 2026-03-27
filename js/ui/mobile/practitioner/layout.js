@@ -21,6 +21,8 @@
 import { state, playback } from '../../../store.js';
 import { getActiveSection } from '../../../store/stateSelectors.js';
 import { calculateMobileCellSize } from '../standard/layout.js';
+import { PractitionerMeasureRenderer } from './practitionerMeasureRenderer.js';
+import { SectionSettings } from '../../../components/grid/sectionSettings.js';
 import { Bars3Icon } from '../../../icons/bars3Icon.js';
 import { StopIcon } from '../../../icons/stopIcon.js';
 import { PlayIcon } from '../../../icons/playIcon.js';
@@ -72,116 +74,40 @@ const renderSharedModals = () => {
  * Scrolling up/down shows other measures; scrolling left/right handled by the
  * chip bar (section navigation is via the Section chip modal, not inline swipe).
  */
-const renderPractitionerGrid = (activeSection) => {
+/**
+ * Renders the practitioner grid using the standard TubsCell pipeline but with
+ * a name-only centered label column (PractitionerMeasureRenderer).
+ * Behaviour is identical to the standard mobile grid — same cells, same step
+ * highlighting, same measure structure — only the row header differs.
+ */
+const renderPractitionerGrid = (activeSection, cellSizePx, iconSizePx, fontSizePx) => {
     if (!activeSection || !activeSection.measures || activeSection.measures.length === 0) {
         return `<div class="flex-1 flex items-center justify-center text-gray-600">No data</div>`;
     }
 
-    // Use the desktop-style colour cycling state (uiState.instrumentColourMetric)
-    const colourMetric = state.uiState.instrumentColourMetric || null;
-
-    // Build a flat list of (instrument symbol → def) in track order from measure 0
-    const tracks = activeSection.measures[0].tracks;
-
-    // Collect all steps across all measures per track
-    // We show all measures in one scrollable table (rows = instruments, cols = all steps)
-    const totalMeasures = activeSection.measures.length;
-    const stepsPerMeasure = activeSection.steps || 12;
-
-    // Figure out accent colour per instrument when colour metric is active
-    const getAccentStyle = (trackDef) => {
-        if (!colourMetric || !trackDef) return '';
-        return `border-color: ${trackDef.color || '#6b7280'};`;
-    };
-
-    const getTubCell = (strokeLetter, stepGlobalIdx, trackIdx) => {
-        const isActive = stepGlobalIdx === state.currentStep;
-        const bgClass = isActive
-            ? 'bg-indigo-500/30 ring-1 ring-indigo-400'
-            : 'bg-gray-900 hover:bg-gray-800';
-
-        const strokeMap = {
-            'o': '<span class="text-teal-400 font-bold text-xs">○</span>',
-            'O': '<span class="text-teal-300 font-black text-xs">⊗</span>',
-            'x': '<span class="text-amber-400 font-bold text-xs">×</span>',
-            'X': '<span class="text-amber-300 font-black text-xs">✕</span>',
-            's': '<span class="text-pink-400 font-bold text-xs">◈</span>',
-            'p': '<span class="text-sky-400 font-bold text-xs">◉</span>',
-            '.': '<span class="text-gray-700 text-xs">·</span>',
-        };
-        const letter = strokeLetter ? strokeLetter.toLowerCase() : '.';
-        const icon = strokeMap[letter] || `<span class="text-gray-500 text-xs">${strokeLetter || '·'}</span>`;
-
-        return `<td class="w-7 h-7 min-w-[28px] text-center ${bgClass} border border-gray-800/60 rounded-sm" data-step="${stepGlobalIdx}" data-track="${trackIdx}">${icon}</td>`;
-    };
-
-    // Measure separators at period boundaries
-    const measureSeparatorAt = (mIdx) =>
-        `<td class="w-px min-w-[1px] bg-gray-700/60 h-full" title="Measure ${mIdx + 1}"></td>`;
-
-    // Build each track row
-    const rows = tracks.map((track, tIdx) => {
-        const def = state.instrumentDefinitions[track.instrument] || {};
-        const nameColor = colourMetric && def.color ? def.color : '#d1d5db';
-        const nameStyle = `color: ${nameColor}; ${getAccentStyle(def)}`;
-
-        // Gather all cells for this track across all measures
-        let cells = '';
-        for (let mIdx = 0; mIdx < totalMeasures; mIdx++) {
-            const measure = activeSection.measures[mIdx];
-            const mTrack = measure?.tracks[tIdx];
-            const pattern = mTrack?.pattern || '';
-
-            for (let s = 0; s < stepsPerMeasure; s++) {
-                const globalStep = mIdx * stepsPerMeasure + s;
-                const strokeLetter = pattern[s] || '.';
-                cells += getTubCell(strokeLetter, globalStep, tIdx);
-            }
-            if (mIdx < totalMeasures - 1) {
-                cells += measureSeparatorAt(mIdx);
-            }
-        }
-
-        return `
-        <tr class="group/track">
-            <td class="sticky left-0 z-10 bg-gray-950 pr-2 pl-1 whitespace-nowrap">
-                <button
-                    data-action="practitioner-cycle-colour"
-                    data-track-index="${tIdx}"
-                    class="text-[11px] font-bold leading-tight text-left hover:opacity-80 transition-opacity py-0.5 cursor-pointer"
-                    style="${nameStyle}"
-                    title="Tap to cycle colour metric"
-                >
-                    ${def.name || track.instrument}
-                </button>
-            </td>
-            ${cells}
-        </tr>`;
-    }).join('');
-
-    // Step number header row
-    let headerCells = '<th class="sticky left-0 z-10 bg-gray-950"></th>';
-    for (let mIdx = 0; mIdx < totalMeasures; mIdx++) {
-        for (let s = 0; s < stepsPerMeasure; s++) {
-            const globalStep = mIdx * stepsPerMeasure + s;
-            const isActive = globalStep === state.currentStep;
-            headerCells += `<th class="w-7 min-w-[28px] text-center ${isActive ? 'text-indigo-400 font-bold' : 'text-gray-600'} text-[9px] font-mono pb-0.5">${s + 1}</th>`;
-        }
-        if (mIdx < totalMeasures - 1) {
-            headerCells += `<th class="w-px bg-gray-700/60"></th>`;
-        }
-    }
+    const measuresHtml = activeSection.measures.map((measure, measureIdx) =>
+        PractitionerMeasureRenderer({
+            measure,
+            measureIdx,
+            section: activeSection,
+            currentStep: state.currentStep,
+            selectedStroke: state.selectedStroke,
+            cellSizePx,
+            iconSizePx,
+            fontSizePx,
+            instrumentDefinitions: state.instrumentDefinitions,
+            isPlaying: state.isPlaying
+        })
+    ).join('');
 
     return `
-    <div class="flex-1 overflow-auto no-pinch-zoom" id="practitioner-grid-scroll">
-        <table class="border-collapse table-fixed" style="min-width: max-content;">
-            <thead>
-                <tr>${headerCells}</tr>
-            </thead>
-            <tbody class="gap-y-0.5">
-                ${rows}
-            </tbody>
-        </table>
+    <div
+        id="tubs-scroll-container"
+        class="flex-1 flex flex-col gap-2 overflow-x-auto overflow-y-scroll pb-4 w-full h-full custom-scrollbar relative outline-none ring-0 no-pinch-zoom"
+        style="scroll-snap-type: y mandatory; -webkit-overflow-scrolling: touch;"
+    >
+        ${SectionSettings(activeSection, state.toque.globalBpm, /* readOnly= */ true)}
+        ${measuresHtml}
     </div>`;
 };
 
@@ -429,15 +355,29 @@ const renderLandscapeBottomBar = (activeSection) => {
 // LANDSCAPE — full assembled view
 // ─────────────────────────────────────────────────────────────────────────────
 
-const renderLandscape = (activeSection) => `
+const renderLandscape = (activeSection) => {
+    // Calculate cell size the same way the standard mobile layout does
+    const viewportWidth = window.innerWidth;
+    const computedStyle = getComputedStyle(document.documentElement);
+    const safeAreaLeft = parseInt(computedStyle.getPropertyValue('--safe-area-left') || '0', 10) || 0;
+    const safeAreaRight = parseInt(computedStyle.getPropertyValue('--safe-area-right') || '0', 10) || 0;
+    const steps = activeSection?.steps || 12;
+    const cellSizePx = calculateMobileCellSize(viewportWidth, steps, safeAreaLeft, safeAreaRight);
+
+    // Derive icon/font sizes from cell size (same logic as TubsGrid)
+    const iconSizePx = cellSizePx >= 36 ? 32 : cellSizePx >= 28 ? 24 : 16;
+    const fontSizePx = cellSizePx >= 36 ? '0.875rem' : cellSizePx >= 28 ? '0.75rem' : '0.625rem';
+
+    return `
     <div class="landscape:flex portrait:hidden flex-col flex-1 h-full w-full">
         ${renderLandscapeTopBar(activeSection)}
         <main class="flex-1 min-h-0 w-full flex flex-col px-2 py-1
                      bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-900 via-gray-950 to-gray-950">
-            ${renderPractitionerGrid(activeSection)}
+            ${renderPractitionerGrid(activeSection, cellSizePx, iconSizePx, fontSizePx)}
         </main>
         ${renderLandscapeBottomBar(activeSection)}
     </div>`;
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PORTRAIT — header

@@ -22,25 +22,10 @@ export const mobilePractitionerView = {
         // via the practitioner-* action handlers registered there.
     },
 
-    /** Visual update hook called every sequencer tick */
-    onStep: ({ step }) => {
-        // Highlight active step header in the practitioner grid
-        document.querySelectorAll('#practitioner-grid-scroll th[data-step]').forEach(el => {
-            // header cells don't carry data-step, handled via column index
-        });
-
-        // Highlight the active column cells
-        document.querySelectorAll('#practitioner-grid-scroll td[data-step]').forEach(el => {
-            const elStep = parseInt(el.dataset.step, 10);
-            if (elStep === step) {
-                el.classList.add('ring-1', 'ring-inset', 'ring-indigo-400', 'bg-indigo-500/20');
-                el.classList.remove('bg-gray-900');
-            } else {
-                el.classList.remove('ring-1', 'ring-inset', 'ring-indigo-400', 'bg-indigo-500/20');
-                if (!el.classList.contains('bg-indigo-500/30')) {
-                    el.classList.add('bg-gray-900');
-                }
-            }
-        });
-    }
+    /**
+     * Visual update hook called every sequencer tick.
+     * Step highlighting is handled by TubsCell reading state.currentStep on
+     * each render — same as all other mobile views. No custom DOM patching needed.
+     */
+    onStep: () => {}
 };
