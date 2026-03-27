@@ -48,7 +48,7 @@ const MOBILE_ALLOWED_ACTIONS = [
     // Practitioner (Dim D) actions
     'practitioner-toggle-popover', 'practitioner-close-popover',
     'practitioner-bpm-step', 'practitioner-vol-step', 'practitioner-solo',
-    'practitioner-select-section', 'practitioner-rep-step',
+    'practitioner-select-section', 'practitioner-rep-step', 'practitioner-set-reps', 'practitioner-toggle-random',
     'practitioner-cycle-colour', 'practitioner-prev-section', 'practitioner-next-section',
     'practitioner-portrait-toggle-sections', 'practitioner-portrait-close-sections'
 ];
@@ -353,6 +353,16 @@ const createMobileActionRouter = () => ({
         }
     },
 
+    // Toggle random repetitions switch
+    'practitioner-toggle-random': (e, target) => {
+        const sectionId = target.dataset.sectionId;
+        const section = state.toque.sections.find(s => s.id === sectionId);
+        if (section) {
+            section.random = !section.random;
+            eventBus.emit('render');
+        }
+    },
+
     // Cycle instrument colour metric on the landscape grid by tapping instrument name
     'practitioner-cycle-colour': (e, target) => {
         const metrics = [null, 'instrument'];
@@ -611,7 +621,7 @@ export const setupMobileEvents = () => {
         }
     });
 
-    // Change handler (BPM / Volume finalize on touchend)
+    // Change handler (BPM / Volume finalize on touchend, Native Select Wheel)
     root.addEventListener('change', (e) => {
         const target = e.target;
         const action = target.dataset.action;
@@ -624,6 +634,15 @@ export const setupMobileEvents = () => {
         if (action === 'update-volume') {
             // Full re-render on drag end to sync all visuals
             eventBus.emit('render');
+        }
+        if (action === 'practitioner-set-reps') {
+            const sectionId = target.dataset.sectionId;
+            const reps = parseInt(target.value, 10);
+            const section = state.toque.sections.find(s => s.id === sectionId);
+            if (section && !isNaN(reps)) {
+                section.repetitions = Math.max(1, reps);
+                eventBus.emit('render');
+            }
         }
     });
 

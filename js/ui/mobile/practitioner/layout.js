@@ -290,31 +290,42 @@ const renderMixerModal = (activeSection) => {
 const renderSectionModal = (activeSection) => {
     const sections = state.toque.sections;
 
-    const sectionRows = sections.map((s, idx) => {
-        const isActive = s.id === state.activeSectionId;
-        return `
-        <button data-action="practitioner-select-section" data-section-id="${s.id}"
-            class="w-full text-left rounded-xl px-3 py-3 flex items-center gap-3 transition-colors
-                   ${isActive ? 'bg-indigo-500/15 border border-indigo-500/40' : 'bg-gray-800 border border-transparent hover:bg-gray-700 active:bg-gray-600'}">
+    const renderSectionRow = (s, idx, isActive) => `
+    <div class="w-full text-left rounded-xl flex items-stretch transition-colors
+                ${isActive ? 'bg-indigo-500/15 border border-indigo-500/40' : 'bg-gray-800 border border-transparent'}">
+        
+        <!-- Left: Clickable Section Area -->
+        <button data-action="practitioner-select-section" data-section-id="${s.id}" class="flex-1 px-3 py-3 flex items-center gap-3 truncate hover:bg-white/5 active:bg-white/10 rounded-l-xl">
             <div class="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 border
                         ${isActive ? 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30' : 'bg-gray-700 text-gray-500 border-gray-600'}">
                 <span class="text-[10px] font-bold">${idx + 1}</span>
             </div>
-            <div class="flex flex-col flex-1 min-w-0">
+            <div class="flex flex-col flex-1 min-w-0 text-left">
                 <span class="font-semibold text-sm ${isActive ? 'text-indigo-400' : 'text-gray-200'} truncate">${s.name}</span>
-                <span class="text-[10px] text-gray-500 font-mono">×${s.repetitions || 1}${s.random ? ' 🎲' : ''}</span>
             </div>
-            <!-- Rep stepper (inline, only for active section) -->
-            ${isActive ? `
-            <div class="flex items-center gap-1 flex-shrink-0">
-                <button data-action="practitioner-rep-step" data-section-id="${s.id}" data-delta="-1"
-                    class="w-7 h-7 bg-gray-700 hover:bg-gray-600 active:bg-gray-500 rounded-lg flex items-center justify-center text-gray-300 font-bold text-sm">−</button>
-                <span class="text-xs font-mono text-indigo-400 w-4 text-center">${s.repetitions || 1}</span>
-                <button data-action="practitioner-rep-step" data-section-id="${s.id}" data-delta="1"
-                    class="w-7 h-7 bg-gray-700 hover:bg-gray-600 active:bg-gray-500 rounded-lg flex items-center justify-center text-gray-300 font-bold text-sm">+</button>
-            </div>` : ''}
-        </button>`;
-    }).join('');
+        </button>
+
+        <!-- Right: Inline Rep Controls -->
+        <div class="flex items-center gap-2 pr-2.5 flex-shrink-0">
+            <!-- Random Toggle - Dice emoji -->
+            <button data-action="practitioner-toggle-random" data-section-id="${s.id}"
+                class="w-9 h-9 rounded-lg flex items-center justify-center text-base transition-colors
+                       ${s.random ? 'bg-amber-500/20 shadow-inner border border-amber-500/40 opacity-100 grayscale-0' : 'bg-gray-900 border border-gray-700 opacity-50 grayscale hover:opacity-100'}">
+                🎲
+            </button>
+            
+            <!-- Native Select Wheel -->
+            <div class="relative w-12 h-9 flex items-center justify-center bg-gray-900 border border-gray-700 rounded-lg text-sm font-mono font-bold text-indigo-400 hover:bg-gray-800">
+                <select data-action="practitioner-set-reps" data-section-id="${s.id}" 
+                        class="absolute inset-0 w-full h-full opacity-0 cursor-pointer appearance-none z-10 text-center text-lg">
+                    ${Array.from({length: 64}, (_, i) => `<option value="${i+1}" ${s.repetitions === i+1 ? 'selected' : ''}>${i+1}</option>`).join('')}
+                </select>
+                <span class="pointer-events-none flex items-center justify-center w-full h-full">${s.repetitions || 1}<span class="text-[10px] text-gray-500 ml-0.5">x</span></span>
+            </div>
+        </div>
+    </div>`;
+
+    const sectionRows = sections.map((s, idx) => renderSectionRow(s, idx, s.id === state.activeSectionId)).join('');
 
     return `
     <div class="fixed bottom-[52px] left-1/2 -translate-x-1/2 bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl p-5 w-80 max-w-[90vw] max-h-[60vh] overflow-y-auto z-[65] animate-in fade-in flex flex-col gap-3">
@@ -633,30 +644,7 @@ const renderPortraitSectionBar = (activeSection) => {
             <span class="text-xs text-gray-400 font-bold uppercase tracking-wider">Sections</span>
             <button data-action="practitioner-portrait-close-sections" class="text-gray-500 hover:text-white text-xs">Done</button>
         </div>
-        ${sections.map((s, idx) => {
-            const isActive = s.id === state.activeSectionId;
-            return `
-            <button data-action="practitioner-select-section" data-section-id="${s.id}"
-                class="w-full text-left rounded-xl px-3 py-3 flex items-center gap-3 transition-colors
-                       ${isActive ? 'bg-indigo-500/15 border border-indigo-500/40' : 'bg-gray-800 border border-transparent hover:bg-gray-700'}">
-                <div class="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 border
-                            ${isActive ? 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30' : 'bg-gray-700 text-gray-500 border-gray-600'}">
-                    <span class="text-[10px] font-bold">${idx + 1}</span>
-                </div>
-                <div class="flex flex-col flex-1 min-w-0">
-                    <span class="font-semibold text-sm ${isActive ? 'text-indigo-400' : 'text-gray-200'} truncate">${s.name}</span>
-                    <span class="text-[10px] text-gray-500 font-mono">×${s.repetitions || 1}${s.random ? ' 🎲' : ''}</span>
-                </div>
-                ${isActive ? `
-                <div class="flex items-center gap-1 flex-shrink-0">
-                    <button data-action="practitioner-rep-step" data-section-id="${s.id}" data-delta="-1"
-                        class="w-7 h-7 bg-gray-700 hover:bg-gray-600 rounded-lg flex items-center justify-center text-gray-300 font-bold text-sm">−</button>
-                    <span class="text-xs font-mono text-indigo-400 w-4 text-center">${s.repetitions || 1}</span>
-                    <button data-action="practitioner-rep-step" data-section-id="${s.id}" data-delta="1"
-                        class="w-7 h-7 bg-gray-700 hover:bg-gray-600 rounded-lg flex items-center justify-center text-gray-300 font-bold text-sm">+</button>
-                </div>` : ''}
-            </button>`;
-        }).join('')}
+        ${sections.map((s, idx) => renderSectionRow(s, idx, s.id === state.activeSectionId)).join('')}
     </div>
     <div data-action="practitioner-portrait-close-sections"
          class="fixed inset-0 z-[65] bg-black/50" style="bottom: 80px;"></div>` : '';
