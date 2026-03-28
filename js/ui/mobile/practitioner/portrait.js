@@ -49,7 +49,7 @@ const renderPortraitInfoRow = (activeSection) => `
             <span class="text-xl font-bold text-white leading-tight">${activeSection.name}</span>
             <span class="text-base font-mono font-bold ${state.isPlaying ? 'text-green-400' : 'text-gray-400'}">Rep <span id="practitioner-rep-count">${repLabel(activeSection)}</span>${renderAccelerationBadge(activeSection)}</span>
         </div>
-        <div class="flex flex-col items-end gap-0.5">
+        <div class="flex items-center gap-1">
             <span class="text-2xl font-mono font-bold ${state.isPlaying ? 'text-green-400' : 'text-indigo-400'}">${liveBpm()}</span>
             <span class="text-[10px] text-gray-600 uppercase tracking-wider">BPM${state.isPlaying ? ' live' : ''}</span>
         </div>
