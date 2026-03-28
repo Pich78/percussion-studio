@@ -64,25 +64,46 @@ const renderPortraitBpmRow = () => {
             <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Tempo</span>
             <span id="portrait-bpm-display" class="text-sm font-mono font-bold text-indigo-400">${bpm} BPM</span>
         </div>
-        <div class="relative w-full h-10 flex items-center cursor-pointer py-2 px-1 mx-2">
-            <div class="absolute left-1 right-1 h-3 bg-gray-800 rounded-full border border-gray-700 pointer-events-none"></div>
-            <div id="portrait-bpm-fill" class="absolute left-1 h-3 bg-gradient-to-r from-indigo-600 to-indigo-400 rounded-full pointer-events-none"
-                 style="width: calc(${pct}% - 2px)"></div>
-            <div id="portrait-bpm-thumb" class="absolute w-7 h-7 bg-white rounded-full shadow-lg border-2 border-indigo-400 z-[15] touch-none pointer-events-none"
-                 style="left: calc(${pct}% - 14px + 4px)"></div>
-            <input type="range" min="40" max="240" value="${bpm}"
-                   data-action="update-global-bpm"
-                   oninput="(() => {
-                       const v = parseInt(this.value, 10);
-                       const p = ((v - 40) / 200) * 100;
-                       const fill = document.getElementById('portrait-bpm-fill');
-                       const thumb = document.getElementById('portrait-bpm-thumb');
-                       const disp = document.getElementById('portrait-bpm-display');
-                       if (fill) fill.style.width = 'calc(' + p + '% - 2px)';
-                       if (thumb) thumb.style.left = 'calc(' + p + '% - 14px + 4px)';
-                       if (disp) disp.textContent = v + ' BPM';
-                   })()"
-                   class="absolute -inset-x-3 inset-y-0 w-[calc(100%+24px)] h-full opacity-0 cursor-pointer z-20" />
+        <div class="flex items-center gap-3">
+            <!-- Minus 1 button -->
+            <button data-action="practitioner-bpm-step" data-delta="-1"
+                class="w-9 h-9 flex-shrink-0 rounded-full bg-gray-800 border border-gray-700 text-gray-400 
+                       hover:bg-gray-700 hover:text-white active:bg-gray-600 transition-all flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" />
+                </svg>
+            </button>
+
+            <!-- Slider -->
+            <div class="relative flex-1 h-10 flex items-center cursor-pointer py-2 px-1">
+                <div class="absolute left-1 right-1 h-3 bg-gray-800 rounded-full border border-gray-700 pointer-events-none"></div>
+                <div id="portrait-bpm-fill" class="absolute left-1 h-3 bg-gradient-to-r from-indigo-600 to-indigo-400 rounded-full pointer-events-none"
+                     style="width: calc(${pct}% - 2px)"></div>
+                <div id="portrait-bpm-thumb" class="absolute w-7 h-7 bg-white rounded-full shadow-lg border-2 border-indigo-400 z-[15] touch-none pointer-events-none"
+                     style="left: calc(${pct}% - 14px + 4px)"></div>
+                <input type="range" min="40" max="240" value="${bpm}"
+                       data-action="update-global-bpm"
+                       oninput="(() => {
+                           const v = parseInt(this.value, 10);
+                           const p = ((v - 40) / 200) * 100;
+                           const fill = document.getElementById('portrait-bpm-fill');
+                           const thumb = document.getElementById('portrait-bpm-thumb');
+                           const disp = document.getElementById('portrait-bpm-display');
+                           if (fill) fill.style.width = 'calc(' + p + '% - 2px)';
+                           if (thumb) thumb.style.left = 'calc(' + p + '% - 14px + 4px)';
+                           if (disp) disp.textContent = v + ' BPM';
+                       })()"
+                       class="absolute -inset-x-3 inset-y-0 w-[calc(100%+24px)] h-full opacity-0 cursor-pointer z-20" />
+            </div>
+
+            <!-- Plus 1 button -->
+            <button data-action="practitioner-bpm-step" data-delta="1"
+                class="w-9 h-9 flex-shrink-0 rounded-full bg-gray-800 border border-gray-700 text-gray-400 
+                       hover:bg-gray-700 hover:text-white active:bg-gray-600 transition-all flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                </svg>
+            </button>
         </div>
     </div>`;
 };
