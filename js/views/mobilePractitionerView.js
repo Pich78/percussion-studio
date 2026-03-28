@@ -9,6 +9,7 @@
 
 import { PractitionerLayout } from '../ui/mobile/practitioner/layout.js';
 import { updateVisualStep, scrollToMeasure } from '../ui/playheadUtils.js';
+import { setupMobileEvents } from '../events/mobileEvents.js';
 
 export const mobilePractitionerView = {
     id: 'mobile-practitioner',
@@ -24,6 +25,10 @@ export const mobilePractitionerView = {
      * than vertical navigates to the prev/next section.
      */
     setupEvents: () => {
+        // Set up mobile click/touch handlers (toggle-menu, etc.)
+        setupMobileEvents();
+
+        // Additional swipe handlers for practitioner view
         let touchStartX = 0;
         let touchStartY = 0;
 
