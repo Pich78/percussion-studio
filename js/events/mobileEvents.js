@@ -49,7 +49,8 @@ const MOBILE_ALLOWED_ACTIONS = [
     'practitioner-toggle-popover', 'practitioner-close-popover',
     'practitioner-bpm-step', 'practitioner-vol-step', 'practitioner-solo',
     'practitioner-select-section', 'practitioner-rep-step', 'practitioner-set-reps', 'practitioner-toggle-random',
-    'practitioner-cycle-colour', 'practitioner-prev-section', 'practitioner-next-section'
+    'practitioner-cycle-colour', 'practitioner-prev-section', 'practitioner-next-section',
+    'practitioner-set-accel-unit', 'practitioner-set-accel-tenth'
 ];
 
 /**
@@ -365,6 +366,32 @@ const createMobileActionRouter = () => ({
         const section = state.toque.sections.find(s => s.id === sectionId);
         if (section) {
             section.random = !section.random;
+            eventBus.emit('render');
+        }
+    },
+
+    // Set acceleration value via dual wheel (units)
+    'practitioner-set-accel-unit': (e, target) => {
+        const sectionId = target.dataset.sectionId;
+        const section = state.toque.sections.find(s => s.id === sectionId);
+        if (section) {
+            const unit = parseInt(target.value, 10) || 0;
+            const currentTenth = Math.round(Math.abs(((section.tempoAcceleration || 0) - Math.trunc(section.tempoAcceleration || 0)) * 10));
+            const sign = unit < 0 ? -1 : 1;
+            section.tempoAcceleration = Math.max(-10, Math.min(10, sign * (Math.abs(unit) + currentTenth / 10)));
+            eventBus.emit('render');
+        }
+    },
+
+    // Set acceleration value via dual wheel (tenths)
+    'practitioner-set-accel-tenth': (e, target) => {
+        const sectionId = target.dataset.sectionId;
+        const section = state.toque.sections.find(s => s.id === sectionId);
+        if (section) {
+            const tenth = parseInt(target.value, 10) || 0;
+            const currentUnit = Math.trunc(section.tempoAcceleration || 0);
+            const sign = currentUnit < 0 ? -1 : 1;
+            section.tempoAcceleration = Math.max(-10, Math.min(10, sign * (Math.abs(currentUnit) + tenth / 10)));
             eventBus.emit('render');
         }
     },

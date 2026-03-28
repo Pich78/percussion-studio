@@ -3,6 +3,8 @@ import { Bars3Icon } from '../../../icons/bars3Icon.js';
 import { StopIcon } from '../../../icons/stopIcon.js';
 import { PlayIcon } from '../../../icons/playIcon.js';
 import { PauseIcon } from '../../../icons/pauseIcon.js';
+import { ArrowTrendingUpIcon } from '../../../icons/arrowTrendingUpIcon.js';
+import { ArrowTrendingDownIcon } from '../../../icons/arrowTrendingDownIcon.js';
 import { renderPortraitSectionModal } from './sectionModal.js';
 
 const liveBpm = () =>
@@ -16,6 +18,19 @@ const repLabel = (section) => {
     const isRandom = section.randomRepetitions;
     const randIndicator = isRandom ? ' 🎲' : '';
     return `${current}/${reps}${randIndicator}`;
+};
+
+const renderAccelerationBadge = (section) => {
+    const accel = section?.tempoAcceleration || 0;
+    if (accel === 0) return '';
+    
+    const isPositive = accel > 0;
+    const icon = isPositive 
+        ? ArrowTrendingUpIcon('w-3 h-3 pointer-events-none') 
+        : ArrowTrendingDownIcon('w-3 h-3 pointer-events-none');
+    const color = isPositive ? 'text-green-400' : 'text-red-400';
+    
+    return `<span class="text-xs font-mono ${color} flex items-center gap-0.5 ml-1" title="Tempo acceleration: ${accel > 0 ? '+' : ''}${accel.toFixed(1)}% per rep">${icon}${Math.abs(accel).toFixed(1)}%</span>`;
 };
 
 const renderPortraitHeader = () => `
@@ -32,7 +47,7 @@ const renderPortraitInfoRow = (activeSection) => `
     <div class="flex items-center justify-between px-4 py-3 flex-shrink-0">
         <div class="flex items-center gap-3">
             <span class="text-xl font-bold text-white leading-tight">${activeSection.name}</span>
-            <span class="text-base font-mono font-bold ${state.isPlaying ? 'text-green-400' : 'text-gray-400'}">Rep <span id="practitioner-rep-count">${repLabel(activeSection)}</span></span>
+            <span class="text-base font-mono font-bold ${state.isPlaying ? 'text-green-400' : 'text-gray-400'}">Rep <span id="practitioner-rep-count">${repLabel(activeSection)}</span>${renderAccelerationBadge(activeSection)}</span>
         </div>
         <div class="flex flex-col items-end gap-0.5">
             <span class="text-2xl font-mono font-bold ${state.isPlaying ? 'text-green-400' : 'text-indigo-400'}">${liveBpm()}</span>

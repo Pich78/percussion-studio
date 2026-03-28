@@ -6,6 +6,8 @@ import { Bars3Icon } from '../../../icons/bars3Icon.js';
 import { StopIcon } from '../../../icons/stopIcon.js';
 import { PlayIcon } from '../../../icons/playIcon.js';
 import { PauseIcon } from '../../../icons/pauseIcon.js';
+import { ArrowTrendingUpIcon } from '../../../icons/arrowTrendingUpIcon.js';
+import { ArrowTrendingDownIcon } from '../../../icons/arrowTrendingDownIcon.js';
 import { renderBpmModal } from './bpmModal.js';
 import { renderMixerModal } from './mixerModal.js';
 import { renderSectionModal } from './sectionModal.js';
@@ -21,6 +23,19 @@ const repLabel = (section) => {
     const isRandom = section.randomRepetitions;
     const randIndicator = isRandom ? ' 🎲' : '';
     return `${current}/${reps}${randIndicator}`;
+};
+
+const renderAccelerationBadge = (section) => {
+    const accel = section?.tempoAcceleration || 0;
+    if (accel === 0) return '';
+    
+    const isPositive = accel > 0;
+    const icon = isPositive 
+        ? ArrowTrendingUpIcon('w-3 h-3 pointer-events-none') 
+        : ArrowTrendingDownIcon('w-3 h-3 pointer-events-none');
+    const color = isPositive ? 'text-green-400' : 'text-red-400';
+    
+    return `<span class="text-[10px] font-mono ${color} flex-shrink-0 flex items-center gap-0.5 ml-1" title="Tempo acceleration: ${accel > 0 ? '+' : ''}${accel.toFixed(1)}% per rep">${icon}${Math.abs(accel).toFixed(1)}</span>`;
 };
 
 const renderPractitionerGrid = (activeSection, cellSizePx, iconSizePx, fontSizePx) => {
@@ -95,9 +110,10 @@ const renderLandscapeTopBar = (activeSection) => {
 
         <span class="text-gray-700 flex-shrink-0">﹒</span>
 
-        <!-- Rep count -->
-        <span class="text-[10px] font-mono text-gray-400 flex-shrink-0 bg-gray-900 px-1.5 py-0.5 rounded border border-gray-800">
+        <!-- Rep count with acceleration -->
+        <span class="text-[10px] font-mono text-gray-400 flex-shrink-0 bg-gray-900 px-1.5 py-0.5 rounded border border-gray-800 flex items-center">
             Rep <span id="practitioner-rep-count">${repLabel(activeSection)}</span>
+            ${renderAccelerationBadge(activeSection)}
         </span>
 
         <div class="flex-1"></div>

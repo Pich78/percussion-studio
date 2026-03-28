@@ -1,6 +1,61 @@
 import { state } from '../../../store.js';
+import { ArrowTrendingUpIcon } from '../../../icons/arrowTrendingUpIcon.js';
+import { ArrowTrendingDownIcon } from '../../../icons/arrowTrendingDownIcon.js';
 
-export const renderSectionRow = (s, idx, isActive) => `
+const UNIT_OPTIONS = [-10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+const TENTH_OPTIONS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+const renderAccelerationControl = (section) => {
+    const reps = section.repetitions || 1;
+    const accel = section.tempoAcceleration || 0;
+    const disabled = reps <= 1;
+    
+    const unit = Math.trunc(accel);
+    const tenth = Math.round(Math.abs((accel - unit) * 10));
+    
+    const isPositive = accel > 0;
+    const iconColor = disabled ? 'text-gray-600' : (isPositive ? 'text-green-400' : 'text-red-400');
+    const icon = isPositive 
+        ? ArrowTrendingUpIcon('w-3 h-3 pointer-events-none') 
+        : (accel < 0 ? ArrowTrendingDownIcon('w-3 h-3 pointer-events-none') : '');
+
+    const unitOptionsHtml = UNIT_OPTIONS.map(u => 
+        `<option value="${u}" ${unit === u ? 'selected' : ''}>${u >= 0 ? '+' : ''}${u}</option>`
+    ).join('');
+    
+    const tenthOptionsHtml = TENTH_OPTIONS.map(t => 
+        `<option value="${t}" ${tenth === t ? 'selected' : ''}>${t}</option>`
+    ).join('');
+
+    return `
+        <div class="flex items-center gap-0.5">
+            <div class="flex items-center justify-center w-5 h-7 ${iconColor}">
+                ${icon}
+            </div>
+            <div class="relative w-9 h-7 flex items-center justify-center bg-gray-900 border ${disabled ? 'border-gray-800' : 'border-gray-700'} rounded-l-lg text-xs font-mono ${disabled ? 'opacity-50' : ''}">
+                <select data-action="practitioner-set-accel-unit" data-section-id="${section.id}" 
+                        class="absolute inset-0 w-full h-full opacity-0 cursor-pointer appearance-none z-10 text-center text-sm"
+                        ${disabled ? 'disabled' : ''}>
+                    ${unitOptionsHtml}
+                </select>
+                <span class="pointer-events-none flex items-center justify-center w-full h-full ${disabled ? 'text-gray-600' : 'text-cyan-400'}">${unit >= 0 ? '+' : ''}${unit}</span>
+            </div>
+            <div class="relative w-8 h-7 flex items-center justify-center bg-gray-900 border ${disabled ? 'border-gray-800' : 'border-gray-700'} rounded-r-lg text-xs font-mono ${disabled ? 'opacity-50' : ''}">
+                <select data-action="practitioner-set-accel-tenth" data-section-id="${section.id}" 
+                        class="absolute inset-0 w-full h-full opacity-0 cursor-pointer appearance-none z-10 text-center text-sm"
+                        ${disabled ? 'disabled' : ''}>
+                    ${tenthOptionsHtml}
+                </select>
+                <span class="pointer-events-none flex items-center justify-center w-full h-full ${disabled ? 'text-gray-600' : 'text-cyan-400'}">.${tenth}</span>
+            </div>
+        </div>`;
+};
+
+export const renderSectionRow = (s, idx, isActive, showAcceleration = false) => {
+    const reps = s.repetitions || 1;
+    const accel = s.tempoAcceleration || 0;
+    
+    return `
     <div class="w-full text-left rounded-xl flex items-stretch transition-colors
                 ${isActive ? 'bg-indigo-500/15 border border-indigo-500/40' : 'bg-gray-800 border border-transparent'}">
         
@@ -17,6 +72,8 @@ export const renderSectionRow = (s, idx, isActive) => `
 
         <!-- Right: Inline Rep Controls -->
         <div class="flex items-center gap-2 pr-2.5 flex-shrink-0">
+            ${showAcceleration ? renderAccelerationControl(s) : ''}
+            
             <!-- Random Toggle - Dice emoji -->
             <button data-action="practitioner-toggle-random" data-section-id="${s.id}"
                 class="w-9 h-9 rounded-lg flex items-center justify-center text-base transition-colors
@@ -30,21 +87,22 @@ export const renderSectionRow = (s, idx, isActive) => `
                         class="absolute inset-0 w-full h-full opacity-0 cursor-pointer appearance-none z-10 text-center text-lg">
                     ${Array.from({length: 64}, (_, i) => `<option value="${i+1}" ${s.repetitions === i+1 ? 'selected' : ''}>${i+1}</option>`).join('')}
                 </select>
-                <span class="pointer-events-none flex items-center justify-center w-full h-full">${s.repetitions || 1}<span class="text-[10px] text-gray-500 ml-0.5">x</span></span>
+                <span class="pointer-events-none flex items-center justify-center w-full h-full">${reps}<span class="text-[10px] text-gray-500 ml-0.5">x</span></span>
             </div>
         </div>
     </div>`;
+};
 
 export const renderSectionModal = (activeSection) => {
     const sections = state.toque.sections;
-    const sectionRows = sections.map((s, idx) => renderSectionRow(s, idx, s.id === state.activeSectionId)).join('');
+    const sectionRows = sections.map((s, idx) => renderSectionRow(s, idx, s.id === state.activeSectionId, true)).join('');
 
     return `
     <div class="fixed bottom-[52px] left-1/2 -translate-x-1/2 bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl p-5 w-80 max-w-[90vw] max-h-[60vh] overflow-y-auto z-[65] animate-in fade-in flex flex-col gap-3">
         <div class="flex justify-between items-center pb-2 border-b border-gray-800">
             <div>
                 <span class="text-xs text-gray-400 font-bold uppercase tracking-wider">Sections</span>
-                <span class="text-[10px] text-gray-600 ml-2">Tap to jump • edit reps inline</span>
+                <span class="text-[10px] text-gray-600 ml-2">Tap to jump • edit reps • set accel</span>
             </div>
             <button data-action="practitioner-close-popover"
                 class="w-8 h-8 flex items-center justify-center rounded-xl text-gray-500 hover:text-white hover:bg-gray-800 transition-colors"
@@ -60,7 +118,7 @@ export const renderSectionModal = (activeSection) => {
 
 export const renderPortraitSectionModal = (activeSection) => {
     const sections = state.toque.sections;
-    const sectionRows = sections.map((s, idx) => renderSectionRow(s, idx, s.id === state.activeSectionId)).join('');
+    const sectionRows = sections.map((s, idx) => renderSectionRow(s, idx, s.id === state.activeSectionId, true)).join('');
 
     return `
     <div class="fixed inset-x-0 bottom-20 z-[70] mx-4 bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl p-3 flex flex-col gap-2 max-h-[55vh] overflow-y-auto animate-in fade-in">
