@@ -627,17 +627,27 @@ export const setupMobileEvents = () => {
         }
 
         if (action === 'update-global-bpm') {
-            state.toque.globalBpm = Number(target.value);
+            const newBpm = Number(target.value);
+            state.toque.globalBpm = newBpm;
             const section = getActiveSection(state);
-            if (!section?.bpm) playback.currentPlayheadBpm = state.toque.globalBpm;
+            if (!section?.bpm) playback.currentPlayheadBpm = newBpm;
             const display = document.getElementById('header-global-bpm');
-            if (display) display.innerHTML = `${state.toque.globalBpm} <span class="text-[8px] text-gray-600">BPM</span>`;
+            if (display) display.innerHTML = `${newBpm} <span class="text-[8px] text-gray-600">BPM</span>`;
 
             // Direct DOM update for BPM slider visual feedback
             const bpmContainer = target.closest('.group\\/bpm');
             if (bpmContainer) {
-                updateBpmSliderVisuals(bpmContainer, state.toque.globalBpm);
+                updateBpmSliderVisuals(bpmContainer, newBpm);
             }
+
+            // Update portrait BPM slider if present
+            const portraitFill = document.getElementById('portrait-bpm-fill');
+            const portraitThumb = document.getElementById('portrait-bpm-thumb');
+            const portraitLabel = document.getElementById('portrait-bpm-label');
+            const pct = ((newBpm - 40) / 200) * 100;
+            if (portraitFill) portraitFill.style.width = pct + '%';
+            if (portraitThumb) portraitThumb.style.left = 'calc(' + pct + '% - 8px)';
+            if (portraitLabel) portraitLabel.innerHTML = newBpm + ' <span class="text-[10px]">bpm</span>';
         }
     });
 

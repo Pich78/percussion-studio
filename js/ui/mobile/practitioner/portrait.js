@@ -79,23 +79,16 @@ const renderPortraitBpmRow = () => {
                 </button>
 
                 <!-- Slider -->
-                <div class="relative flex-1 h-8 flex items-center cursor-pointer py-1 px-0.5">
-                    <div class="absolute left-0 right-0 h-2.5 bg-gray-800 rounded-full border border-gray-700 pointer-events-none"></div>
-                    <div id="portrait-bpm-fill" class="absolute left-0 h-2.5 bg-gradient-to-r from-indigo-600 to-indigo-400 rounded-full pointer-events-none"
-                         style="width: calc(${pct}% - 0px)"></div>
-                    <div id="portrait-bpm-thumb" class="absolute w-6 h-6 bg-white rounded-full shadow-lg border-2 border-indigo-400 z-[15] touch-none pointer-events-none"
-                         style="left: calc(${pct}% - 12px + 2px)"></div>
+                <div class="relative flex-1 h-8 flex items-center cursor-pointer px-1">
+                    <div class="absolute left-1 right-1 h-full bg-gray-800 rounded-lg border border-gray-700 pointer-events-none"></div>
+                    <div id="portrait-bpm-fill" class="absolute left-1 h-full bg-gradient-to-r from-indigo-600 to-indigo-400 rounded-l-lg pointer-events-none"
+                         style="width: ${pct}%"></div>
+                    <div id="portrait-bpm-thumb" class="absolute w-4 h-12 bg-white rounded shadow-lg border-2 border-indigo-400 z-[15] touch-none pointer-events-none"
+                         style="left: calc(${pct}% - 8px)"></div>
+                    <span id="portrait-bpm-label" class="absolute inset-0 flex items-center justify-center gap-0.5 text-sm font-mono font-normal text-white/80 pointer-events-none z-10">${bpm} <span class="text-[10px]">bpm</span></span>
                     <input type="range" min="40" max="240" value="${bpm}"
                            data-action="update-global-bpm"
-                           oninput="(() => {
-                               const v = parseInt(this.value, 10);
-                               const p = ((v - 40) / 200) * 100;
-                               const fill = document.getElementById('portrait-bpm-fill');
-                               const thumb = document.getElementById('portrait-bpm-thumb');
-                               if (fill) fill.style.width = p + '%';
-                               if (thumb) thumb.style.left = 'calc(' + p + '% - 12px + 2px)';
-                           })()"
-                           class="absolute -inset-x-2 inset-y-0 w-[calc(100%+16px)] h-full opacity-0 cursor-pointer z-20" />
+                           class="absolute -inset-x-2 inset-y-0 w-[calc(100%+16px)] h-full opacity-0 cursor-pointer z-20 portrait-bpm-slider" />
                 </div>
 
                 <!-- Plus 1 button -->
