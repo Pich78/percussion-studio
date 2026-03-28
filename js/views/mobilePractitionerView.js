@@ -76,8 +76,10 @@ export const mobilePractitionerView = {
      * PractitionerMeasureRenderer uses identical DOM structure:
      * #tubs-scroll-container → .measure-container → TubsCell with data-step-marker.
      */
-    onStep: ({ step, measure }) => {
+    onStep: ({ step, measure, rep }) => {
         updateVisualStep(step, measure);
         scrollToMeasure(measure);
+        const repEl = document.getElementById('header-rep-count');
+        if (repEl) repEl.textContent = rep;
     }
 };
