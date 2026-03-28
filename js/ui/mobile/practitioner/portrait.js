@@ -88,7 +88,8 @@ const renderPortraitBpmRow = () => {
                     <span id="portrait-bpm-label" class="absolute inset-0 flex items-center justify-center gap-0.5 text-sm font-mono font-normal text-white/80 pointer-events-none z-10">${bpm} <span class="text-[10px]">bpm</span></span>
                     <input type="range" min="40" max="240" value="${bpm}"
                            data-action="update-global-bpm"
-                           class="absolute -inset-x-2 inset-y-0 w-[calc(100%+16px)] h-full opacity-0 cursor-pointer z-20 portrait-bpm-slider" />
+                           style="touch-action: none"
+                           class="absolute -inset-x-2 -top-2 -bottom-2 w-[calc(100%+16px)] h-12 opacity-0 cursor-pointer z-20 portrait-bpm-slider" />
                 </div>
 
                 <!-- Plus 1 button -->
