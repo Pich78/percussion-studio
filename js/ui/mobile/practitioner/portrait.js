@@ -84,21 +84,6 @@ const renderPortraitBpmRow = () => {
                    })()"
                    class="absolute -inset-x-3 inset-y-0 w-[calc(100%+24px)] h-full opacity-0 cursor-pointer z-20" />
         </div>
-        <!-- Quick BPM nudge buttons -->
-        <div class="flex gap-2 mt-1">
-            <button data-action="practitioner-bpm-step" data-delta="-10"
-                class="flex-1 py-1.5 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded-lg text-xs font-bold text-gray-400">−10</button>
-            <button data-action="practitioner-bpm-step" data-delta="-5"
-                class="flex-1 py-1.5 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded-lg text-xs font-bold text-gray-400">−5</button>
-            <button data-action="practitioner-bpm-step" data-delta="-1"
-                class="flex-1 py-1.5 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded-lg text-xs font-bold text-gray-400">−1</button>
-            <button data-action="practitioner-bpm-step" data-delta="1"
-                class="flex-1 py-1.5 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded-lg text-xs font-bold text-gray-400">+1</button>
-            <button data-action="practitioner-bpm-step" data-delta="5"
-                class="flex-1 py-1.5 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded-lg text-xs font-bold text-gray-400">+5</button>
-            <button data-action="practitioner-bpm-step" data-delta="10"
-                class="flex-1 py-1.5 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded-lg text-xs font-bold text-gray-400">+10</button>
-        </div>
     </div>`;
 };
 
