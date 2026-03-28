@@ -181,6 +181,17 @@ const renderLandscapeBottomBar = (activeSection) => {
             })}
         </div>
 
+        <!-- Count-in chip (left of play/stop) -->
+        <button data-action="toggle-count-in"
+            class="h-9 px-3 rounded-lg flex items-center gap-1.5 flex-shrink-0 transition-all border
+                   ${state.countInEnabled 
+                       ? 'bg-cyan-500/15 border-cyan-500/50 text-cyan-400' 
+                       : 'bg-gray-800 border-gray-700 text-gray-500'}"
+            title="Toggle count-in">
+            <span class="text-[10px] font-bold uppercase">Cnt</span>
+            <span class="font-mono text-xs font-bold">${state.countInEnabled ? (playback.isCountingIn ? playback.countInStep : (activeSection?.subdivision === 3 ? 6 : 4)) : ''}</span>
+        </button>
+
         <!-- Play / Stop group (right) -->
         <div class="flex items-center gap-1 bg-gray-900 rounded-lg p-0.5 border border-gray-800 flex-shrink-0">
             <button data-action="stop"
