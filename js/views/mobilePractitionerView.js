@@ -10,6 +10,8 @@
 import { PractitionerLayout } from '../ui/mobile/practitioner/layout.js';
 import { updateVisualStep, scrollToMeasure } from '../ui/playheadUtils.js';
 import { setupMobileEvents } from '../events/mobileEvents.js';
+import { state, playback } from '../store.js';
+import { eventBus } from '../services/eventBus.js';
 
 export const mobilePractitionerView = {
     id: 'mobile-practitioner',
@@ -79,7 +81,8 @@ export const mobilePractitionerView = {
     onStep: ({ step, measure, rep }) => {
         updateVisualStep(step, measure);
         scrollToMeasure(measure);
-        const repEl = document.getElementById('header-rep-count');
-        if (repEl) repEl.textContent = rep;
+        if (step === 0) {
+            eventBus.emit('render');
+        }
     }
 };

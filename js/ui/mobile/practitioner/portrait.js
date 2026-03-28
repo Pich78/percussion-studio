@@ -32,7 +32,7 @@ const renderPortraitInfoRow = (activeSection) => `
     <div class="flex items-center justify-between px-4 py-3 flex-shrink-0">
         <div class="flex items-center gap-3">
             <span class="text-xl font-bold text-white leading-tight">${activeSection.name}</span>
-            <span id="header-rep-count" class="text-base font-mono font-bold ${state.isPlaying ? 'text-green-400' : 'text-gray-400'}">Rep ${repLabel(activeSection)}</span>
+            <span class="text-base font-mono font-bold ${state.isPlaying ? 'text-green-400' : 'text-gray-400'}">Rep <span id="practitioner-rep-count">${repLabel(activeSection)}</span></span>
         </div>
         <div class="flex flex-col items-end gap-0.5">
             <span class="text-2xl font-mono font-bold ${state.isPlaying ? 'text-green-400' : 'text-indigo-400'}">${liveBpm()}</span>
