@@ -134,24 +134,20 @@ const renderPortraitMixer = (activeSection) => {
 
         const fillId = `portrait-vol-fill-${tIdx}`;
         const thumbId = `portrait-vol-thumb-${tIdx}`;
-        const dispId = `portrait-vol-disp-${tIdx}`;
 
         return `
         <div class="flex items-center gap-2">
-            <!-- Box 1: Track name + Volume slider -->
-            <div class="bg-gray-900 border border-gray-800 rounded-2xl p-3 flex flex-col gap-1 flex-1 h-14">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs font-bold truncate max-w-[60%]" style="color: ${nameColor};">
-                        ${def.name || track.instrument}${isSolo ? ' ◉' : ''}
-                    </span>
-                    <span id="${dispId}" class="text-xs font-mono font-bold ${isEffectivelyMuted ? 'text-gray-600' : 'text-indigo-400'}">${pct}%</span>
-                </div>
-                <div class="relative h-8 flex items-center cursor-pointer px-1 ${isEffectivelyMuted ? 'opacity-40' : ''}">
+            <!-- Box 1: Volume slider with instrument name inside -->
+            <div class="bg-gray-900 border border-gray-800 rounded-2xl p-3 flex items-center flex-1 h-14">
+                <div class="relative flex-1 h-8 flex items-center cursor-pointer px-1 ${isEffectivelyMuted ? 'opacity-40' : ''}">
                     <div class="absolute left-1 right-1 h-full bg-gray-800 rounded-lg border border-gray-700 pointer-events-none"></div>
                     <div id="${fillId}" class="absolute left-1 h-full bg-gradient-to-r from-indigo-600 to-indigo-400 rounded-l-lg pointer-events-none"
                          style="width: ${pct}%"></div>
                     <div id="${thumbId}" class="absolute w-4 h-12 bg-white rounded shadow-lg border-2 border-indigo-400 z-[15] touch-none pointer-events-none"
                          style="left: calc(${pct}% - 8px)"></div>
+                    <span class="absolute inset-0 flex items-center justify-center text-xs font-bold truncate px-4 pointer-events-none z-10" style="color: ${nameColor};">
+                        ${def.name || track.instrument}${isSolo ? ' ◉' : ''}
+                    </span>
                     <input type="range" min="0" max="1" step="0.01" value="${vol}"
                            data-action="update-volume" data-track-index="${tIdx}" data-measure-index="0"
                            class="absolute -inset-x-3 inset-y-0 w-[calc(100%+24px)] h-full opacity-0 cursor-pointer z-20" />

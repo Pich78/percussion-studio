@@ -614,10 +614,8 @@ export const setupMobileEvents = () => {
                 const pct = Math.round(newVolume * 100);
                 const portraitFill = document.getElementById(`portrait-vol-fill-${tIdx}`);
                 const portraitThumb = document.getElementById(`portrait-vol-thumb-${tIdx}`);
-                const portraitDisp = document.getElementById(`portrait-vol-disp-${tIdx}`);
                 if (portraitFill) portraitFill.style.width = `${pct}%`;
-                if (portraitThumb) portraitThumb.style.left = `calc(${pct}% - 10px)`;
-                if (portraitDisp) portraitDisp.textContent = `${pct}%`;
+                if (portraitThumb) portraitThumb.style.left = `calc(${pct}% - 8px)`;
             }
             return;
         }
