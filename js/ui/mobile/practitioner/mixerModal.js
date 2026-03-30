@@ -8,7 +8,8 @@ export const renderMixerModal = (activeSection) => {
         const mix = state.mix?.[track.instrument] || { volume: track.volume ?? 1.0, muted: track.muted ?? false };
         const vol = mix.volume ?? 1.0;
         const isMuted = mix.muted ?? false;
-        const nameColor = isMuted ? '#6b7280' : (def.color || '#d1d5db');
+        const isEffectivelyMuted = isMuted || vol === 0;
+        const nameColor = isEffectivelyMuted ? '#6b7280' : (def.color || '#d1d5db');
         const pct = Math.round(vol * 100);
 
         return `
@@ -27,14 +28,14 @@ export const renderMixerModal = (activeSection) => {
                             }
                         </svg>
                     </button>
-                    <span class="text-xs font-bold uppercase tracking-wider truncate max-w-[120px] ${isMuted ? 'line-through' : ''}"
+                    <span class="text-xs font-bold uppercase tracking-wider truncate max-w-[120px] ${isEffectivelyMuted ? 'line-through' : ''}"
                           style="color: ${nameColor};">${def.name || track.instrument}</span>
                 </div>
-                <span class="text-xl font-mono font-bold ${isMuted ? 'text-gray-600' : 'text-indigo-400'}">${pct}%</span>
+                <span class="text-xl font-mono font-bold ${isEffectivelyMuted ? 'text-gray-600' : 'text-indigo-400'}">${pct}%</span>
             </div>
 
             <!-- Wide slider — identical style to BPM slider -->
-            <div class="relative w-full h-10 flex items-center group/vol cursor-pointer py-2 px-1 ${isMuted ? 'opacity-40' : ''}">
+            <div class="relative w-full h-10 flex items-center group/vol cursor-pointer py-2 px-1 ${isEffectivelyMuted ? 'opacity-40' : ''}">
                 <div class="absolute left-1 right-1 h-3 bg-gray-800 rounded-full border border-gray-700"></div>
                 <div class="absolute left-1 h-3 bg-gradient-to-r from-indigo-600 to-indigo-400 rounded-full"
                      style="width: calc(${pct}% - 2px)"></div>
@@ -42,8 +43,7 @@ export const renderMixerModal = (activeSection) => {
                      style="left: calc(${pct}% - 14px + 4px)"></div>
                 <input type="range" min="0" max="1" step="0.01" value="${vol}"
                     data-action="update-volume" data-track-index="${tIdx}" data-measure-index="0"
-                    class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
-                    ${isMuted ? 'disabled' : ''} />
+                    class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" />
             </div>
         </div>`;
 

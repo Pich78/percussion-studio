@@ -123,8 +123,14 @@ const renderPortraitMixer = (activeSection) => {
         const vol = mix.volume ?? 1.0;
         const isMuted = mix.muted ?? false;
         const isSolo = state.soloTrack === tIdx;
+        const isVolumeZero = vol === 0;
         const pct = Math.round(vol * 100);
-        const nameColor = (isMuted || (state.soloTrack !== undefined && state.soloTrack !== null && !isSolo))
+        
+        // Track is effectively muted if: M button is active OR volume is 0
+        const isEffectivelyMuted = isMuted || isVolumeZero;
+        
+        // Name grayed out when: Muted OR (solo active AND not this track)
+        const nameColor = (isEffectivelyMuted || (state.soloTrack !== undefined && state.soloTrack !== null && !isSolo))
             ? '#6b7280' : (def.color || '#d1d5db');
 
         const fillId = `portrait-vol-fill-${tIdx}`;
@@ -138,7 +144,7 @@ const renderPortraitMixer = (activeSection) => {
                 <span class="text-xs font-bold truncate max-w-[60%]" style="color: ${nameColor};">
                     ${def.name || track.instrument}${isSolo ? ' ◉' : ''}
                 </span>
-                <span id="${dispId}" class="text-xs font-mono font-bold ${isMuted ? 'text-gray-600' : 'text-indigo-400'}">${pct}%</span>
+                <span id="${dispId}" class="text-xs font-mono font-bold ${isEffectivelyMuted ? 'text-gray-600' : 'text-indigo-400'}">${pct}%</span>
             </div>
 
             <!-- Controls row: Solo | Mute | ───────slider─────── -->
@@ -160,7 +166,7 @@ const renderPortraitMixer = (activeSection) => {
                 </button>
 
                 <!-- Volume slider -->
-                <div class="flex-1 h-8 relative flex items-center cursor-pointer ml-1 mr-1 ${isMuted ? 'opacity-40' : ''}">
+                <div class="flex-1 h-8 relative flex items-center cursor-pointer ml-1 mr-1 ${isEffectivelyMuted ? 'opacity-40' : ''}">
                     <div class="absolute left-0 right-0 h-2 bg-gray-800 rounded-full border border-gray-700 pointer-events-none"></div>
                     <div id="${fillId}" class="absolute left-0 h-2 bg-gradient-to-r from-indigo-600 to-indigo-400 rounded-full pointer-events-none"
                          style="width: ${pct}%"></div>
@@ -178,8 +184,7 @@ const renderPortraitMixer = (activeSection) => {
                                 if (thumb) thumb.style.left = 'calc(' + p + '% - 10px)';
                                 if (disp) disp.textContent = p + '%';
                             })()"
-                           class="absolute -inset-x-3 inset-y-0 w-[calc(100%+24px)] h-full opacity-0 cursor-pointer z-20"
-                           ${isMuted ? 'disabled' : ''} />
+                           class="absolute -inset-x-3 inset-y-0 w-[calc(100%+24px)] h-full opacity-0 cursor-pointer z-20" />
                 </div>
             </div>
         </div>`;

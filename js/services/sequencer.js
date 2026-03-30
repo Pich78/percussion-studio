@@ -85,8 +85,14 @@ const scheduleStep = (section, measureIndex, stepIndex, time) => {
     const measure = section.measures[measureIndex];
     if (!measure) return;
 
-    measure.tracks.forEach(track => {
+    const soloTrack = state.soloTrack;
+
+    measure.tracks.forEach((track, trackIdx) => {
+        // Check mute state: track is muted OR volume is 0
         if (track.muted || track.volume === 0) return;
+
+        // If there's a solo track, only the soloed track plays
+        if (soloTrack !== undefined && soloTrack !== null && soloTrack !== trackIdx) return;
 
         // Always use full resolution for playback
         // The track.trackSteps property is now strictly visual
