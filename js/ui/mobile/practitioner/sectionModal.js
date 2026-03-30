@@ -182,7 +182,7 @@ export const renderSectionModal = (activeSection) => {
     setTimeout(() => initMobileSelect(sections), 50);
 
     return `
-    <div class="fixed bottom-[52px] left-1/2 -translate-x-1/2 bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl p-5 w-80 max-w-[90vw] max-h-[60vh] overflow-y-auto z-[65] animate-in fade-in flex flex-col gap-3">
+    <div class="fixed bottom-[52px] left-1/2 -translate-x-1/2 bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl p-5 w-full max-w-md md:max-w-lg lg:max-w-xl max-h-[60vh] overflow-y-auto z-[65] animate-in fade-in flex flex-col gap-3">
         <div class="flex justify-between items-center pb-2 border-b border-gray-800">
             <div>
                 <span class="text-xs text-gray-400 font-bold uppercase tracking-wider">Sections</span>
