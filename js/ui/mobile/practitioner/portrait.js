@@ -173,16 +173,6 @@ const renderPortraitMixer = (activeSection) => {
                          style="left: calc(${pct}% - 10px)"></div>
                     <input type="range" min="0" max="1" step="0.01" value="${vol}"
                            data-action="update-volume" data-track-index="${tIdx}" data-measure-index="0"
-                            oninput="(() => {
-                                const v = parseFloat(this.value);
-                                const p = Math.round(v * 100);
-                                const fill = document.getElementById('${fillId}');
-                                const thumb = document.getElementById('${thumbId}');
-                                const disp = document.getElementById('${dispId}');
-                                if (fill) fill.style.width = p + '%';
-                                if (thumb) thumb.style.left = 'calc(' + p + '% - 10px)';
-                                if (disp) disp.textContent = p + '%';
-                            })()"
                            class="absolute -inset-x-3 inset-y-0 w-[calc(100%+24px)] h-full opacity-0 cursor-pointer z-20" />
                 </div>
             </div>

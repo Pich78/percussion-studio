@@ -604,14 +604,20 @@ export const setupMobileEvents = () => {
             const newVolume = parseFloat(target.value);
             const track = section?.measures[0]?.tracks[tIdx];
             if (track) {
-                // Direct DOM update for instant visual feedback
+                // Direct DOM update for instant visual feedback only (no render during drag)
                 const volContainer = target.closest('.group\\/vol');
                 if (volContainer) {
                     updateVolumeSliderVisuals(volContainer, newVolume);
                 }
-                
-                // State/audio update via trackMixer
-                trackMixer.setVolume(tIdx, track, track.instrument, newVolume);
+
+                // Portrait practitioner volume slider updates
+                const pct = Math.round(newVolume * 100);
+                const portraitFill = document.getElementById(`portrait-vol-fill-${tIdx}`);
+                const portraitThumb = document.getElementById(`portrait-vol-thumb-${tIdx}`);
+                const portraitDisp = document.getElementById(`portrait-vol-disp-${tIdx}`);
+                if (portraitFill) portraitFill.style.width = `${pct}%`;
+                if (portraitThumb) portraitThumb.style.left = `calc(${pct}% - 10px)`;
+                if (portraitDisp) portraitDisp.textContent = `${pct}%`;
             }
             return;
         }
@@ -652,8 +658,14 @@ export const setupMobileEvents = () => {
             eventBus.emit('render');
         }
         if (action === 'update-volume') {
-            // Full re-render on drag end to sync all visuals
-            eventBus.emit('render');
+            const section = getActiveSection(state);
+            const tIdx = parseInt(target.dataset.trackIndex);
+            const newVolume = parseFloat(target.value);
+            const track = section?.measures[0]?.tracks[tIdx];
+            if (track) {
+                // State/audio update via trackMixer on drag end
+                trackMixer.setVolume(tIdx, track, track.instrument, newVolume);
+            }
         }
         if (action === 'practitioner-set-reps') {
             const sectionId = target.dataset.sectionId;
