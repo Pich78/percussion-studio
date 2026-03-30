@@ -6,6 +6,8 @@ import { PlayIcon } from '../../../icons/playIcon.js';
 import { PauseIcon } from '../../../icons/pauseIcon.js';
 import { ArrowTrendingUpIcon } from '../../../icons/arrowTrendingUpIcon.js';
 import { ArrowTrendingDownIcon } from '../../../icons/arrowTrendingDownIcon.js';
+import { SpeakerWaveIcon } from '../../../icons/speakerWaveIcon.js';
+import { SpeakerXMarkIcon } from '../../../icons/speakerXMarkIcon.js';
 import { renderPortraitSectionModal } from './sectionModal.js';
 
 const liveBpm = () =>
@@ -164,13 +166,12 @@ const renderPortraitMixer = (activeSection) => {
                 </button>
             </div>
 
-            <!-- Box 3: M button -->
+            <!-- Box 3: Mute button with speaker icon -->
             <div class="bg-gray-900 border border-gray-800 rounded-2xl w-10 h-14 flex items-center justify-center">
                 <button data-action="toggle-mute" data-track-index="${tIdx}" data-measure-index="0"
-                    class="font-bold text-sm uppercase tracking-wider transition-colors
-                           ${isMuted ? 'text-red-400' : 'text-gray-500 hover:text-red-400'}"
+                    class="transition-colors ${isMuted ? 'text-red-400' : 'text-gray-500 hover:text-red-400'}"
                     title="${isMuted ? 'Unmute' : 'Mute'}">
-                    M
+                    ${isMuted ? SpeakerXMarkIcon('w-5 h-5') : SpeakerWaveIcon('w-5 h-5')}
                 </button>
             </div>
         </div>`;
