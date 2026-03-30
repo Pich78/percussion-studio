@@ -15,6 +15,10 @@
     <!-- YAML Parser Library (Required for Data Loading) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
 
+    <!-- Mobile Select Picker Library -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mobile-select@latest/dist/style/mobile-select.css">
+    <script src="https://cdn.jsdelivr.net/npm/mobile-select@latest/dist/mobile-select.iife.min.js"></script>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         // MOBILE PLAY MODE FLAG
@@ -86,6 +90,30 @@
             .landscape-only {
                 display: none !important;
             }
+        }
+
+        /* MobileSelect custom styles for better desktop mouse interaction */
+        .ms-mobile-select {
+            z-index: 9999 !important;
+        }
+        
+        .ms-wheel {
+            cursor: pointer !important;
+            touch-action: pan-y !important;
+        }
+        
+        .ms-wheel ul {
+            cursor: pointer !important;
+        }
+        
+        .ms-wheel li {
+            cursor: pointer !important;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        
+        .ms-panel {
+            cursor: pointer !important;
         }
     </style>
 
