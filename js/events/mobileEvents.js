@@ -194,6 +194,7 @@ const createMobileActionRouter = () => ({
         if (!track) return;
 
         trackMixer.toggleMute(tIdx, track, track.instrument);
+        eventBus.emit('render');
     },
 
     // Structure modal
@@ -315,6 +316,7 @@ const createMobileActionRouter = () => ({
         if (isNaN(trackIdx) || !track) return;
 
         trackMixer.toggleSolo(trackIdx, track, track.instrument);
+        eventBus.emit('render');
     },
 
     // Select a section via the practitioner chips modal
