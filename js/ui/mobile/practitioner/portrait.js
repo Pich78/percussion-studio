@@ -1,4 +1,5 @@
 import { state, playback } from '../../../store.js';
+import { trackMixer } from '../../../services/trackMixer.js';
 import { Bars3Icon } from '../../../icons/bars3Icon.js';
 import { StopIcon } from '../../../icons/stopIcon.js';
 import { PlayIcon } from '../../../icons/playIcon.js';
@@ -122,16 +123,14 @@ const renderPortraitMixer = (activeSection) => {
         const mix = state.mix?.[track.instrument] || { volume: track.volume ?? 1.0, muted: track.muted ?? false };
         const vol = mix.volume ?? 1.0;
         const isMuted = mix.muted ?? false;
-        const isSolo = state.soloTrack === tIdx;
-        const isVolumeZero = vol === 0;
+        const isSolo = trackMixer.isTrackSoloed(tIdx);
         const pct = Math.round(vol * 100);
         
         // Track is effectively muted if: M button is active OR volume is 0
-        const isEffectivelyMuted = isMuted || isVolumeZero;
+        const isEffectivelyMuted = trackMixer.isTrackEffectivelyMuted(tIdx, track);
         
         // Name grayed out when: Muted OR (solo active AND not this track)
-        const nameColor = (isEffectivelyMuted || (state.soloTrack !== undefined && state.soloTrack !== null && !isSolo))
-            ? '#6b7280' : (def.color || '#d1d5db');
+        const nameColor = isEffectivelyMuted ? '#6b7280' : (def.color || '#d1d5db');
 
         const fillId = `portrait-vol-fill-${tIdx}`;
         const thumbId = `portrait-vol-thumb-${tIdx}`;

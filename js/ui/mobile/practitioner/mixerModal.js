@@ -1,4 +1,5 @@
 import { state } from '../../../store.js';
+import { trackMixer } from '../../../services/trackMixer.js';
 
 export const renderMixerModal = (activeSection) => {
     const tracks = activeSection.measures[0]?.tracks || [];
@@ -8,7 +9,7 @@ export const renderMixerModal = (activeSection) => {
         const mix = state.mix?.[track.instrument] || { volume: track.volume ?? 1.0, muted: track.muted ?? false };
         const vol = mix.volume ?? 1.0;
         const isMuted = mix.muted ?? false;
-        const isEffectivelyMuted = isMuted || vol === 0;
+        const isEffectivelyMuted = trackMixer.isTrackEffectivelyMuted(tIdx, track);
         const nameColor = isEffectivelyMuted ? '#6b7280' : (def.color || '#d1d5db');
         const pct = Math.round(vol * 100);
 

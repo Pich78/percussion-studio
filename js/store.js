@@ -36,6 +36,10 @@ export const state = {
     // Key: instrument symbol (e.g. "Iya"), Value: { volume: 1.0, muted: false }
     mix: {},
 
+    // Solo state: index of the soloed track, null if none
+    // Mutually exclusive with mute - a track cannot be both muted and soloed
+    soloTrack: null,
+
     // Cache for loaded Instrument YAML definitions.
     // Key: Symbol (e.g. "ITO"), Value: The parsed YAML object with .sounds, .name, etc.
     instrumentDefinitions: {},

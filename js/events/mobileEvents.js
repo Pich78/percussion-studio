@@ -11,6 +11,7 @@ import { togglePlay, stopPlayback } from '../services/sequencer.js';
 import { eventBus } from '../services/eventBus.js';
 import { viewManager } from '../views/viewManager.js';
 import { audioEngine } from '../services/audioEngine.js';
+import { trackMixer } from '../services/trackMixer.js';
 
 // Import modular handlers
 import * as playbackHandlers from './handlers/playbackEvents.js';
@@ -185,30 +186,14 @@ const createMobileActionRouter = () => ({
     'close-toque-details': () => bataHandlers.handleCloseToqueDetails(),
     'load-toque-confirm': (e, target) => handleMobileLoadToqueConfirm(target),
 
-    // Mute/Track controls
-    // State machine: Normal → Muted → Normal → ...
-    //                Soloed → Muted (S replaced by M)
+    // Mute/Track controls - delegates to trackMixer
     'toggle-mute': (e, target) => {
         const section = getActiveSection(state);
         const tIdx = parseInt(target.dataset.trackIndex);
         const track = section?.measures[0]?.tracks[tIdx];
         if (!track) return;
 
-        const isSolo = state.soloTrack === tIdx;
-        const isMuted = track.muted;
-
-        if (isSolo) {
-            // Soloed + M → Muted (S replaced by M)
-            state.soloTrack = null;
-            actions.setGlobalMute(track.instrument, true);
-        } else if (isMuted) {
-            // Muted + M → Normal (restore to 100%)
-            actions.setGlobalMute(track.instrument, false);
-            actions.setGlobalVolume(track.instrument, 1.0);
-        } else {
-            // Normal + M → Muted
-            actions.setGlobalMute(track.instrument, true);
-        }
+        trackMixer.toggleMute(tIdx, track, track.instrument);
     },
 
     // Structure modal
@@ -322,32 +307,14 @@ const createMobileActionRouter = () => ({
         eventBus.emit('render');
     },
 
-    // Toggle solo on a track
-    // State machine: Normal → Soloed → Normal → ...
-    //                Muted + S → Soloed (M replaced by S)
-    // Only one track can be soloed at a time
+    // Toggle solo on a track - delegates to trackMixer
     'practitioner-solo': (e, target) => {
         const section = getActiveSection(state);
         const trackIdx = parseInt(target.dataset.trackIndex, 10);
         const track = section?.measures[0]?.tracks[trackIdx];
         if (isNaN(trackIdx) || !track) return;
 
-        const isSolo = state.soloTrack === trackIdx;
-        const isMuted = track.muted;
-
-        if (isSolo) {
-            // Soloed + S → Normal (toggle off)
-            state.soloTrack = null;
-            eventBus.emit('render');
-        } else if (isMuted) {
-            // Muted + S → Soloed (M replaced by S)
-            state.soloTrack = trackIdx;
-            actions.setGlobalMute(track.instrument, false);
-        } else {
-            // Normal + S → Soloed (clears previous solo)
-            state.soloTrack = trackIdx;
-            eventBus.emit('render');
-        }
+        trackMixer.toggleSolo(trackIdx, track, track.instrument);
     },
 
     // Select a section via the practitioner chips modal
@@ -637,37 +604,7 @@ export const setupMobileEvents = () => {
             const newVolume = parseFloat(target.value);
             const track = section?.measures[0]?.tracks[tIdx];
             if (track) {
-                // During touch drag: update state + audio directly, skip full re-render
-                // (mirrors the BPM slider pattern for smooth mobile interaction)
-                commit('ensureMixEntry', { symbol: track.instrument });
-                
-                const isSolo = state.soloTrack === tIdx;
-                
-                // Volume → 0: Mute the track (unless solo - solo tracks stay solo)
-                if (newVolume === 0 && !isSolo) {
-                    commit('setMixMuted', { symbol: track.instrument, muted: true });
-                    audioEngine.setInstrumentMuted(track.instrument, true);
-                }
-                // Volume → >0 on Muted track: Unmute and set volume
-                else if (newVolume > 0 && track.muted) {
-                    commit('setMixMuted', { symbol: track.instrument, muted: false });
-                    audioEngine.setInstrumentMuted(track.instrument, false);
-                }
-                
-                // Always update volume
-                commit('setMixVolume', { symbol: track.instrument, volume: newVolume });
-                audioEngine.setInstrumentVolume(track.instrument, newVolume);
-                commit('propagateMixToTracks', {
-                    symbol: track.instrument,
-                    volume: state.mix[track.instrument].volume,
-                    muted: state.mix[track.instrument].muted
-                });
-
-                // Direct DOM update for visual feedback (no re-render)
-                const volContainer = target.closest('.group\\/vol');
-                if (volContainer) {
-                    updateVolumeSliderVisuals(volContainer, newVolume);
-                }
+                trackMixer.setVolume(tIdx, track, track.instrument, newVolume);
             }
             return;
         }
