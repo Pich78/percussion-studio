@@ -139,18 +139,18 @@ const renderPortraitMixer = (activeSection) => {
         return `
         <div class="flex items-center gap-2">
             <!-- Box 1: Track name + Volume slider -->
-            <div class="bg-gray-900 border border-gray-800 rounded-2xl p-3 flex flex-col gap-1 flex-1 h-10">
+            <div class="bg-gray-900 border border-gray-800 rounded-2xl p-3 flex flex-col gap-1 flex-1 h-14">
                 <div class="flex items-center justify-between">
                     <span class="text-xs font-bold truncate max-w-[60%]" style="color: ${nameColor};">
                         ${def.name || track.instrument}${isSolo ? ' ◉' : ''}
                     </span>
                     <span id="${dispId}" class="text-xs font-mono font-bold ${isEffectivelyMuted ? 'text-gray-600' : 'text-indigo-400'}">${pct}%</span>
                 </div>
-                <div class="h-5 relative flex items-center cursor-pointer ${isEffectivelyMuted ? 'opacity-40' : ''}">
-                    <div class="absolute left-0 right-0 h-1.5 bg-gray-800 rounded-full border border-gray-700 pointer-events-none"></div>
-                    <div id="${fillId}" class="absolute left-0 h-1.5 bg-gradient-to-r from-indigo-600 to-indigo-400 rounded-full pointer-events-none"
+                <div class="relative h-8 flex items-center cursor-pointer px-1 ${isEffectivelyMuted ? 'opacity-40' : ''}">
+                    <div class="absolute left-1 right-1 h-full bg-gray-800 rounded-lg border border-gray-700 pointer-events-none"></div>
+                    <div id="${fillId}" class="absolute left-1 h-full bg-gradient-to-r from-indigo-600 to-indigo-400 rounded-l-lg pointer-events-none"
                          style="width: ${pct}%"></div>
-                    <div id="${thumbId}" class="absolute w-4 h-4 bg-white rounded-full shadow-md border-2 border-indigo-400 z-[15] touch-none pointer-events-none"
+                    <div id="${thumbId}" class="absolute w-4 h-12 bg-white rounded shadow-lg border-2 border-indigo-400 z-[15] touch-none pointer-events-none"
                          style="left: calc(${pct}% - 8px)"></div>
                     <input type="range" min="0" max="1" step="0.01" value="${vol}"
                            data-action="update-volume" data-track-index="${tIdx}" data-measure-index="0"
@@ -159,7 +159,7 @@ const renderPortraitMixer = (activeSection) => {
             </div>
 
             <!-- Box 2: S button -->
-            <div class="bg-gray-900 border border-gray-800 rounded-2xl w-10 h-10 flex items-center justify-center">
+            <div class="bg-gray-900 border border-gray-800 rounded-2xl w-10 h-14 flex items-center justify-center">
                 <button data-action="practitioner-solo" data-track-index="${tIdx}"
                     class="font-bold text-sm uppercase tracking-wider transition-colors
                            ${isSolo ? 'text-amber-400' : 'text-gray-500 hover:text-amber-400'}"
@@ -169,7 +169,7 @@ const renderPortraitMixer = (activeSection) => {
             </div>
 
             <!-- Box 3: M button -->
-            <div class="bg-gray-900 border border-gray-800 rounded-2xl w-10 h-10 flex items-center justify-center">
+            <div class="bg-gray-900 border border-gray-800 rounded-2xl w-10 h-14 flex items-center justify-center">
                 <button data-action="toggle-mute" data-track-index="${tIdx}" data-measure-index="0"
                     class="font-bold text-sm uppercase tracking-wider transition-colors
                            ${isMuted ? 'text-red-400' : 'text-gray-500 hover:text-red-400'}"
