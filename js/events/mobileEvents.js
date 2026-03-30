@@ -604,6 +604,13 @@ export const setupMobileEvents = () => {
             const newVolume = parseFloat(target.value);
             const track = section?.measures[0]?.tracks[tIdx];
             if (track) {
+                // Direct DOM update for instant visual feedback
+                const volContainer = target.closest('.group\\/vol');
+                if (volContainer) {
+                    updateVolumeSliderVisuals(volContainer, newVolume);
+                }
+                
+                // State/audio update via trackMixer
                 trackMixer.setVolume(tIdx, track, track.instrument, newVolume);
             }
             return;
