@@ -122,6 +122,12 @@ const initMobileSelect = (sections) => {
                     ensureBtnText: 'Done',
                     cancelBtnText: 'Cancel',
                     triggerDisplayValue: true,
+                    bgColor: '#1a202c',
+                    textColor: '#e5e7eb',
+                    titleBgColor: '#1f2937',
+                    titleColor: '#f9fafb',
+                    ensureBtnColor: '#22d3ee',
+                    cancelBtnColor: '#9ca3af',
                     onChange: (data) => {
                         console.log('[sectionModal] reps onChange data:', data);
                         const value = parseInt(data[0]);
@@ -147,6 +153,12 @@ const initMobileSelect = (sections) => {
                         ensureBtnText: 'Done',
                         cancelBtnText: 'Cancel',
                         triggerDisplayValue: true,
+                        bgColor: '#1a202c',
+                        textColor: '#e5e7eb',
+                        titleBgColor: '#1f2937',
+                        titleColor: '#f9fafb',
+                        ensureBtnColor: '#22d3ee',
+                        cancelBtnColor: '#9ca3af',
                         onChange: (data) => {
                             console.log('[sectionModal] accel onChange data:', data);
                             const value = parseFloat(data[0]);
