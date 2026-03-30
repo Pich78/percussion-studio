@@ -137,35 +137,16 @@ const renderPortraitMixer = (activeSection) => {
         const dispId = `portrait-vol-disp-${tIdx}`;
 
         return `
-        <div class="bg-gray-900 border border-gray-800 rounded-xl p-3 flex flex-col gap-2">
-            <!-- Instrument name row -->
-            <div class="flex items-center justify-between">
-                <span class="text-xs font-bold truncate max-w-[60%]" style="color: ${nameColor};">
-                    ${def.name || track.instrument}${isSolo ? ' ◉' : ''}
-                </span>
-                <span id="${dispId}" class="text-xs font-mono font-bold ${isEffectivelyMuted ? 'text-gray-600' : 'text-indigo-400'}">${pct}%</span>
-            </div>
-
-            <!-- Controls row: Solo | Mute | ───────slider─────── -->
-            <div class="flex items-center gap-2">
-                <!-- Solo button -->
-                <button data-action="practitioner-solo" data-track-index="${tIdx}"
-                    class="h-8 px-2 rounded-lg flex items-center justify-center flex-shrink-0 font-bold text-xs uppercase tracking-wider transition-colors border
-                           ${isSolo ? 'bg-amber-500/20 text-amber-400 border-amber-500/40' : 'bg-gray-800 text-gray-500 border-gray-700 hover:text-amber-400 hover:border-amber-500/30'}"
-                    title="Solo">
-                    S
-                </button>
-
-                <!-- Mute button -->
-                <button data-action="toggle-mute" data-track-index="${tIdx}" data-measure-index="0"
-                    class="h-8 px-2 rounded-lg flex items-center justify-center flex-shrink-0 font-bold text-xs uppercase tracking-wider transition-colors border
-                           ${isMuted ? 'bg-red-900/30 text-red-400 border-red-900/50' : 'bg-gray-800 text-gray-500 border-gray-700 hover:text-red-400 hover:border-red-900/30'}"
-                    title="${isMuted ? 'Unmute' : 'Mute'}">
-                    M
-                </button>
-
-                <!-- Volume slider -->
-                <div class="flex-1 h-8 relative flex items-center cursor-pointer ml-1 mr-1 ${isEffectivelyMuted ? 'opacity-40' : ''}">
+        <div class="flex items-center gap-2">
+            <!-- Box 1: Track name + Volume slider -->
+            <div class="bg-gray-900 border border-gray-800 rounded-xl p-3 flex flex-col gap-2 flex-1">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold truncate max-w-[60%]" style="color: ${nameColor};">
+                        ${def.name || track.instrument}${isSolo ? ' ◉' : ''}
+                    </span>
+                    <span id="${dispId}" class="text-xs font-mono font-bold ${isEffectivelyMuted ? 'text-gray-600' : 'text-indigo-400'}">${pct}%</span>
+                </div>
+                <div class="h-8 relative flex items-center cursor-pointer ${isEffectivelyMuted ? 'opacity-40' : ''}">
                     <div class="absolute left-0 right-0 h-2 bg-gray-800 rounded-full border border-gray-700 pointer-events-none"></div>
                     <div id="${fillId}" class="absolute left-0 h-2 bg-gradient-to-r from-indigo-600 to-indigo-400 rounded-full pointer-events-none"
                          style="width: ${pct}%"></div>
@@ -175,6 +156,26 @@ const renderPortraitMixer = (activeSection) => {
                            data-action="update-volume" data-track-index="${tIdx}" data-measure-index="0"
                            class="absolute -inset-x-3 inset-y-0 w-[calc(100%+24px)] h-full opacity-0 cursor-pointer z-20" />
                 </div>
+            </div>
+
+            <!-- Box 2: S button -->
+            <div class="bg-gray-900 border border-gray-800 rounded-xl w-12 h-[5.5rem] flex items-center justify-center">
+                <button data-action="practitioner-solo" data-track-index="${tIdx}"
+                    class="font-bold text-sm uppercase tracking-wider transition-colors
+                           ${isSolo ? 'text-amber-400' : 'text-gray-500 hover:text-amber-400'}"
+                    title="Solo">
+                    S
+                </button>
+            </div>
+
+            <!-- Box 3: M button -->
+            <div class="bg-gray-900 border border-gray-800 rounded-xl w-12 h-[5.5rem] flex items-center justify-center">
+                <button data-action="toggle-mute" data-track-index="${tIdx}" data-measure-index="0"
+                    class="font-bold text-sm uppercase tracking-wider transition-colors
+                           ${isMuted ? 'text-red-400' : 'text-gray-500 hover:text-red-400'}"
+                    title="${isMuted ? 'Unmute' : 'Mute'}">
+                    M
+                </button>
             </div>
         </div>`;
     }).join('');
