@@ -160,7 +160,7 @@ const renderPortraitMixer = (activeSection) => {
             <div class="bg-gray-900 border border-gray-800 rounded-2xl w-10 h-14 flex items-center justify-center">
                 <button data-action="practitioner-solo" data-track-index="${tIdx}"
                     class="font-bold text-sm uppercase tracking-wider transition-colors
-                           ${isSolo ? 'text-amber-400' : 'text-gray-500 hover:text-amber-400'}"
+                           ${isSolo ? 'text-amber-400' : 'text-gray-500'}"
                     title="Solo">
                     S
                 </button>
@@ -169,7 +169,7 @@ const renderPortraitMixer = (activeSection) => {
             <!-- Box 3: Mute button with speaker icon -->
             <div class="bg-gray-900 border border-gray-800 rounded-2xl w-10 h-14 flex items-center justify-center">
                 <button data-action="toggle-mute" data-track-index="${tIdx}" data-measure-index="0"
-                    class="transition-colors ${isMuted ? 'text-red-400' : 'text-gray-500 hover:text-red-400'}"
+                    class="transition-colors ${isMuted ? 'text-red-400' : 'text-gray-500'}"
                     title="${isMuted ? 'Unmute' : 'Mute'}">
                     ${isMuted ? SpeakerXMarkIcon('w-5 h-5') : SpeakerWaveIcon('w-5 h-5')}
                 </button>
