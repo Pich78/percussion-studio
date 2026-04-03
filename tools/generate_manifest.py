@@ -5,7 +5,7 @@ import yaml  # pip install pyyaml
 # Configuration
 DATA_DIR = "data"
 MANIFEST_FILE = "manifest.json"
-DEFAULT_RHYTHM = "Batà/Yakota/yakota_-_base.yaml"
+DEFAULT_RHYTHM = "Batà/Yakota/yakota_-_base"
 
 # Batà Metadata Constants
 # Batà Metadata Constants

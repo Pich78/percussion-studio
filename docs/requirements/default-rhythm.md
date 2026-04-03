@@ -16,7 +16,7 @@ To change the default rhythm:
 
 1. Edit `DEFAULT_RHYTHM` constant in `tools/generate_manifest.py`:
    ```python
-   DEFAULT_RHYTHM = "tests/test_dynamics_2"
+   DEFAULT_RHYTHM = "Batà/Yakota/yakota_-_base"
    ```
 
 2. Regenerate the manifest:
