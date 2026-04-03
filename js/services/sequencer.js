@@ -127,11 +127,31 @@ const getStepDuration = (bpm, subdivision) => {
  * @returns {number} Resolved repetition count
  */
 const resolveEffectiveRepetitions = (section) => {
-    const maxReps = section.repetitions || 1;
-    if (section.randomRepetitions && maxReps > 1) {
-        return Math.floor(Math.random() * maxReps) + 1;
+    const reps = section.repetitions || 1;
+    
+    // -2: Ad lib (infinity) - return very large number
+    if (reps === -2) {
+        return 9999;
     }
-    return maxReps;
+    
+    // 0: Disabled - return 0 (will be skipped)
+    if (reps === 0) {
+        return 0;
+    }
+    
+    // -1: Play once - check if already played this session
+    if (reps === -1) {
+        if (playback.playedOnceSections.has(section.id)) {
+            return 0; // Already played, skip
+        }
+        return 1;
+    }
+    
+    // Normal: 1-64
+    if (section.randomRepetitions && reps > 1) {
+        return Math.floor(Math.random() * reps) + 1;
+    }
+    return reps;
 };
 
 /**
@@ -180,7 +200,11 @@ const computeNextStep = (toque, pb) => {
                     tempoAccelerated = true;
                 }
             } else {
-                // Next Section
+                // Next Section - check if current section was "play once" (-1)
+                if (activeSec.repetitions === -1 && nextEffectiveRepetitions > 0) {
+                    playback.playedOnceSections.add(activeSec.id);
+                }
+                
                 const nextIndex = (sectionIndex + 1) % toque.sections.length;
                 const nextSection = toque.sections[nextIndex];
 
@@ -306,6 +330,7 @@ export const stopPlayback = () => {
     playback.nextNoteTime = 0;
     playback.isCountingIn = false;
     playback.countInStep = 0;
+    playback.playedOnceSections.clear();
 
     if (state.toque && state.toque.sections && state.toque.sections.length > 0) {
         const first = state.toque.sections[0];

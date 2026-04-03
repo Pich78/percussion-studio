@@ -103,13 +103,14 @@ export const state = {
 export const playback = {
     timeoutId: null,
     currentStep: -1,
-    currentMeasureIndex: 0, // Track current measure within section
+    currentMeasureIndex: 0,
     repetitionCounter: 1,
-    effectiveRepetitions: null, // Resolved rep count (randomized or fixed) for current section
-    currentPlayheadBpm: 120, // Default safe value
+    effectiveRepetitions: null,
+    currentPlayheadBpm: 120,
     activeSectionId: null,
-    nextNoteTime: 0, // For precision look-ahead scheduling (audioContext time)
-    isCountingIn: false, // True when count-in is playing
-    countInStep: 0, // Current count-in beat (0-3 or 0-5)
-    countInTotal: 4 // Total count-in beats (4 or 6 based on time signature)
+    nextNoteTime: 0,
+    isCountingIn: false,
+    countInStep: 0,
+    countInTotal: 4,
+    playedOnceSections: new Set() // Tracks sections that have been played (for -1: play once behavior)
 };
