@@ -168,6 +168,27 @@
         "Eleggua"
       ]
     },
+    "Batà/Alumbanche/alumbanche_llamada_y_base": {
+      "displayName": "Alumbanche Llamada y base",
+      "classification": "Specific",
+      "associatedOrishas": [
+        "Eleggua"
+      ]
+    },
+    "Batà/Chachalokafun/chachalokafun_-_llamada_y_base": {
+      "displayName": "Chachalokafun - Llamada y Base",
+      "classification": "Generic",
+      "associatedOrishas": [
+        "Eleggua",
+        "Oggun",
+        "Yemaya",
+        "Ochun",
+        "Chango",
+        "Oya",
+        "Obatala",
+        "Aggayu"
+      ]
+    },
     "Batà/Cierre de Yakota/cierre_de_yakota": {
       "displayName": "Cierre de Yakota",
       "classification": "Generic",
@@ -246,11 +267,9 @@
         "Ochosi",
         "Yemaya",
         "Ochun",
-        "Eggun",
         "Chango",
         "Oya",
-        "Obatala",
-        "Oya"
+        "Obatala"
       ]
     },
     "Batà/Latopa/latopa_2_part_base": {

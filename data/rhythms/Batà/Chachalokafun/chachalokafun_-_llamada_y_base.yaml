@@ -1,0 +1,79 @@
+name: "Chachalokafun - Llamada y Base"
+global_bpm: 96
+is_bata: true
+orisha:
+  - "Oggun"
+classification: "Specific"
+
+sound_kit:
+  oko:
+    instrument: "OKO"
+    pack: "cp_bata_chaworo"
+  ito:
+    instrument: "ITO"
+    pack: "cp_bata_chaworo"
+  iya:
+    instrument: "IYA"
+    pack: "cp_bata_chaworo"
+
+playback_flow:
+  - name: "LLamada"
+    repetitions: 1
+    steps: 16
+    subdivision: 4
+    measures:
+      - pattern:
+          oko: "||----|----|----|----||"
+          ito: "||----|----|----|----||"
+          iya: "||----|----|----|---S||"
+      - pattern:
+          oko: "||----|----|----|----||"
+          ito: "||----|----|OR-O|R-OR||"
+          iya: "||O-S-|R---|S---|----||"
+        dynamics:
+          ito: "||NNNN|NNNN|--N-|-N--||"
+          iya: "||-N-N|-NNN|-NNN|NNNN||"
+  - name: "Base"
+    repetitions: 16
+    steps: 16
+    subdivision: 4
+    measures:
+      - pattern:
+          oko: "||O-S-|O-S-|O-S-|O-S-||"
+          ito: "||---O|S-PS|---O|S-PS||"
+          iya: "||R---|----|S---|----||"
+  - name: "Base Okonkolo variation"
+    repetitions: 16
+    steps: 16
+    subdivision: 4
+    measures:
+      - pattern:
+          oko: "||--S-|-O--|--S-|-O--||"
+          ito: "||---O|S-PS|---O|S-PS||"
+          iya: "||R---|----|S---|----||"
+  - name: "Base Okonkolo variation 2"
+    repetitions: 16
+    steps: 16
+    subdivision: 4
+    measures:
+      - pattern:
+          oko: "||--S-|-O-O|--S-|-O-O||"
+          ito: "||---O|S-PS|---O|S-PS||"
+          iya: "||R---|----|S---|----||"
+  - name: "Conversation"
+    repetitions: 1
+    steps: 16
+    subdivision: 4
+    measures:
+      - pattern:
+          oko: "||O-S-|O-S-|O-S-|O-S-||"
+          ito: "||---O|S-PS|---O|S-PS||"
+          iya: "||R---|----|S---|---O||"
+      - pattern:
+          oko: "||O-S-|O-S-|O-S-|O-S-||"
+          ito: "||---O|S-PS|OR-O|R-OR||"
+          iya: "||R-O-|O---|S---|----||"
+        dynamics:
+          oko: "||-N-N|-N-N|-N-N|-N-N||"
+          ito: "||NNN-|-N--|--N-|-N--||"
+          iya: "||-N-N|-NNN|-NNN|NNNN||"
