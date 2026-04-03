@@ -120,39 +120,112 @@ const getStepDuration = (bpm, subdivision) => {
     return secondsPerBeat / subdivision;
 };
 
+// Section play state types
+const SectionPlayState = Object.freeze({
+    SKIP: 'SKIP',       // Section marked as skip
+    PLAYED: 'PLAYED',   // "play once" section already played
+    PLAY_ONCE: 'PLAY_ONCE', // "play once" section, not yet played
+    ADLIB: 'ADLIB',     // Repeat forever
+    LOOP: 'LOOP'        // Normal loop mode
+});
+
 /**
- * Resolve effective repetition count for a section.
- * Handles skip, playMode, and randomRepetitions.
+ * Get the play state of a section.
+ * Returns a meaningful identifier instead of magic numbers.
  * @param {object} section - Section object
- * @returns {number} Resolved repetition count (0 = skip, 1+ = play N times)
+ * @returns {object} { type: string, repetitions: number }
  */
-const resolveEffectiveRepetitions = (section) => {
+const getSectionPlayState = (section) => {
     const playMode = section.playMode || 'loop';
     const reps = section.repetitions || 1;
     
     // Skip: never play
     if (section.skip) {
-        return 0;
+        return { type: SectionPlayState.SKIP, repetitions: 0, id: section.id };
     }
     
-    // Adlib: repeat forever (return special marker)
+    // Adlib: repeat forever
     if (playMode === 'adlib') {
-        return -1; // Special marker for infinite
+        return { type: SectionPlayState.ADLIB, repetitions: -1, id: section.id };
     }
     
     // Once: play once, then skip for rest of session
     if (playMode === 'once') {
         if (section._playedOnce) {
-            return 0; // Already played, skip
+            return { type: SectionPlayState.PLAYED, repetitions: 0, id: section.id };
         }
-        return 1;
+        return { type: SectionPlayState.PLAY_ONCE, repetitions: 1, id: section.id };
     }
     
     // Loop mode (default): use repetitions value
     if (section.randomRepetitions && reps > 1) {
-        return Math.floor(Math.random() * reps) + 1;
+        return { type: SectionPlayState.LOOP, repetitions: Math.floor(Math.random() * reps) + 1, id: section.id };
     }
-    return reps;
+    return { type: SectionPlayState.LOOP, repetitions: reps, id: section.id };
+};
+
+/**
+ * Select the next playable section.
+ * Handles skipping SKIP/PLAYED sections and resets if all sections exhausted.
+ * @param {number} currentIndex - Current section index
+ * @param {object[]} sections - Array of all sections
+ * @returns {object} { nextIndex, nextSection, needsReset: boolean }
+ */
+const selectNextSection = (currentIndex, sections) => {
+    const length = sections.length;
+    let searchIndex = (currentIndex + 1) % length;
+    let attempts = 0;
+    
+    // First pass: try to find next playable section
+    while (attempts < length) {
+        const checkSection = sections[searchIndex];
+        const playState = getSectionPlayState(checkSection);
+        
+        if (playState.type !== SectionPlayState.SKIP && 
+            playState.type !== SectionPlayState.PLAYED) {
+            // Found a playable section
+            return { 
+                nextIndex: searchIndex, 
+                nextSection: checkSection, 
+                needsReset: false 
+            };
+        }
+        
+        searchIndex = (searchIndex + 1) % length;
+        attempts++;
+    }
+    
+    // Second pass: all sections are SKIP or PLAYED
+    // Reset _playedOnce flags and try again
+    sections.forEach(s => {
+        if (s._playedOnce) s._playedOnce = false;
+    });
+    
+    // Now find first playable section after reset
+    searchIndex = (currentIndex + 1) % length;
+    attempts = 0;
+    while (attempts < length) {
+        const checkSection = sections[searchIndex];
+        const playState = getSectionPlayState(checkSection);
+        
+        if (playState.type !== SectionPlayState.SKIP) {
+            return { 
+                nextIndex: searchIndex, 
+                nextSection: checkSection, 
+                needsReset: true 
+            };
+        }
+        
+        searchIndex = (searchIndex + 1) % length;
+        attempts++;
+    }
+    
+    // Should never reach here if at least one section is playable
+    return { 
+        nextIndex: 0, 
+        nextSection: sections[0], 
+        needsReset: false 
+    };
 };
 
 /**
@@ -180,7 +253,8 @@ const computeNextStep = (toque, pb) => {
 
     // Resolve effective repetitions if not yet set (first entry into section)
     if (nextEffectiveRepetitions == null) {
-        nextEffectiveRepetitions = resolveEffectiveRepetitions(activeSec);
+        const playState = getSectionPlayState(activeSec);
+        nextEffectiveRepetitions = playState.repetitions;
     }
 
     if (nextStep >= activeSec.steps) {
@@ -203,12 +277,13 @@ const computeNextStep = (toque, pb) => {
                 }
             } else {
                 // Next Section - check if current section was "play once"
-                if (activeSec.playMode === 'once' && nextEffectiveRepetitions > 0) {
+                const currentPlayState = getSectionPlayState(activeSec);
+                if (currentPlayState.type === SectionPlayState.PLAY_ONCE) {
                     activeSec._playedOnce = true;
                 }
                 
-                const nextIndex = (sectionIndex + 1) % toque.sections.length;
-                const nextSection = toque.sections[nextIndex];
+                // Use selectNextSection to find next playable section
+                const { nextIndex, nextSection, needsReset } = selectNextSection(sectionIndex, toque.sections);
 
                 nextSectionId = nextSection.id;
                 nextRepetition = 1;
@@ -217,29 +292,9 @@ const computeNextStep = (toque, pb) => {
                 activeSec = nextSection;
                 sectionChanged = true;
 
-                // Resolve effective repetitions for the new section
-                nextEffectiveRepetitions = resolveEffectiveRepetitions(nextSection);
-
-                // If new section should be skipped (0 reps), find next available section
-                if (nextEffectiveRepetitions === 0) {
-                    let searchIndex = nextIndex;
-                    let attempts = 0;
-                    while (attempts < toque.sections.length) {
-                        searchIndex = (searchIndex + 1) % toque.sections.length;
-                        const checkSection = toque.sections[searchIndex];
-                        const checkReps = resolveEffectiveRepetitions(checkSection);
-                        if (checkReps !== 0) {
-                            // Found a playable section
-                            nextIndex = searchIndex;
-                            nextSection = checkSection;
-                            nextSectionId = nextSection.id;
-                            activeSec = nextSection;
-                            nextEffectiveRepetitions = checkReps;
-                            break;
-                        }
-                        attempts++;
-                    }
-                }
+                // Get play state for new section
+                const nextPlayState = getSectionPlayState(nextSection);
+                nextEffectiveRepetitions = nextPlayState.repetitions;
 
                 if (nextSection.bpm !== undefined) {
                     nextBpm = nextSection.bpm;
@@ -400,7 +455,8 @@ export const togglePlay = () => {
             playback.currentMeasureIndex = 0;
             // Resolve effective repetitions for the starting section
             const startSection = state.toque.sections.find(s => s.id === playback.activeSectionId) || state.toque.sections[0];
-            playback.effectiveRepetitions = resolveEffectiveRepetitions(startSection);
+            const startPlayState = getSectionPlayState(startSection);
+            playback.effectiveRepetitions = startPlayState.repetitions;
             // Don't set state.currentStep yet - scheduler will update it when the first note plays
             // This prevents the highlight from appearing before the music starts
 

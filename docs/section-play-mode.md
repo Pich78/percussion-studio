@@ -90,47 +90,85 @@ Sections: [A(loop), B(disabled), C(loop)]
 
 ## Implementation Details
 
-### Sequencer Logic
+### Section Play State Types
 
-The `resolveEffectiveRepetitions()` function in `sequencer.js` determines how many times a section should play:
+The sequencer uses meaningful identifiers instead of magic numbers:
 
 ```javascript
-const resolveEffectiveRepetitions = (section) => {
-    const playMode = section.playMode || 'loop';
-    const reps = section.repetitions || 1;
-    
-    // Skip: never play
-    if (section.skip) return 0;
-    
-    // Adlib: infinite
-    if (playMode === 'adlib') return -1;
-    
-    // Once: play once then skip
-    if (playMode === 'once') {
-        if (section._playedOnce) return 0;
-        return 1;
+const SectionPlayState = Object.freeze({
+    SKIP: 'SKIP',           // Section marked as disabled
+    PLAYED: 'PLAYED',       // "play once" section already played
+    PLAY_ONCE: 'PLAY_ONCE', // "play once" section, not yet played
+    ADLIB: 'ADLIB',         // Repeat forever
+    LOOP: 'LOOP'            // Normal loop mode
+});
+```
+
+### getSectionPlayState() Function
+
+Returns a meaningful state object for each section:
+
+```javascript
+const getSectionPlayState = (section) => {
+    if (section.skip) {
+        return { type: SectionPlayState.SKIP, repetitions: 0, id: section.id };
+    }
+    if (section.playMode === 'adlib') {
+        return { type: SectionPlayState.ADLIB, repetitions: -1, id: section.id };
+    }
+    if (section.playMode === 'once') {
+        if (section._playedOnce) {
+            return { type: SectionPlayState.PLAYED, repetitions: 0, id: section.id };
+        }
+        return { type: SectionPlayState.PLAY_ONCE, repetitions: 1, id: section.id };
+    }
+    return { type: SectionPlayState.LOOP, repetitions: section.repetitions, id: section.id };
+};
+```
+
+### selectNextSection() Function
+
+Handles finding the next playable section with proper reset logic:
+
+```javascript
+const selectNextSection = (currentIndex, sections) => {
+    // First pass: try to find next playable section
+    while (attempts < length) {
+        const playState = getSectionPlayState(checkSection);
+        if (playState.type !== SKIP && playState.type !== PLAYED) {
+            return { nextIndex, nextSection, needsReset: false };
+        }
     }
     
-    // Loop: use repetitions value
-    return reps;
+    // Second pass: all sections are SKIP or PLAYED
+    // Reset _playedOnce flags and try again
+    sections.forEach(s => { if (s._playedOnce) s._playedOnce = false; });
+    
+    // Now find first playable section after reset
+    // ...
 };
 ```
 
 ### Reset Behavior
 
-The `_playedOnce` flag is reset in two scenarios:
+The `_playedOnce` flag is reset in three scenarios:
+
 1. **Stop button pressed**: `stopPlayback()` clears `_playedOnce` on all sections
 2. **New rhythm loaded**: `setToque` mutation clears `_playedOnce` on all sections
+3. **Automatic reset** (new): When all sections are exhausted (all SKIP or PLAYED), `selectNextSection()` automatically resets all `_playedOnce` flags and restarts the cycle. This enables proper looping behavior for "play once" sections.
 
 ### Section Skipping
 
-When transitioning to the next section, if that section has effective repetitions of 0 (skipped), the sequencer automatically searches for the next available section that can play. This prevents infinite loops when all sections are disabled.
+The `selectNextSection()` function handles section transitions:
+- First pass: find next playable section (not SKIP or PLAYED)
+- Second pass: if all sections exhausted, reset `_playedOnce` and try again
+- This prevents playback from stalling when all sections are disabled or have been played
 
 ## Files Modified
 
 - `js/types.js` - Added PlayMode constant
 - `js/utils/rhythmTransformers.js` - Added skip and playMode properties to section builder
-- `js/services/sequencer.js` - Implemented new play mode logic with meaningful property names
+- `js/services/sequencer.js` - Added SectionPlayState, getSectionPlayState() and selectNextSection() functions, refactored sequencer logic
 - `js/ui/mobile/practitioner/sectionModal.js` - Updated UI with new picker values
 - `js/store/mutations.js` - Added _playedOnce reset on new rhythm load
 
