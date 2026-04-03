@@ -1,4 +1,4 @@
-import { state, playback } from '../../../store.js';
+import { state } from '../../../store.js';
 import { eventBus } from '../../../services/eventBus.js';
 import { ArrowTrendingUpIcon } from '../../../icons/arrowTrendingUpIcon.js';
 import { ArrowTrendingDownIcon } from '../../../icons/arrowTrendingDownIcon.js';
@@ -9,19 +9,32 @@ const ACCEL_VALUES = Array.from({ length: 201 }, (_, i) => {
 });
 
 const REP_DISPLAY_VALUES = ['∞', 'disabled', 'play once', ...Array.from({ length: 64 }, (_, i) => String(i + 1))];
-const REP_INTERNAL_VALUES = [-2, 0, -1, ...Array.from({ length: 64 }, (_, i) => i + 1)];
 
-const getDisplayReps = (value) => {
-    if (value === -2) return '∞';
-    if (value === 0) return 'disabled';
-    if (value === -1) return 'play once';
-    return String(value);
+const getDisplayReps = (section) => {
+    if (section.playMode === 'adlib') return '∞';
+    if (section.skip) return 'disabled';
+    if (section.playMode === 'once') return 'play once';
+    return String(section.repetitions || 1);
 };
 
-const getInternalReps = (displayValue) => {
-    const idx = REP_DISPLAY_VALUES.indexOf(displayValue);
-    if (idx !== -1) return REP_INTERNAL_VALUES[idx];
-    return parseInt(displayValue) || 1;
+const setRepetitions = (section, displayValue) => {
+    if (displayValue === '∞') {
+        section.playMode = 'adlib';
+        section.skip = false;
+    } else if (displayValue === 'disabled') {
+        section.playMode = 'loop';
+        section.skip = true;
+    } else if (displayValue === 'play once') {
+        section.playMode = 'once';
+        section.skip = false;
+    } else {
+        section.playMode = 'loop';
+        section.skip = false;
+        section.repetitions = parseInt(displayValue) || 1;
+    }
+    if (section.playMode === 'once') {
+        section._playedOnce = false;
+    }
 };
 
 let mobileSelectInstances = {};
@@ -41,9 +54,8 @@ window.openAccelPicker = function(sectionId) {
 };
 
 const renderAccelerationControl = (section) => {
-    const reps = section.repetitions || 1;
     const accel = section.tempoAcceleration || 0;
-    const disabled = reps <= 1 || reps === -1 || reps === 0 || reps === -2;
+    const disabled = section.skip || section.playMode === 'once' || section.playMode === 'adlib';
 
     const isPositive = accel > 0;
     const iconColor = disabled ? 'text-gray-600' : (isPositive ? 'text-green-400' : 'text-red-400');
@@ -67,12 +79,11 @@ const renderAccelerationControl = (section) => {
 };
 
 const renderRepsControl = (section) => {
-    const reps = section.repetitions || 1;
-    const display = getDisplayReps(reps);
-    const isDisabled = reps === 0;
-    const isAdlib = reps === -2;
-    const isPlayOnce = reps === -1;
-    const hasPlayedOnce = isPlayOnce && playback.playedOnceSections.has(section.id);
+    const display = getDisplayReps(section);
+    const isDisabled = section.skip;
+    const isAdlib = section.playMode === 'adlib';
+    const isPlayOnce = section.playMode === 'once';
+    const hasPlayedOnce = isPlayOnce && section._playedOnce;
 
     let bgClass = 'bg-gray-900 border border-gray-700';
     let textClass = 'text-indigo-400';
@@ -87,18 +98,17 @@ const renderRepsControl = (section) => {
 
     return `
         <button type="button" id="prac-reps-${section.id}"
-             class="reps-trigger relative w-14 h-9 flex items-center justify-center ${bgClass} rounded-lg text-sm font-mono font-bold ${textClass} hover:bg-gray-800 cursor-pointer"
+             class="reps-trigger relative w-16 h-9 flex items-center justify-center ${bgClass} rounded-lg text-sm font-mono font-bold ${textClass} hover:bg-gray-800 cursor-pointer"
              onclick="window.openRepsPicker('${section.id}')">
             <span class="flex items-center justify-center w-full h-full">${display}</span>
         </button>`;
 };
 
 export const renderSectionRow = (s, idx, isActive, showAcceleration = false) => {
-    const reps = s.repetitions || 1;
-    const isDisabled = reps === 0;
-    const isAdlib = reps === -2;
-    const isPlayOnce = reps === -1;
-    const hasPlayedOnce = isPlayOnce && playback.playedOnceSections.has(s.id);
+    const isDisabled = s.skip;
+    const isAdlib = s.playMode === 'adlib';
+    const isPlayOnce = s.playMode === 'once';
+    const hasPlayedOnce = isPlayOnce && s._playedOnce;
     
     let rowBgClass = 'bg-gray-800 border-transparent';
     let nameClass = 'text-gray-200';
@@ -159,9 +169,9 @@ const initMobileSelect = (sections) => {
     mobileSelectInstances = {};
 
     sections.forEach(section => {
-        const reps = section.repetitions || 1;
+        const displayValue = getDisplayReps(section);
         const accel = section.tempoAcceleration || 0;
-        const displayValue = getDisplayReps(reps);
+        const reps = section.repetitions || 1;
 
         const repsTrigger = document.getElementById(`prac-reps-${section.id}`);
         if (repsTrigger) {
@@ -182,8 +192,7 @@ const initMobileSelect = (sections) => {
                     cancelBtnColor: '#9ca3af',
                     onChange: (data) => {
                         console.log('[sectionModal] reps onChange data:', data);
-                        const value = getInternalReps(data[0]);
-                        section.repetitions = value;
+                        setRepetitions(section, data[0]);
                         eventBus.emit('render');
                     }
                 });
@@ -193,7 +202,8 @@ const initMobileSelect = (sections) => {
             }
         }
 
-        if (reps > 1) {
+        const showAccel = !section.skip && section.playMode === 'loop' && reps > 1;
+        if (showAccel) {
             const accelTrigger = document.getElementById(`prac-accel-${section.id}`);
             if (accelTrigger) {
                 try {

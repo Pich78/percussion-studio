@@ -261,7 +261,12 @@ export const setInstrumentDefinition = (state, { symbol, definition }) => {
  */
 export const setToque = (state, { toque }) => {
     state.toque = toque;
-    playback.playedOnceSections.clear();
+    // Reset _playedOnce on all sections when loading new rhythm
+    if (toque && toque.sections) {
+        toque.sections.forEach(s => {
+            if (s._playedOnce) s._playedOnce = false;
+        });
+    }
 };
 
 /**

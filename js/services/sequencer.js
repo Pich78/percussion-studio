@@ -122,32 +122,33 @@ const getStepDuration = (bpm, subdivision) => {
 
 /**
  * Resolve effective repetition count for a section.
- * If randomRepetitions is enabled, picks a random value from 1 to maxReps.
+ * Handles skip, playMode, and randomRepetitions.
  * @param {object} section - Section object
- * @returns {number} Resolved repetition count
+ * @returns {number} Resolved repetition count (0 = skip, 1+ = play N times)
  */
 const resolveEffectiveRepetitions = (section) => {
+    const playMode = section.playMode || 'loop';
     const reps = section.repetitions || 1;
     
-    // -2: Ad lib (infinity) - return very large number
-    if (reps === -2) {
-        return 9999;
-    }
-    
-    // 0: Disabled - return 0 (will be skipped)
-    if (reps === 0) {
+    // Skip: never play
+    if (section.skip) {
         return 0;
     }
     
-    // -1: Play once - check if already played this session
-    if (reps === -1) {
-        if (playback.playedOnceSections.has(section.id)) {
+    // Adlib: repeat forever (return special marker)
+    if (playMode === 'adlib') {
+        return -1; // Special marker for infinite
+    }
+    
+    // Once: play once, then skip for rest of session
+    if (playMode === 'once') {
+        if (section._playedOnce) {
             return 0; // Already played, skip
         }
         return 1;
     }
     
-    // Normal: 1-64
+    // Loop mode (default): use repetitions value
     if (section.randomRepetitions && reps > 1) {
         return Math.floor(Math.random() * reps) + 1;
     }
@@ -188,7 +189,8 @@ const computeNextStep = (toque, pb) => {
 
         if (nextMeasure >= activeSec.measures.length) {
             // End of all measures - check repetitions against effective count
-            if (nextRepetition < nextEffectiveRepetitions) {
+            // Adlib (-1) means infinite, always repeat
+            if (nextEffectiveRepetitions === -1 || nextRepetition < nextEffectiveRepetitions) {
                 nextRepetition += 1;
                 nextStep = 0;
                 nextMeasure = 0;
@@ -200,9 +202,9 @@ const computeNextStep = (toque, pb) => {
                     tempoAccelerated = true;
                 }
             } else {
-                // Next Section - check if current section was "play once" (-1)
-                if (activeSec.repetitions === -1 && nextEffectiveRepetitions > 0) {
-                    playback.playedOnceSections.add(activeSec.id);
+                // Next Section - check if current section was "play once"
+                if (activeSec.playMode === 'once' && nextEffectiveRepetitions > 0) {
+                    activeSec._playedOnce = true;
                 }
                 
                 const nextIndex = (sectionIndex + 1) % toque.sections.length;
@@ -217,6 +219,27 @@ const computeNextStep = (toque, pb) => {
 
                 // Resolve effective repetitions for the new section
                 nextEffectiveRepetitions = resolveEffectiveRepetitions(nextSection);
+
+                // If new section should be skipped (0 reps), find next available section
+                if (nextEffectiveRepetitions === 0) {
+                    let searchIndex = nextIndex;
+                    let attempts = 0;
+                    while (attempts < toque.sections.length) {
+                        searchIndex = (searchIndex + 1) % toque.sections.length;
+                        const checkSection = toque.sections[searchIndex];
+                        const checkReps = resolveEffectiveRepetitions(checkSection);
+                        if (checkReps !== 0) {
+                            // Found a playable section
+                            nextIndex = searchIndex;
+                            nextSection = checkSection;
+                            nextSectionId = nextSection.id;
+                            activeSec = nextSection;
+                            nextEffectiveRepetitions = checkReps;
+                            break;
+                        }
+                        attempts++;
+                    }
+                }
 
                 if (nextSection.bpm !== undefined) {
                     nextBpm = nextSection.bpm;
@@ -251,6 +274,7 @@ const applyStepResult = (result) => {
         commit('setActiveSectionId', { id: result.nextSectionId });
         playback.activeSectionId = result.nextSectionId;
         playback.currentMeasureIndex = 0;
+        playback.effectiveRepetitions = null;
     }
 };
 
@@ -330,7 +354,13 @@ export const stopPlayback = () => {
     playback.nextNoteTime = 0;
     playback.isCountingIn = false;
     playback.countInStep = 0;
-    playback.playedOnceSections.clear();
+
+    // Reset _playedOnce on all sections
+    if (state.toque && state.toque.sections) {
+        state.toque.sections.forEach(s => {
+            if (s._playedOnce) s._playedOnce = false;
+        });
+    }
 
     if (state.toque && state.toque.sections && state.toque.sections.length > 0) {
         const first = state.toque.sections[0];

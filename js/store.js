@@ -111,6 +111,5 @@ export const playback = {
     nextNoteTime: 0,
     isCountingIn: false,
     countInStep: 0,
-    countInTotal: 4,
-    playedOnceSections: new Set() // Tracks sections that have been played (for -1: play once behavior)
+    countInTotal: 4
 };

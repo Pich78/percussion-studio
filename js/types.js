@@ -43,4 +43,10 @@ export const DynamicType = Object.freeze({
     Accent: 'a'
 });
 
+export const PlayMode = Object.freeze({
+    Loop: 'loop',
+    Once: 'once',
+    Adlib: 'adlib'
+});
+
 // TimeSignature type is just a string '4/4' | '6/8' | '12/8' in JS
