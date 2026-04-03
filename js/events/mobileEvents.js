@@ -218,21 +218,6 @@ const createMobileActionRouter = () => ({
         const viewId = target.dataset.viewId;
         const VIEW_MAP = {
             'standard': 'mobile-grid',
-            'p1': 'mobile-player',
-            'p1a': 'mobile-player-mixer',
-            'p1b': 'mobile-player-knob',
-            'p1c': 'mobile-player-focus',
-            'p2': 'mobile-dashboard',
-            'p2a': 'mobile-dashboard-stack',
-            'p2b': 'mobile-dashboard-split-card',
-            'p2c': 'mobile-dashboard-playlist',
-            'p3': 'mobile-toolbar',
-            'p3a': 'mobile-toolbar-chips',
-            'p3b': 'mobile-toolbar-gestures',
-            'p3c': 'mobile-toolbar-sticky',
-            'dim-a': 'mobile-dual-view',
-            'dim-b': 'mobile-dimension-b',
-            'dim-c': 'mobile-dimension-c',
             'dim-d': 'mobile-practitioner'
         };
         const mappedViewId = VIEW_MAP[viewId];

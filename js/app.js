@@ -7,22 +7,7 @@
 
 import { viewManager } from './views/viewManager.js';
 import { mobileGridView } from './views/mobileGridView.js';
-import { mobilePlayerView } from './views/mobilePlayerView.js';
-import { mobilePlayerMixerView } from './views/mobilePlayerMixerView.js';
-import { mobilePlayerKnobView } from './views/mobilePlayerKnobView.js';
-import { mobilePlayerFocusView } from './views/mobilePlayerFocusView.js';
-import { mobileDashboardView } from './views/mobileDashboardView.js';
-import { mobileDashboardStackView } from './views/mobileDashboardStackView.js';
-import { mobileDashboardSplitCardView } from './views/mobileDashboardSplitCardView.js';
-import { mobileDashboardPlaylistView } from './views/mobileDashboardPlaylistView.js';
-import { mobileToolbarView } from './views/mobileToolbarView.js';
-import { mobileToolbarChipsView } from './views/mobileToolbarChipsView.js';
-import { mobileToolbarGesturesView } from './views/mobileToolbarGesturesView.js';
-import { mobileToolbarStickyView } from './views/mobileToolbarStickyView.js';
-import { mobileDualView } from './views/mobileDualView.js';
-import { mobileDimensionBView } from './views/mobileDimensionBView.js';
 import { mobilePractitionerView } from './views/mobilePractitionerView.js';
-import { mobileDimensionCView } from './views/mobileDimensionCView.js';
 import { desktopEditorView } from './views/desktopEditorView.js';
 import { setViewProvider } from './ui/renderer.js';
 import { setupEventListeners } from './events.js';
@@ -34,21 +19,6 @@ import { state } from './store.js';
 // ─── View Registration ──────────────────────────────────────────────────────
 // Register all available views. New views can be added here.
 viewManager.registerView(mobileGridView);
-viewManager.registerView(mobilePlayerView);
-viewManager.registerView(mobilePlayerMixerView);
-viewManager.registerView(mobilePlayerKnobView);
-viewManager.registerView(mobilePlayerFocusView);
-viewManager.registerView(mobileDashboardView);
-viewManager.registerView(mobileDashboardStackView);
-viewManager.registerView(mobileDashboardSplitCardView);
-viewManager.registerView(mobileDashboardPlaylistView);
-viewManager.registerView(mobileToolbarView);
-viewManager.registerView(mobileToolbarChipsView);
-viewManager.registerView(mobileToolbarGesturesView);
-viewManager.registerView(mobileToolbarStickyView);
-viewManager.registerView(mobileDualView);
-viewManager.registerView(mobileDimensionBView);
-viewManager.registerView(mobileDimensionCView);
 viewManager.registerView(mobilePractitionerView);
 viewManager.registerView(desktopEditorView);
 
