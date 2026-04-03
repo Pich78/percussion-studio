@@ -187,8 +187,10 @@ You can share and receive direct links to specific rhythms.
 
 ### Opening a Shared Link
 
-- When you open a link with `?rhythm=...`, that rhythm loads automatically
+- When you open a link with `?rhythm=...`, that rhythm loads automatically (overrides the default rhythm)
 - Example: `mobile.html?rhythm=Batà/Dadà/dada_base`
+
+See [Default Rhythm Configuration](../requirements/default-rhythm.md) for details.
 
 > **Note**: Share Rhythm is only available for rhythms from the library.
 

@@ -22,7 +22,7 @@ Benvenuto in Percussion Studio! Questa guida copre tutte le funzionalità dispon
 
 1. Apri `desktop.html` in un browser moderno (Chrome, Firefox, Edge consigliati)
 2. Attendi il completamento della schermata di caricamento
-3. Il ritmo predefinito verrà caricato automaticamente
+3. Il ritmo predefinito verrà caricato automaticamente (vedi [Configurazione Ritmo Predefinito](../requirements/default-rhythm.md) per l'override URL)
 
 ---
 

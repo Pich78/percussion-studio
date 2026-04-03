@@ -22,7 +22,7 @@ Welcome to Percussion Studio! This guide covers all features available in the de
 
 1. Open `desktop.html` in a modern web browser (Chrome, Firefox, Edge recommended)
 2. Wait for the loading screen to complete
-3. The default rhythm will load automatically
+3. The default rhythm will load automatically (see [Default Rhythm Configuration](../requirements/default-rhythm.md) for URL override)
 
 ---
 

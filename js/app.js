@@ -72,6 +72,7 @@ const init = async () => {
 
     // We check the manifest for available rhythms.
     const rhythmIds = Object.keys(dataLoader.manifest.rhythms || {});
+    const defaultRhythm = dataLoader.manifest.default_rhythm || (rhythmIds.length > 0 ? rhythmIds[0] : null);
 
     if (requestedRhythm) {
         // URL parameter specified - try to load that rhythm
@@ -84,16 +85,20 @@ const init = async () => {
             console.log(`Available rhythms: `, rhythmIds);
 
             // Show brief error then load default
-            if (rhythmIds.length > 0) {
-                console.log(`Startup: Falling back to default rhythm '${rhythmIds[0]}'`);
-                await actions.loadRhythm(rhythmIds[0]);
+            if (defaultRhythm) {
+                console.log(`Startup: Falling back to default rhythm '${defaultRhythm}'`);
+                await actions.loadRhythm(defaultRhythm);
             } else {
                 actions.createNewRhythm();
             }
         }
+    } else if (defaultRhythm) {
+        // No URL parameter - load the default rhythm from manifest
+        console.log(`Startup: Loading default rhythm '${defaultRhythm}'`);
+        await actions.loadRhythm(defaultRhythm);
     } else if (rhythmIds.length > 0) {
-        // No URL parameter - load the first rhythm found (default behavior)
-        console.log(`Startup: Loading default rhythm '${rhythmIds[0]}'`);
+        // Fallback to first rhythm in manifest (shouldn't happen if default_rhythm is set)
+        console.log(`Startup: Loading fallback rhythm '${rhythmIds[0]}'`);
         await actions.loadRhythm(rhythmIds[0]);
     } else {
         // No rhythms defined in manifest? Initialize a blank state.

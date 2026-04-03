@@ -254,8 +254,10 @@ Puoi condividere e ricevere link diretti a ritmi specifici.
 
 ### Aprire un Link Condiviso
 
-- Quando apri un link con `?rhythm=...`, quel ritmo si carica automaticamente
+- Quando apri un link con `?rhythm=...`, quel ritmo si carica automaticamente (sovrascrive il ritmo predefinito)
 - Esempio: `mobile.html?rhythm=Batà/Dadà/dada_base`
+
+Vedi [Configurazione Ritmo Predefinito](../requirements/default-rhythm.md) per i dettagli.
 
 > **Nota**: Condividi Ritmo è disponibile solo per ritmi della libreria.
 
