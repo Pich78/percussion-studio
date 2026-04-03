@@ -250,13 +250,7 @@ export const renderSectionModal = (activeSection) => {
                 <span class="text-xs text-gray-400 font-bold uppercase tracking-wider">Sections</span>
                 <span class="text-[10px] text-gray-600 ml-2">Tap to jump • edit reps • set accel</span>
             </div>
-            <button data-action="dual-mode-close-popover"
-                class="w-8 h-8 flex items-center justify-center rounded-xl text-gray-500 hover:text-white hover:bg-gray-800 transition-colors"
-                title="Close">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 pointer-events-none">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-            </button>
+            <button data-action="dual-mode-close-popover" class="text-gray-500 hover:text-white text-xs">Done</button>
         </div>
         ${sectionRows}
     </div>`;
