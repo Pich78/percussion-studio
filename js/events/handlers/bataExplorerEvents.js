@@ -4,7 +4,7 @@
 */
 
 import { state } from '../../store.js';
-import { renderApp } from '../../ui/renderer.js';
+import { eventBus } from '../../services/eventBus.js';
 import { actions } from '../../actions.js';
 
 /**
@@ -15,7 +15,7 @@ export const handleCloseBataExplorer = () => {
     state.uiState.bataExplorer.selectedToqueId = null;
     state.uiState.bataExplorer.orishaDropdownOpen = false;
     state.uiState.bataExplorer.typeDropdownOpen = false;
-    renderApp();
+    eventBus.emit('render');
 };
 
 /**
@@ -31,7 +31,7 @@ export const handleToggleFilterDropdown = (target) => {
         state.uiState.bataExplorer.typeDropdownOpen = !state.uiState.bataExplorer.typeDropdownOpen;
         state.uiState.bataExplorer.orishaDropdownOpen = false;
     }
-    renderApp();
+    eventBus.emit('render');
 };
 
 /**
@@ -48,7 +48,7 @@ export const handleToggleOrishaFilter = (target) => {
         arr.push(orisha);
     }
     state.uiState.bataExplorer.orishaDropdownOpen = false;
-    renderApp();
+    eventBus.emit('render');
 };
 
 /**
@@ -60,7 +60,7 @@ export const handleRemoveOrishaFilter = (target) => {
     const arr = state.uiState.bataExplorer.selectedOrishas;
     const idx = arr.indexOf(orisha);
     if (idx >= 0) arr.splice(idx, 1);
-    renderApp();
+    eventBus.emit('render');
 };
 
 /**
@@ -77,7 +77,7 @@ export const handleToggleTypeFilter = (target) => {
         arr.push(type);
     }
     state.uiState.bataExplorer.typeDropdownOpen = false;
-    renderApp();
+    eventBus.emit('render');
 };
 
 /**
@@ -89,7 +89,7 @@ export const handleRemoveTypeFilter = (target) => {
     const arr = state.uiState.bataExplorer.selectedTypes;
     const idx = arr.indexOf(type);
     if (idx >= 0) arr.splice(idx, 1);
-    renderApp();
+    eventBus.emit('render');
 };
 
 /**
@@ -102,7 +102,7 @@ export const handleClearBataFilters = () => {
     state.uiState.bataExplorer.selectedToqueId = null;
     const searchInput = document.getElementById('bata-search-input');
     if (searchInput) searchInput.value = '';
-    renderApp();
+    eventBus.emit('render');
 };
 
 /**
@@ -114,7 +114,7 @@ export const handleSelectToque = (target) => {
     state.uiState.bataExplorer.selectedToqueId = toqueId;
     state.uiState.bataExplorer.orishaDropdownOpen = false;
     state.uiState.bataExplorer.typeDropdownOpen = false;
-    renderApp();
+    eventBus.emit('render');
 };
 
 /**
@@ -122,7 +122,7 @@ export const handleSelectToque = (target) => {
  */
 export const handleCloseToqueDetails = () => {
     state.uiState.bataExplorer.selectedToqueId = null;
-    renderApp();
+    eventBus.emit('render');
 };
 
 /**
@@ -138,7 +138,7 @@ export const handleLoadToqueConfirm = async (target) => {
         state.uiState.bataExplorer.selectedOrishas = [];
         state.uiState.bataExplorer.selectedTypes = [];
         state.uiState.bataExplorer.searchTerm = '';
-        renderApp();
+        eventBus.emit('render');
     }
 };
 
@@ -150,5 +150,5 @@ export const handleBataSearchInput = (target) => {
     state.uiState.bataExplorer.searchTerm = target.value;
     // Debounce re-render for performance
     clearTimeout(window._bataSearchTimeout);
-    window._bataSearchTimeout = setTimeout(() => renderApp(), 150);
+    window._bataSearchTimeout = setTimeout(() => eventBus.emit('render'), 150);
 };

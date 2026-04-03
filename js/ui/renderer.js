@@ -1,10 +1,62 @@
+/**
+ * js/ui/renderer.js
+ * 
+ * Core rendering engine — subscribes to event bus events and delegates
+ * layout rendering to the active view via the view provider.
+ * 
+ * Playback visualization (updateVisualStep, scrollToMeasure) has been
+ * extracted to playheadUtils.js to allow views to import them directly
+ * without circular dependencies.
+ */
+
 import { state } from '../store.js';
 import { getActiveSection } from '../store/stateSelectors.js';
 import { TubsGrid, autoScrollGrid } from '../components/tubsGrid.js';
-import { MobileLayout, calculateMobileCellSize } from './mobile/layout.js';
+import { MobileLayout, calculateMobileCellSize } from './mobile/standard/layout.js';
 import { DesktopLayout } from './desktop/layout.js';
+import { eventBus } from '../services/eventBus.js';
+import { updateVisualStep, scrollToMeasure } from './playheadUtils.js';
+
+// Re-export playhead utilities for backward compatibility
+export { updateVisualStep, scrollToMeasure };
+
+// ─── View Provider ──────────────────────────────────────────────────────────
+// Set at runtime by app.js after views are registered.
+// Avoids circular dependency (renderer → viewManager → views → renderer).
+let _viewProvider = null;
+
+/**
+ * Set the view provider (viewManager). Called by app.js after views are registered.
+ * @param {object} provider - Object with getActiveView() method
+ */
+export const setViewProvider = (provider) => {
+  _viewProvider = provider;
+};
 
 const root = document.getElementById('root');
+
+// ─── Event Bus Subscriptions ────────────────────────────────────────────────
+
+eventBus.on('render', () => renderApp());
+
+eventBus.on('grid-refresh', () => refreshGrid());
+
+eventBus.on('scroll-to-measure', ({ measure }) => scrollToMeasure(measure));
+
+eventBus.on('step', (payload) => {
+  const view = _viewProvider?.getActiveView();
+  if (view && view.onStep) {
+    view.onStep(payload);
+  } else {
+    // Fallback before view provider is wired
+    updateVisualStep(payload.step, payload.measure);
+    scrollToMeasure(payload.measure);
+    const repEl = document.getElementById('header-rep-count');
+    if (repEl) repEl.textContent = payload.rep;
+  }
+});
+
+// ─── Rendering ──────────────────────────────────────────────────────────────
 
 export const renderApp = () => {
   // Capture focus state before rendering
@@ -24,13 +76,16 @@ export const renderApp = () => {
     return;
   }
 
-  // Save scroll position of tubs-scroll-container before full re-render
+  // Save scroll position before re-render
   const scrollContainerBefore = document.getElementById('tubs-scroll-container');
   const savedScrollTop = scrollContainerBefore ? scrollContainerBefore.scrollTop : 0;
   const savedScrollLeft = scrollContainerBefore ? scrollContainerBefore.scrollLeft : 0;
 
-  // Dispatch to correct layout
-  if (window.IS_MOBILE_VIEW) {
+  // Delegate to active view's layout, with fallback for early boot
+  const view = _viewProvider?.getActiveView();
+  if (view) {
+    root.innerHTML = view.layout();
+  } else if (window.IS_MOBILE_VIEW) {
     root.innerHTML = MobileLayout();
   } else {
     root.innerHTML = DesktopLayout();
@@ -48,7 +103,6 @@ export const renderApp = () => {
     const newActiveElement = document.getElementById(focusId);
     if (newActiveElement) {
       newActiveElement.focus();
-      // Restore cursor position for text inputs
       if (typeof newActiveElement.setSelectionRange === 'function') {
         try {
           newActiveElement.setSelectionRange(selectionStart, selectionEnd);
@@ -59,13 +113,17 @@ export const renderApp = () => {
     }
   }
 
-  // Render static playhead when not playing (unified bar across all tracks)
-  // This ensures the playhead remains visible when pausing (state.isPlaying becomes false -> renderApp called)
+  // Render static playhead when not playing
   if (!state.isPlaying && state.currentStep >= 0) {
-    // Use setTimeout to ensure DOM is ready
     setTimeout(() => {
       updateVisualStep(state.currentStep, state.currentMeasure || 0);
     }, 0);
+  }
+
+  // Call onRender hook if the active view defines it
+  // Use requestAnimationFrame so the DOM is painted before the hook runs
+  if (view && view.onRender) {
+    requestAnimationFrame(() => view.onRender());
   }
 };
 
@@ -80,7 +138,7 @@ export const refreshGrid = () => {
     const scrollTop = scrollContainer ? scrollContainer.scrollTop : 0;
     const scrollLeft = scrollContainer ? scrollContainer.scrollLeft : 0;
 
-    // Calculate cell size fresh for mobile (pure functional - no caching)
+    // Calculate cell size fresh for mobile
     let mobileCellSize = null;
     if (isMobile && activeSection) {
       const viewportWidth = window.innerWidth;
@@ -115,132 +173,11 @@ export const refreshGrid = () => {
       newScrollContainer.scrollLeft = scrollLeft;
     }
 
-    // Render static playhead when not playing (unified bar across all tracks)
+    // Render static playhead when not playing
     if (!state.isPlaying && state.currentStep >= 0) {
-      // Use setTimeout to ensure DOM is ready
       setTimeout(() => {
         updateVisualStep(state.currentStep, state.currentMeasure || 0);
       }, 0);
     }
   }
-};
-
-export const updateVisualStep = (step, measureIndex = 0) => {
-  // Remove previous playhead indicators
-  document.querySelectorAll('.playhead-indicator').forEach(el => el.remove());
-
-  // Reset step marker styling
-  document.querySelectorAll('[data-step-marker]').forEach(el => {
-    el.classList.remove('text-cyan-400', 'font-bold', 'scale-110');
-    el.classList.add('text-gray-500');
-  });
-
-  // Get the measure container
-  const measureContainer = document.querySelector(`.measure-container[data-measure-index="${measureIndex}"]`);
-  if (!measureContainer) return;
-
-  // Get active section info
-  const activeSection = getActiveSection(state);
-  if (!activeSection) return;
-
-  // Find a reference cell to calculate dimensions (use first track, first cell)
-  const referenceCell = measureContainer.querySelector(`[data-role="tubs-cell"][data-step-index="0"]`);
-  if (!referenceCell) return;
-
-  // Get the tracks container (parent of all track rows)
-  // Find all track rows - they contain the cells
-  const trackRows = measureContainer.querySelectorAll('.flex.items-center.group');
-  if (trackRows.length === 0) return;
-
-  // Calculate cell size from reference cell
-  // We strictly enforce 1 cell = 1 step visually
-  const cellSizePx = referenceCell.offsetWidth;
-
-  // Calculate the horizontal position for the playhead bar
-  const playheadLeftPx = step * cellSizePx;
-
-  // Get the first and last track row to determine total height and position
-  const firstRow = trackRows[0];
-  const lastRow = trackRows[trackRows.length - 1];
-
-  // Find the cells container in the first row (the grid area, not the sticky label)
-  const firstCellsContainer = firstRow.querySelector('.flex.bg-gray-900\\/30');
-  if (!firstCellsContainer) return;
-
-  // Get positions relative to measure container
-  const measureRect = measureContainer.getBoundingClientRect();
-  const referenceRect = referenceCell.getBoundingClientRect();
-  const firstContainerRect = firstCellsContainer.getBoundingClientRect();
-  const lastContainerRect = lastRow.querySelector('.flex.bg-gray-900\\/30')?.getBoundingClientRect() || firstContainerRect;
-
-  // Calculate the top position and total height of all tracks
-  const topOffset = firstContainerRect.top - measureRect.top;
-  const totalHeight = (lastContainerRect.bottom - firstContainerRect.top);
-
-  // Calculate start position relative to measure container
-  // We use referenceRect.left (the actual cell start) instead of firstContainerRect.left
-  // to implicitly account for any padding on the container (e.g., p-1 class)
-  const startLeft = referenceRect.left - measureRect.left;
-
-  // Create unified playhead bar
-  const playhead = document.createElement('div');
-  playhead.className = 'playhead-indicator absolute pointer-events-none z-30';
-  playhead.style.left = `${startLeft + playheadLeftPx}px`;
-  playhead.style.top = `${topOffset}px`;
-  playhead.style.width = `${cellSizePx}px`;
-  playhead.style.height = `${totalHeight}px`;
-  playhead.innerHTML = '<div class="w-full h-full bg-white/25 ring-2 ring-inset ring-white rounded-sm shadow-[0_0_15px_rgba(255,255,255,0.6)]"></div>';
-
-  // Ensure measure container has relative positioning
-  measureContainer.style.position = 'relative';
-  measureContainer.appendChild(playhead);
-
-  // Highlight the step marker in the ruler
-  const marker = document.querySelector(`[data-step-marker="${step}"][data-measure-index="${measureIndex}"]`);
-  if (marker) {
-    marker.classList.remove('text-gray-500');
-    marker.classList.add('text-cyan-400', 'font-bold', 'scale-110');
-  }
-  autoScrollGrid(step);
-};
-
-// Scroll the current measure to the center of the viewport
-export const scrollToMeasure = (measureIndex) => {
-  const scrollContainer = document.getElementById('tubs-scroll-container');
-  if (!scrollContainer) return;
-
-  // Allow DOM to update first if needed
-  setTimeout(() => {
-    const measureElement = document.querySelector(`[data-measure-index="${measureIndex}"]`);
-    if (!measureElement) return;
-
-    // Check if measure is already visible
-    const containerRect = scrollContainer.getBoundingClientRect();
-    const measureRect = measureElement.getBoundingClientRect();
-
-    const isVisible = (
-      measureRect.top >= containerRect.top &&
-      measureRect.bottom <= containerRect.bottom
-    );
-
-    if (isVisible) return;
-
-    // Calculate position to center the measure
-    const containerHeight = scrollContainer.clientHeight;
-    // We need relative position within the container logic for scrollTo
-    // offsetTop is relative to the offsetParent. Assuming the container is the offsetParent (relative/absolute)
-    // If not, we might need a different approach, but let's stick to the previous calculation logic if it worked for centering,
-    // just applying it conditionally.
-    // Actually, offsetTop is simpler and matches the previous logic.
-    const measureTop = measureElement.offsetTop;
-    const measureHeight = measureElement.offsetHeight;
-
-    // Scroll to center the measure
-    const scrollTo = measureTop - (containerHeight / 2) + (measureHeight / 2);
-
-    scrollContainer.scrollTo({
-      top: scrollTo,
-      behavior: 'smooth'
-    });
-  }, 10);
 };

@@ -16,7 +16,8 @@
 
 import { state, playback, commit } from '../store.js';
 import { audioEngine } from './audioEngine.js';
-import { renderApp, updateVisualStep, scrollToMeasure } from '../ui/renderer.js';
+import { eventBus } from './eventBus.js';
+import { trackMixer } from './trackMixer.js';
 
 // Scheduling constants
 const SCHEDULE_AHEAD_TIME = 0.1;  // Schedule notes 100ms ahead (seconds)
@@ -85,8 +86,14 @@ const scheduleStep = (section, measureIndex, stepIndex, time) => {
     const measure = section.measures[measureIndex];
     if (!measure) return;
 
-    measure.tracks.forEach(track => {
-        if (track.muted || track.volume === 0) return;
+    const soloTrack = trackMixer.getSoloTrack();
+
+    measure.tracks.forEach((track, trackIdx) => {
+        // Check mute state using trackMixer
+        if (trackMixer.isTrackMuted(trackIdx, track)) return;
+
+        // If there's a solo track, only the soloed track plays
+        if (soloTrack !== undefined && soloTrack !== null && soloTrack !== trackIdx) return;
 
         // Always use full resolution for playback
         // The track.trackSteps property is now strictly visual
@@ -113,6 +120,114 @@ const getStepDuration = (bpm, subdivision) => {
     return secondsPerBeat / subdivision;
 };
 
+// Section play state types
+const SectionPlayState = Object.freeze({
+    SKIP: 'SKIP',       // Section marked as skip
+    PLAYED: 'PLAYED',   // "play once" section already played
+    PLAY_ONCE: 'PLAY_ONCE', // "play once" section, not yet played
+    ADLIB: 'ADLIB',     // Repeat forever
+    LOOP: 'LOOP'        // Normal loop mode
+});
+
+/**
+ * Get the play state of a section.
+ * Returns a meaningful identifier instead of magic numbers.
+ * @param {object} section - Section object
+ * @returns {object} { type: string, repetitions: number }
+ */
+const getSectionPlayState = (section) => {
+    const playMode = section.playMode || 'loop';
+    const reps = section.repetitions || 1;
+    
+    // Skip: never play
+    if (section.skip) {
+        return { type: SectionPlayState.SKIP, repetitions: 0, id: section.id };
+    }
+    
+    // Adlib: repeat forever
+    if (playMode === 'adlib') {
+        return { type: SectionPlayState.ADLIB, repetitions: -1, id: section.id };
+    }
+    
+    // Once: play once, then skip for rest of session
+    if (playMode === 'once') {
+        if (section._playedOnce) {
+            return { type: SectionPlayState.PLAYED, repetitions: 0, id: section.id };
+        }
+        return { type: SectionPlayState.PLAY_ONCE, repetitions: 1, id: section.id };
+    }
+    
+    // Loop mode (default): use repetitions value
+    if (section.randomRepetitions && reps > 1) {
+        return { type: SectionPlayState.LOOP, repetitions: Math.floor(Math.random() * reps) + 1, id: section.id };
+    }
+    return { type: SectionPlayState.LOOP, repetitions: reps, id: section.id };
+};
+
+/**
+ * Select the next playable section.
+ * Handles skipping SKIP/PLAYED sections and resets if all sections exhausted.
+ * @param {number} currentIndex - Current section index
+ * @param {object[]} sections - Array of all sections
+ * @returns {object} { nextIndex, nextSection, needsReset: boolean }
+ */
+const selectNextSection = (currentIndex, sections) => {
+    const length = sections.length;
+    let searchIndex = (currentIndex + 1) % length;
+    let attempts = 0;
+    
+    // First pass: try to find next playable section
+    while (attempts < length) {
+        const checkSection = sections[searchIndex];
+        const playState = getSectionPlayState(checkSection);
+        
+        if (playState.type !== SectionPlayState.SKIP && 
+            playState.type !== SectionPlayState.PLAYED) {
+            // Found a playable section
+            return { 
+                nextIndex: searchIndex, 
+                nextSection: checkSection, 
+                needsReset: false 
+            };
+        }
+        
+        searchIndex = (searchIndex + 1) % length;
+        attempts++;
+    }
+    
+    // Second pass: all sections are SKIP or PLAYED
+    // Reset _playedOnce flags and try again
+    sections.forEach(s => {
+        if (s._playedOnce) s._playedOnce = false;
+    });
+    
+    // Now find first playable section after reset
+    searchIndex = (currentIndex + 1) % length;
+    attempts = 0;
+    while (attempts < length) {
+        const checkSection = sections[searchIndex];
+        const playState = getSectionPlayState(checkSection);
+        
+        if (playState.type !== SectionPlayState.SKIP) {
+            return { 
+                nextIndex: searchIndex, 
+                nextSection: checkSection, 
+                needsReset: true 
+            };
+        }
+        
+        searchIndex = (searchIndex + 1) % length;
+        attempts++;
+    }
+    
+    // Should never reach here if at least one section is playable
+    return { 
+        nextIndex: 0, 
+        nextSection: sections[0], 
+        needsReset: false 
+    };
+};
+
 /**
  * PURE FUNCTION: Compute the next step, handling measure/section transitions.
  * Does NOT mutate any state — returns a result object.
@@ -120,7 +235,7 @@ const getStepDuration = (bpm, subdivision) => {
  * @param {object} toque - The current toque (rhythm) data
  * @param {object} pb - Snapshot of current playback state
  * @returns {object} Next state: { nextStep, nextMeasure, nextSectionId, nextBpm, 
- *                    nextRepetition, sectionChanged, activeSec, tempoAccelerated }
+ *                    nextRepetition, nextEffectiveRepetitions, sectionChanged, activeSec, tempoAccelerated }
  */
 const computeNextStep = (toque, pb) => {
     let sectionIndex = toque.sections.findIndex(s => s.id === pb.activeSectionId);
@@ -132,16 +247,24 @@ const computeNextStep = (toque, pb) => {
     let nextSectionId = pb.activeSectionId;
     let nextBpm = pb.currentPlayheadBpm;
     let nextRepetition = pb.repetitionCounter;
+    let nextEffectiveRepetitions = pb.effectiveRepetitions;
     let sectionChanged = false;
     let tempoAccelerated = false;
+
+    // Resolve effective repetitions if not yet set (first entry into section)
+    if (nextEffectiveRepetitions == null) {
+        const playState = getSectionPlayState(activeSec);
+        nextEffectiveRepetitions = playState.repetitions;
+    }
 
     if (nextStep >= activeSec.steps) {
         // End of current measure - move to next measure or repeat
         nextMeasure += 1;
 
         if (nextMeasure >= activeSec.measures.length) {
-            // End of all measures - check repetitions
-            if (nextRepetition < (activeSec.repetitions || 1)) {
+            // End of all measures - check repetitions against effective count
+            // Adlib (-1) means infinite, always repeat
+            if (nextEffectiveRepetitions === -1 || nextRepetition < nextEffectiveRepetitions) {
                 nextRepetition += 1;
                 nextStep = 0;
                 nextMeasure = 0;
@@ -153,9 +276,14 @@ const computeNextStep = (toque, pb) => {
                     tempoAccelerated = true;
                 }
             } else {
-                // Next Section
-                const nextIndex = (sectionIndex + 1) % toque.sections.length;
-                const nextSection = toque.sections[nextIndex];
+                // Next Section - check if current section was "play once"
+                const currentPlayState = getSectionPlayState(activeSec);
+                if (currentPlayState.type === SectionPlayState.PLAY_ONCE) {
+                    activeSec._playedOnce = true;
+                }
+                
+                // Use selectNextSection to find next playable section
+                const { nextIndex, nextSection, needsReset } = selectNextSection(sectionIndex, toque.sections);
 
                 nextSectionId = nextSection.id;
                 nextRepetition = 1;
@@ -163,6 +291,10 @@ const computeNextStep = (toque, pb) => {
                 nextStep = 0;
                 activeSec = nextSection;
                 sectionChanged = true;
+
+                // Get play state for new section
+                const nextPlayState = getSectionPlayState(nextSection);
+                nextEffectiveRepetitions = nextPlayState.repetitions;
 
                 if (nextSection.bpm !== undefined) {
                     nextBpm = nextSection.bpm;
@@ -176,7 +308,7 @@ const computeNextStep = (toque, pb) => {
 
     return {
         nextStep, nextMeasure, nextSectionId, nextBpm,
-        nextRepetition, sectionChanged, activeSec, tempoAccelerated
+        nextRepetition, nextEffectiveRepetitions, sectionChanged, activeSec, tempoAccelerated
     };
 };
 
@@ -190,12 +322,14 @@ const applyStepResult = (result) => {
     playback.currentMeasureIndex = result.nextMeasure;
     playback.currentPlayheadBpm = result.nextBpm;
     playback.repetitionCounter = result.nextRepetition;
+    playback.effectiveRepetitions = result.nextEffectiveRepetitions;
     commit('setCurrentStep', { step: result.nextStep });
 
     if (result.sectionChanged) {
         commit('setActiveSectionId', { id: result.nextSectionId });
         playback.activeSectionId = result.nextSectionId;
         playback.currentMeasureIndex = 0;
+        playback.effectiveRepetitions = null;
     }
 };
 
@@ -233,12 +367,12 @@ const scheduler = () => {
         // We use setTimeout here because visual updates don't need sample accuracy
         const stepToShow = playback.currentStep;
         const measureToShow = playback.currentMeasureIndex;
+        const repToShow = playback.repetitionCounter;
         const timeUntilNote = (playback.nextNoteTime - currentTime) * 1000;
 
         setTimeout(() => {
             if (state.isPlaying) {
-                updateVisualStep(stepToShow, measureToShow);
-                scrollToMeasure(measureToShow);
+                eventBus.emit('step', { step: stepToShow, measure: measureToShow, rep: repToShow });
             }
         }, Math.max(0, timeUntilNote));
 
@@ -250,7 +384,7 @@ const scheduler = () => {
         // If section changed, schedule a re-render
         if (result.sectionChanged) {
             setTimeout(() => {
-                if (state.isPlaying) renderApp();
+                if (state.isPlaying) eventBus.emit('render');
             }, Math.max(0, timeUntilNote));
         }
 
@@ -271,9 +405,17 @@ export const stopPlayback = () => {
     playback.currentStep = -1;
     playback.currentMeasureIndex = 0;
     playback.repetitionCounter = 1;
+    playback.effectiveRepetitions = null;
     playback.nextNoteTime = 0;
     playback.isCountingIn = false;
     playback.countInStep = 0;
+
+    // Reset _playedOnce on all sections
+    if (state.toque && state.toque.sections) {
+        state.toque.sections.forEach(s => {
+            if (s._playedOnce) s._playedOnce = false;
+        });
+    }
 
     if (state.toque && state.toque.sections && state.toque.sections.length > 0) {
         const first = state.toque.sections[0];
@@ -284,7 +426,7 @@ export const stopPlayback = () => {
         commit('setPlaying', { isPlaying: false });
         commit('setCurrentStep', { step: -1 });
     }
-    renderApp();
+    eventBus.emit('render');
 };
 
 /**
@@ -297,7 +439,7 @@ export const togglePlay = () => {
         playback.isCountingIn = false;
         clearTimeout(playback.timeoutId);
         playback.timeoutId = null;
-        renderApp();
+        eventBus.emit('render');
     } else {
         // Play
         commit('setPlaying', { isPlaying: true });
@@ -311,6 +453,10 @@ export const togglePlay = () => {
         if (playback.currentStep < 0) {
             playback.currentStep = 0;
             playback.currentMeasureIndex = 0;
+            // Resolve effective repetitions for the starting section
+            const startSection = state.toque.sections.find(s => s.id === playback.activeSectionId) || state.toque.sections[0];
+            const startPlayState = getSectionPlayState(startSection);
+            playback.effectiveRepetitions = startPlayState.repetitions;
             // Don't set state.currentStep yet - scheduler will update it when the first note plays
             // This prevents the highlight from appearing before the music starts
 
@@ -339,7 +485,7 @@ export const togglePlay = () => {
                     setTimeout(() => {
                         if (state.isPlaying && playback.isCountingIn) {
                             playback.countInStep = beatIndex + 1;
-                            renderApp();
+                            eventBus.emit('render');
                         }
                     }, Math.max(0, timeUntilClick));
 
@@ -355,14 +501,14 @@ export const togglePlay = () => {
                     if (state.isPlaying) {
                         playback.isCountingIn = false;
                         playback.countInStep = 0;
-                        renderApp();
+                        eventBus.emit('render');
                     }
                 }, Math.max(0, countInDuration));
             }
         }
 
         playback.nextNoteTime = startTime;
-        renderApp();
+        eventBus.emit('render');
         scheduler();
     }
 };

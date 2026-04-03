@@ -2,13 +2,35 @@
   js/app.js
   Main Entry Point (Async)
   Handles initialization of Data Layer and Startup Logic.
+  Registers views and sets the active view based on the page context.
 */
 
+import { viewManager } from './views/viewManager.js';
+import { mobileGridView } from './views/mobileGridView.js';
+import { mobileDualModeView } from './views/mobileDualModeView.js';
+import { desktopEditorView } from './views/desktopEditorView.js';
+import { setViewProvider } from './ui/renderer.js';
 import { setupEventListeners } from './events.js';
 import { dataLoader } from './services/dataLoader.js';
 import { actions } from './actions.js';
 import { initStrokeCursors, updateGlobalCursor } from './utils/strokeCursors.js';
 import { state } from './store.js';
+
+// ─── View Registration ──────────────────────────────────────────────────────
+// Register all available views. New views can be added here.
+viewManager.registerView(mobileGridView);
+viewManager.registerView(mobileDualModeView);
+viewManager.registerView(desktopEditorView);
+
+// Set the active view based on the page context
+if (window.IS_MOBILE_VIEW) {
+    viewManager.setActiveView('mobile-dual-mode');
+} else {
+    viewManager.setActiveView('desktop-editor');
+}
+
+// Wire the view manager into the renderer (runtime, avoids circular dependency)
+setViewProvider(viewManager);
 
 // Expose actions to global scope for inline onclick handlers
 window.actions = actions;

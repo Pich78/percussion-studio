@@ -8,7 +8,7 @@ import { state, playback, commit } from '../store.js';
 import { getActiveSection, snapStepIndex } from '../store/stateSelectors.js';
 import { actions } from '../actions.js';
 import { togglePlay, stopPlayback } from '../services/sequencer.js';
-import { renderApp, refreshGrid } from '../ui/renderer.js';
+import { eventBus } from '../services/eventBus.js';
 import { StrokeType } from '../types.js';
 
 // Import modular handlers
@@ -42,7 +42,7 @@ const createActionRouter = () => {
         'open-editing-options': () => {
             commit('setMenuOpen', { isOpen: false });
             commit('setModal', { open: true, type: 'editingOptions' });
-            renderApp();
+            eventBus.emit('render');
         },
 
         // Measures
@@ -89,6 +89,7 @@ const createActionRouter = () => {
         'load-toque-confirm': (e, target) => bataHandlers.handleLoadToqueConfirm(target),
 
         // Timeline metadata
+        'toggle-random-repetitions': () => timelineHandlers.handleToggleRandomRepetitions(),
         'toggle-bata-rhythm-mode': () => timelineHandlers.handleToggleBataRhythmMode(),
         'toggle-metadata-orisha-dropdown': () => timelineHandlers.handleToggleMetadataOrishaDropdown(),
         'toggle-rhythm-orisha': (e, target) => timelineHandlers.handleToggleRhythmOrisha(target),
@@ -100,7 +101,7 @@ const createActionRouter = () => {
             const section = getActiveSection(state);
             if (section) {
                 commit('toggleBpmOverride', { section, globalBpm: state.toque.globalBpm });
-                refreshGrid();
+                eventBus.emit('grid-refresh');
             }
         },
         'select-stroke': (e, target) => gridHandlers.handleSelectStroke(target),
@@ -149,7 +150,7 @@ const handleTubsCellRightClick = (e, target) => {
         const track = section.measures[measureIdx]?.tracks[trackIdx];
         if (track) {
             track.strokes[stepIdx] = StrokeType.None;
-            refreshGrid();
+            eventBus.emit('grid-refresh');
         }
     }
 };
@@ -377,7 +378,7 @@ export const setupDesktopEvents = () => {
             activeVolumeInput = null;
             activeVolumeContainer = null;
             // Refresh grid to sync any mute state changes that were deferred
-            refreshGrid();
+            eventBus.emit('grid-refresh');
         }
     });
 
@@ -429,7 +430,7 @@ export const setupDesktopEvents = () => {
         if (action === 'update-pie-timing') {
             const key = target.dataset.target;
             state.uiState.pieMenu[key] = Math.max(0, parseInt(target.value) || 0);
-            renderApp();
+            eventBus.emit('render');
             return;
         }
     });
@@ -443,14 +444,14 @@ export const setupDesktopEvents = () => {
         if (action === 'update-pie-behavior') {
             const setting = target.dataset.setting;
             commit('setPieMenuBehavior', { setting, checked: target.checked });
-            renderApp();
+            eventBus.emit('render');
             return;
         }
 
         if (action === 'load-rhythm-file' && target.files[0]) {
             actions.loadRhythmFromFile(target.files[0]).then(() => {
                 commit('setModal', { open: false });
-                renderApp();
+                eventBus.emit('render');
             });
             return;
         }
@@ -473,8 +474,8 @@ export const setupDesktopEvents = () => {
         if (action === 'update-custom-subdivision' && section) {
             const newSubdivision = Math.max(1, Math.min(12, parseInt(target.value) || 1));
             commit('setSectionSubdivision', { section, subdivision: newSubdivision });
-            refreshGrid();
-            renderApp();
+            eventBus.emit('grid-refresh');
+            eventBus.emit('render');
             return;
         }
 
@@ -514,13 +515,13 @@ export const setupDesktopEvents = () => {
 
         if (action === 'update-editing-mode') {
             commit('setPieMenuSetting', { key: 'editingMode', value: target.value });
-            renderApp();
+            eventBus.emit('render');
             return;
         }
 
         if (action === 'update-pie-trigger') {
             commit('setPieMenuSetting', { key: 'pieMenuTrigger', value: target.value });
-            renderApp();
+            eventBus.emit('render');
             return;
         }
     });

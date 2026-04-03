@@ -5,7 +5,7 @@
 
 import { state, commit } from '../../store.js';
 import { getActiveSection } from '../../store/stateSelectors.js';
-import { renderApp, refreshGrid } from '../../ui/renderer.js';
+import { eventBus } from '../../services/eventBus.js';
 import { actions } from '../../actions.js';
 import { dataLoader } from '../../services/dataLoader.js';
 
@@ -21,7 +21,7 @@ export const handleOpenAddModal = async () => {
 
     // Pre-load all instrument definitions for display names
     await preloadInstrumentDefinitions();
-    refreshGrid();
+    eventBus.emit('grid-refresh');
 };
 
 /**
@@ -48,7 +48,7 @@ export const handleOpenEditModal = async (target) => {
     state.uiState.modalOpen = true;
 
     await preloadInstrumentDefinitions();
-    refreshGrid();
+    eventBus.emit('grid-refresh');
 };
 
 /**
@@ -75,7 +75,7 @@ export const handleOpenPackModal = async (target) => {
     state.uiState.modalOpen = true;
 
     await preloadInstrumentDefinitions();
-    refreshGrid();
+    eventBus.emit('grid-refresh');
 };
 
 /**
@@ -89,7 +89,7 @@ const preloadInstrumentDefinitions = async () => {
             const instDef = await dataLoader.loadInstrumentDefinition(symbol);
             state.instrumentDefinitions[symbol] = instDef;
         }
-        refreshGrid();
+        eventBus.emit('grid-refresh');
     }
 };
 
@@ -98,7 +98,7 @@ const preloadInstrumentDefinitions = async () => {
  */
 export const handleCloseModal = () => {
     commit('setModal', { open: false });
-    renderApp();
+    eventBus.emit('render');
 };
 
 /**
@@ -108,7 +108,7 @@ export const handleCloseModal = () => {
 export const handleSelectInstrument = (target) => {
     const inst = target.dataset.instrument;
     state.uiState.pendingInstrument = inst;
-    refreshGrid();
+    eventBus.emit('grid-refresh');
 };
 
 /**
@@ -118,7 +118,7 @@ export const handleSelectInstrument = (target) => {
 export const handleSelectSoundPack = (target) => {
     const pack = target.dataset.pack;
     state.uiState.pendingSoundPack = pack;
-    refreshGrid();
+    eventBus.emit('grid-refresh');
 };
 
 /**
@@ -137,7 +137,7 @@ export const handleConfirmInstrumentSelection = async () => {
     }
 
     commit('setModal', { open: false });
-    renderApp();
+    eventBus.emit('render');
 };
 
 /**
@@ -160,10 +160,10 @@ export const handleToggleFolder = (target) => {
             state.uiState.bataExplorer.metadata = null; // Clear cached state
             dataLoader.loadBataMetadata().then(metadata => {
                 state.uiState.bataExplorer.metadata = metadata;
-                renderApp();
+                eventBus.emit('render');
             });
         }
-        renderApp();
+        eventBus.emit('render');
         return true; // Handled specially
     }
 
@@ -176,7 +176,7 @@ export const handleToggleFolder = (target) => {
     } else {
         state.uiState.expandedFolders.add(folderPath);
     }
-    refreshGrid();
+    eventBus.emit('grid-refresh');
 
     // Restore scroll position after re-render
     requestAnimationFrame(() => {
@@ -198,7 +198,7 @@ export const handleSelectRhythmConfirm = async (target) => {
     if (confirm("Load this rhythm? Unsaved changes will be lost.")) {
         await actions.loadRhythm(rhythmId);
         state.uiState.modalOpen = false;
-        renderApp();
+        eventBus.emit('render');
     }
 };
 
@@ -222,7 +222,7 @@ export const handleLoadRhythmFile = async (target) => {
         if (confirm("Load this rhythm file? Unsaved changes will be lost.")) {
             await actions.loadRhythmFromFile(file);
             state.uiState.modalOpen = false;
-            renderApp();
+            eventBus.emit('render');
         }
         // Reset file input so the same file can be selected again
         target.value = '';
@@ -245,18 +245,18 @@ export const handleOpenUserGuide = (target, isMobile = false) => {
     state.uiState.modalOpen = true;
     state.uiState.isMenuOpen = false;
     state.uiState.userGuideSubmenuOpen = false;
-    renderApp();
+    eventBus.emit('render');
 
     // Fetch and render markdown
     fetch(filePath)
         .then(response => response.text())
         .then(markdown => {
             state.uiState.userGuideContent = convertMarkdownToHtml(markdown);
-            renderApp();
+            eventBus.emit('render');
         })
         .catch(err => {
             state.uiState.userGuideContent = `<div class="text-center text-red-400 py-8">Failed to load user guide: ${err.message}</div>`;
-            renderApp();
+            eventBus.emit('render');
         });
 };
 

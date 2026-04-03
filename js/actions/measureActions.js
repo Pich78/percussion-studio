@@ -5,7 +5,7 @@
 
 import { state, commit } from '../store.js';
 import { getActiveSection } from '../store/stateSelectors.js';
-import { refreshGrid, scrollToMeasure } from '../ui/renderer.js';
+import { eventBus } from '../services/eventBus.js';
 import { StrokeType } from '../types.js';
 import { cloneMeasure } from '../utils/rhythmTransformers.js';
 
@@ -39,10 +39,10 @@ export const addMeasure = () => {
 
     const newIndex = section.measures.length;
     commit('pushMeasure', { section, measure: newMeasure });
-    refreshGrid();
+    eventBus.emit('grid-refresh');
 
     // Scroll to the new measure
-    scrollToMeasure(newIndex);
+    eventBus.emit('scroll-to-measure', { measure: newIndex });
 };
 
 /**
@@ -58,7 +58,7 @@ export const deleteMeasure = (measureIdx) => {
 
     if (confirm("Delete this measure?")) {
         commit('deleteMeasure', { section, measureIdx });
-        refreshGrid();
+        eventBus.emit('grid-refresh');
     }
 };
 
@@ -75,5 +75,5 @@ export const duplicateMeasure = (measureIdx) => {
 
     // Insert after the source measure
     commit('insertMeasure', { section, measureIdx: measureIdx + 1, measure: newMeasure });
-    refreshGrid();
+    eventBus.emit('grid-refresh');
 };

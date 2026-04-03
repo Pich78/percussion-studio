@@ -36,6 +36,10 @@ export const state = {
     // Key: instrument symbol (e.g. "Iya"), Value: { volume: 1.0, muted: false }
     mix: {},
 
+    // Solo state: index of the soloed track, null if none
+    // Mutually exclusive with mute - a track cannot be both muted and soloed
+    soloTrack: null,
+
     // Cache for loaded Instrument YAML definitions.
     // Key: Symbol (e.g. "ITO"), Value: The parsed YAML object with .sounds, .name, etc.
     instrumentDefinitions: {},
@@ -90,7 +94,8 @@ export const state = {
         sectionDropdownOpen: false, // Mobile header section switcher
         metadataEditor: {
             orishaDropdownOpen: false
-        }
+        },
+        dimensionBMode: 'play' // 'play' | 'view' mode toggle for Dimension B
     }
 };
 
@@ -98,12 +103,13 @@ export const state = {
 export const playback = {
     timeoutId: null,
     currentStep: -1,
-    currentMeasureIndex: 0, // Track current measure within section
+    currentMeasureIndex: 0,
     repetitionCounter: 1,
-    currentPlayheadBpm: 120, // Default safe value
+    effectiveRepetitions: null,
+    currentPlayheadBpm: 120,
     activeSectionId: null,
-    nextNoteTime: 0, // For precision look-ahead scheduling (audioContext time)
-    isCountingIn: false, // True when count-in is playing
-    countInStep: 0, // Current count-in beat (0-3 or 0-5)
-    countInTotal: 4 // Total count-in beats (4 or 6 based on time signature)
+    nextNoteTime: 0,
+    isCountingIn: false,
+    countInStep: 0,
+    countInTotal: 4
 };

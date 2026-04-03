@@ -9,6 +9,8 @@
   Side effects (rendering, audio, network) belong in actions, not here.
 */
 
+import { playback } from '../store.js';
+
 // ─── UI State Mutations ─────────────────────────────────────────────────────
 
 /**
@@ -259,6 +261,12 @@ export const setInstrumentDefinition = (state, { symbol, definition }) => {
  */
 export const setToque = (state, { toque }) => {
     state.toque = toque;
+    // Reset _playedOnce on all sections when loading new rhythm
+    if (toque && toque.sections) {
+        toque.sections.forEach(s => {
+            if (s._playedOnce) s._playedOnce = false;
+        });
+    }
 };
 
 /**

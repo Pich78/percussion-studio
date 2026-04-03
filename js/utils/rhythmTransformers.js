@@ -162,6 +162,9 @@ export const buildSectionFromFlow = (flow, trackConfig) => {
         steps: flow.steps,
         subdivision: sub,
         repetitions: flow.repetitions,
+        randomRepetitions: false,
+        skip: false,
+        playMode: 'loop',
         measures: buildMeasuresFromFlow(flow, trackConfig),
         bpm: flow.bpm,
         tempoAcceleration: flow.tempo_acceleration || 0

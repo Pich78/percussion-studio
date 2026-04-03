@@ -126,7 +126,7 @@ export const Timeline = ({
                 title="Repetitions"
               >
                 <span class="opacity-70 mr-0.5">x</span>
-                <span class="font-bold">${section.repetitions || 1}</span>
+                <span class="font-bold">${section.randomRepetitions ? '🎲' : ''}${section.repetitions || 1}</span>
               </div>
             </div>
           </div>

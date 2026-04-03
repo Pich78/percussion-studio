@@ -5,7 +5,7 @@
 
 import { state, commit } from '../../store.js';
 import { getActiveSection, snapStepIndex } from '../../store/stateSelectors.js';
-import { refreshGrid, renderApp } from '../../ui/renderer.js';
+import { eventBus } from '../../services/eventBus.js';
 import { actions } from '../../actions.js';
 import { StrokeType } from '../../types.js';
 import { getValidInstrumentSteps } from '../../utils/gridUtils.js';
@@ -49,7 +49,7 @@ export const handleCellRightClick = (target) => {
     const trackIdx = parseInt(target.dataset.trackIndex);
     const stepIdx = parseInt(target.dataset.stepIndex);
     section.tracks[trackIdx].strokes[stepIdx] = StrokeType.None;
-    refreshGrid();
+    eventBus.emit('grid-refresh');
 };
 
 /**
@@ -75,7 +75,7 @@ export const handleRemoveTrack = (target) => {
         const section = getActiveSection(state);
         const tIdx = parseInt(target.dataset.trackIndex);
         commit('removeTrack', { section, trackIdx: tIdx });
-        refreshGrid();
+        eventBus.emit('grid-refresh');
     }
 };
 
@@ -109,7 +109,7 @@ export const handleToggleTrackSnap = (target) => {
     const track = section.measures[measureIdx].tracks[trackIdx];
 
     commit('toggleTrackSnap', { track });
-    refreshGrid();
+    eventBus.emit('grid-refresh');
 };
 
 /**
@@ -160,7 +160,7 @@ export const handleTrackStepsChange = (target) => {
 export const handleSelectStroke = (target) => {
     commit('setSelectedStroke', { stroke: target.dataset.stroke });
     updateGlobalCursor(state.selectedStroke, state.selectedDynamic);
-    renderApp();
+    eventBus.emit('render');
 };
 
 /**
@@ -170,7 +170,7 @@ export const handleSelectStroke = (target) => {
 export const handleSelectDynamic = (target) => {
     commit('setSelectedDynamic', { dynamic: target.dataset.dynamic });
     updateGlobalCursor(state.selectedStroke, state.selectedDynamic);
-    renderApp();
+    eventBus.emit('render');
 };
 
 /**
@@ -180,7 +180,7 @@ export const handleClearPattern = () => {
     if (confirm("Clear all notes in this section?")) {
         const section = getActiveSection(state);
         commit('clearSectionPattern', { section, emptyStroke: StrokeType.None });
-        refreshGrid();
+        eventBus.emit('grid-refresh');
     }
 };
 
@@ -215,7 +215,7 @@ const triggerPieMenuOpen = (target, delayMs, isLongPress) => {
             measureIndex: measureIdx,
             instrumentDef: instDef
         });
-        renderApp();
+        eventBus.emit('render');
     };
 
     if (delayMs > 0) {
@@ -338,7 +338,7 @@ export const handlePieMenuSelect = (e, target) => {
 export const closePieMenu = () => {
     if (state.uiState.pieMenu.isOpen) {
         commit('closePieMenu');
-        renderApp();
+        eventBus.emit('render');
     }
 };
 
@@ -399,6 +399,6 @@ export const handleCellMouseWheel = (e, target) => {
     updateGlobalCursor(nextStroke, state.selectedDynamic);
 
     // Re-render the app to naturally update the bottom palette selection UI
-    renderApp();
+    eventBus.emit('render');
 };
 
