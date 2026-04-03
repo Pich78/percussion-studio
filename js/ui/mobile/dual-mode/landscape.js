@@ -142,7 +142,7 @@ const renderLandscapeBottomBar = (activeSection) => {
         const border = isOpen ? c.open : c.closed;
 
         if (disabled) {
-            return `<button class="bg-gray-900 border border-gray-700 rounded-full px-3 py-1 flex items-center gap-1.5 opacity-40 cursor-not-allowed" disabled>
+            return `<button class="bg-gray-900 border border-gray-700 rounded-md px-4 h-9 flex items-center gap-2 opacity-40 cursor-not-allowed" disabled>
                 <span class="text-xs font-bold text-gray-500">${label}</span>
                 ${sublabel ? `<span class="text-[10px] text-gray-600">${sublabel}</span>` : ''}
             </button>`;
@@ -150,7 +150,7 @@ const renderLandscapeBottomBar = (activeSection) => {
 
         return `
         <button data-action="dual-mode-toggle-popover" data-popover-id="${id}"
-            class="bg-gray-800 border ${border} rounded-full px-3 py-1 flex items-center gap-1.5 transition-colors flex-shrink-0">
+            class="bg-gray-800 border ${border} rounded-md px-4 h-9 flex items-center gap-2 transition-colors flex-shrink-0">
             <span class="text-xs font-bold ${c.label}">${label}</span>
             ${sublabel ? `<span class="text-[10px] text-gray-400">${sublabel}</span>` : ''}
         </button>`;
