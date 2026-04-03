@@ -72,22 +72,35 @@ const renderHeader = () => {
         </div>
         <h1 class="text-xl font-bold text-gray-100 whitespace-nowrap hidden sm:block">Percussion Studio</h1>
         <div class="h-6 w-px bg-gray-800 hidden sm:block"></div>
-        <div class="flex items-center gap-3 min-w-0 overflow-hidden flex-1">
-           <span class="text-amber-400 font-bold text-lg truncate whitespace-nowrap">${state.toque.name}</span>
-           <span class="text-gray-600">/</span>
-           <span class="text-gray-200 font-bold text-lg truncate whitespace-nowrap">${activeSection.name}</span>
-           <div class="flex items-center gap-1 ml-2 bg-gray-900 px-2 py-0.5 rounded border border-gray-800 flex-shrink-0">
-              <span class="text-[10px] uppercase font-bold text-gray-500">Rep</span>
-              <span class="font-mono font-bold ${state.isPlaying ? 'text-green-400' : 'text-gray-400'}" id="header-rep-count">
-                ${state.isPlaying ? playback.repetitionCounter : 1}
-              </span>
-              <span class="text-gray-600 font-mono">/</span>
-              ${activeSection.randomRepetitions && state.isPlaying && playback.effectiveRepetitions != null
-                ? `<span class="text-cyan-400 font-mono">🎲${playback.effectiveRepetitions}</span><span class="text-gray-600 font-mono text-[10px] ml-0.5">(${activeSection.repetitions || 1})</span>`
-                : `<span class="text-gray-500 font-mono">${activeSection.randomRepetitions ? '🎲' : ''}${activeSection.repetitions || 1}</span>`
-              }
-           </div>
-           <div class="flex items-center gap-1 ml-2 bg-gray-900 px-2 py-0.5 rounded border border-gray-800 flex-shrink-0 border-l-2 ${state.isPlaying ? 'border-l-green-500/50' : 'border-l-gray-700'}">
+         <div class="flex items-center gap-3 min-w-0 overflow-hidden flex-1">
+            <span class="text-amber-400 font-bold text-lg truncate whitespace-nowrap">${state.toque.name}</span>
+            <span class="text-gray-600">/</span>
+            <span class="text-gray-200 font-bold text-lg truncate whitespace-nowrap">${activeSection.name}</span>
+             <div class="flex items-center gap-1 ml-2 bg-gray-900 px-2 py-0.5 rounded border border-gray-800 flex-shrink-0">
+                <span class="text-[10px] uppercase font-bold text-gray-500">Rep</span>
+                ${(() => {
+                  const playMode = activeSection.playMode || 'loop';
+                  if (playMode === 'adlib') {
+                    return `<span class="font-mono font-bold text-green-400">∞</span>`;
+                  } else if (playMode === 'once') {
+                    return activeSection._playedOnce 
+                      ? `<span class="font-mono font-bold text-gray-500">✓</span>`
+                      : `<span class="font-mono font-bold text-cyan-400">1×</span>`;
+                  } else {
+                    return `
+                      <span class="font-mono font-bold ${state.isPlaying ? 'text-green-400' : 'text-gray-400'}" id="header-rep-count">
+                        ${state.isPlaying ? playback.repetitionCounter : 1}
+                      </span>
+                      <span class="text-gray-600 font-mono">/</span>
+                      ${activeSection.randomRepetitions && state.isPlaying && playback.effectiveRepetitions != null
+                        ? `<span class="text-cyan-400 font-mono">🎲${playback.effectiveRepetitions}</span><span class="text-gray-600 font-mono text-[10px] ml-0.5">(${activeSection.repetitions || 1})</span>`
+                        : `<span class="text-gray-500 font-mono">${activeSection.randomRepetitions ? '🎲' : ''}${activeSection.repetitions || 1}</span>`
+                      }
+                    `;
+                  }
+                })()}
+             </div>
+            <div class="flex items-center gap-1 ml-2 bg-gray-900 px-2 py-0.5 rounded border border-gray-800 flex-shrink-0 border-l-2 ${state.isPlaying ? 'border-l-green-500/50' : 'border-l-gray-700'}">
               <span class="text-[10px] uppercase font-bold text-gray-500">Live</span>
               <span class="font-mono font-bold ${state.isPlaying ? 'text-green-400' : 'text-gray-500'}" id="header-live-bpm">
                 ${state.isPlaying ? Math.round(playback.currentPlayheadBpm) : state.toque.globalBpm}

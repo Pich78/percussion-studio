@@ -147,6 +147,106 @@ export const handleToggleRandomRepetitions = () => {
 };
 
 /**
+ * Handle toggle section enabled/disabled from timeline
+ * @param {HTMLElement} target - The toggle button element
+ */
+export const handleToggleSectionEnabled = (target) => {
+    const sectionId = target.dataset.id;
+    const section = state.toque.sections.find(s => s.id === sectionId);
+    if (section) {
+        section.skip = !section.skip;
+        if (section.skip) {
+            section.playMode = 'skip';
+        } else if (section.playMode === 'skip') {
+            section.playMode = 'loop';
+        }
+        eventBus.emit('render');
+    }
+};
+
+/**
+ * Handle play mode update from settings bar
+ * @param {HTMLSelectElement} target - The select element
+ */
+export const handleUpdatePlayMode = (target) => {
+    const section = getActiveSection(state);
+    if (section) {
+        const playMode = target.value;
+        section.playMode = playMode;
+        if (playMode === 'skip') {
+            section.skip = true;
+        } else {
+            section.skip = false;
+        }
+        eventBus.emit('render');
+    }
+};
+
+/**
+ * Handle toggle play mode dropdown visibility
+ * @param {HTMLElement} target - The dropdown button element
+ */
+export const handleTogglePlayModeDropdown = (target) => {
+    const container = target.closest('#play-mode-dropdown-container');
+    if (!container) return;
+    
+    const dropdown = container.querySelector('[data-role="play-mode-dropdown"]');
+    if (dropdown) {
+        dropdown.classList.toggle('hidden');
+    }
+};
+
+/**
+ * Handle select play mode from custom dropdown
+ * @param {HTMLElement} target - The option button element
+ */
+export const handleSelectPlayMode = (target) => {
+    const section = getActiveSection(state);
+    if (section) {
+        const playMode = target.dataset.value;
+        section.playMode = playMode;
+        if (playMode === 'skip') {
+            section.skip = true;
+        } else {
+            section.skip = false;
+        }
+        
+        // Close dropdown
+        const container = document.getElementById('play-mode-dropdown-container');
+        if (container) {
+            const dropdown = container.querySelector('[data-role="play-mode-dropdown"]');
+            if (dropdown) {
+                dropdown.classList.add('hidden');
+            }
+        }
+        
+        eventBus.emit('render');
+    }
+};
+
+/**
+ * Handle reset played once state (when "Played" is displayed)
+ * @param {HTMLElement} target - The button element
+ */
+export const handleResetPlayedOnce = (target) => {
+    const section = getActiveSection(state);
+    if (section && section.playMode === 'once' && section._playedOnce) {
+        section._playedOnce = false;
+        eventBus.emit('render');
+    }
+};
+
+/**
+ * Close all open dropdowns (call on outside click)
+ */
+export const closeAllDropdowns = () => {
+    const dropdown = document.querySelector('[data-role="play-mode-dropdown"]');
+    if (dropdown) {
+        dropdown.classList.add('hidden');
+    }
+};
+
+/**
  * Handle rhythm name update
  * @param {HTMLInputElement} target - The input element
  */

@@ -76,6 +76,19 @@ export const Timeline = ({
     const effectiveBpm = section.bpm ?? globalBpm;
     const accel = section.tempoAcceleration || 0;
     const isCustomBpm = section.bpm !== undefined;
+    const isDisabled = section.skip;
+    const hasPlayedOnce = section.playMode === 'once' && section._playedOnce;
+
+    // Play mode display
+    const playMode = section.playMode || 'loop';
+    let repDisplay = '';
+    if (playMode === 'adlib') {
+      repDisplay = '∞';
+    } else if (playMode === 'once') {
+      repDisplay = hasPlayedOnce ? '✓' : '1×';
+    } else {
+      repDisplay = `${section.randomRepetitions ? '🎲' : ''}${section.repetitions || 1}`;
+    }
 
     // Accel Icon Logic
     let AccelIcon = MinusSvg;
@@ -99,13 +112,35 @@ export const Timeline = ({
           group relative flex gap-2 p-2 rounded-lg cursor-pointer border transition-all select-none
           ${isActive
         ? 'bg-gray-800 border-cyan-500 text-white shadow-lg shadow-cyan-900/10'
+        : isDisabled || hasPlayedOnce
+        ? 'bg-gray-900/30 border-gray-800/50 text-gray-600 opacity-50'
         : 'bg-gray-900/50 border-gray-800 text-gray-400 hover:bg-gray-800 hover:border-gray-700'}
         "
         onclick="document.dispatchEvent(new CustomEvent('timeline-select', { detail: '${section.id}' }))"
       >
+        <!-- Enable/Disable Toggle -->
+        ${!readOnly ? `
+        <div class="flex items-center justify-center flex-shrink-0">
+          <button 
+            data-action="toggle-section-enabled"
+            data-id="${section.id}"
+            class="w-6 h-6 rounded flex items-center justify-center transition-colors ${isDisabled 
+              ? 'bg-red-900/30 text-red-500 hover:bg-red-900/50' 
+              : 'bg-green-900/30 text-green-500 hover:bg-green-900/50'}"
+            title="${isDisabled ? 'Enable section' : 'Disable section'}"
+          >
+            ${isDisabled ? `
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>
+            ` : `
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12a7.5 7.5 0 0015 0m-15 0a7.5 7.5 0 1115 0m-15 0H3m16.5 0H21m-1.5 0H12m-8.457 3.077l1.41-.513m14.095-5.13l1.41-.513M5.106 17.785l1.15-.964m11.49-9.642l1.149-.964M7.501 19.795l.75-1.3m7.5-12.99l.75-1.3m-6.063 16.658l.26-1.477m2.605-14.772l.26-1.477m0 17.726l-.26-1.477M10.698 4.614l-.26-1.477M16.5 19.794l-.75-1.299M7.5 4.205L12 12m5.227 4.395l.75-1.3" /></svg>
+            `}
+          </button>
+        </div>
+        ` : ''}
+
         <!-- Drag Handle -->
         ${!readOnly ? `
-        <div class="flex items-center justify-center cursor-move text-gray-600 hover:text-gray-400 flex-shrink-0">
+        <div class="flex items-center justify-center cursor-move text-gray-600 hover:text-gray-400 flex-shrink-0 ${isDisabled ? 'opacity-30' : ''}">
           ${DragHandleSvg('w-4 h-4 rotate-90 pointer-events-none')}
         </div>
         ` : ''}
@@ -123,10 +158,9 @@ export const Timeline = ({
               <span title="Meter">${section.subdivision === 3 ? '6/8' : '4/4'} (${section.steps})</span>
               <div 
                 class="flex items-center px-1.5 py-0.5 rounded ml-1 ${isActive ? 'bg-cyan-900/40 text-cyan-200' : 'bg-gray-950/50 text-gray-400'}"
-                title="Repetitions"
+                title="Play Mode"
               >
-                <span class="opacity-70 mr-0.5">x</span>
-                <span class="font-bold">${section.randomRepetitions ? '🎲' : ''}${section.repetitions || 1}</span>
+                <span class="font-bold">${repDisplay}</span>
               </div>
             </div>
           </div>
@@ -148,7 +182,7 @@ export const Timeline = ({
               </span>
               
               <!-- Accel -->
-              <span class="text-[9px] font-mono px-1 py-0.5 rounded border flex items-center gap-0.5 ${accelColorClass}"
+              <span class="text-[9px] font-mono px-1 py-0.5 rounded border flex items-center gap-0.5 ${isDisabled ? 'opacity-30' : ''} ${accelColorClass}"
                 title="Accel/Decel %"
               >
                 ${AccelIcon('w-2.5 h-2.5')}

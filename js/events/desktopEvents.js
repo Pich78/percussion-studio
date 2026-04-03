@@ -90,6 +90,10 @@ const createActionRouter = () => {
 
         // Timeline metadata
         'toggle-random-repetitions': () => timelineHandlers.handleToggleRandomRepetitions(),
+        'toggle-section-enabled': (e, target) => timelineHandlers.handleToggleSectionEnabled(target),
+        'toggle-play-mode-dropdown': (e, target) => timelineHandlers.handleTogglePlayModeDropdown(target),
+        'select-play-mode': (e, target) => timelineHandlers.handleSelectPlayMode(target),
+        'reset-played-once': (e, target) => timelineHandlers.handleResetPlayedOnce(target),
         'toggle-bata-rhythm-mode': () => timelineHandlers.handleToggleBataRhythmMode(),
         'toggle-metadata-orisha-dropdown': () => timelineHandlers.handleToggleMetadataOrishaDropdown(),
         'toggle-rhythm-orisha': (e, target) => timelineHandlers.handleToggleRhythmOrisha(target),
@@ -557,6 +561,14 @@ export const setupDesktopEvents = () => {
     // Timeline section select
     document.addEventListener('timeline-select', (e) => {
         timelineHandlers.handleTimelineSelect(e.detail);
+    });
+
+    // Close dropdowns when clicking outside
+    root.addEventListener('click', (e) => {
+        const container = document.getElementById('play-mode-dropdown-container');
+        if (container && !container.contains(e.target)) {
+            timelineHandlers.closeAllDropdowns();
+        }
     });
 
     // Drag and drop for timeline
