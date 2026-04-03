@@ -9,7 +9,7 @@
   Side effects (rendering, audio, network) belong in actions, not here.
 */
 
-import { playback } from './store.js';
+import { playback } from '../store.js';
 
 // ─── UI State Mutations ─────────────────────────────────────────────────────
 
