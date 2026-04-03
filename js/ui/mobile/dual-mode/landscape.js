@@ -89,7 +89,7 @@ const renderLandscapeTopBar = (activeSection) => {
         <!-- Hamburger -->
         <button data-action="toggle-menu"
             class="text-gray-400 hover:text-white p-1 rounded-md hover:bg-gray-800 transition-colors flex-shrink-0 ${state.uiState.isMenuOpen ? 'bg-gray-800 text-white' : ''}">
-            ${Bars3Icon('w-5 h-5 pointer-events-none')}
+            ${Bars3Icon('w-6 h-6 pointer-events-none')}
         </button>
 
         <!-- Track Name -->
