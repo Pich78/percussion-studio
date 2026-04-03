@@ -1,24 +1,24 @@
 /**
- * js/views/mobilePractitionerView.js
+ * js/views/mobileDualModeView.js
  *
- * View definition for "Dimension D: The Practitioner" —
+ * View definition for "Dual Mode" —
  * a Dual View where phone orientation drives the experience:
  *   • Landscape → full chromatic notation grid + chips toolbar
  *   • Portrait  → music-player control surface (BPM, mixer, sections)
  */
 
-import { PractitionerLayout } from '../ui/mobile/practitioner/layout.js';
+import { DualModeLayout } from '../ui/mobile/dual-mode/layout.js';
 import { updateVisualStep, scrollToMeasure } from '../ui/playheadUtils.js';
 import { setupMobileEvents } from '../events/mobileEvents.js';
 import { state, playback } from '../store.js';
 import { eventBus } from '../services/eventBus.js';
 
-export const mobilePractitionerView = {
-    id: 'mobile-practitioner',
-    name: 'The Practitioner (Dual)',
+export const mobileDualModeView = {
+    id: 'mobile-dual-mode',
+    name: 'Dual Mode ↔',
 
     /** Returns the full page HTML */
-    layout: PractitionerLayout,
+    layout: DualModeLayout,
 
     /**
      * Attach a horizontal swipe listener to the landscape top bar.
@@ -27,10 +27,8 @@ export const mobilePractitionerView = {
      * than vertical navigates to the prev/next section.
      */
     setupEvents: () => {
-        // Set up mobile click/touch handlers (toggle-menu, etc.)
         setupMobileEvents();
 
-        // Additional swipe handlers for practitioner view
         let touchStartX = 0;
         let touchStartY = 0;
 
@@ -43,41 +41,28 @@ export const mobilePractitionerView = {
             const dx = e.changedTouches[0].clientX - touchStartX;
             const dy = e.changedTouches[0].clientY - touchStartY;
 
-            // Require a predominantly horizontal swipe of at least 50px
             if (Math.abs(dx) < 50 || Math.abs(dy) > Math.abs(dx) * 0.8) return;
 
-            const header = document.getElementById('practitioner-landscape-header');
+            const header = document.getElementById('dual-mode-landscape-header');
             if (!header) return;
 
-            // Fire a synthetic data-action click so the existing mobileEvents router handles it
-            const action = dx < 0 ? 'practitioner-next-section' : 'practitioner-prev-section';
+            const action = dx < 0 ? 'dual-mode-next-section' : 'dual-mode-prev-section';
             const syntheticTarget = { dataset: { action } };
-            // Dispatch to the global mobile action handler via a fake click on a well-known target
             const btn = header.querySelector(`[data-action="${action}"]`);
             if (btn && !btn.disabled) btn.click();
         };
 
-        // Attach to the whole landscape wrapper so the swipe zone is generous.
-        // We re-attach on every setupEvents call (view switch) so use a named
-        // function so we can clean up stale listeners if needed.
         const root = document.getElementById('root');
         if (root) {
-            // Remove any previous listeners from this view (idempotent)
-            root.removeEventListener('touchstart', root.__practitionerSwipeStart);
-            root.removeEventListener('touchend',   root.__practitionerSwipeEnd);
-            root.__practitionerSwipeStart = onTouchStart;
-            root.__practitionerSwipeEnd   = onTouchEnd;
+            root.removeEventListener('touchstart', root.__dualModeSwipeStart);
+            root.removeEventListener('touchend',   root.__dualModeSwipeEnd);
+            root.__dualModeSwipeStart = onTouchStart;
+            root.__dualModeSwipeEnd   = onTouchEnd;
             root.addEventListener('touchstart', onTouchStart, { passive: true });
             root.addEventListener('touchend',   onTouchEnd,   { passive: true });
         }
     },
 
-    /**
-     * Visual update hook called every sequencer tick.
-     * Uses the same playheadUtils as the standard mobile grid — works because
-     * PractitionerMeasureRenderer uses identical DOM structure:
-     * #tubs-scroll-container → .measure-container → TubsCell with data-step-marker.
-     */
     onStep: ({ step, measure, rep }) => {
         updateVisualStep(step, measure);
         scrollToMeasure(measure);

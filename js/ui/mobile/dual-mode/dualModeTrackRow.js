@@ -1,7 +1,7 @@
 /**
- * js/ui/mobile/practitioner/practitionerTrackRow.js
+ * js/ui/mobile/dual-mode/dualModeTrackRow.js
  *
- * A fork of js/components/grid/trackRow.js tailored for the Practitioner
+ * A fork of js/components/grid/trackRow.js tailored for the Dual Mode
  * landscape grid. The only difference is the sticky label column:
  * instead of showing instrument name + volume slider + mute/edit controls,
  * it shows ONLY the instrument name, centered, coloured, and clickable to
@@ -10,7 +10,7 @@
  * The cells rendering (TubsCell) is identical to the standard TrackRow —
  * so the grid behaviour is exactly the same as the standard view.
  *
- * DO NOT modify trackRow.js; all Practitioner-specific changes live here.
+ * DO NOT modify trackRow.js; all Dual Mode-specific changes live here.
  */
 
 import { INSTRUMENT_COLORS } from '../../../constants.js';
@@ -95,7 +95,7 @@ const renderTrackCells = ({
 };
 
 /**
- * Render a single track row for the Practitioner grid.
+ * Render a single track row for the Dual Mode grid.
  *
  * The sticky label column contains ONLY the instrument name, centred,
  * styled with the instrument's accent colour, and clickable to cycle the
@@ -104,7 +104,7 @@ const renderTrackCells = ({
  *
  * The cells area is 100 % identical to the standard TrackRow.
  */
-export const PractitionerTrackRow = ({
+export const DualModeTrackRow = ({
     track,
     trackIdx,
     measureIdx,
@@ -129,12 +129,12 @@ export const PractitionerTrackRow = ({
     const nameColor = instDef?.color || '#d1d5db';
     const isMuted = track.muted || track.volume === 0;
 
-    // ── Practitioner-specific sticky label: name only, centred ──────────────
+    // ── Dual Mode-specific sticky label: name only, centred ──────────────
     const labelHtml = `
     <div class="sticky left-0 z-20 flex-shrink-0 flex items-center ${borderColorClass} bg-gray-950 border-r border-gray-800 shadow-[4px_0_10px_rgba(0,0,0,0.5)]">
         <div class="w-44 flex items-center justify-center px-3 py-1.5">
             <button
-                data-action="practitioner-cycle-colour"
+                data-action="dualMode-cycle-colour"
                 data-track-index="${trackIdx}"
                 class="text-sm font-bold text-center leading-tight hover:opacity-75 active:opacity-50 transition-opacity cursor-pointer truncate w-full ${isMuted ? 'line-through opacity-40' : ''}"
                 style="color: ${isMuted ? '#6b7280' : nameColor};"

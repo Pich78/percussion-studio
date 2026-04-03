@@ -7,7 +7,7 @@
 
 import { viewManager } from './views/viewManager.js';
 import { mobileGridView } from './views/mobileGridView.js';
-import { mobilePractitionerView } from './views/mobilePractitionerView.js';
+import { mobileDualModeView } from './views/mobileDualModeView.js';
 import { desktopEditorView } from './views/desktopEditorView.js';
 import { setViewProvider } from './ui/renderer.js';
 import { setupEventListeners } from './events.js';
@@ -19,12 +19,12 @@ import { state } from './store.js';
 // ─── View Registration ──────────────────────────────────────────────────────
 // Register all available views. New views can be added here.
 viewManager.registerView(mobileGridView);
-viewManager.registerView(mobilePractitionerView);
+viewManager.registerView(mobileDualModeView);
 viewManager.registerView(desktopEditorView);
 
 // Set the active view based on the page context
 if (window.IS_MOBILE_VIEW) {
-    viewManager.setActiveView('mobile-practitioner');
+    viewManager.setActiveView('mobile-dual-mode');
 } else {
     viewManager.setActiveView('desktop-editor');
 }

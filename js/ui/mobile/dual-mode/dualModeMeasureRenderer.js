@@ -1,18 +1,18 @@
 /**
- * js/ui/mobile/practitioner/practitionerMeasureRenderer.js
+ * js/ui/mobile/dual-mode/dualModeMeasureRenderer.js
  *
- * A fork of js/components/grid/measureRenderer.js for the Practitioner
- * landscape grid. Uses PractitionerTrackRow instead of the standard TrackRow.
+ * A fork of js/components/grid/measureRenderer.js for the Dual Mode
+ * landscape grid. Uses DualModeTrackRow instead of the standard TrackRow.
  *
  * Differences from the standard MeasureRenderer:
- * - Uses PractitionerTrackRow (name-only label column)
+ * - Uses DualModeTrackRow (name-only label column)
  * - Keeps the measure header (step numbers + measure label) unchanged
- * - No "Add Track" button (Practitioner grid is always read-only)
+ * - No "Add Track" button (Dual Mode grid is always read-only)
  *
- * DO NOT modify measureRenderer.js; all Practitioner-specific changes live here.
+ * DO NOT modify measureRenderer.js; all Dual Mode-specific changes live here.
  */
 
-import { PractitionerTrackRow } from './practitionerTrackRow.js';
+import { DualModeTrackRow } from './dualModeTrackRow.js';
 
 /**
  * Render the measure header with step numbers — identical to standard MeasureRenderer.
@@ -49,7 +49,7 @@ const renderMeasureHeader = (measure, measureIdx, section, cellSizePx) => {
 };
 
 /**
- * Render a single measure using the Practitioner track row variant.
+ * Render a single measure using the Dual Mode track row variant.
  *
  * @param {object} params
  * @param {object} params.measure        - Measure data
@@ -63,7 +63,7 @@ const renderMeasureHeader = (measure, measureIdx, section, cellSizePx) => {
  * @param {object} params.instrumentDefinitions - Instrument metadata map
  * @param {boolean} params.isPlaying     - Whether playback is active
  */
-export const PractitionerMeasureRenderer = ({
+export const DualModeMeasureRenderer = ({
     measure,
     measureIdx,
     section,
@@ -76,7 +76,7 @@ export const PractitionerMeasureRenderer = ({
     isPlaying = false
 }) => {
     const tracksHtml = measure.tracks.map((track, trackIdx) =>
-        PractitionerTrackRow({
+        DualModeTrackRow({
             track,
             trackIdx,
             measureIdx,
@@ -96,7 +96,7 @@ export const PractitionerMeasureRenderer = ({
         <!-- Measure Header -->
         ${renderMeasureHeader(measure, measureIdx, section, cellSizePx)}
 
-        <!-- Tracks (Practitioner variant — name-only label) -->
+        <!-- Tracks (Dual Mode variant — name-only label) -->
         ${tracksHtml}
 
         <!-- Measure Separator -->

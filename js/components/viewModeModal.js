@@ -6,7 +6,7 @@ export const ViewModeModal = () => {
 
     const activeViewId = viewManager.getActiveViewId();
     const isStandard   = activeViewId === 'mobile-grid';
-    const isPractitioner = activeViewId === 'mobile-practitioner';
+    const isDualMode = activeViewId === 'mobile-dual-mode';
     const activeTag = `<span class="text-[9px] font-bold text-green-400 bg-green-500/15 px-1.5 py-0.5 rounded ml-auto flex-shrink-0">Active</span>`;
 
     return `
@@ -37,8 +37,8 @@ export const ViewModeModal = () => {
                                 <div class="w-7 h-7 rounded-lg bg-indigo-500/15 flex items-center justify-center flex-shrink-0">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-indigo-400 pointer-events-none"><path stroke-linecap="round" stroke-linejoin="round" d="M9 9l10.5-3m0 6.553v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 11-.99-3.467l2.31-.66a2.25 2.25 0 001.632-2.163zm0 0V2.25L9 5.25v10.303m0 0v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 01-.99-3.467l2.31-.66A2.25 2.25 0 009 15.553z" /></svg>
                                 </div>
-                                <span class="text-xs ${isPractitioner ? 'text-white font-bold' : 'text-gray-300'}">The Practitioner</span>
-                                ${isPractitioner ? activeTag : '<span class="text-[10px] text-gray-500 ml-auto">Grid + Player dual view</span>'}
+                                <span class="text-xs ${isDualMode ? 'text-white font-bold' : 'text-gray-300'}">Dual Mode ↔</span>
+                                ${isDualMode ? activeTag : '<span class="text-[10px] text-gray-500 ml-auto">Grid + Player dual view</span>'}
                             </button>
                         </div>
                     </div>

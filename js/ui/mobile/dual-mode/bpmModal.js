@@ -7,7 +7,7 @@ export const renderBpmModal = () => `
                 <span class="text-xs text-gray-400 font-bold uppercase tracking-wider">Tempo</span>
                 <span class="text-xl font-mono text-indigo-400 font-bold">${state.toque.globalBpm} BPM</span>
             </div>
-            <button data-action="practitioner-close-popover"
+            <button data-action="dual-mode-close-popover"
                 class="w-8 h-8 flex items-center justify-center rounded-xl text-gray-500 hover:text-white hover:bg-gray-800 transition-colors"
                 title="Close">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 pointer-events-none">
@@ -24,13 +24,13 @@ export const renderBpmModal = () => `
                 class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" />
         </div>
         <div class="flex gap-2">
-            <button data-action="practitioner-bpm-step" data-delta="-5"
+            <button data-action="dual-mode-bpm-step" data-delta="-5"
                 class="flex-1 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded-xl py-2 text-sm font-bold text-gray-300">−5</button>
-            <button data-action="practitioner-bpm-step" data-delta="-1"
+            <button data-action="dual-mode-bpm-step" data-delta="-1"
                 class="flex-1 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded-xl py-2 text-sm font-bold text-gray-300">−1</button>
-            <button data-action="practitioner-bpm-step" data-delta="1"
+            <button data-action="dual-mode-bpm-step" data-delta="1"
                 class="flex-1 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded-xl py-2 text-sm font-bold text-gray-300">+1</button>
-            <button data-action="practitioner-bpm-step" data-delta="5"
+            <button data-action="dual-mode-bpm-step" data-delta="5"
                 class="flex-1 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded-xl py-2 text-sm font-bold text-gray-300">+5</button>
         </div>
     </div>`;

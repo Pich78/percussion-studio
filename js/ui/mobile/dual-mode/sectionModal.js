@@ -131,7 +131,7 @@ export const renderSectionRow = (s, idx, isActive, showAcceleration = false) => 
     <div class="w-full text-left rounded-xl flex items-stretch transition-colors ${isActive ? 'bg-indigo-500/15 border border-indigo-500/40' : rowBgClass}">
         
         <!-- Left: Clickable Section Area -->
-        <button data-action="practitioner-select-section" data-section-id="${s.id}" class="flex-1 px-3 py-3 flex items-center gap-3 truncate hover:bg-white/5 active:bg-white/10 rounded-l-xl">
+        <button data-action="dual-mode-select-section" data-section-id="${s.id}" class="flex-1 px-3 py-3 flex items-center gap-3 truncate hover:bg-white/5 active:bg-white/10 rounded-l-xl">
             <div class="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 border ${isActive ? 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30' : numberClass}">
                 <span class="text-[10px] font-bold">${idx + 1}</span>
             </div>
@@ -145,7 +145,7 @@ export const renderSectionRow = (s, idx, isActive, showAcceleration = false) => 
             ${showAcceleration ? renderAccelerationControl(s) : ''}
             
             <!-- Random Toggle - Dice emoji -->
-            <button data-action="practitioner-toggle-random" data-section-id="${s.id}"
+            <button data-action="dual-mode-toggle-random" data-section-id="${s.id}"
                 class="w-9 h-9 rounded-lg flex items-center justify-center text-base transition-colors
                        ${s.random ? 'bg-amber-500/20 shadow-inner border border-amber-500/40 opacity-100 grayscale-0' : 'bg-gray-900 border border-gray-700 opacity-50 grayscale hover:opacity-100'}">
                 🎲
@@ -250,7 +250,7 @@ export const renderSectionModal = (activeSection) => {
                 <span class="text-xs text-gray-400 font-bold uppercase tracking-wider">Sections</span>
                 <span class="text-[10px] text-gray-600 ml-2">Tap to jump • edit reps • set accel</span>
             </div>
-            <button data-action="practitioner-close-popover"
+            <button data-action="dual-mode-close-popover"
                 class="w-8 h-8 flex items-center justify-center rounded-xl text-gray-500 hover:text-white hover:bg-gray-800 transition-colors"
                 title="Close">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 pointer-events-none">
@@ -272,10 +272,10 @@ export const renderPortraitSectionModal = (activeSection) => {
     <div class="fixed inset-x-0 bottom-20 z-[70] mx-4 bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl p-3 flex flex-col gap-2 max-h-[55vh] overflow-y-auto animate-in fade-in">
         <div class="flex justify-between items-center pb-1 border-b border-gray-800 mb-1">
             <span class="text-xs text-gray-400 font-bold uppercase tracking-wider">Sections</span>
-            <button data-action="practitioner-close-popover" class="text-gray-500 hover:text-white text-xs">Done</button>
+            <button data-action="dual-mode-close-popover" class="text-gray-500 hover:text-white text-xs">Done</button>
         </div>
         ${sectionRows}
     </div>
-    <div data-action="practitioner-close-popover"
+    <div data-action="dual-mode-close-popover"
          class="fixed inset-0 z-[65] bg-black/50" style="bottom: 80px;"></div>`;
 };

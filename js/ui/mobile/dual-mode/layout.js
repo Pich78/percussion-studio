@@ -1,7 +1,7 @@
 /**
- * js/ui/mobile/practitioner/layout.js
+ * js/ui/mobile/dual-mode/layout.js
  *
- * Layout for "Dimension D: The Practitioner" — a Dual View.
+ * Layout for "Dual Mode" — a Dual View.
  *
  * This is the main entry point that composes landscape and portrait layouts.
  * See landscape.js and portrait.js for orientation-specific implementations.
@@ -85,7 +85,7 @@ const renderSharedModals = () => {
     return modals;
 };
 
-export const PractitionerLayout = () => {
+export const DualModeLayout = () => {
     const activeSection = getActiveSection(state) || state.toque.sections[0];
 
     return `

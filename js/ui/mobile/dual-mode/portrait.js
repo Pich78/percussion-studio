@@ -50,7 +50,7 @@ const renderPortraitInfoRow = (activeSection) => `
     <div class="flex items-center justify-between px-4 py-3 flex-shrink-0">
         <div class="flex items-center gap-3">
             <span class="text-xl font-bold text-white leading-tight">${activeSection.name}</span>
-            <span class="text-base font-mono font-bold ${state.isPlaying ? 'text-green-400' : 'text-gray-400'}">Rep <span id="practitioner-rep-count">${repLabel(activeSection)}</span>${renderAccelerationBadge(activeSection)}</span>
+            <span class="text-base font-mono font-bold ${state.isPlaying ? 'text-green-400' : 'text-gray-400'}">Rep <span id="dual-mode-rep-count">${repLabel(activeSection)}</span>${renderAccelerationBadge(activeSection)}</span>
         </div>
         <div class="flex items-center gap-1">
             <span class="text-2xl font-mono font-bold ${state.isPlaying ? 'text-green-400' : 'text-indigo-400'}">${liveBpm()}</span>
@@ -73,7 +73,7 @@ const renderPortraitBpmRow = () => {
         <div class="flex-1 bg-gray-900 border border-gray-800 rounded-2xl p-3">
             <div class="flex items-center gap-2">
                 <!-- Minus 1 button -->
-                <button data-action="practitioner-bpm-step" data-delta="-1"
+                <button data-action="dual-mode-bpm-step" data-delta="-1"
                     class="w-8 h-8 flex-shrink-0 rounded-full bg-gray-800 border border-gray-700 text-gray-400 
                            hover:bg-gray-700 hover:text-white active:bg-gray-600 transition-all flex items-center justify-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
@@ -96,7 +96,7 @@ const renderPortraitBpmRow = () => {
                 </div>
 
                 <!-- Plus 1 button -->
-                <button data-action="practitioner-bpm-step" data-delta="1"
+                <button data-action="dual-mode-bpm-step" data-delta="1"
                     class="w-8 h-8 flex-shrink-0 rounded-full bg-gray-800 border border-gray-700 text-gray-400 
                            hover:bg-gray-700 hover:text-white active:bg-gray-600 transition-all flex items-center justify-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
@@ -158,7 +158,7 @@ const renderPortraitMixer = (activeSection) => {
 
             <!-- Box 2: S button -->
             <div class="bg-gray-900 border border-gray-800 rounded-2xl w-10 h-14 flex items-center justify-center">
-                <button data-action="practitioner-solo" data-track-index="${tIdx}"
+                <button data-action="dual-mode-solo" data-track-index="${tIdx}"
                     class="font-bold text-sm uppercase tracking-wider transition-colors
                            ${isSolo ? 'text-amber-400' : 'text-gray-500'}"
                     title="Solo">
@@ -187,7 +187,7 @@ const renderPortraitSectionBar = (activeSection) => {
     const canEdit = !state.isPlaying;
     const sections = state.toque.sections;
     const sectionIdx = sections.findIndex(s => s.id === state.activeSectionId);
-    const isModalOpen = state.uiState.practitionerPortraitSectionModal === true
+    const isModalOpen = state.uiState.dualModePortraitSectionModal === true
         && !state.isPlaying;
 
     const sectionModal = isModalOpen ? renderPortraitSectionModal(activeSection) : '';
@@ -195,7 +195,7 @@ const renderPortraitSectionBar = (activeSection) => {
     return `
     <div class="mx-4 flex-shrink-0 relative">
         <button
-            data-action="practitioner-toggle-popover"
+            data-action="dual-mode-toggle-popover"
             data-popover-id="prac-section"
             class="w-full rounded-xl px-4 py-3 flex items-center justify-between border transition-colors
                    ${canEdit
@@ -240,13 +240,13 @@ const renderPortraitPlayBar = () => `
     </div>`;
 
 export const renderPortrait = (activeSection) => {
-    const isModalOpen = state.uiState.practitionerPortraitSectionModal === true && !state.isPlaying;
+    const isModalOpen = state.uiState.dualModePortraitSectionModal === true && !state.isPlaying;
     const sections = state.toque.sections;
     const sectionIdx = sections.findIndex(s => s.id === state.activeSectionId);
 
     const popoverHtml = isModalOpen ? `
         ${renderPortraitSectionModal(activeSection)}
-        <div data-action="practitioner-close-popover"
+        <div data-action="dual-mode-close-popover"
              class="fixed inset-0 z-[60]" style="bottom: 80px; background: rgba(0,0,0,0.4); backdrop-filter: blur(2px);">
         </div>` : '';
 

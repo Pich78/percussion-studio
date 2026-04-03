@@ -46,12 +46,12 @@ const MOBILE_ALLOWED_ACTIONS = [
     'toggle-orisha-filter', 'remove-orisha-filter', 'toggle-type-filter',
     'remove-type-filter', 'clear-bata-filters', 'select-toque', 'close-toque-details',
     'load-toque-confirm',
-    // Practitioner (Dim D) actions
-    'practitioner-toggle-popover', 'practitioner-close-popover',
-    'practitioner-bpm-step', 'practitioner-vol-step', 'practitioner-solo',
-    'practitioner-select-section', 'practitioner-rep-step', 'practitioner-set-reps', 'practitioner-toggle-random',
-    'practitioner-cycle-colour', 'practitioner-prev-section', 'practitioner-next-section',
-    'practitioner-set-accel-unit', 'practitioner-set-accel-tenth'
+    // Dual Mode actions
+    'dual-mode-toggle-popover', 'dual-mode-close-popover',
+    'dual-mode-bpm-step', 'dual-mode-vol-step', 'dual-mode-solo',
+    'dual-mode-select-section', 'dual-mode-rep-step', 'dual-mode-set-reps', 'dual-mode-toggle-random',
+    'dual-mode-cycle-colour', 'dual-mode-prev-section', 'dual-mode-next-section',
+    'dual-mode-set-accel-unit', 'dual-mode-set-accel-tenth'
 ];
 
 /**
@@ -218,7 +218,7 @@ const createMobileActionRouter = () => ({
         const viewId = target.dataset.viewId;
         const VIEW_MAP = {
             'standard': 'mobile-grid',
-            'dim-d': 'mobile-practitioner'
+            'dim-d': 'mobile-dual-mode'
         };
         const mappedViewId = VIEW_MAP[viewId];
         if (mappedViewId) {
@@ -240,34 +240,34 @@ const createMobileActionRouter = () => ({
         }
     },
 
-    // ── Practitioner (Dimension D) actions ──────────────────────────────────
+    // ── Dual Mode actions ─────────────────────────────────────────────────
 
     // Toggle a chip popover (BPM / Mixer / Section)
-    'practitioner-toggle-popover': (e, target) => {
+    'dual-mode-toggle-popover': (e, target) => {
         const popoverId = target.dataset.popoverId;
-        if (state.uiState.practitionerPopover === popoverId) {
-            state.uiState.practitionerPopover = null;
+        if (state.uiState.dualModePopover === popoverId) {
+            state.uiState.dualModePopover = null;
             if (popoverId === 'prac-section') {
-                state.uiState.practitionerPortraitSectionModal = false;
+                state.uiState.dualModePortraitSectionModal = false;
             }
         } else {
-            state.uiState.practitionerPopover = popoverId;
+            state.uiState.dualModePopover = popoverId;
             if (popoverId === 'prac-section') {
-                state.uiState.practitionerPortraitSectionModal = true;
+                state.uiState.dualModePortraitSectionModal = true;
             }
         }
         eventBus.emit('render');
     },
 
     // Close any open chip popover
-    'practitioner-close-popover': () => {
-        state.uiState.practitionerPopover = null;
-        state.uiState.practitionerPortraitSectionModal = false;
+    'dual-mode-close-popover': () => {
+        state.uiState.dualModePopover = null;
+        state.uiState.dualModePortraitSectionModal = false;
         eventBus.emit('render');
     },
 
-    // Step BPM up/down from the practitioner BPM chip modal
-    'practitioner-bpm-step': (e, target) => {
+    // Step BPM up/down from the dual-mode BPM chip modal
+    'dual-mode-bpm-step': (e, target) => {
         const delta = parseInt(target.dataset.delta, 10);
         if (!isNaN(delta)) {
             const newBpm = Math.max(40, Math.min(240, (state.toque.globalBpm || 120) + delta));
@@ -276,8 +276,8 @@ const createMobileActionRouter = () => ({
         }
     },
 
-    // Step volume up/down from the practitioner Mixer chip modal
-    'practitioner-vol-step': (e, target) => {
+    // Step volume up/down from the dual-mode Mixer chip modal
+    'dual-mode-vol-step': (e, target) => {
         const trackIdx = parseInt(target.dataset.trackIndex, 10);
         const delta = parseFloat(target.dataset.delta);
         if (isNaN(trackIdx) || isNaN(delta)) return;
@@ -294,7 +294,7 @@ const createMobileActionRouter = () => ({
     },
 
     // Toggle solo on a track - delegates to trackMixer
-    'practitioner-solo': (e, target) => {
+    'dual-mode-solo': (e, target) => {
         const section = getActiveSection(state);
         const trackIdx = parseInt(target.dataset.trackIndex, 10);
         const track = section?.measures[0]?.tracks[trackIdx];
@@ -304,18 +304,18 @@ const createMobileActionRouter = () => ({
         eventBus.emit('render');
     },
 
-    // Select a section via the practitioner chips modal
-    'practitioner-select-section': (e, target) => {
+    // Select a section via the dual-mode chips modal
+    'dual-mode-select-section': (e, target) => {
         const sectionId = target.dataset.sectionId;
         if (sectionId) {
             document.dispatchEvent(new CustomEvent('timeline-select', { detail: sectionId }));
-            state.uiState.practitionerPopover = null;
-            state.uiState.practitionerPortraitSectionModal = false;
+            state.uiState.dualModePopover = null;
+            state.uiState.dualModePortraitSectionModal = false;
         }
     },
 
     // Navigate to the previous section (top-bar chevron and swipe right)
-    'practitioner-prev-section': () => {
+    'dual-mode-prev-section': () => {
         if (!state.toque) return;
         const sections = state.toque.sections;
         const idx = sections.findIndex(s => s.id === state.activeSectionId);
@@ -325,7 +325,7 @@ const createMobileActionRouter = () => ({
     },
 
     // Navigate to the next section (top-bar chevron and swipe left)
-    'practitioner-next-section': () => {
+    'dual-mode-next-section': () => {
         if (!state.toque) return;
         const sections = state.toque.sections;
         const idx = sections.findIndex(s => s.id === state.activeSectionId);
@@ -334,8 +334,8 @@ const createMobileActionRouter = () => ({
         }
     },
 
-    // Step repetitions for a section from the practitioner section modal
-    'practitioner-rep-step': (e, target) => {
+    // Step repetitions for a section from the dual-mode section modal
+    'dual-mode-rep-step': (e, target) => {
         const sectionId = target.dataset.sectionId;
         const delta = parseInt(target.dataset.delta, 10);
         const section = state.toque.sections.find(s => s.id === sectionId);
@@ -346,7 +346,7 @@ const createMobileActionRouter = () => ({
     },
 
     // Toggle random repetitions switch
-    'practitioner-toggle-random': (e, target) => {
+    'dual-mode-toggle-random': (e, target) => {
         const sectionId = target.dataset.sectionId;
         const section = state.toque.sections.find(s => s.id === sectionId);
         if (section) {
@@ -356,7 +356,7 @@ const createMobileActionRouter = () => ({
     },
 
     // Set acceleration value via dual wheel (units)
-    'practitioner-set-accel-unit': (e, target) => {
+    'dual-mode-set-accel-unit': (e, target) => {
         const sectionId = target.dataset.sectionId;
         const section = state.toque.sections.find(s => s.id === sectionId);
         if (section) {
@@ -369,7 +369,7 @@ const createMobileActionRouter = () => ({
     },
 
     // Set acceleration value via dual wheel (tenths)
-    'practitioner-set-accel-tenth': (e, target) => {
+    'dual-mode-set-accel-tenth': (e, target) => {
         const sectionId = target.dataset.sectionId;
         const section = state.toque.sections.find(s => s.id === sectionId);
         if (section) {
@@ -382,7 +382,7 @@ const createMobileActionRouter = () => ({
     },
 
     // Cycle instrument colour metric on the landscape grid by tapping instrument name
-    'practitioner-cycle-colour': (e, target) => {
+    'dual-mode-cycle-colour': (e, target) => {
         const metrics = [null, 'instrument'];
         const current = state.uiState.instrumentColourMetric;
         const nextIdx = (metrics.indexOf(current) + 1) % metrics.length;
@@ -597,7 +597,7 @@ export const setupMobileEvents = () => {
                     updateVolumeSliderVisuals(volContainer, newVolume);
                 }
 
-                // Portrait practitioner volume slider updates
+                // Portrait dual-mode volume slider updates
                 const pct = Math.round(newVolume * 100);
                 const portraitFill = document.getElementById(`portrait-vol-fill-${tIdx}`);
                 const portraitThumb = document.getElementById(`portrait-vol-thumb-${tIdx}`);
@@ -652,7 +652,7 @@ export const setupMobileEvents = () => {
                 trackMixer.setVolume(tIdx, track, track.instrument, newVolume);
             }
         }
-        if (action === 'practitioner-set-reps') {
+        if (action === 'dual-mode-set-reps') {
             const sectionId = target.dataset.sectionId;
             const reps = parseInt(target.value, 10);
             const section = state.toque.sections.find(s => s.id === sectionId);

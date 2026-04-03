@@ -1,6 +1,6 @@
 import { state, playback } from '../../../store.js';
 import { calculateMobileCellSize } from '../standard/layout.js';
-import { PractitionerMeasureRenderer } from './practitionerMeasureRenderer.js';
+import { DualModeMeasureRenderer } from './dualModeMeasureRenderer.js';
 import { SectionSettings } from '../../../components/grid/sectionSettings.js';
 import { Bars3Icon } from '../../../icons/bars3Icon.js';
 import { StopIcon } from '../../../icons/stopIcon.js';
@@ -38,13 +38,13 @@ const renderAccelerationBadge = (section) => {
     return `<span class="text-[10px] font-mono ${color} flex-shrink-0 flex items-center gap-0.5 ml-1" title="Tempo acceleration: ${accel > 0 ? '+' : ''}${accel.toFixed(1)}% per rep">${icon}${Math.abs(accel).toFixed(1)}</span>`;
 };
 
-const renderPractitionerGrid = (activeSection, cellSizePx, iconSizePx, fontSizePx) => {
+const renderDualModeGrid = (activeSection, cellSizePx, iconSizePx, fontSizePx) => {
     if (!activeSection || !activeSection.measures || activeSection.measures.length === 0) {
         return `<div class="flex-1 flex items-center justify-center text-gray-600">No data</div>`;
     }
 
     const measuresHtml = activeSection.measures.map((measure, measureIdx) =>
-        PractitionerMeasureRenderer({
+        DualModeMeasureRenderer({
             measure,
             measureIdx,
             section: activeSection,
@@ -80,11 +80,11 @@ const renderLandscapeTopBar = (activeSection) => {
             class="w-7 h-7 flex items-center justify-center rounded-md transition-colors flex-shrink-0
                    ${enabled ? 'text-gray-300 hover:text-white hover:bg-gray-800 active:bg-gray-700' : 'text-gray-700 cursor-not-allowed'}"
             ${enabled ? '' : 'disabled'}
-            title="${action === 'practitioner-prev-section' ? 'Previous section' : 'Next section'}"
+            title="${action === 'dual-mode-prev-section' ? 'Previous section' : 'Next section'}"
         >${icon}</button>`;
 
     return `
-    <header id="practitioner-landscape-header"
+    <header id="dual-mode-landscape-header"
         class="h-10 bg-gray-950 border-b border-gray-800 flex items-center px-3 gap-2 z-40 flex-shrink-0">
         <!-- Hamburger -->
         <button data-action="toggle-menu"
@@ -99,12 +99,12 @@ const renderLandscapeTopBar = (activeSection) => {
 
         <!-- Section navigation: < Name (n/N) > -->
         <div class="flex items-center gap-1 flex-shrink-0">
-            ${navBtn('practitioner-prev-section', hasPrev,
+            ${navBtn('dual-mode-prev-section', hasPrev,
                 '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3.5 h-3.5 pointer-events-none"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/></svg>')}
             <span class="text-xs text-gray-300 font-medium whitespace-nowrap">${activeSection.name}
                 <span class="text-gray-600 font-normal">${sectionIdx + 1}/${sections.length}</span>
             </span>
-            ${navBtn('practitioner-next-section', hasNext,
+            ${navBtn('dual-mode-next-section', hasNext,
                 '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3.5 h-3.5 pointer-events-none"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>')}
         </div>
 
@@ -112,7 +112,7 @@ const renderLandscapeTopBar = (activeSection) => {
 
         <!-- Rep count with acceleration -->
         <span class="text-[10px] font-mono text-gray-400 flex-shrink-0 bg-gray-900 px-1.5 py-0.5 rounded border border-gray-800 flex items-center">
-            Rep <span id="practitioner-rep-count">${repLabel(activeSection)}</span>
+            Rep <span id="dual-mode-rep-count">${repLabel(activeSection)}</span>
             ${renderAccelerationBadge(activeSection)}
         </span>
 
@@ -126,7 +126,7 @@ const renderLandscapeTopBar = (activeSection) => {
 };
 
 const renderLandscapeBottomBar = (activeSection) => {
-    const activePopover = state.uiState.practitionerPopover || null;
+    const activePopover = state.uiState.dualModePopover || null;
     const canEditSection = !state.isPlaying;
     const sections = state.toque.sections;
     const sectionIdx = sections.findIndex(s => s.id === state.activeSectionId);
@@ -149,7 +149,7 @@ const renderLandscapeBottomBar = (activeSection) => {
         }
 
         return `
-        <button data-action="practitioner-toggle-popover" data-popover-id="${id}"
+        <button data-action="dual-mode-toggle-popover" data-popover-id="${id}"
             class="bg-gray-800 border ${border} rounded-full px-3 py-1 flex items-center gap-1.5 transition-colors flex-shrink-0">
             <span class="text-xs font-bold ${c.label}">${label}</span>
             ${sublabel ? `<span class="text-[10px] text-gray-400">${sublabel}</span>` : ''}
@@ -208,7 +208,7 @@ const renderLandscapeBottomBar = (activeSection) => {
 
         overlayHtml: activePopover ? `
         ${activePopoverHtml}
-        <div data-action="practitioner-close-popover"
+        <div data-action="dual-mode-close-popover"
              class="fixed inset-x-0 top-0 z-[60]" style="bottom: 52px; background: rgba(0,0,0,0.4); backdrop-filter: blur(2px);">
         </div>` : ''
     };
@@ -232,7 +232,7 @@ export const renderLandscape = (activeSection) => {
         ${renderLandscapeTopBar(activeSection)}
         <main class="flex-1 min-h-0 w-full flex flex-col px-2 py-1
                      bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-900 via-gray-950 to-gray-950">
-            ${renderPractitionerGrid(activeSection, cellSizePx, iconSizePx, fontSizePx)}
+            ${renderDualModeGrid(activeSection, cellSizePx, iconSizePx, fontSizePx)}
         </main>
         ${barHtml}
         ${overlayHtml}
