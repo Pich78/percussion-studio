@@ -12,6 +12,7 @@ import { eventBus } from '../services/eventBus.js';
 import { viewManager } from '../views/viewManager.js';
 import { audioEngine } from '../services/audioEngine.js';
 import { trackMixer } from '../services/trackMixer.js';
+import { getValidInstrumentSteps } from '../utils/gridUtils.js';
 
 // Import modular handlers
 import * as playbackHandlers from './handlers/playbackEvents.js';
@@ -381,12 +382,20 @@ const createMobileActionRouter = () => ({
         }
     },
 
-    // Cycle instrument colour metric on the landscape grid by tapping instrument name
+    // Cycle subdivision on the landscape grid by tapping instrument name
     'dual-mode-cycle-colour': (e, target) => {
-        const metrics = [null, 'instrument'];
-        const current = state.uiState.instrumentColourMetric;
-        const nextIdx = (metrics.indexOf(current) + 1) % metrics.length;
-        state.uiState.instrumentColourMetric = metrics[nextIdx];
+        const section = getActiveSection(state);
+        const trackIdx = parseInt(target.dataset.trackIndex);
+        const measureIdx = parseInt(target.dataset.measureIndex || 0);
+        const track = section.measures[measureIdx].tracks[trackIdx];
+
+        const currentSteps = track.trackSteps || section.subdivision || 4;
+        const validOptions = getValidInstrumentSteps(section.steps);
+        const currentIndex = validOptions.indexOf(currentSteps);
+        const nextIndex = (currentIndex + 1) % validOptions.length;
+        const newSteps = validOptions[nextIndex];
+
+        actions.updateTrackSteps(trackIdx, measureIdx, newSteps);
         eventBus.emit('render');
     },
 

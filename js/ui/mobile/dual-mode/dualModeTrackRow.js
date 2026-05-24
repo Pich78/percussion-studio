@@ -128,19 +128,22 @@ export const DualModeTrackRow = ({
     const displayName = instDef ? instDef.name : track.instrument;
     const nameColor = instDef?.color || '#d1d5db';
     const isMuted = track.muted || track.volume === 0;
+    const subdivision = track.trackSteps || section.subdivision || 4;
 
     // ── Dual Mode-specific sticky label: name only, centred ──────────────
     const labelHtml = `
     <div class="sticky left-0 z-20 flex-shrink-0 flex items-center ${borderColorClass} bg-gray-950 border-r border-gray-800 shadow-[4px_0_10px_rgba(0,0,0,0.5)]">
         <div class="w-44 flex items-center justify-center px-3 py-1.5">
             <button
-                data-action="dualMode-cycle-colour"
+                data-action="dual-mode-cycle-colour"
                 data-track-index="${trackIdx}"
-                class="text-sm font-bold text-center leading-tight hover:opacity-75 active:opacity-50 transition-opacity cursor-pointer truncate w-full ${isMuted ? 'line-through opacity-40' : ''}"
+                data-measure-index="${measureIdx}"
+                class="text-sm font-bold leading-tight hover:opacity-75 active:opacity-50 transition-opacity cursor-pointer w-full flex items-center justify-center gap-1.5 ${isMuted ? 'line-through opacity-40' : ''}"
                 style="color: ${isMuted ? '#6b7280' : nameColor};"
-                title="${displayName}${isMuted ? ' (muted)' : ' — tap to cycle colour'}"
+                title="${displayName}${isMuted ? ' (muted)' : ` — ÷${subdivision} tap to cycle`}"
             >
-                ${displayName}
+                <span class="truncate">${displayName}</span>
+                <span class="text-[10px] font-mono text-indigo-400/80 flex-shrink-0 whitespace-nowrap">÷${subdivision}</span>
             </button>
         </div>
     </div>`;
