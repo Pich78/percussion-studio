@@ -119,7 +119,7 @@ const renderLandscapeTopBar = (activeSection) => {
         <div class="flex-1"></div>
 
         <!-- Live BPM badge -->
-        <span class="text-xs font-mono font-bold flex-shrink-0 ${state.isPlaying ? 'text-green-400' : 'text-indigo-400'}">
+        <span id="dual-mode-live-bpm-landscape" class="text-xs font-mono font-bold flex-shrink-0 ${state.isPlaying ? 'text-green-400' : 'text-indigo-400'}">
             ♩${liveBpm()}
         </span>
     </header>`;

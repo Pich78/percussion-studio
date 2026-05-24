@@ -11,7 +11,6 @@ import { DualModeLayout } from '../ui/mobile/dual-mode/layout.js';
 import { updateVisualStep, scrollToMeasure } from '../ui/playheadUtils.js';
 import { setupMobileEvents } from '../events/mobileEvents.js';
 import { state, playback } from '../store.js';
-import { eventBus } from '../services/eventBus.js';
 
 export const mobileDualModeView = {
     id: 'mobile-dual-mode',
@@ -66,8 +65,24 @@ export const mobileDualModeView = {
     onStep: ({ step, measure, rep }) => {
         updateVisualStep(step, measure);
         scrollToMeasure(measure);
+
+        // Update rep count and BPM directly — no full re-render, prevents
+        // race condition where button taps are lost during DOM replacement.
         if (step === 0) {
-            eventBus.emit('render');
+            const repEl = document.getElementById('dual-mode-rep-count');
+            const repElPortrait = document.getElementById('dual-mode-rep-count-portrait');
+            const bpmEl = document.getElementById('dual-mode-live-bpm-landscape');
+            const bpmElPortrait = document.getElementById('dual-mode-live-bpm-portrait');
+
+            const reps = state.toque?.sections?.find(s => s.id === state.activeSectionId)?.repetitions || 1;
+            const currentRep = playback.repetitionCounter || 1;
+            const repText = `${currentRep}/${reps}`;
+            const bpmText = Math.round(playback.currentPlayheadBpm || state.toque?.globalBpm || 120);
+
+            if (repEl) repEl.textContent = repText;
+            if (repElPortrait) repElPortrait.textContent = repText;
+            if (bpmEl) bpmEl.innerHTML = `♩${bpmText}`;
+            if (bpmElPortrait) bpmElPortrait.textContent = `${bpmText}`;
         }
     }
 };
