@@ -85,6 +85,17 @@
             touch-action: pan-x pan-y;
         }
 
+        /* Remove 300ms tap delay on all interactive elements */
+        button:not(.ms-wheel li):not(.no-pinch-zoom),
+        [data-action]:not(.no-pinch-zoom) {
+            touch-action: manipulation;
+        }
+
+        /* Remove default iOS grey tap highlight */
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+
         /* Hide grid content in portrait mode */
         @media (orientation: portrait) {
             .landscape-only {
