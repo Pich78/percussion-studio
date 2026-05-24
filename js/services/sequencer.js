@@ -296,7 +296,7 @@ const computeNextStep = (toque, pb) => {
                 const nextPlayState = getSectionPlayState(nextSection);
                 nextEffectiveRepetitions = nextPlayState.repetitions;
 
-                if (nextSection.bpm !== undefined) {
+                if (!pb.userHasOverriddenBpm && nextSection.bpm !== undefined) {
                     nextBpm = nextSection.bpm;
                 }
             }
@@ -421,6 +421,7 @@ export const stopPlayback = () => {
         const first = state.toque.sections[0];
         commit('resetPlayback', { sectionId: first.id });
         playback.activeSectionId = first.id;
+        playback.userHasOverriddenBpm = false;
         playback.currentPlayheadBpm = first.bpm ?? state.toque.globalBpm;
     } else {
         commit('setPlaying', { isPlaying: false });

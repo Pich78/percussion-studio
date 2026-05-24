@@ -103,7 +103,7 @@ const renderHeader = () => {
             <div class="flex items-center gap-1 ml-2 bg-gray-900 px-2 py-0.5 rounded border border-gray-800 flex-shrink-0 border-l-2 ${state.isPlaying ? 'border-l-green-500/50' : 'border-l-gray-700'}">
               <span class="text-[10px] uppercase font-bold text-gray-500">Live</span>
               <span class="font-mono font-bold ${state.isPlaying ? 'text-green-400' : 'text-gray-500'}" id="header-live-bpm">
-                ${state.isPlaying ? Math.round(playback.currentPlayheadBpm) : state.toque.globalBpm}
+                ${Math.round(playback.currentPlayheadBpm)}
               </span>
               <span class="text-[9px] text-gray-600">BPM</span>
            </div>
@@ -113,18 +113,18 @@ const renderHeader = () => {
         <div class="flex items-center gap-3 bg-gray-900 px-3 py-2 rounded-lg border border-gray-800">
           <div class="flex flex-col items-end leading-none">
               <span class="text-[9px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">Global</span>
-              <span class="text-xs font-mono font-bold text-cyan-400" id="header-global-bpm">${state.toque.globalBpm} <span class="text-[9px] text-gray-600">BPM</span></span>
+              <span class="text-xs font-mono font-bold text-cyan-400" id="header-global-bpm">${Math.round(playback.currentPlayheadBpm)} <span class="text-[9px] text-gray-600">BPM</span></span>
         </div>
           <!-- BPM Slider with Handle (matching volume slider style) -->
           <div class="relative w-40 h-5 flex items-center group/bpm cursor-pointer">
             <!-- Background track -->
             <div class="absolute left-0 right-0 h-2 bg-gray-700 rounded-full cursor-pointer"></div>
             <!-- Fill bar (cyan gradient) -->
-            <div class="absolute left-0 h-2 bg-gradient-to-r from-cyan-600 to-cyan-400 rounded-full cursor-pointer" style="width: ${((state.toque.globalBpm - 40) / 200) * 100}%"></div>
+            <div class="absolute left-0 h-2 bg-gradient-to-r from-cyan-600 to-cyan-400 rounded-full cursor-pointer" style="width: ${((playback.currentPlayheadBpm - 40) / 200) * 100}%"></div>
             <!-- Handle -->
-            <div class="absolute w-4 h-4 bg-white rounded-full shadow-md border border-cyan-400 cursor-pointer z-[15] transition-transform group-hover/bpm:scale-110" style="left: calc(${((state.toque.globalBpm - 40) / 200) * 100}% - 8px)"></div>
+            <div class="absolute w-4 h-4 bg-white rounded-full shadow-md border border-cyan-400 cursor-pointer z-[15] transition-transform group-hover/bpm:scale-110" style="left: calc(${((playback.currentPlayheadBpm - 40) / 200) * 100}% - 8px)"></div>
             <!-- Range input (invisible but captures interactions) -->
-            <input type="range" min="40" max="240" value="${state.toque.globalBpm}" data-action="update-global-bpm" 
+            <input type="range" min="40" max="240" value="${Math.round(playback.currentPlayheadBpm)}" data-action="update-global-bpm" 
               class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" />
           </div>
         </div>
@@ -202,7 +202,7 @@ export const DesktopLayout = () => {
         <div class="block flex-shrink-0 h-full"> 
             ${Timeline({
     sections: state.toque.sections,
-    globalBpm: state.toque.globalBpm,
+    globalBpm: Math.round(playback.currentPlayheadBpm),
     activeSectionId: state.activeSectionId,
     rhythmName: state.toque.name,
     orisha: state.toque.orisha || [],
@@ -217,7 +217,7 @@ export const DesktopLayout = () => {
           <div id="grid-container" class="w-full px-4 py-8 flex flex-col items-center justify-center overflow-hidden h-full">
             ${TubsGrid({
     section: activeSection,
-    globalBpm: state.toque.globalBpm,
+    globalBpm: Math.round(playback.currentPlayheadBpm),
     currentStep: state.currentStep,
     selectedStroke: state.selectedStroke,
     uiState: state.uiState,

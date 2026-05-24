@@ -7,7 +7,7 @@
 
 import { MobileLayout } from '../ui/mobile/standard/layout.js';
 import { setupMobileEvents } from '../events/mobileEvents.js';
-import { updateVisualStep, scrollToMeasure } from '../ui/playheadUtils.js';
+import { updateVisualStep, scrollToMeasure, updateBpmUi } from '../ui/playheadUtils.js';
 
 export const mobileGridView = {
     id: 'mobile-grid',
@@ -25,5 +25,6 @@ export const mobileGridView = {
         scrollToMeasure(measure);
         const repEl = document.getElementById('header-rep-count');
         if (repEl) repEl.textContent = rep;
+        if (step === 0) updateBpmUi();
     }
 };

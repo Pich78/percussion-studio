@@ -8,7 +8,7 @@
 
 import { getActiveSection } from '../store/stateSelectors.js';
 import { autoScrollGrid } from '../components/tubsGrid.js';
-import { state } from '../store.js';
+import { state, playback } from '../store.js';
 
 /**
  * Render the playhead bar at the given step position within a measure.
@@ -114,4 +114,47 @@ export const scrollToMeasure = (measureIndex) => {
             behavior: 'smooth'
         });
     }, 10);
+};
+
+/**
+ * Update all BPM slider UI elements to reflect the current live BPM.
+ * Called on step 0 (repetition boundaries) from all view onStep handlers.
+ */
+export const updateBpmUi = () => {
+    const bpmVal = playback.currentPlayheadBpm;
+    const bpmText = Math.round(bpmVal);
+    const pct = ((bpmVal - 40) / 200) * 100;
+
+    // Update all range input values first
+    document.querySelectorAll('input[data-action="update-global-bpm"]').forEach(input => {
+        input.value = bpmText;
+    });
+
+    // Update .group/bpm slider visuals (desktop + mobile standard + bpmModal)
+    document.querySelectorAll('.group\\/bpm').forEach(container => {
+        const fillBar = container.querySelector('div[class*="bg-gradient"]');
+        const handle = container.querySelector('div[class*="bg-white"]');
+        if (fillBar) fillBar.style.width = pct + '%';
+        if (handle) handle.style.left = 'calc(' + pct + '% - 8px)';
+    });
+
+    // Portrait dual-mode BPM slider
+    const portraitFill = document.getElementById('portrait-bpm-fill');
+    const portraitThumb = document.getElementById('portrait-bpm-thumb');
+    const portraitLabel = document.getElementById('portrait-bpm-label');
+    if (portraitFill) portraitFill.style.width = pct + '%';
+    if (portraitThumb) portraitThumb.style.left = 'calc(' + pct + '% - 8px)';
+    if (portraitLabel) portraitLabel.innerHTML = bpmText + ' <span class="text-[10px]">bpm</span>';
+
+    // BPM text displays
+    const headerLive = document.getElementById('header-live-bpm');
+    const headerGlobal = document.getElementById('header-global-bpm');
+    if (headerLive) headerLive.textContent = bpmText;
+    if (headerGlobal) headerGlobal.innerHTML = bpmText + ' <span class="text-[9px] text-gray-600">BPM</span>';
+
+    // Dual-mode BPM badges
+    const bpmEl = document.getElementById('dual-mode-live-bpm-landscape');
+    const bpmElPortrait = document.getElementById('dual-mode-live-bpm-portrait');
+    if (bpmEl) bpmEl.innerHTML = '♩' + bpmText;
+    if (bpmElPortrait) bpmElPortrait.textContent = '' + bpmText;
 };

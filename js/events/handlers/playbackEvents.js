@@ -35,14 +35,13 @@ export const handleToggleCountIn = () => {
  * @param {HTMLInputElement} target - The input element
  */
 export const handleGlobalBpmInput = (target) => {
-    const section = getActiveSection(state);
-    state.toque.globalBpm = Number(target.value);
-    if (section && !section.bpm) {
-        playback.currentPlayheadBpm = state.toque.globalBpm;
-    }
+    const newBpm = Number(target.value);
+    state.toque.globalBpm = newBpm;
+    playback.currentPlayheadBpm = newBpm;
+    playback.userHasOverriddenBpm = true;
     const display = document.getElementById('header-global-bpm');
     if (display) {
-        display.innerHTML = `${state.toque.globalBpm} <span class="text-[9px] text-gray-600">BPM</span>`;
+        display.innerHTML = `${newBpm} <span class="text-[9px] text-gray-600">BPM</span>`;
     }
 };
 
@@ -51,11 +50,10 @@ export const handleGlobalBpmInput = (target) => {
  * @param {HTMLInputElement} target - The input element
  */
 export const handleGlobalBpmChange = (target) => {
-    const section = getActiveSection(state);
-    state.toque.globalBpm = Number(target.value);
-    if (section && !section.bpm) {
-        playback.currentPlayheadBpm = state.toque.globalBpm;
-    }
+    const newBpm = Number(target.value);
+    state.toque.globalBpm = newBpm;
+    playback.currentPlayheadBpm = newBpm;
+    playback.userHasOverriddenBpm = true;
     eventBus.emit('render');
 };
 
@@ -68,6 +66,7 @@ export const handleSectionBpmInput = (target) => {
     if (section) {
         section.bpm = Number(target.value);
         playback.currentPlayheadBpm = section.bpm;
+        playback.userHasOverriddenBpm = true;
     }
 };
 
@@ -80,6 +79,7 @@ export const handleSectionBpmChange = (target) => {
     if (section) {
         section.bpm = Number(target.value);
         playback.currentPlayheadBpm = section.bpm;
+        playback.userHasOverriddenBpm = true;
     }
 };
 
@@ -89,7 +89,7 @@ export const handleSectionBpmChange = (target) => {
 export const handleToggleBpmOverride = () => {
     const section = getActiveSection(state);
     if (section) {
-        section.bpm = (section.bpm !== undefined) ? undefined : state.toque.globalBpm;
+        section.bpm = (section.bpm !== undefined) ? undefined : playback.currentPlayheadBpm;
     }
 };
 

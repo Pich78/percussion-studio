@@ -104,7 +104,7 @@ const createActionRouter = () => {
         'toggle-bpm-override': () => {
             const section = getActiveSection(state);
             if (section) {
-                commit('toggleBpmOverride', { section, globalBpm: state.toque.globalBpm });
+                commit('toggleBpmOverride', { section, globalBpm: playback.currentPlayheadBpm });
                 eventBus.emit('grid-refresh');
             }
         },
@@ -499,6 +499,7 @@ export const setupDesktopEvents = () => {
         if (action === 'update-bpm' && section) {
             commit('setSectionBpm', { section, bpm: Number(target.value) });
             playback.currentPlayheadBpm = section.bpm;
+            playback.userHasOverriddenBpm = true;
             return;
         }
 

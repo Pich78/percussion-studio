@@ -155,7 +155,7 @@ export const refreshGrid = () => {
 
     container.innerHTML = TubsGrid({
       section: activeSection,
-      globalBpm: state.toque.globalBpm,
+      globalBpm: Math.round(playback.currentPlayheadBpm),
       currentStep: state.currentStep,
       selectedStroke: state.selectedStroke,
       uiState: state.uiState,

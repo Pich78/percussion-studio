@@ -107,6 +107,7 @@ export const playback = {
     repetitionCounter: 1,
     effectiveRepetitions: null,
     currentPlayheadBpm: 120,
+    userHasOverriddenBpm: false,
     activeSectionId: null,
     nextNoteTime: 0,
     isCountingIn: false,

@@ -271,8 +271,10 @@ const createMobileActionRouter = () => ({
     'dual-mode-bpm-step': (e, target) => {
         const delta = parseInt(target.dataset.delta, 10);
         if (!isNaN(delta)) {
-            const newBpm = Math.max(40, Math.min(240, (state.toque.globalBpm || 120) + delta));
+            const newBpm = Math.max(40, Math.min(240, Math.round(playback.currentPlayheadBpm || 120) + delta));
             state.toque.globalBpm = newBpm;
+            playback.currentPlayheadBpm = newBpm;
+            playback.userHasOverriddenBpm = true;
             eventBus.emit('render');
         }
     },
@@ -619,8 +621,8 @@ export const setupMobileEvents = () => {
         if (action === 'update-global-bpm') {
             const newBpm = Number(target.value);
             state.toque.globalBpm = newBpm;
-            const section = getActiveSection(state);
-            if (!section?.bpm) playback.currentPlayheadBpm = newBpm;
+            playback.currentPlayheadBpm = newBpm;
+            playback.userHasOverriddenBpm = true;
             const display = document.getElementById('header-global-bpm');
             if (display) display.innerHTML = `${newBpm} <span class="text-[8px] text-gray-600">BPM</span>`;
 
@@ -646,9 +648,10 @@ export const setupMobileEvents = () => {
         const target = e.target;
         const action = target.dataset.action;
         if (action === 'update-global-bpm') {
-            state.toque.globalBpm = Number(target.value);
-            const section = getActiveSection(state);
-            if (!section?.bpm) playback.currentPlayheadBpm = state.toque.globalBpm;
+            const newBpm = Number(target.value);
+            state.toque.globalBpm = newBpm;
+            playback.currentPlayheadBpm = newBpm;
+            playback.userHasOverriddenBpm = true;
             eventBus.emit('render');
         }
         if (action === 'update-volume') {
@@ -722,8 +725,8 @@ export const setupMobileEvents = () => {
      */
     function applyKnobBpm(bpm) {
         state.toque.globalBpm = bpm;
-        const section = getActiveSection(state);
-        if (!section?.bpm) playback.currentPlayheadBpm = bpm;
+        playback.currentPlayheadBpm = bpm;
+        playback.userHasOverriddenBpm = true;
         // Update BPM display
         const display = document.getElementById('header-global-bpm');
         if (display) display.textContent = bpm;

@@ -19,7 +19,9 @@ export const updateActiveSection = (id) => {
 
     if (state.toque) {
         const section = state.toque.sections.find(s => s.id === id);
-        if (section) playback.currentPlayheadBpm = section.bpm ?? state.toque.globalBpm;
+        if (section && !playback.userHasOverriddenBpm) {
+            playback.currentPlayheadBpm = section.bpm ?? state.toque.globalBpm;
+        }
     }
     eventBus.emit('render');
 };

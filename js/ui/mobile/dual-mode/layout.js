@@ -7,7 +7,7 @@
  * See landscape.js and portrait.js for orientation-specific implementations.
  */
 
-import { state } from '../../../store.js';
+import { state, playback } from '../../../store.js';
 import { getActiveSection } from '../../../store/stateSelectors.js';
 import { BataExplorerModal } from '../../../components/bataExplorerModal.js';
 import { ViewModeModal } from '../../../components/viewModeModal.js';
@@ -40,7 +40,7 @@ const renderSharedModals = () => {
                 <div class="flex-1 overflow-hidden">
                     ${Timeline({
                         sections: state.toque.sections,
-                        globalBpm: state.toque.globalBpm,
+                        globalBpm: Math.round(playback.currentPlayheadBpm),
                         activeSectionId: state.activeSectionId,
                         rhythmName: state.toque.name,
                         readOnly: true,

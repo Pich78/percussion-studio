@@ -12,10 +12,7 @@ import { renderBpmModal } from './bpmModal.js';
 import { renderMixerModal } from './mixerModal.js';
 import { renderSectionModal } from './sectionModal.js';
 
-const liveBpm = () =>
-    state.isPlaying
-        ? Math.round(playback.currentPlayheadBpm)
-        : state.toque.globalBpm;
+const liveBpm = () => Math.round(playback.currentPlayheadBpm);
 
 const repLabel = (section) => {
     const reps = section.repetitions || 1;
@@ -64,7 +61,7 @@ const renderDualModeGrid = (activeSection, cellSizePx, iconSizePx, fontSizePx) =
         class="flex-1 flex flex-col gap-2 overflow-x-auto overflow-y-scroll pb-4 w-full h-full custom-scrollbar relative outline-none ring-0 no-pinch-zoom"
         style="scroll-snap-type: y mandatory; -webkit-overflow-scrolling: touch;"
     >
-        ${SectionSettings(activeSection, state.toque.globalBpm, /* readOnly= */ true)}
+        ${SectionSettings(activeSection, Math.round(playback.currentPlayheadBpm), /* readOnly= */ true)}
         ${measuresHtml}
     </div>`;
 };

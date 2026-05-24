@@ -10,10 +10,7 @@ import { SpeakerWaveIcon } from '../../../icons/speakerWaveIcon.js';
 import { SpeakerXMarkIcon } from '../../../icons/speakerXMarkIcon.js';
 import { renderPortraitSectionModal } from './sectionModal.js';
 
-const liveBpm = () =>
-    state.isPlaying
-        ? Math.round(playback.currentPlayheadBpm)
-        : state.toque.globalBpm;
+const liveBpm = () => Math.round(playback.currentPlayheadBpm);
 
 const repLabel = (section) => {
     const reps = section.repetitions || 1;
@@ -59,7 +56,7 @@ const renderPortraitInfoRow = (activeSection) => `
     </div>`;
 
 const renderPortraitBpmRow = () => {
-    const bpm = state.toque.globalBpm;
+    const bpm = playback.currentPlayheadBpm;
     const pct = ((bpm - 40) / 200) * 100;
     const subdivision = state.activeSectionId 
         ? (state.toque.sections.find(s => s.id === state.activeSectionId)?.subdivision || 4)
