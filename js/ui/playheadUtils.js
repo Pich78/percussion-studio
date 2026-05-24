@@ -130,12 +130,12 @@ export const updateBpmUi = () => {
         input.value = bpmText;
     });
 
-    // Update .group/bpm slider visuals (desktop + mobile standard + bpmModal)
+    // Update .group/bpm slider visuals (dynamic offset based on actual handle width)
     document.querySelectorAll('.group\\/bpm').forEach(container => {
         const fillBar = container.querySelector('div[class*="bg-gradient"]');
         const handle = container.querySelector('div[class*="bg-white"]');
         if (fillBar) fillBar.style.width = pct + '%';
-        if (handle) handle.style.left = 'calc(' + pct + '% - 8px)';
+        if (handle) handle.style.left = 'calc(' + pct + '% - ' + (handle.offsetWidth / 2) + 'px)';
     });
 
     // Portrait dual-mode BPM slider
@@ -143,7 +143,7 @@ export const updateBpmUi = () => {
     const portraitThumb = document.getElementById('portrait-bpm-thumb');
     const portraitLabel = document.getElementById('portrait-bpm-label');
     if (portraitFill) portraitFill.style.width = pct + '%';
-    if (portraitThumb) portraitThumb.style.left = 'calc(' + pct + '% - 8px)';
+    if (portraitThumb) portraitThumb.style.left = 'calc(' + pct + '% - ' + (portraitThumb.offsetWidth / 2) + 'px)';
     if (portraitLabel) portraitLabel.innerHTML = bpmText + ' <span class="text-[10px]">bpm</span>';
 
     // BPM text displays
@@ -157,4 +157,12 @@ export const updateBpmUi = () => {
     const bpmElPortrait = document.getElementById('dual-mode-live-bpm-portrait');
     if (bpmEl) bpmEl.innerHTML = '♩' + bpmText;
     if (bpmElPortrait) bpmElPortrait.textContent = '' + bpmText;
+
+    // BPM modal (bpmModal.js) — different dimensions (w-7 handle, px-1 container)
+    const modalValue = document.getElementById('bpm-modal-value');
+    const modalFill = document.getElementById('bpm-modal-fill');
+    const modalThumb = document.getElementById('bpm-modal-thumb');
+    if (modalValue) modalValue.textContent = bpmText + ' BPM';
+    if (modalFill) modalFill.style.width = pct + '%';
+    if (modalThumb) modalThumb.style.left = 'calc(' + pct + '% - 10px)';
 };

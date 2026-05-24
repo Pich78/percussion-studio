@@ -396,9 +396,9 @@ export const setupDesktopEvents = () => {
         // Update fill bar
         const fillBar = container.querySelector('div[class*="bg-gradient"]');
         if (fillBar) fillBar.style.width = `${percentage}%`;
-        // Update handle position (8px offset for 4x4 handle)
+        // Update handle position (dynamic offset based on actual handle width)
         const handle = container.querySelector('div[class*="bg-white"]');
-        if (handle) handle.style.left = `calc(${percentage}% - 8px)`;
+        if (handle) handle.style.left = `calc(${percentage}% - ${handle.offsetWidth / 2}px)`;
     }
 
     // Input handler for sliders and text inputs

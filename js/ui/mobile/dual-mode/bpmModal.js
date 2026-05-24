@@ -5,14 +5,14 @@ export const renderBpmModal = () => `
         <div class="flex justify-between items-center">
             <div class="flex flex-col">
                 <span class="text-xs text-gray-400 font-bold uppercase tracking-wider">Tempo</span>
-                <span class="text-xl font-mono text-indigo-400 font-bold">${Math.round(playback.currentPlayheadBpm)} BPM</span>
+                <span id="bpm-modal-value" class="text-xl font-mono text-indigo-400 font-bold">${Math.round(playback.currentPlayheadBpm)} BPM</span>
             </div>
             <button data-action="dual-mode-close-popover" class="text-gray-500 hover:text-white text-xs">Done</button>
         </div>
         <div class="relative w-full h-10 flex items-center group/bpm cursor-pointer py-2 px-1">
             <div class="absolute left-1 right-1 h-3 bg-gray-800 rounded-full border border-gray-700"></div>
-            <div class="absolute left-1 h-3 bg-gradient-to-r from-indigo-600 to-indigo-400 rounded-full" style="width: calc(${((playback.currentPlayheadBpm - 40) / 200) * 100}% - 2px)"></div>
-            <div class="absolute w-7 h-7 bg-white rounded-full shadow-lg border-2 border-indigo-400 z-[15] touch-none" style="left: calc(${((playback.currentPlayheadBpm - 40) / 200) * 100}% - 14px + 4px)"></div>
+            <div id="bpm-modal-fill" class="absolute left-1 h-3 bg-gradient-to-r from-indigo-600 to-indigo-400 rounded-full" style="width: calc(${((playback.currentPlayheadBpm - 40) / 200) * 100}% - 2px)"></div>
+            <div id="bpm-modal-thumb" class="absolute w-7 h-7 bg-white rounded-full shadow-lg border-2 border-indigo-400 z-[15] touch-none" style="left: calc(${((playback.currentPlayheadBpm - 40) / 200) * 100}% - 14px + 4px)"></div>
             <input type="range" min="40" max="240" value="${Math.round(playback.currentPlayheadBpm)}"
                 data-action="update-global-bpm"
                 class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" />

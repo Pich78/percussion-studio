@@ -638,8 +638,16 @@ export const setupMobileEvents = () => {
             const portraitLabel = document.getElementById('portrait-bpm-label');
             const pct = ((newBpm - 40) / 200) * 100;
             if (portraitFill) portraitFill.style.width = pct + '%';
-            if (portraitThumb) portraitThumb.style.left = 'calc(' + pct + '% - 8px)';
+            if (portraitThumb) portraitThumb.style.left = 'calc(' + pct + '% - ' + (portraitThumb.offsetWidth / 2) + 'px)';
             if (portraitLabel) portraitLabel.innerHTML = newBpm + ' <span class="text-[10px]">bpm</span>';
+
+            // Update BPM modal if open (bpmModal.js)
+            const modalValue = document.getElementById('bpm-modal-value');
+            const modalFill = document.getElementById('bpm-modal-fill');
+            const modalThumb = document.getElementById('bpm-modal-thumb');
+            if (modalValue) modalValue.textContent = newBpm + ' BPM';
+            if (modalFill) modalFill.style.width = pct + '%';
+            if (modalThumb) modalThumb.style.left = 'calc(' + pct + '% - ' + (modalThumb.offsetWidth / 2) + 'px)';
         }
     });
 
@@ -893,9 +901,9 @@ export const setupMobileEvents = () => {
         // Update fill bar
         const fillBar = container.querySelector('div[class*="bg-gradient"]');
         if (fillBar) fillBar.style.width = `${percentage}%`;
-        // Update handle position (6px offset for 3x3 handle on mobile)
+        // Update handle position (dynamic offset based on actual handle width)
         const handle = container.querySelector('div[class*="bg-white"]');
-        if (handle) handle.style.left = `calc(${percentage}% - 6px)`;
+        if (handle) handle.style.left = `calc(${percentage}% - ${handle.offsetWidth / 2}px)`;
     }
 
     /**
