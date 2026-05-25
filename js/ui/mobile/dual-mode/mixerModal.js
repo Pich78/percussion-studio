@@ -43,7 +43,7 @@ export const renderMixerModal = (activeSection) => {
                 <div class="absolute w-7 h-7 bg-white rounded-full shadow-lg border-2 border-indigo-400 z-[15] touch-none"
                      style="left: calc(${pct}% - 14px + 4px)"></div>
                 <input type="range" min="0" max="1" step="0.01" value="${vol}"
-                    data-action="update-volume" data-track-index="${tIdx}" data-measure-index="0"
+                    data-action="update-volume" data-track-index="${tIdx}" data-measure-index="0" style="touch-action: none"
                     class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" />
             </div>
         </div>`;

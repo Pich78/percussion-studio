@@ -148,7 +148,7 @@ const renderPortraitMixer = (activeSection) => {
                         ${def.name || track.instrument}${isSolo ? ' ◉' : ''}
                     </span>
                     <input type="range" min="0" max="1" step="0.01" value="${vol}"
-                           data-action="update-volume" data-track-index="${tIdx}" data-measure-index="0"
+                           data-action="update-volume" data-track-index="${tIdx}" data-measure-index="0" style="touch-action: none"
                            class="absolute -inset-x-3 inset-y-0 w-[calc(100%+24px)] h-full opacity-0 cursor-pointer z-20" />
                 </div>
             </div>

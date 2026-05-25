@@ -614,6 +614,14 @@ export const setupMobileEvents = () => {
                 const portraitThumb = document.getElementById(`portrait-vol-thumb-${tIdx}`);
                 if (portraitFill) portraitFill.style.width = `${pct}%`;
                 if (portraitThumb) portraitThumb.style.left = `calc(${pct}% - 8px)`;
+
+                // Sync state during drag so any re-render (playback, count-in, section change)
+                // picks up the current volume instead of reverting to the old value
+                track.volume = newVolume;
+                if (state.mix[track.instrument]) {
+                    state.mix[track.instrument].volume = newVolume;
+                    if (newVolume > 0) state.mix[track.instrument].lastVolume = newVolume;
+                }
             }
             return;
         }
@@ -856,6 +864,25 @@ export const setupMobileEvents = () => {
         if (activeVolInput) {
             window.__volumeDragging = false;
             // Dispatch change event to trigger full re-render
+            activeVolInput.dispatchEvent(new Event('change', { bubbles: true }));
+            activeVolInput = null;
+            activeVolContainer = null;
+        }
+    });
+
+    document.addEventListener('touchcancel', () => {
+        if (activeKnobEl) {
+            window.__bpmDragging = false;
+            activeKnobEl = null;
+            eventBus.emit('render');
+        }
+        if (activeBpmInput) {
+            window.__bpmDragging = false;
+            activeBpmInput = null;
+            activeBpmContainer = null;
+        }
+        if (activeVolInput) {
+            window.__volumeDragging = false;
             activeVolInput.dispatchEvent(new Event('change', { bubbles: true }));
             activeVolInput = null;
             activeVolContainer = null;
