@@ -622,6 +622,13 @@ export const setupMobileEvents = () => {
                 const portraitThumb = document.getElementById(`portrait-vol-thumb-${tIdx}`);
                 if (portraitFill) portraitFill.style.width = `${pct}%`;
                 if (portraitThumb) portraitThumb.style.left = `calc(${pct}% - 8px)`;
+
+                // Direct DOM update of the outside pct text — mirrors the
+                // desktop pattern in gridEvents.js:144-146. The input handler
+                // is the single update point for this surface, called on every
+                // input event (drag tick, keyboard, programmatic dispatch).
+                const outsidePct = volContainer?.parentElement?.querySelector('[data-role="volume-pct-outside"]');
+                if (outsidePct) outsidePct.textContent = `${pct}%`;
             }
             return;
         }
