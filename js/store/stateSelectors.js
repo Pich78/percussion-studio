@@ -53,6 +53,36 @@ export const getMixSettings = (state, instrumentSymbol) => {
 };
 
 /**
+ * Get the effective volume (0-1) for an instrument from the mix.
+ * Single source of truth for all volume slider UI.
+ * @param {object} state - Application state
+ * @param {string} instrumentSymbol - Instrument symbol
+ * @returns {number} Volume 0.0-1.0
+ */
+export const getMixVolume = (state, instrumentSymbol) => {
+    if (state.mix && state.mix[instrumentSymbol]) {
+        return state.mix[instrumentSymbol].volume;
+    }
+    return 1.0;
+};
+
+/**
+ * Get the muted flag for an instrument from the mix.
+ * Single source of truth for "is this instrument muted".
+ * Volume 0 implies muted, so this also returns true when volume is 0.
+ * @param {object} state - Application state
+ * @param {string} instrumentSymbol - Instrument symbol
+ * @returns {boolean} True if muted (explicitly or by volume=0)
+ */
+export const isInstrumentMuted = (state, instrumentSymbol) => {
+    if (state.mix && state.mix[instrumentSymbol]) {
+        const mix = state.mix[instrumentSymbol];
+        return mix.muted === true || mix.volume === 0;
+    }
+    return false;
+};
+
+/**
  * Get instrument definition from cache
  * @param {object} state - Application state
  * @param {string} instrumentSymbol - Instrument symbol

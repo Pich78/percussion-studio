@@ -226,17 +226,20 @@ export const addTrackToSection = (state, { section, trackTemplate }) => {
 };
 
 /**
- * Update a track's instrument across all measures
+ * Update a track's instrument across all measures.
+ * Note: volume/muted are NOT propagated to track objects — they live in
+ * state.mix[symbol] as the single source of truth. The audio engine reads
+ * state.mix for the instrument gain node; per-track gain is intentionally
+ * absent (the user model is: one volume per instrument, modulated by
+ * per-dynamic multipliers on the note).
  * @param {object} state
- * @param {{ section: object, trackIdx: number, instrument: string, pack: string, volume: number, muted: boolean }} payload
+ * @param {{ section: object, trackIdx: number, instrument: string, pack: string }} payload
  */
-export const updateTrackInstrumentInSection = (state, { section, trackIdx, instrument, pack, volume, muted }) => {
+export const updateTrackInstrumentInSection = (state, { section, trackIdx, instrument, pack }) => {
     section.measures.forEach(measure => {
         if (measure.tracks[trackIdx]) {
             measure.tracks[trackIdx].instrument = instrument;
             measure.tracks[trackIdx].pack = pack;
-            measure.tracks[trackIdx].volume = volume;
-            measure.tracks[trackIdx].muted = muted;
         }
     });
 };
@@ -390,25 +393,6 @@ export const setMixMuted = (state, { symbol, muted }) => {
     }
 };
 
-/**
- * Propagate mix volume/mute to all tracks of an instrument across all sections
- * @param {object} state
- * @param {{ symbol: string, volume: number, muted: boolean }} payload
- */
-export const propagateMixToTracks = (state, { symbol, volume, muted }) => {
-    if (!state.toque?.sections) return;
-    state.toque.sections.forEach(section => {
-        section.measures.forEach(measure => {
-            measure.tracks.forEach(track => {
-                if (track.instrument === symbol) {
-                    track.volume = volume;
-                    track.muted = muted;
-                }
-            });
-        });
-    });
-};
-
 // ─── Track Resize Mutations ─────────────────────────────────────────────────
 
 /**
@@ -560,7 +544,6 @@ export const MUTATIONS = {
     ensureMixEntry,
     setMixVolume,
     setMixMuted,
-    propagateMixToTracks,
     // Track Resize
     resizeTracksToSteps,
     // Playback

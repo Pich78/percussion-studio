@@ -35,6 +35,7 @@ export const addSection = () => {
     const sectionNumber = state.toque.sections.length + 1;
 
     // Get track templates from first section if available
+    // (volume/muted live in state.mix — not on the track template)
     let trackTemplates = [];
     if (state.toque.sections.length > 0) {
         const firstSection = state.toque.sections[0];
@@ -43,9 +44,7 @@ export const addSection = () => {
             if (firstMeasure.tracks && firstMeasure.tracks.length > 0) {
                 trackTemplates = firstMeasure.tracks.map(track => ({
                     instrument: track.instrument,
-                    pack: track.pack,
-                    volume: track.volume,
-                    muted: track.muted
+                    pack: track.pack
                 }));
             }
         }

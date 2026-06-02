@@ -1,5 +1,6 @@
 import { state, playback } from '../../../store.js';
 import { trackMixer } from '../../../services/trackMixer.js';
+import { getMixVolume, isInstrumentMuted } from '../../../store/stateSelectors.js';
 import { Bars3Icon } from '../../../icons/bars3Icon.js';
 import { StopIcon } from '../../../icons/stopIcon.js';
 import { PlayIcon } from '../../../icons/playIcon.js';
@@ -119,9 +120,8 @@ const renderPortraitMixer = (activeSection) => {
 
     const rows = tracks.map((track, tIdx) => {
         const def = state.instrumentDefinitions[track.instrument] || {};
-        const mix = state.mix?.[track.instrument] || { volume: track.volume ?? 1.0, muted: track.muted ?? false };
-        const vol = mix.volume ?? 1.0;
-        const isMuted = mix.muted ?? false;
+        const vol = getMixVolume(state, track.instrument);
+        const isMuted = isInstrumentMuted(state, track.instrument);
         const isSolo = trackMixer.isTrackSoloed(tIdx);
         const pct = Math.round(vol * 100);
         

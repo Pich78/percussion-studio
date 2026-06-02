@@ -9,11 +9,19 @@
  * - Only one track can be soloed at a time
  *
  * Volume 0 is treated as Muted.
+ *
+ * IMPORTANT: Volume and mute state for an instrument live ONLY in
+ * state.mix[symbol]. The track objects do NOT carry these fields anymore.
+ * isTrackMuted / isTrackEffectivelyMuted read from state.mix via the
+ * isInstrumentMuted selector. setVolume / toggleMute delegate to the
+ * setMixVolume / setMixMuted actions.
  */
 
 import { state, commit } from '../store.js';
 import { audioEngine } from './audioEngine.js';
 import { eventBus } from './eventBus.js';
+import { isInstrumentMuted } from '../store/stateSelectors.js';
+import { setMixVolume, setMixMuted } from '../actions/mixerActions.js';
 
 class TrackMixer {
     constructor() {
@@ -32,13 +40,13 @@ class TrackMixer {
 
     isTrackMuted(trackIndex, track) {
         if (!track) return false;
-        return (track.muted || track.volume === 0);
+        return isInstrumentMuted(state, track.instrument);
     }
 
     isTrackEffectivelyMuted(trackIndex, track) {
         if (!track) return false;
         const isSolo = state.soloTrack === trackIndex;
-        const isMuted = track.muted || track.volume === 0;
+        const isMuted = isInstrumentMuted(state, track.instrument);
         // Muted if: explicitly muted OR (solo active AND not this track)
         return isMuted || (state.soloTrack !== null && state.soloTrack !== undefined && !isSolo);
     }
@@ -47,15 +55,15 @@ class TrackMixer {
 
     toggleMute(trackIndex, track, instrument) {
         const isSolo = state.soloTrack === trackIndex;
-        const isMuted = track.muted || track.volume === 0;
+        const isMuted = isInstrumentMuted(state, instrument);
 
         if (isSolo) {
             state.soloTrack = null;
-            this._setMuteAndVolume(instrument, true, 0);
+            setMixMuted(instrument, true);
         } else if (isMuted) {
-            this._setMuteAndVolume(instrument, false, 1.0);
+            setMixMuted(instrument, false);
         } else {
-            this._setMuteAndVolume(instrument, true, 0);
+            setMixMuted(instrument, true);
         }
 
         eventBus.emit('render');
@@ -63,14 +71,14 @@ class TrackMixer {
 
     toggleSolo(trackIndex, track, instrument) {
         const isSolo = state.soloTrack === trackIndex;
-        const isMuted = track.muted || track.volume === 0;
+        const isMuted = isInstrumentMuted(state, instrument);
 
         if (isSolo) {
             state.soloTrack = null;
             eventBus.emit('render');
         } else if (isMuted) {
             state.soloTrack = trackIndex;
-            this._setMuteAndVolume(instrument, false, 1.0);
+            setMixMuted(instrument, false);
         } else {
             state.soloTrack = trackIndex;
             eventBus.emit('render');
@@ -79,45 +87,30 @@ class TrackMixer {
 
     setVolume(trackIndex, track, instrument, volume) {
         const isSolo = state.soloTrack === trackIndex;
-        const isMuted = track.muted || track.volume === 0;
+        const isMuted = isInstrumentMuted(state, instrument);
 
         if (volume === 0 && !isSolo) {
-            this._setMuteAndVolume(instrument, true, 0);
+            setMixMuted(instrument, true);
         } else if (volume > 0 && isMuted) {
-            this._setMuteAndVolume(instrument, false, volume);
+            // Was muted — restore by setting volume directly (also unmutes).
+            setMixVolume(instrument, volume);
         } else {
-            commit('ensureMixEntry', { symbol: instrument });
-            commit('setMixVolume', { symbol: instrument, volume });
-            audioEngine.setInstrumentVolume(instrument, volume);
-            commit('propagateMixToTracks', {
-                symbol: instrument,
-                volume: state.mix[instrument].volume,
-                muted: state.mix[instrument].muted
-            });
+            setMixVolume(instrument, volume);
         }
 
         eventBus.emit('render');
-    }
-
-    // ─── Internal ───────────────────────────────────────────────────
-
-    _setMuteAndVolume(instrument, muted, volume) {
-        commit('ensureMixEntry', { symbol: instrument });
-        commit('setMixMuted', { symbol: instrument, muted });
-        audioEngine.setInstrumentMuted(instrument, muted);
-        commit('setMixVolume', { symbol: instrument, volume });
-        audioEngine.setInstrumentVolume(instrument, volume);
-        commit('propagateMixToTracks', {
-            symbol: instrument,
-            volume: state.mix[instrument].volume,
-            muted: state.mix[instrument].muted
-        });
     }
 
     // ─── Lifecycle ──────────────────────────────────────────────────
 
     reset() {
         state.soloTrack = null;
+
+        // Reset audio engine gain nodes so the audio side matches the
+        // freshly-cleared state.mix. Without this, gains from a previous
+        // rhythm would carry over and the user would hear the old volume
+        // even though state.mix (and the slider) defaults to 1.0.
+        audioEngine.resetInstrumentGains();
 
         if (state.mix) {
             Object.keys(state.mix).forEach(symbol => {

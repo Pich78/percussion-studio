@@ -67,7 +67,7 @@ export const handleUpdateStroke = (trackIdx, stepIdx, measureIdx = 0) => {
 
     // Play sound immediately for UI feedback
     if (nextStroke !== StrokeType.None) {
-        audioEngine.playStrokeNow(track.instrument, nextStroke, track.volume, nextDynamic);
+        audioEngine.playStrokeNow(track.instrument, nextStroke, nextDynamic);
     }
 };
 
@@ -100,7 +100,7 @@ export const handleUpdateStrokeDirectly = (trackIdx, stepIdx, measureIdx, stroke
 
     // Play sound immediately for UI feedback
     if (nextStroke !== StrokeType.None) {
-        audioEngine.playStrokeNow(track.instrument, nextStroke, track.volume, nextDynamic);
+        audioEngine.playStrokeNow(track.instrument, nextStroke, nextDynamic);
     }
 };
 
@@ -149,16 +149,14 @@ export const addTrack = async (instrumentSymbol, soundPack = "basic_bata") => {
 
     // 3. Ensure global mix entry
     commit('ensureMixEntry', { symbol: instrumentSymbol });
-    const mix = state.mix[instrumentSymbol];
 
     // 4. Add to all measures in section
+    // (Volume/muted live in state.mix — not on the track object)
     commit('addTrackToSection', {
         section,
         trackTemplate: {
             instrument: instrumentSymbol,
             pack: pack,
-            volume: mix.volume,
-            muted: mix.muted,
             strokes: Array(section.steps).fill(StrokeType.None),
             dynamics: Array(section.steps).fill(DynamicType.Normal)
         }
@@ -198,15 +196,12 @@ export const updateTrackInstrument = async (trackIdx, newSymbol, soundPack = "ba
 
     // Ensure mix entry
     commit('ensureMixEntry', { symbol: newSymbol });
-    const mixSettings = state.mix[newSymbol];
 
-    // Update all measures
+    // Update all measures (volume/muted live in state.mix, not on track objects)
     commit('updateTrackInstrumentInSection', {
         section, trackIdx,
         instrument: newSymbol,
-        pack,
-        volume: mixSettings.volume,
-        muted: mixSettings.muted
+        pack
     });
 
     eventBus.emit('grid-refresh');

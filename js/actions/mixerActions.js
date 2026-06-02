@@ -1,6 +1,22 @@
 /*
   js/actions/mixerActions.js
   Actions for volume and mute control (global mixer).
+
+  These are the ONLY write paths for state.mix[symbol].volume and
+  state.mix[symbol].muted. All volume slider and mute button events
+  (desktop and mobile) route through these functions.
+
+  The single source of truth is state.mix[symbol]:
+    - volume: 0.0-1.0, the slider value, also drives the audio engine's
+      per-instrument gain node
+    - muted: explicit mute flag, coupled to volume: volume === 0 implies
+      muted, and toggling mute snaps volume to 0 (storing the prior
+      volume in lastVolume for restore).
+    - lastVolume: stored prior volume, used to restore on unmute.
+
+  Track objects do NOT carry volume or muted fields anymore. UI elements
+  read state.mix directly via the getMixVolume / isInstrumentMuted
+  selectors in stateSelectors.js.
 */
 
 import { state, commit } from '../store.js';
@@ -8,15 +24,13 @@ import { eventBus } from '../services/eventBus.js';
 import { audioEngine } from '../services/audioEngine.js';
 
 /**
- * Sets the global volume for a specific instrument type.
- * Updates ALL tracks of this instrument across ALL sections.
- * SYNC: If volume is 0, mute. If volume > 0, unmute.
- * NOW: Also updates audio engine in real-time for immediate effect.
- * 
+ * Set the volume for an instrument in the global mix.
+ * Single source of truth: state.mix[symbol].volume.
+ *
  * @param {string} instrumentSymbol - Instrument symbol e.g. 'ITO'
  * @param {number} volume - Volume level 0.0 to 1.0
  */
-export const setGlobalVolume = (instrumentSymbol, volume) => {
+export const setMixVolume = (instrumentSymbol, volume) => {
     // 1. Ensure mix entry exists
     commit('ensureMixEntry', { symbol: instrumentSymbol });
 
@@ -26,55 +40,52 @@ export const setGlobalVolume = (instrumentSymbol, volume) => {
     // 3. Update mix state via commit
     commit('setMixVolume', { symbol: instrumentSymbol, volume });
 
-    // 4. REAL-TIME: Update audio engine immediately
-    audioEngine.setInstrumentVolume(instrumentSymbol, volume);
+    // 4. REAL-TIME: Update audio engine gain node immediately
+    audioEngine.setInstrumentVolume(instrumentSymbol, state.mix[instrumentSymbol].volume);
 
-    // 5. Detect mute state change
+    // 5. Detect mute state change (setMixVolume couples volume<->muted)
     const mix = state.mix[instrumentSymbol];
     const muteChanged = mix.muted !== wasMuted;
 
-    // 6. Propagate to all tracks
-    commit('propagateMixToTracks', {
-        symbol: instrumentSymbol,
-        volume: mix.volume,
-        muted: mix.muted
-    });
-
-    // 7. Refresh Grid ONLY if mute state changed AND not currently dragging
-    // (Dragging will refresh on mouseup to avoid breaking the drag)
+    // 6. Refresh Grid only if mute state changed AND not currently dragging
+    // (Dragging will refresh on mouseup/touchend to avoid breaking the drag)
     if (muteChanged && !window.__volumeDragging) {
         eventBus.emit('grid-refresh');
     }
 };
 
 /**
- * Sets the global mute status for a specific instrument type.
- * SYNC: If muted, set volume to 0. If unmuted, restore last volume.
- * NOW: Also updates audio engine in real-time for immediate effect.
- * 
+ * Set the muted flag for an instrument in the global mix.
+ * Single source of truth: state.mix[symbol].muted.
+ * SYNC: If muted, set volume to 0 (storing prior volume in lastVolume).
+ *       If unmuted, restore from lastVolume.
+ *
  * @param {string} instrumentSymbol - Instrument symbol e.g. 'ITO'
- * @param {boolean} isMuted - True to mute
+ * @param {boolean} muted - True to mute
  */
-export const setGlobalMute = (instrumentSymbol, isMuted) => {
+export const setMixMuted = (instrumentSymbol, muted) => {
     // 1. Ensure mix entry exists
     commit('ensureMixEntry', { symbol: instrumentSymbol });
 
     // 2. Update mute state via commit
-    commit('setMixMuted', { symbol: instrumentSymbol, muted: isMuted });
+    commit('setMixMuted', { symbol: instrumentSymbol, muted });
 
-    // 3. REAL-TIME: Update audio engine mute state immediately
-    audioEngine.setInstrumentMuted(instrumentSymbol, isMuted);
-
-    // 4. Get resolved volume for propagation
+    // 3. REAL-TIME: Update audio engine mute + volume state
     const mix = state.mix[instrumentSymbol];
+    audioEngine.setInstrumentMuted(instrumentSymbol, muted);
+    audioEngine.setInstrumentVolume(instrumentSymbol, mix.volume);
 
-    // 5. Propagate to all tracks
-    commit('propagateMixToTracks', {
-        symbol: instrumentSymbol,
-        volume: mix.volume,
-        muted: mix.muted
-    });
-
-    // 6. Refresh Grid required to show visual feedback
+    // 4. Refresh grid for visual feedback (mute toggle is a discrete event)
     eventBus.emit('grid-refresh');
 };
+
+// ─── Backward-compatible aliases ────────────────────────────────────────────
+// These names predate the BPM-style refactor; keep them so legacy callers
+// in events and tests still work. New code should call setMixVolume /
+// setMixMuted directly.
+
+/** @deprecated Use setMixVolume */
+export const setGlobalVolume = setMixVolume;
+
+/** @deprecated Use setMixMuted */
+export const setGlobalMute = setMixMuted;

@@ -7,7 +7,7 @@
 
 import { DesktopLayout } from '../ui/desktop/layout.js';
 import { setupDesktopEvents } from '../events/desktopEvents.js';
-import { updateVisualStep, scrollToMeasure, updateBpmUi } from '../ui/playheadUtils.js';
+import { updateVisualStep, scrollToMeasure, updateBpmUi, updateVolumeUi } from '../ui/playheadUtils.js';
 
 export const desktopEditorView = {
     id: 'desktop-editor',
@@ -25,6 +25,9 @@ export const desktopEditorView = {
         scrollToMeasure(measure);
         const repEl = document.getElementById('header-rep-count');
         if (repEl) repEl.textContent = rep;
-        if (step === 0) updateBpmUi();
+        if (step === 0) {
+            updateBpmUi();
+            updateVolumeUi();
+        }
     }
 };

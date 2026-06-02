@@ -8,7 +8,7 @@
  */
 
 import { DualModeLayout } from '../ui/mobile/dual-mode/layout.js';
-import { updateVisualStep, scrollToMeasure, updateBpmUi } from '../ui/playheadUtils.js';
+import { updateVisualStep, scrollToMeasure, updateBpmUi, updateVolumeUi } from '../ui/playheadUtils.js';
 import { setupMobileEvents } from '../events/mobileEvents.js';
 import { state, playback } from '../store.js';
 
@@ -78,6 +78,7 @@ export const mobileDualModeView = {
             if (repElPortrait) repElPortrait.textContent = repText;
 
             updateBpmUi();
+            updateVolumeUi();
         }
     }
 };

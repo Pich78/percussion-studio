@@ -137,6 +137,23 @@ class AudioEngine {
     }
 
     /**
+     * Reset all known instrument gain nodes to 1.0 and clear mute flags.
+     * Called from trackMixer.reset() during rhythm load so that the audio
+     * engine stays in sync with the freshly-cleared state.mix. Without this,
+     * gain values from a previous rhythm would carry over and the user
+     * would hear the old volume even though state.mix defaults to 1.0
+     * (visible mismatch: slider at 100%, audio at e.g. 1%).
+     */
+    resetInstrumentGains() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        Object.keys(this.instrumentGains).forEach(symbol => {
+            this.instrumentGains[symbol].gain.setValueAtTime(1.0, now);
+            this.instrumentMuted[symbol] = false;
+        });
+    }
+
+    /**
      * Loads audio samples for a specific instrument based on a Sound Pack config.
      * @param {string} symbol - The instrument symbol (e.g., 'ITO')
      * @param {object} soundConfig - The parsed YAML object from dataLoader (contains .files and ._basePath)
@@ -176,14 +193,18 @@ class AudioEngine {
     /**
      * Plays a specific stroke for an instrument at a SCHEDULED TIME.
      * This is the primary method for precision playback.
-     * 
+     *
+     * Audio chain: source -> noteGain (dynamic multiplier) -> instrumentGain (state.mix volume) -> masterGain -> destination
+     * The per-note gain is the per-dynamic multiplier only (Ghost/Soft/Normal/Loud/Accent).
+     * The instrument volume (state.mix[symbol].volume) is applied on the instrumentGain node
+     * for real-time control via setInstrumentVolume().
+     *
      * @param {string} instrumentSymbol - e.g. 'ITO'
      * @param {string} stroke - The stroke letter (e.g. 'O', 'S')
      * @param {number} time - Absolute AudioContext time to play (use getCurrentTime() for "now")
-     * @param {number} volume - 0.0 to 1.0 (track-level volume)
      * @param {string} dynamic - Dynamic character (Ghost: g, Soft: s, Normal: -, Loud: l, Accent: a)
      */
-    playStroke(instrumentSymbol, stroke, time = 0, volume = 1.0, dynamic = DynamicType.Normal) {
+    playStroke(instrumentSymbol, stroke, time = 0, dynamic = DynamicType.Normal) {
         this.init();
         if (!this.ctx || !this.masterGain) return;
 
@@ -194,7 +215,7 @@ class AudioEngine {
         if (!stroke || stroke === StrokeType.None || stroke === '.' || stroke === ' ') return;
         const strokeKey = stroke.toUpperCase();
 
-        // Calculate dynamic volume multiplier
+        // Calculate dynamic volume multiplier (the only per-note gain)
         let dynamicMultiplier = 1.0;
         switch (dynamic) {
             case DynamicType.Ghost:
@@ -215,9 +236,6 @@ class AudioEngine {
                 break;
         }
 
-        // Apply multiplier and ensure volume bounds (max 3.0 to prevent hard clipping)
-        const finalVolume = Math.min(volume * dynamicMultiplier, 3.0);
-
         // Check if instrument and sample exist
         const instBuffers = this.buffers[instrumentSymbol];
         if (!instBuffers) {
@@ -229,7 +247,7 @@ class AudioEngine {
             // Try emulation for Batá drums
             if (isBataDrum(instrumentSymbol)) {
                 const instrumentGain = this.getInstrumentGain(instrumentSymbol);
-                emulateStroke(this.ctx, instBuffers, strokeKey, time, instrumentGain, finalVolume);
+                emulateStroke(this.ctx, instBuffers, strokeKey, time, instrumentGain, dynamicMultiplier);
                 return;
             }
             return;
@@ -243,9 +261,9 @@ class AudioEngine {
         const source = this.ctx.createBufferSource();
         source.buffer = buffer;
 
-        // Per-note gain for track-level volume
+        // Per-note gain is the per-dynamic multiplier only
         const noteGain = this.ctx.createGain();
-        noteGain.gain.value = finalVolume;
+        noteGain.gain.value = dynamicMultiplier;
 
         // Route through instrument gain for real-time global volume control
         const instrumentGain = this.getInstrumentGain(instrumentSymbol);
@@ -258,8 +276,8 @@ class AudioEngine {
     /**
      * Convenience method: Play a stroke immediately (for UI preview clicks)
      */
-    playStrokeNow(instrumentSymbol, stroke, volume = 1.0, dynamic = DynamicType.Normal) {
-        this.playStroke(instrumentSymbol, stroke, this.getCurrentTime(), volume, dynamic);
+    playStrokeNow(instrumentSymbol, stroke, dynamic = DynamicType.Normal) {
+        this.playStroke(instrumentSymbol, stroke, this.getCurrentTime(), dynamic);
     }
 }
 

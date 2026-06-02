@@ -104,7 +104,8 @@ const scheduleStep = (section, measureIndex, stepIndex, time) => {
             const stroke = track.strokes[trackStepIndex];
             const dynamic = track.dynamics ? track.dynamics[trackStepIndex] : '-';
             // Schedule at the EXACT time (not "now")
-            audioEngine.playStroke(track.instrument, stroke, time, track.volume, dynamic);
+            // Per-note gain is the dynamic multiplier only; instrument volume is on the gain node
+            audioEngine.playStroke(track.instrument, stroke, time, dynamic);
         }
     });
 };

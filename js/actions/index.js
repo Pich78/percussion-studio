@@ -44,7 +44,7 @@ import { loadRhythm, loadRhythmFromFile, createNewRhythm } from './rhythmActions
 import { updateActiveSection, addSection, deleteSection, duplicateSection, resizeTracks } from './sectionActions.js';
 import { handleUpdateStroke, handleUpdateStrokeDirectly, updateTrackSteps, addTrack, updateTrackInstrument } from './trackActions.js';
 import { addMeasure, deleteMeasure, duplicateMeasure } from './measureActions.js';
-import { setGlobalVolume, setGlobalMute } from './mixerActions.js';
+import { setMixVolume, setMixMuted, setGlobalVolume, setGlobalMute } from './mixerActions.js';
 
 /**
  * Unified actions object for backward compatibility.
@@ -75,7 +75,10 @@ export const actions = {
   deleteMeasure,
   duplicateMeasure,
 
-  // Mixer actions
+  // Mixer actions (BPM-style: setMixVolume/setMixMuted are the canonical names;
+  // setGlobalVolume/setGlobalMute are kept for backward compat)
+  setMixVolume,
+  setMixMuted,
   setGlobalVolume,
   setGlobalMute
 };
@@ -107,6 +110,8 @@ export {
   duplicateMeasure,
 
   // Mixer
+  setMixVolume,
+  setMixMuted,
   setGlobalVolume,
   setGlobalMute
 };

@@ -23,6 +23,7 @@ export const addMeasure = () => {
     };
 
     // If there are existing measures, clone track structure from first measure
+    // (volume/muted live in state.mix — not on the track object)
     if (section.measures.length > 0) {
         const firstMeasure = section.measures[0];
         firstMeasure.tracks.forEach(track => {
@@ -30,8 +31,6 @@ export const addMeasure = () => {
                 id: crypto.randomUUID(),
                 instrument: track.instrument,
                 pack: track.pack,
-                volume: track.volume,
-                muted: track.muted,
                 strokes: Array(section.steps).fill(StrokeType.None)
             });
         });

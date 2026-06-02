@@ -345,6 +345,9 @@ export const setupDesktopEvents = () => {
         input.value = percentage;
         input.dispatchEvent(new Event('input', { bubbles: true }));
 
+        // Direct DOM update for immediate visual feedback (mirrors BPM pattern)
+        updateVolumeSliderVisuals(container, percentage);
+
         // Prevent text selection and native range behavior
         e.preventDefault();
         e.stopPropagation();
@@ -381,6 +384,9 @@ export const setupDesktopEvents = () => {
 
         // Trigger the input event to update state and visuals
         activeVolumeInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+        // Direct DOM update for immediate visual feedback (mirrors BPM pattern)
+        updateVolumeSliderVisuals(activeVolumeContainer, percentage);
     });
 
     document.addEventListener('mouseup', () => {
@@ -415,6 +421,29 @@ export const setupDesktopEvents = () => {
         // Update handle position (dynamic offset based on actual handle width)
         const handle = container.querySelector('div[class*="bg-white"]');
         if (handle) handle.style.left = `calc(${percentage}% - ${handle.offsetWidth / 2}px)`;
+    }
+
+    /**
+     * Update volume slider visuals directly (no re-render).
+     * Mirrors updateBpmSliderVisuals so the slider fill/handle/inside-pct
+     * follow the cursor during drag. The outside percentage text and mute
+     * button styling are intentionally left for the mouseup render — same
+     * trade-off as the BPM pattern (the BPM outside text also only updates
+     * on render, not during drag).
+     * @param {HTMLElement} container - The .group/vol slider container
+     * @param {number} volume - 0.0-1.0
+     */
+    function updateVolumeSliderVisuals(container, volume) {
+        const percentage = Math.round(volume * 100);
+        // Update fill bar
+        const fillBar = container.querySelector('div[class*="bg-gradient"]');
+        if (fillBar) fillBar.style.width = `${percentage}%`;
+        // Update handle position (8px offset for the 16x16 handle, see mixerModal.js)
+        const handle = container.querySelector('div[class*="bg-white"]');
+        if (handle) handle.style.left = `calc(${percentage}% - 8px)`;
+        // Update inside percentage text
+        const percentLabel = container.querySelector('span[class*="font-medium"]');
+        if (percentLabel) percentLabel.textContent = `${percentage}%`;
     }
 
     // Input handler for sliders and text inputs

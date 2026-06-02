@@ -279,21 +279,20 @@ const createMobileActionRouter = () => ({
         }
     },
 
-    // Step volume up/down from the dual-mode Mixer chip modal
+    // Step volume up/down from the dual-mode Mixer chip modal.
+    // Routes through the central setMixVolume action — state.mix is the
+    // single source of truth, so the slider position updates on the
+    // next render without any manual DOM patching.
     'dual-mode-vol-step': (e, target) => {
         const trackIdx = parseInt(target.dataset.trackIndex, 10);
         const delta = parseFloat(target.dataset.delta);
         if (isNaN(trackIdx) || isNaN(delta)) return;
-        const activeSection = state.toque.sections.find(s => s.id === state.activeSectionId);
-        if (!activeSection) return;
-        // Apply to all measures so the volume is consistent
-        activeSection.measures.forEach(measure => {
-            const track = measure.tracks[trackIdx];
-            if (track) {
-                track.volume = Math.max(0, Math.min(1, (track.volume ?? 1.0) + delta));
-            }
-        });
-        eventBus.emit('render');
+        const section = getActiveSection(state);
+        const track = section?.measures[0]?.tracks[trackIdx];
+        if (!track) return;
+        const currentVolume = state.mix[track.instrument]?.volume ?? 1.0;
+        const newVolume = Math.max(0, Math.min(1, currentVolume + delta));
+        actions.setMixVolume(track.instrument, newVolume);
     },
 
     // Toggle solo on a track - delegates to trackMixer
@@ -602,26 +601,27 @@ export const setupMobileEvents = () => {
             const newVolume = parseFloat(target.value);
             const track = section?.measures[0]?.tracks[tIdx];
             if (track) {
-                // Direct DOM update for instant visual feedback only (no render during drag)
+                // Mark drag in progress so setMixVolume suppresses grid-refresh
+                window.__volumeDragging = true;
+
+                // Route through the central setMixVolume action —
+                // state.mix[symbol].volume is the single source of truth
+                // for both the slider and the audio engine gain node.
+                actions.setMixVolume(track.instrument, newVolume);
+
+                // Direct DOM update for instant visual feedback (no re-render
+                // during drag). On touchend/mouseup the document-level handler
+                // emits a single grid-refresh that rebuilds every surface
+                // from state.mix — the slider is then provably in sync.
                 const volContainer = target.closest('.group\\/vol');
                 if (volContainer) {
                     updateVolumeSliderVisuals(volContainer, newVolume);
                 }
-
-                // Portrait dual-mode volume slider updates
                 const pct = Math.round(newVolume * 100);
                 const portraitFill = document.getElementById(`portrait-vol-fill-${tIdx}`);
                 const portraitThumb = document.getElementById(`portrait-vol-thumb-${tIdx}`);
                 if (portraitFill) portraitFill.style.width = `${pct}%`;
                 if (portraitThumb) portraitThumb.style.left = `calc(${pct}% - 8px)`;
-
-                // Sync state during drag so any re-render (playback, count-in, section change)
-                // picks up the current volume instead of reverting to the old value
-                track.volume = newVolume;
-                if (state.mix[track.instrument]) {
-                    state.mix[track.instrument].volume = newVolume;
-                    if (newVolume > 0) state.mix[track.instrument].lastVolume = newVolume;
-                }
             }
             return;
         }
@@ -671,14 +671,12 @@ export const setupMobileEvents = () => {
             eventBus.emit('render');
         }
         if (action === 'update-volume') {
-            const section = getActiveSection(state);
-            const tIdx = parseInt(target.dataset.trackIndex);
-            const newVolume = parseFloat(target.value);
-            const track = section?.measures[0]?.tracks[tIdx];
-            if (track) {
-                // State/audio update via trackMixer on drag end
-                trackMixer.setVolume(tIdx, track, track.instrument, newVolume);
-            }
+            // Volume was already written to state.mix on every input event.
+            // The change event here just signals the drag ended — clear
+            // the dragging flag and emit a single grid-refresh so every
+            // surface rebuilds from state.mix (the source of truth).
+            window.__volumeDragging = false;
+            eventBus.emit('grid-refresh');
         }
         if (action === 'dual-mode-set-reps') {
             const sectionId = target.dataset.sectionId;

@@ -1,14 +1,14 @@
 import { state } from '../../../store.js';
 import { trackMixer } from '../../../services/trackMixer.js';
+import { getMixVolume, isInstrumentMuted } from '../../../store/stateSelectors.js';
 
 export const renderMixerModal = (activeSection) => {
     const tracks = activeSection.measures[0]?.tracks || [];
 
     const rows = tracks.map((track, tIdx) => {
         const def = state.instrumentDefinitions[track.instrument] || {};
-        const mix = state.mix?.[track.instrument] || { volume: track.volume ?? 1.0, muted: track.muted ?? false };
-        const vol = mix.volume ?? 1.0;
-        const isMuted = mix.muted ?? false;
+        const vol = getMixVolume(state, track.instrument);
+        const isMuted = isInstrumentMuted(state, track.instrument);
         const isEffectivelyMuted = trackMixer.isTrackEffectivelyMuted(tIdx, track);
         const nameColor = isEffectivelyMuted ? '#6b7280' : (def.color || '#d1d5db');
         const pct = Math.round(vol * 100);
@@ -32,7 +32,7 @@ export const renderMixerModal = (activeSection) => {
                     <span class="text-xs font-bold uppercase tracking-wider truncate max-w-[120px] ${isEffectivelyMuted ? 'line-through' : ''}"
                           style="color: ${nameColor};">${def.name || track.instrument}</span>
                 </div>
-                <span class="text-xl font-mono font-bold ${isEffectivelyMuted ? 'text-gray-600' : 'text-indigo-400'}">${pct}%</span>
+                <span data-role="volume-pct-outside" class="text-xl font-mono font-bold ${isEffectivelyMuted ? 'text-gray-600' : 'text-indigo-400'}">${pct}%</span>
             </div>
 
             <!-- Wide slider — identical style to BPM slider -->

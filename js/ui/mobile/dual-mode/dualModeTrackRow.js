@@ -16,6 +16,8 @@
 import { INSTRUMENT_COLORS } from '../../../constants.js';
 import { TubsCell } from '../../../components/tubsCell.js';
 import { StrokeType } from '../../../types.js';
+import { state } from '../../../store.js';
+import { isInstrumentMuted, getMixVolume } from '../../../store/stateSelectors.js';
 
 /**
  * Render the grid cells — identical to the shared TrackRow implementation.
@@ -127,7 +129,7 @@ export const DualModeTrackRow = ({
     const borderColorClass = INSTRUMENT_COLORS[track.instrument] || 'border-l-4 border-gray-700';
     const displayName = instDef ? instDef.name : track.instrument;
     const nameColor = instDef?.color || '#d1d5db';
-    const isMuted = track.muted || track.volume === 0;
+    const isMuted = isInstrumentMuted(state, track.instrument) || getMixVolume(state, track.instrument) === 0;
     const subdivision = track.trackSteps || section.subdivision || 4;
 
     // ── Dual Mode-specific sticky label: name only, centred ──────────────

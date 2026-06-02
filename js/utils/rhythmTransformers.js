@@ -12,16 +12,12 @@ import { parsePatternString, parseDynamicsString } from './patternParser.js';
  * @param {string} instrumentSymbol - Instrument symbol e.g. 'ITO'
  * @param {string} pack - Sound pack name
  * @param {number} steps - Number of steps
- * @param {number} volume - Initial volume (0-1)
- * @param {boolean} muted - Initial mute state
  * @returns {object} Track object
  */
-export const createEmptyTrack = (instrumentSymbol, pack, steps, volume = 1.0, muted = false) => ({
+export const createEmptyTrack = (instrumentSymbol, pack, steps) => ({
     id: crypto.randomUUID(),
     instrument: instrumentSymbol,
     pack: pack,
-    volume: volume,
-    muted: muted,
     strokes: Array(steps).fill(StrokeType.None),
     dynamics: Array(steps).fill(DynamicType.Normal)
 });
@@ -34,7 +30,7 @@ export const createEmptyTrack = (instrumentSymbol, pack, steps, volume = 1.0, mu
  */
 export const createEmptyMeasure = (trackTemplates = [], steps = 16) => ({
     id: crypto.randomUUID(),
-    tracks: trackTemplates.map(t => createEmptyTrack(t.instrument, t.pack, steps, t.volume, t.muted))
+    tracks: trackTemplates.map(t => createEmptyTrack(t.instrument, t.pack, steps))
 });
 
 /**
@@ -82,8 +78,6 @@ export const cloneMeasure = (source) => ({
         id: crypto.randomUUID(),
         instrument: track.instrument,
         pack: track.pack,
-        volume: track.volume,
-        muted: track.muted,
         strokes: [...track.strokes],
         dynamics: track.dynamics ? [...track.dynamics] : Array(source.tracks[0].strokes.length).fill(DynamicType.Normal)
     }))
@@ -100,8 +94,6 @@ export const buildTrackFromPattern = (trackConfig, patternStr, dynamicsStr, step
     id: crypto.randomUUID(),
     instrument: trackConfig.instrument,
     pack: trackConfig.pack,
-    volume: 1.0,
-    muted: false,
     strokes: parsePatternString(patternStr, steps),
     dynamics: dynamicsStr ? parseDynamicsString(dynamicsStr, steps) : Array(steps).fill(DynamicType.Normal)
 });

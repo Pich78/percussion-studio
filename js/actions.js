@@ -32,6 +32,8 @@ export {
   addMeasure,
   deleteMeasure,
   duplicateMeasure,
+  setMixVolume,
+  setMixMuted,
   setGlobalVolume,
   setGlobalMute
 } from './actions/index.js';

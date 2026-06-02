@@ -7,6 +7,8 @@
 import { INSTRUMENT_COLORS } from '../../constants.js';
 import { TubsCell } from '../tubsCell.js';
 import { StrokeType } from '../../types.js';
+import { state } from '../../store.js';
+import { isInstrumentMuted, getMixVolume } from '../../store/stateSelectors.js';
 
 // Icons
 import { TrashIcon } from '../../icons/trashIcon.js';
@@ -129,11 +131,15 @@ export const TrackRow = ({
   const borderColor = INSTRUMENT_COLORS[track.instrument] || 'border-l-4 border-gray-700';
   const displayName = instDef ? instDef.name : track.instrument;
 
+  // Visual "muted/zeroed-out" styling is derived from state.mix[symbol],
+  // not from a per-track field.
+  const isMutedOrZero = isInstrumentMuted(state, track.instrument) || getMixVolume(state, track.instrument) === 0;
+
   // Get pack display name (format: basic_bata -> Basic Bata)
   const packName = track.pack ? track.pack.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : 'Default';
 
   return `
-        <div class="flex items-center group min-w-max transition-opacity duration-300 ${track.muted || track.volume === 0 ? 'opacity-50' : 'opacity-100'}">
+        <div class="flex items-center group min-w-max transition-opacity duration-300 ${isMutedOrZero ? 'opacity-50' : 'opacity-100'}">
           <!-- Instrument Label - Sticky -->
           <div class="sticky left-0 z-20 flex-shrink-0 flex items-center ${borderColor} bg-gray-950 border-r border-gray-800 shadow-[4px_0_10px_rgba(0,0,0,0.5)]">
             
@@ -141,7 +147,7 @@ export const TrackRow = ({
             <div class="relative w-44 flex flex-col justify-center px-3 py-1.5">
               <!-- Row 1: Instrument Name -->
               <div class="flex items-center gap-1">
-                <span class="font-bold text-sm select-none text-left truncate flex-1 text-gray-200 ${track.muted || track.volume === 0 ? 'text-gray-500 line-through' : ''}" title="${displayName}">${displayName}</span>
+                <span class="font-bold text-sm select-none text-left truncate flex-1 text-gray-200 ${isMutedOrZero ? 'text-gray-500 line-through' : ''}" title="${displayName}">${displayName}</span>
               </div>
               
               <!-- Row 2: Edit Controls (only when stopped and editable; mute/volume are in the Mixer modal) -->

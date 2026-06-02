@@ -4,7 +4,7 @@
 */
 
 import { state, commit } from '../../store.js';
-import { getActiveSection, snapStepIndex } from '../../store/stateSelectors.js';
+import { getActiveSection, snapStepIndex, isInstrumentMuted } from '../../store/stateSelectors.js';
 import { eventBus } from '../../services/eventBus.js';
 import { actions } from '../../actions.js';
 import { StrokeType } from '../../types.js';
@@ -62,7 +62,7 @@ export const handleToggleMute = (target) => {
     const mIdx = parseInt(target.dataset.measureIndex || 0);
     const track = section.measures[mIdx].tracks[tIdx];
 
-    const newMutedState = !track.muted;
+    const newMutedState = !isInstrumentMuted(state, track.instrument);
     actions.setGlobalMute(track.instrument, newMutedState);
 };
 
@@ -113,7 +113,13 @@ export const handleToggleTrackSnap = (target) => {
 };
 
 /**
- * Handle volume slider input
+ * Handle volume slider input.
+ * Delegates to the central setMixVolume action — state.mix[symbol].volume
+ * is the single source of truth and the next render rebuilds the slider
+ * from it. Also writes the outside percentage text directly so the
+ * prominent value next to the track name updates in lock-step with the
+ * slider position during drag (mirrors the BPM pattern at
+ * playbackEvents.js:42-45 and mobileEvents.js:634-635).
  * @param {HTMLInputElement} target - The slider element
  */
 export const handleVolumeInput = (target) => {
@@ -123,23 +129,21 @@ export const handleVolumeInput = (target) => {
     const track = section.measures[mIdx].tracks[tIdx];
     const newVolume = parseFloat(target.value);
 
-    // Update state and audio engine
+    // Mark a drag in progress so the action suppresses grid-refresh
+    // mid-drag (re-rendering would break the drag). On mouseup the
+    // desktop event handler emits a single grid-refresh that snaps
+    // every surface to truth.
+    window.__volumeDragging = true;
     actions.setGlobalVolume(track.instrument, newVolume);
 
-    // Direct DOM update for immediate visual feedback (no re-render needed)
+    // Direct DOM update of the outside pct text so the prominent value
+    // next to the track name updates on every input tick (drag, keyboard,
+    // programmatic dispatch). The input handler is the single update
+    // point for this surface, matching how the BPM pattern updates
+    // #header-global-bpm.
     const container = target.closest('.group\\/vol');
-    if (container) {
-        const percentage = Math.round(newVolume * 100);
-        // Update fill bar
-        const fillBar = container.querySelector('div[class*="bg-gradient"]');
-        if (fillBar) fillBar.style.width = `${percentage}%`;
-        // Update handle position (8px offset for 4x4 handle)
-        const handle = container.querySelector('div[class*="bg-white"]');
-        if (handle) handle.style.left = `calc(${percentage}% - 8px)`;
-        // Update percentage text
-        const percentLabel = container.querySelector('span[class*="font-medium"]');
-        if (percentLabel) percentLabel.textContent = `${percentage}%`;
-    }
+    const outsidePct = container?.parentElement?.querySelector('[data-role="volume-pct-outside"]');
+    if (outsidePct) outsidePct.textContent = `${Math.round(newVolume * 100)}%`;
 };
 
 /**

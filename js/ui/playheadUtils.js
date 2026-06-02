@@ -6,7 +6,7 @@
  * without creating circular dependencies.
  */
 
-import { getActiveSection } from '../store/stateSelectors.js';
+import { getActiveSection, getMixVolume, isInstrumentMuted } from '../store/stateSelectors.js';
 import { autoScrollGrid } from '../components/tubsGrid.js';
 import { state, playback } from '../store.js';
 
@@ -165,4 +165,68 @@ export const updateBpmUi = () => {
     if (modalValue) modalValue.textContent = bpmText + ' BPM';
     if (modalFill) modalFill.style.width = pct + '%';
     if (modalThumb) modalThumb.style.left = 'calc(' + pct + '% - 10px)';
+};
+
+/**
+ * Update all volume slider UI elements to reflect state.mix[symbol].volume
+ * for the active section. Called on step 0 (repetition boundaries) from all
+ * view onStep handlers as the single reconciliation point — guarantees the
+ * slider position is always a faithful reflection of the source of truth.
+ *
+ * Mirrors updateBpmUi() but for per-instrument volume.
+ */
+export const updateVolumeUi = () => {
+    const activeSection = getActiveSection(state);
+    if (!activeSection) return;
+    const tracks = activeSection.measures[0]?.tracks || [];
+    if (tracks.length === 0) return;
+
+    tracks.forEach((track, tIdx) => {
+        const vol = getMixVolume(state, track.instrument);
+        const muted = isInstrumentMuted(state, track.instrument);
+        const pct = Math.round(vol * 100);
+
+        // Range input value (the source the browser-native thumb is bound to)
+        const rangeInput = document.querySelector(
+            `input[data-action="update-volume"][data-track-index="${tIdx}"]`
+        );
+        if (rangeInput) rangeInput.value = vol;
+
+        // .group/vol slider visuals (desktop mixer, mobile mixer modal, etc.)
+        const containers = document.querySelectorAll(`.group\\/vol`);
+        containers.forEach(container => {
+            // Only update the container that hosts the matching track's input.
+            const input = container.querySelector('input[data-action="update-volume"]');
+            if (!input || parseInt(input.dataset.trackIndex, 10) !== tIdx) return;
+
+            const fillBar = container.querySelector('div[class*="bg-gradient"]');
+            const handle = container.querySelector('div[class*="bg-white"]');
+            const percentLabel = container.querySelector('span[class*="font-medium"]');
+            if (fillBar) fillBar.style.width = pct + '%';
+            if (handle) handle.style.left = 'calc(' + pct + '% - ' + (handle.offsetWidth / 2) + 'px)';
+            if (percentLabel) percentLabel.textContent = pct + '%';
+        });
+
+        // Portrait dual-mode volume slider (portrait.js) — direct id lookup
+        const portraitFill = document.getElementById(`portrait-vol-fill-${tIdx}`);
+        const portraitThumb = document.getElementById(`portrait-vol-thumb-${tIdx}`);
+        if (portraitFill) portraitFill.style.width = pct + '%';
+        if (portraitThumb) portraitThumb.style.left = 'calc(' + pct + '% - ' + (portraitThumb.offsetWidth / 2) + 'px)';
+
+        // Mute button visual state (mixerModal.js etc.)
+        const muteBtn = document.querySelector(
+            `button[data-action="toggle-mute"][data-track-index="${tIdx}"][data-measure-index="0"]`
+        );
+        if (muteBtn) {
+            if (muted) {
+                muteBtn.classList.add('bg-red-900/30', 'text-red-500', 'border-red-900/50');
+                muteBtn.classList.remove('bg-gray-800', 'text-gray-400', 'border-gray-700', 'hover:text-gray-200');
+                muteBtn.setAttribute('title', 'Unmute');
+            } else {
+                muteBtn.classList.remove('bg-red-900/30', 'text-red-500', 'border-red-900/50');
+                muteBtn.classList.add('bg-gray-800', 'text-gray-400', 'border-gray-700', 'hover:text-gray-200');
+                muteBtn.setAttribute('title', 'Mute');
+            }
+        }
+    });
 };
