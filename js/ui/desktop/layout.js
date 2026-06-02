@@ -13,6 +13,7 @@ import { PauseIcon } from '../../icons/pauseIcon.js';
 import { BataExplorerModal } from '../../components/bataExplorerModal.js';
 import { PieMenu } from '../../components/pieMenu.js';
 import { EditingOptionsModal } from '../../components/editingOptionsModal.js';
+import { renderMixerModal } from './mixerModal.js';
 
 const renderHeader = () => {
   const activeSection = getActiveSection(state) || state.toque.sections[0];
@@ -110,6 +111,12 @@ const renderHeader = () => {
         </div>
       </div>
       <div class="flex items-center gap-4 flex-shrink-0">
+        <button data-action="toggle-mixer"
+          class="flex items-center gap-1.5 px-3 py-2 bg-gray-900 rounded-lg border border-gray-800 text-gray-400 hover:text-white transition-colors"
+          title="Open Mixer (per-instrument volume & mute)">
+          <span>🎚</span>
+          <span class="text-[10px] font-bold uppercase tracking-wide">Mixer</span>
+        </button>
         <div class="flex items-center gap-3 bg-gray-900 px-3 py-2 rounded-lg border border-gray-800">
           <div class="flex flex-col items-end leading-none">
               <span class="text-[9px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">Global</span>
@@ -234,5 +241,6 @@ export const DesktopLayout = () => {
     ${BataExplorerModal({ isMobile: false, bataExplorer: state.uiState.bataExplorer })}
     ${EditingOptionsModal({ isMobile: false, pieMenu: state.uiState.pieMenu, modalOpen: state.uiState.modalOpen, modalType: state.uiState.modalType })}
     ${PieMenu({ ...state.uiState.pieMenu, selectedStroke: state.selectedStroke })}
+    ${state.uiState.mixerOpen ? renderMixerModal(activeSection) : ''}
   `;
 };

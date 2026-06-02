@@ -74,6 +74,22 @@ const createActionRouter = () => {
         'select-rhythm-confirm': (e, target) => modalHandlers.handleSelectRhythmConfirm(target),
         'trigger-file-input': () => modalHandlers.handleTriggerFileInput(),
 
+        // Mixer modal
+        'toggle-mixer': () => {
+            state.uiState.mixerOpen = !state.uiState.mixerOpen;
+            eventBus.emit('render');
+        },
+        'close-mixer': () => {
+            state.uiState.mixerOpen = false;
+            eventBus.emit('render');
+        },
+        'close-mixer-bg': (e, target) => {
+            if (e.target === target) {
+                state.uiState.mixerOpen = false;
+                eventBus.emit('render');
+            }
+        },
+
         // Bata Explorer
         'close-bata-explorer': () => bataHandlers.handleCloseBataExplorer(),
         'close-bata-explorer-bg': (e, target) => { if (e.target === target) bataHandlers.handleCloseBataExplorer(); },

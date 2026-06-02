@@ -95,7 +95,8 @@ export const state = {
         metadataEditor: {
             orishaDropdownOpen: false
         },
-        dimensionBMode: 'play' // 'play' | 'view' mode toggle for Dimension B
+        dimensionBMode: 'play', // 'play' | 'view' mode toggle for Dimension B
+        mixerOpen: false // Desktop mixer modal visibility
     }
 };
 
