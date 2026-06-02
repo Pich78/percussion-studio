@@ -9,7 +9,7 @@
  * without circular dependencies.
  */
 
-import { state } from '../store.js';
+import { state, playback } from '../store.js';
 import { getActiveSection } from '../store/stateSelectors.js';
 import { TubsGrid, autoScrollGrid } from '../components/tubsGrid.js';
 import { MobileLayout, calculateMobileCellSize } from './mobile/standard/layout.js';
