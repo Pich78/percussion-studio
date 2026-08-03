@@ -186,6 +186,14 @@ export const setupDesktopEvents = () => {
             return;
         }
 
+        // Consume the release-click after a slider drag (set in the
+        // document mouseup handler) so it can't close modals via the
+        // backdrop common-ancestor click.
+        if (window.__sliderDragFinished) {
+            window.__sliderDragFinished = false;
+            return;
+        }
+
         const target = e.target.closest('[data-action], [data-role]');
         if (!target) return;
 
@@ -228,6 +236,7 @@ export const setupDesktopEvents = () => {
     // Mouse events for Long-Press Pie Menu support
     root.addEventListener('mousedown', (e) => {
         window.__ignoreNextClick = false; // Reset on new sequence
+        window.__sliderDragFinished = false; // Reset on new sequence
 
         const cell = e.target.closest('[data-role="tubs-cell"]');
 
@@ -395,6 +404,9 @@ export const setupDesktopEvents = () => {
             window.__bpmDragging = false;
             activeBpmInput = null;
             activeBpmContainer = null;
+            // Swallow the release-click that follows a drag so it can't
+            // close an open modal via the backdrop common-ancestor click.
+            window.__sliderDragFinished = true;
         }
 
         // Handle volume slider release
@@ -403,6 +415,9 @@ export const setupDesktopEvents = () => {
             window.__volumeDragging = false;
             activeVolumeInput = null;
             activeVolumeContainer = null;
+            // Swallow the release-click that follows a drag so it can't
+            // close the mixer modal via the backdrop common-ancestor click.
+            window.__sliderDragFinished = true;
             // Refresh grid to sync any mute state changes that were deferred
             eventBus.emit('grid-refresh');
         }

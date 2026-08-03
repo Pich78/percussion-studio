@@ -570,6 +570,14 @@ export const setupMobileEvents = () => {
         audioEngine.init();
         audioEngine.resume();
 
+        // Consume the release-tap after a slider/knob drag (set in the
+        // document touchend handler) so it can't close an open popover
+        // via the backdrop common-ancestor click.
+        if (window.__sliderDragFinished) {
+            window.__sliderDragFinished = false;
+            return;
+        }
+
         const target = e.target.closest('[data-action], [data-role]');
         if (!target) return;
 
@@ -757,6 +765,10 @@ export const setupMobileEvents = () => {
     }
 
     root.addEventListener('touchstart', (e) => {
+        // Reset on new sequence so a drag with no release-tap (e.g. touch
+        // cancelled) can't swallow a later legitimate tap.
+        window.__sliderDragFinished = false;
+
         // 0. Check for Circular Tempo Knob
         const knobEl = e.target.closest('#tempo-knob');
         if (knobEl) {
@@ -858,6 +870,9 @@ export const setupMobileEvents = () => {
         if (activeKnobEl) {
             window.__bpmDragging = false;
             activeKnobEl = null;
+            // Swallow the release-tap that follows a drag so it can't close
+            // an open popover via the backdrop common-ancestor click.
+            window.__sliderDragFinished = true;
             // Full re-render to update the SVG knob arc visuals
             eventBus.emit('render');
         }
@@ -865,9 +880,11 @@ export const setupMobileEvents = () => {
             window.__bpmDragging = false;
             activeBpmInput = null;
             activeBpmContainer = null;
+            window.__sliderDragFinished = true;
         }
         if (activeVolInput) {
             window.__volumeDragging = false;
+            window.__sliderDragFinished = true;
             // Dispatch change event to trigger full re-render
             activeVolInput.dispatchEvent(new Event('change', { bubbles: true }));
             activeVolInput = null;
@@ -898,6 +915,8 @@ export const setupMobileEvents = () => {
     let mouseKnobEl = null;
 
     root.addEventListener('mousedown', (e) => {
+        window.__sliderDragFinished = false; // Reset on new sequence
+
         const knobEl = e.target.closest('#tempo-knob');
         if (knobEl) {
             mouseKnobEl = knobEl;
