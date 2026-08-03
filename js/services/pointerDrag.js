@@ -3,8 +3,8 @@
  *
  * Unified pointer-based drag machinery (Pointer Events + setPointerCapture).
  * Replaces the legacy per-platform mousedown/mousemove/mouseup and
- * touchstart/touchmove/touchend implementations for all sliders and the
- * tempo knob, on desktop and mobile.
+ * touchstart/touchmove/touchend implementations for all sliders, on
+ * desktop and mobile.
  *
  * Why pointer events:
  * - One code path for mouse, touch and pen across all modern browsers.
@@ -26,54 +26,11 @@
  * every surface from state).
  */
 
-import { state, playback } from '../store.js';
 import { eventBus } from './eventBus.js';
 import { updateVolumeSliderVisuals, updateBpmSliderVisuals } from '../ui/sliderVisuals.js';
 
-// ─── Tempo knob math (moved from mobileEvents.js) ──────────────────────
-
-const KNOB_START_ANGLE = 135;  // degrees (bottom-left)
-const KNOB_ARC_SPAN = 270;    // 270° arc
 const BPM_MIN = 40;
 const BPM_MAX = 240;
-
-/**
- * Convert a screen pointer position to a BPM value based on the angle
- * relative to the knob center.
- */
-const knobPositionToBpm = (clientX, clientY, knobEl) => {
-    const rect = knobEl.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-    const dx = clientX - cx;
-    const dy = clientY - cy;
-
-    // atan2 gives angle in degrees from the positive-x axis; normalize 0-360
-    let angle = Math.atan2(dy, dx) * (180 / Math.PI);
-    if (angle < 0) angle += 360;
-
-    // Map from the arc range (135°-405°) to a 0-1 fraction
-    let mapped = angle;
-    if (mapped < KNOB_START_ANGLE) mapped += 360;
-
-    const fraction = Math.max(0, Math.min(1, (mapped - KNOB_START_ANGLE) / KNOB_ARC_SPAN));
-    return Math.round(BPM_MIN + fraction * (BPM_MAX - BPM_MIN));
-};
-
-/**
- * Apply a new BPM from knob interaction (direct DOM + state update, no re-render)
- */
-const applyKnobBpm = (bpm) => {
-    state.toque.globalBpm = bpm;
-    playback.currentPlayheadBpm = bpm;
-    playback.userHasOverriddenBpm = true;
-    // Update BPM display
-    const display = document.getElementById('header-global-bpm');
-    if (display) display.textContent = bpm;
-    // Update the hidden range input for consistency
-    const rangeInput = document.querySelector('#tempo-knob input[data-action="update-global-bpm"]');
-    if (rangeInput) rangeInput.value = bpm;
-};
 
 // ─── Active drag state ──────────────────────────────────────────────────
 
@@ -140,26 +97,10 @@ const buildBpmDrag = (container) => {
     };
 };
 
-const buildKnobDrag = (knobEl) => ({
-    type: 'knob',
-    element: knobEl,
-    apply: (e) => applyKnobBpm(knobPositionToBpm(e.clientX, e.clientY, knobEl)),
-    end: (cancelled) => {
-        window.__bpmDragging = false;
-        markDragFinished(cancelled);
-        if (!cancelled) eventBus.emit('render');
-    }
-});
-
 /**
  * Resolve the drag target from the pointerdown target.
- * Order matters: the knob is checked first because its hidden range input
- * shares the update-global-bpm data-action with the BPM sliders.
  */
 const resolveDrag = (target) => {
-    const knobEl = target.closest('#tempo-knob');
-    if (knobEl) return buildKnobDrag(knobEl);
-
     const volContainer = target.closest('.group\\/vol') || target.closest('[data-action="update-volume"]');
     if (volContainer) return buildVolumeDrag(volContainer);
 
@@ -234,8 +175,7 @@ const injectDragStyles = () => {
         .group\\/vol,
         .group\\/bpm,
         [data-action="update-volume"],
-        [data-action="update-global-bpm"],
-        #tempo-knob {
+        [data-action="update-global-bpm"] {
             touch-action: none;
             user-select: none;
         }

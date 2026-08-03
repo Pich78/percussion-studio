@@ -469,6 +469,6 @@ export const setupDesktopEvents = () => {
     // Drag and drop for timeline
     timelineHandlers.setupDragAndDrop(root);
 
-    // Unified slider/knob drag machinery (Pointer Events)
+    // Unified slider drag machinery (Pointer Events)
     setupPointerDrags(root);
 };

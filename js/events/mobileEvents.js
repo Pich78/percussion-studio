@@ -572,7 +572,7 @@ export const setupMobileEvents = () => {
         audioEngine.init();
         audioEngine.resume();
 
-        // Consume the release-tap after a slider/knob drag (set in the
+        // Consume the release-tap after a slider drag (set in the
         // document touchend handler) so it can't close an open popover
         // via the backdrop common-ancestor click.
         if (window.__sliderDragFinished) {
@@ -741,6 +741,6 @@ export const setupMobileEvents = () => {
         }, 100);
     });
 
-    // Unified slider/knob drag machinery (Pointer Events)
+    // Unified slider drag machinery (Pointer Events)
     setupPointerDrags(root);
 };
