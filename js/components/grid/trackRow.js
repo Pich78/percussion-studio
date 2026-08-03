@@ -148,7 +148,7 @@ export const TrackRow = ({
               <!-- Row 1: Instrument Name (click = mute toggle) -->
               <div class="flex items-center gap-1">
                 <button data-action="toggle-mute" data-track-index="${trackIdx}" data-measure-index="${measureIdx}"
-                  class="font-bold text-sm select-none text-left truncate flex-1 text-gray-200 cursor-pointer rounded px-1 py-0.5 transition-colors hover:bg-gray-800/60 hover:text-white ${isMutedOrZero ? 'text-gray-500 line-through' : ''}"
+                  class="track-name-mute font-bold text-sm select-none text-left truncate flex-1 text-gray-200 cursor-pointer rounded px-1 py-0.5 transition-colors hover:bg-gray-800/60 hover:text-white ${isMutedOrZero ? 'text-gray-500 line-through' : ''}"
                   title="${isMutedOrZero ? 'Unmute ' + displayName : 'Mute ' + displayName}">${displayName}</button>
               </div>
               

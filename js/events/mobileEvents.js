@@ -193,7 +193,8 @@ const createMobileActionRouter = () => ({
     'toggle-mute': (e, target) => {
         const section = getActiveSection(state);
         const tIdx = parseInt(target.dataset.trackIndex);
-        const track = section?.measures[0]?.tracks[tIdx];
+        const mIdx = parseInt(target.dataset.measureIndex || 0);
+        const track = section?.measures[mIdx]?.tracks[tIdx];
         if (!track) return;
 
         trackMixer.toggleMute(tIdx, track, track.instrument);

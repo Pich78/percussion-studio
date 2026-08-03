@@ -132,21 +132,22 @@ export const DualModeTrackRow = ({
     const isMuted = isInstrumentMuted(state, track.instrument) || getMixVolume(state, track.instrument) === 0;
     const subdivision = track.trackSteps || section.subdivision || 4;
 
-    // ── Dual Mode-specific sticky label: name only, centred ──────────────
+    // ── Dual Mode-specific sticky label: name (tap = mute) + ÷N info ────
     const labelHtml = `
     <div class="sticky left-0 z-20 flex-shrink-0 flex items-center ${borderColorClass} bg-gray-950 border-r border-gray-800 shadow-[4px_0_10px_rgba(0,0,0,0.5)]">
-        <div class="w-44 flex items-center justify-center px-3 py-1.5">
+        <div class="w-44 flex items-center justify-center gap-1.5 px-3 py-1.5">
             <button
-                data-action="dual-mode-cycle-colour"
+                data-action="toggle-mute"
                 data-track-index="${trackIdx}"
                 data-measure-index="${measureIdx}"
-                class="text-sm font-bold leading-tight hover:opacity-75 active:opacity-50 transition-opacity cursor-pointer w-full flex items-center justify-center gap-1.5 ${isMuted ? 'line-through opacity-40' : ''}"
+                class="track-name-mute text-sm font-bold leading-tight hover:opacity-75 active:opacity-50 transition-opacity cursor-pointer flex-1 min-w-0 text-center ${isMuted ? 'line-through opacity-40' : ''}"
                 style="color: ${isMuted ? '#6b7280' : nameColor};"
-                title="${displayName}${isMuted ? ' (muted)' : ` — ÷${subdivision} tap to cycle`}"
+                title="${isMuted ? 'Unmute ' + displayName : 'Mute ' + displayName}"
             >
                 <span class="truncate">${displayName}</span>
-                <span class="text-[10px] font-mono text-indigo-400/80 flex-shrink-0 whitespace-nowrap">÷${subdivision}</span>
             </button>
+            <span class="text-[10px] font-mono text-indigo-400/80 flex-shrink-0 whitespace-nowrap pointer-events-none"
+                  title="Subdivision: ${subdivision} — tap the track to cycle">÷${subdivision}</span>
         </div>
     </div>`;
 
@@ -154,8 +155,19 @@ export const DualModeTrackRow = ({
     <div class="flex items-center group min-w-max transition-opacity duration-300 ${isMuted ? 'opacity-50' : 'opacity-100'}">
         ${labelHtml}
 
-        <!-- Grid Cells — identical to standard TrackRow -->
-        <div class="flex bg-gray-900/30 p-1 rounded-r-md ml-1 pointer-events-none">
+        <!-- Grid Cells — identical to standard TrackRow. The cells stay
+             inert (pointer-events-none); an invisible overlay button covers
+             the strip so a tap anywhere on the track cycles the subdivision
+             coloring (avoids hover-flash on the styled cells). -->
+        <div class="relative flex bg-gray-900/30 p-1 rounded-r-md ml-1 pointer-events-none">
+            <button
+                data-action="dual-mode-cycle-colour"
+                data-track-index="${trackIdx}"
+                data-measure-index="${measureIdx}"
+                class="absolute inset-0 z-10 pointer-events-auto cursor-pointer"
+                aria-label="Cycle subdivision coloring for ${displayName}"
+                title="Subdivision: ${subdivision} — tap to cycle"
+            ></button>
             ${renderTrackCells({
                 track,
                 trackIdx,

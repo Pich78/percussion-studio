@@ -214,8 +214,10 @@ export const updateVolumeUi = () => {
         if (portraitThumb) portraitThumb.style.left = 'calc(' + pct + '% - ' + (portraitThumb.offsetWidth / 2) + 'px)';
 
         // Mute button visual state (mixerModal.js etc.)
+        // Exclude track-name-mute buttons (grid instrument names, desktop +
+        // dual-mode landscape) — their muted styling is fully render-driven.
         const muteBtn = document.querySelector(
-            `button[data-action="toggle-mute"][data-track-index="${tIdx}"][data-measure-index="0"]`
+            `button[data-action="toggle-mute"][data-track-index="${tIdx}"][data-measure-index="0"]:not(.track-name-mute)`
         );
         if (muteBtn) {
             if (muted) {
