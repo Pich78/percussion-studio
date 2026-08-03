@@ -9,6 +9,7 @@ import { getActiveSection, snapStepIndex } from '../store/stateSelectors.js';
 import { actions } from '../actions.js';
 import { togglePlay, stopPlayback } from '../services/sequencer.js';
 import { eventBus } from '../services/eventBus.js';
+import { setupPointerDrags } from '../services/pointerDrag.js';
 import { StrokeType } from '../types.js';
 
 // Import modular handlers
@@ -294,173 +295,6 @@ export const setupDesktopEvents = () => {
         }
     }, { passive: false });
 
-    // Volume slider drag tracking (document-level for consistent drag)
-    let activeVolumeSlider = null;
-    let activeVolumeContainer = null;
-    let activeVolumeInput = null;
-
-    // BPM slider drag tracking (document-level for smooth drag like volume)
-    let activeBpmContainer = null;
-    let activeBpmInput = null;
-
-    // Use capture phase to intercept before native range input behavior
-    root.addEventListener('mousedown', (e) => {
-        // Check for BPM slider container first (group/bpm class)
-        const bpmContainer = e.target.closest('.group\\/bpm');
-        if (bpmContainer) {
-            const bpmInput = bpmContainer.querySelector('input[data-action="update-global-bpm"]');
-            if (bpmInput) {
-                activeBpmContainer = bpmContainer;
-                activeBpmInput = bpmInput;
-
-                // Set global flag to prevent refreshGrid during drag
-                window.__bpmDragging = true;
-
-                // Immediately calculate and update position on first click
-                const rect = bpmContainer.getBoundingClientRect();
-                let percentage = (e.clientX - rect.left) / rect.width;
-                percentage = Math.max(0, Math.min(1, percentage));
-                const newBpm = Math.round(40 + percentage * 200); // 40-240 BPM range
-                bpmInput.value = newBpm;
-                bpmInput.dispatchEvent(new Event('input', { bubbles: true }));
-
-                // Direct DOM update for immediate visual feedback
-                updateBpmSliderVisuals(bpmContainer, newBpm);
-
-                // Prevent text selection and native range behavior
-                e.preventDefault();
-                e.stopPropagation();
-                return;
-            }
-        }
-
-        // Target the entire volume slider container for easier clicking
-        const container = e.target.closest('.group\\/vol');
-        if (!container) return;
-
-        const input = container.querySelector('input[data-action="update-volume"]');
-        if (!input) return;
-
-        activeVolumeContainer = container;
-        activeVolumeInput = input;
-
-        // Set global flag to prevent refreshGrid during drag
-        window.__volumeDragging = true;
-
-        // Immediately calculate and update position on first click
-        const rect = container.getBoundingClientRect();
-        let percentage = (e.clientX - rect.left) / rect.width;
-        percentage = Math.max(0, Math.min(1, percentage));
-        input.value = percentage;
-        input.dispatchEvent(new Event('input', { bubbles: true }));
-
-        // Direct DOM update for immediate visual feedback (mirrors BPM pattern)
-        updateVolumeSliderVisuals(container, percentage);
-
-        // Prevent text selection and native range behavior
-        e.preventDefault();
-        e.stopPropagation();
-    }, true); // Capture phase
-
-    document.addEventListener('mousemove', (e) => {
-        // Handle BPM slider drag
-        if (activeBpmInput && activeBpmContainer) {
-            const rect = activeBpmContainer.getBoundingClientRect();
-            let percentage = (e.clientX - rect.left) / rect.width;
-            percentage = Math.max(0, Math.min(1, percentage));
-            const newBpm = Math.round(40 + percentage * 200); // 40-240 BPM range
-
-            // Update the input value
-            activeBpmInput.value = newBpm;
-
-            // Trigger the input event to update state
-            activeBpmInput.dispatchEvent(new Event('input', { bubbles: true }));
-
-            // Direct DOM update for immediate visual feedback
-            updateBpmSliderVisuals(activeBpmContainer, newBpm);
-            return;
-        }
-
-        // Handle volume slider drag
-        if (!activeVolumeInput || !activeVolumeContainer) return;
-
-        const rect = activeVolumeContainer.getBoundingClientRect();
-        let percentage = (e.clientX - rect.left) / rect.width;
-        percentage = Math.max(0, Math.min(1, percentage));
-
-        // Update the input value
-        activeVolumeInput.value = percentage;
-
-        // Trigger the input event to update state and visuals
-        activeVolumeInput.dispatchEvent(new Event('input', { bubbles: true }));
-
-        // Direct DOM update for immediate visual feedback (mirrors BPM pattern)
-        updateVolumeSliderVisuals(activeVolumeContainer, percentage);
-    });
-
-    document.addEventListener('mouseup', () => {
-        // Handle BPM slider release
-        if (activeBpmInput) {
-            window.__bpmDragging = false;
-            activeBpmInput = null;
-            activeBpmContainer = null;
-            // Swallow the release-click that follows a drag so it can't
-            // close an open modal via the backdrop common-ancestor click.
-            window.__sliderDragFinished = true;
-        }
-
-        // Handle volume slider release
-        if (activeVolumeInput) {
-            // Clear drag state
-            window.__volumeDragging = false;
-            activeVolumeInput = null;
-            activeVolumeContainer = null;
-            // Swallow the release-click that follows a drag so it can't
-            // close the mixer modal via the backdrop common-ancestor click.
-            window.__sliderDragFinished = true;
-            // Refresh grid to sync any mute state changes that were deferred
-            eventBus.emit('grid-refresh');
-        }
-    });
-
-    /**
-     * Update BPM slider visuals directly (no re-render)
-     * @param {HTMLElement} container - The slider container
-     * @param {number} bpm - The new BPM value
-     */
-    function updateBpmSliderVisuals(container, bpm) {
-        const percentage = ((bpm - 40) / 200) * 100;
-        // Update fill bar
-        const fillBar = container.querySelector('div[class*="bg-gradient"]');
-        if (fillBar) fillBar.style.width = `${percentage}%`;
-        // Update handle position (dynamic offset based on actual handle width)
-        const handle = container.querySelector('div[class*="bg-white"]');
-        if (handle) handle.style.left = `calc(${percentage}% - ${handle.offsetWidth / 2}px)`;
-    }
-
-    /**
-     * Update volume slider visuals directly (no re-render).
-     * Mirrors updateBpmSliderVisuals so the slider fill/handle/inside-pct
-     * follow the cursor during drag. The outside percentage text and mute
-     * button styling are intentionally left for the mouseup render — same
-     * trade-off as the BPM pattern (the BPM outside text also only updates
-     * on render, not during drag).
-     * @param {HTMLElement} container - The .group/vol slider container
-     * @param {number} volume - 0.0-1.0
-     */
-    function updateVolumeSliderVisuals(container, volume) {
-        const percentage = Math.round(volume * 100);
-        // Update fill bar
-        const fillBar = container.querySelector('div[class*="bg-gradient"]');
-        if (fillBar) fillBar.style.width = `${percentage}%`;
-        // Update handle position (8px offset for the 16x16 handle, see mixerModal.js)
-        const handle = container.querySelector('div[class*="bg-white"]');
-        if (handle) handle.style.left = `calc(${percentage}% - 8px)`;
-        // Update inside percentage text
-        const percentLabel = container.querySelector('span[class*="font-medium"]');
-        if (percentLabel) percentLabel.textContent = `${percentage}%`;
-    }
-
     // Input handler for sliders and text inputs
     root.addEventListener('input', (e) => {
         const target = e.target;
@@ -634,4 +468,7 @@ export const setupDesktopEvents = () => {
 
     // Drag and drop for timeline
     timelineHandlers.setupDragAndDrop(root);
+
+    // Unified slider/knob drag machinery (Pointer Events)
+    setupPointerDrags(root);
 };
