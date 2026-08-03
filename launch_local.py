@@ -1,3 +1,4 @@
+import argparse
 import http.server
 import socketserver
 import subprocess
@@ -7,11 +8,23 @@ import os
 PORT = 8000
 
 
-class StandardHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
-    pass
+def main():
+    parser = argparse.ArgumentParser(description="Percussion Studio local development server")
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="log every HTTP request (path and status) to the terminal",
+    )
+    args = parser.parse_args()
 
+    class RequestHandler(http.server.SimpleHTTPRequestHandler):
+        def log_request(self, code="-", size="-"):
+            # Verbose mode logs every request; otherwise keep the console quiet.
+            # Errors (404 etc.) are still reported via log_message/log_error.
+            if args.verbose:
+                super().log_request(code, size)
 
-if __name__ == "__main__":
     print("Regenerating manifest and metadata files...")
 
     script_path = os.path.join(
@@ -26,8 +39,10 @@ if __name__ == "__main__":
     else:
         print("Error generating manifest:", result.stderr)
 
-    with socketserver.TCPServer(("", PORT), StandardHTTPRequestHandler) as httpd:
+    with socketserver.TCPServer(("", PORT), RequestHandler) as httpd:
         print(f"Server started on port {PORT}")
+        if args.verbose:
+            print("Verbose logging enabled: each request will be printed.")
         print("Press Ctrl+C to stop the server.")
 
         try:
@@ -35,3 +50,7 @@ if __name__ == "__main__":
         except KeyboardInterrupt:
             print("\nServer stopped manually. Goodbye!")
             sys.exit(0)
+
+
+if __name__ == "__main__":
+    main()

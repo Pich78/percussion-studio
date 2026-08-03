@@ -4,8 +4,6 @@
   Requires: js-yaml library loaded in index.html (window.jsyaml)
 */
 
-import { config } from '../config.js';
-
 class DataLoaderService {
     constructor() {
         this.manifest = null;
@@ -30,8 +28,8 @@ class DataLoaderService {
 
     /**
      * Helper: Generic fetcher for YAML files
-     * NOTE: Cache-busting is enabled for development. For production (GitHub Pages),
-     * remove the timestamp parameter to allow proper browser caching.
+     * Always fetches with cache: 'no-store' so updates to data files are
+     * never served stale, both in development and on GitHub Pages.
      */
     async _fetchYaml(url) {
         if (!window.jsyaml) {
@@ -39,24 +37,12 @@ class DataLoaderService {
         }
 
         try {
-            if (config.verboseLogging) {
-                console.log(`[DataLoader] Fetching YAML from: ${url}`);
-            }
-
             const response = await fetch(url, { cache: 'no-store' });
 
             if (!response.ok) throw new Error(`HTTP ${response.status} for ${url}`);
             const text = await response.text();
 
-            if (config.verboseLogging) {
-                console.log(`[DataLoader] Loaded ${text.length} bytes from ${url}`);
-            }
-
             const parsed = window.jsyaml.load(text);
-
-            if (config.verboseLogging) {
-                console.log(`[DataLoader] Parsed YAML from ${url}:`, parsed);
-            }
 
             return parsed;
         } catch (error) {

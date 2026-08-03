@@ -71,8 +71,8 @@ These are loaded as regular `<script>` tags in `mobile.html` and `desktop.html`,
 
 | Constraint | Details | Source |
 |-----------|---------|--------|
-| **Local server** | Run `python launch_local.py` (starts HTTP on port 8000, auto-generates manifest). | `README.md:36-38` |
-| **Dev vs Production** | Toggle `isDevelopment` in `js/config.js`. Dev: no caching, verbose logging. Production: caching enabled, minimal logging. | `CACHE_CONTROL.md` |
+| **Local server** | Run `python launch_local.py` (starts HTTP on port 8000, auto-generates manifest). Add `--verbose` to log every HTTP request. | `README.md:35-42` |
+| **Caching** | All data fetches use `cache: 'no-store'` (manifest, YAML, Batà metadata). `desktop.html` and `mobile.html` carry no-cache meta tags. Data freshness is hardcoded — there is no dev/prod config flag. | `js/services/dataLoader.js` |
 | **Manifest regeneration** | Run `cd tools && python generate_manifest.py` after any data file changes. | `README.md:155-158` |
 | **Deployment** | Deployed to GitHub Pages at `https://pich78.github.io/percussion-studio/`. | `AGENTS.md:7` |
 
