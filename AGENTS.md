@@ -26,6 +26,7 @@ Non-negotiable rules — do not introduce anything that violates them.
 | **Python only for tooling** | `tools/generate_manifest.py` (requires `pyyaml`) is the only non-browser runtime. |
 | **Content data** | YAML under `data/`, registered in `manifest.json` (auto-generated — regenerate after data changes). |
 | **PWA behavior** | Must prevent native browser gestures (`touch-action` rules) and respect iPhone safe areas — see Conventions. |
+| **Docs stay in sync** | Any change in program behavior requires a documentation update in the same change. Any structural change to the software requires a new document or an update of the existing ones (see Documentation Map and How to Work Here). |
 
 ---
 
@@ -104,11 +105,13 @@ During playback the sequencer emits `step` events; `renderer.js` forwards them t
 - Create a definition under `js/views/` (see `viewManager.js` for the required interface: `id`, `layout`, `setupEvents`, optional `onStep` / `onRender`).
 - Register it in `js/app.js` and set it as active for the target platform.
 
-### Keep docs in sync
-- User-visible changes → update the corresponding user guide(s) (`docs/user-guide-*.md`, EN + IT).
-- Data format changes → `docs/data-specifications.md`.
-- Behavioral changes → `docs/requirements/*`.
-- Architectural / constraint changes → `docs/project-constraints.md`.
+### Keep docs in sync (mandatory)
+Documentation updates are part of the change, not an afterthought:
+
+- **Behavior change** → update the relevant spec and user guides in the same commit/change: `docs/requirements/*` for engine behavior, `docs/user-guide-*.md` (EN + IT) for user-visible behavior.
+- **Structural change** (new module, new view, new layer, changed architecture) → update `docs/project-constraints.md` and/or `AGENTS.md`, or create a new document if none fits.
+- **Data format change** → `docs/data-specifications.md`.
+- If the change has no existing document that covers it, **create a new one**.
 
 ---
 
