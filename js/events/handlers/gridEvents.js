@@ -4,8 +4,9 @@
 */
 
 import { state, commit } from '../../store.js';
-import { getActiveSection, snapStepIndex, isInstrumentMuted } from '../../store/stateSelectors.js';
+import { getActiveSection, snapStepIndex } from '../../store/stateSelectors.js';
 import { eventBus } from '../../services/eventBus.js';
+import { trackMixer } from '../../services/trackMixer.js';
 import { actions } from '../../actions.js';
 import { StrokeType } from '../../types.js';
 import { getValidInstrumentSteps } from '../../utils/gridUtils.js';
@@ -62,8 +63,7 @@ export const handleToggleMute = (target) => {
     const mIdx = parseInt(target.dataset.measureIndex || 0);
     const track = section.measures[mIdx].tracks[tIdx];
 
-    const newMutedState = !isInstrumentMuted(state, track.instrument);
-    actions.setGlobalMute(track.instrument, newMutedState);
+    trackMixer.toggleMute(tIdx, track, track.instrument);
 };
 
 /**

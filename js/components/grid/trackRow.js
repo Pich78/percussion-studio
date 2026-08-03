@@ -145,9 +145,11 @@ export const TrackRow = ({
             
             <!-- Instrument Info Block -->
             <div class="relative w-44 flex flex-col justify-center px-3 py-1.5">
-              <!-- Row 1: Instrument Name -->
+              <!-- Row 1: Instrument Name (click = mute toggle) -->
               <div class="flex items-center gap-1">
-                <span class="font-bold text-sm select-none text-left truncate flex-1 text-gray-200 ${isMutedOrZero ? 'text-gray-500 line-through' : ''}" title="${displayName}">${displayName}</span>
+                <button data-action="toggle-mute" data-track-index="${trackIdx}" data-measure-index="${measureIdx}"
+                  class="font-bold text-sm select-none text-left truncate flex-1 text-gray-200 cursor-pointer rounded px-1 py-0.5 transition-colors hover:bg-gray-800/60 hover:text-white ${isMutedOrZero ? 'text-gray-500 line-through' : ''}"
+                  title="${isMutedOrZero ? 'Unmute ' + displayName : 'Mute ' + displayName}">${displayName}</button>
               </div>
               
               <!-- Row 2: Edit Controls (only when stopped and editable; mute/volume are in the Mixer modal) -->
