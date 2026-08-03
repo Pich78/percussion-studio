@@ -21,7 +21,7 @@ This document describes the runtime behavior of the BPM system. The key design g
 A boolean on the `playback` object that controls whether per-section BPM overrides are applied during section transitions.
 
 ### When set to `true`
-The user has interacted with a BPM control (slider, step button, knob) during the current playback session. Section `bpm` overrides are **ignored** — the live BPM carries through all section transitions unchanged.
+The user has interacted with a BPM control (slider, step button) during the current playback session. Section `bpm` overrides are **ignored** — the live BPM carries through all section transitions unchanged.
 
 ### When set to `false`
 Section `bpm` overrides are applied on entry (the default). This is the initial state on playback start and after Stop.
@@ -41,7 +41,7 @@ stopPlayback():
     currentPlayheadBpm = firstSection.bpm ?? state.toque.globalBpm
 ```
 
-### User Changes BPM via Slider / Step / Knob
+### User Changes BPM via Slider / Step
 
 All user-initiated BPM changes follow the same pattern:
 
