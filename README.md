@@ -45,7 +45,6 @@ percussion-studio/
 ├── desktop.html            # Desktop interface
 ├── mobile.html             # Mobile interface
 ├── manifest.json           # Auto-generated resource registry
-├── data_specifications.md  # Detailed data format documentation
 ├── js/                     # Application source code
 ├── data/                   # All content data
 │   ├── instruments/        # Instrument definitions
@@ -215,7 +214,7 @@ Comprehensive guides for using Percussion Studio:
 
 ## Documentation
 
-- **[data_specifications.md](data_specifications.md)**: Detailed technical specifications
+- **[data-specifications.md](docs/data-specifications.md)**: Detailed technical specifications
 
 ## License
 
