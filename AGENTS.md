@@ -21,9 +21,10 @@ Non-negotiable rules — do not introduce anything that violates them.
 | Constraint | Rule |
 |---|---|
 | **Language** | Vanilla JavaScript + ES modules (`import`/`export`) loaded via `<script type="module">`. |
-| **No tooling** | No npm, no `package.json`, no bundlers, no Node.js — anywhere, including tooling. |
+| **No tooling (app)** | The app itself has no npm, no `package.json`, no bundlers, no Node.js. The deployed site must never contain a Node artifact. |
+| **Node only for E2E tests** | Node.js/npm are allowed **only inside `tests/`** to run Playwright browser tests (dev-only). Nothing else may use Node — see `docs/testing.md`. |
 | **No frameworks** | No React/Vue/Angular or similar. UI is template strings + direct DOM. |
-| **Python only for tooling** | `tools/generate_manifest.py` (requires `pyyaml`) is the only non-browser runtime. |
+| **Python only for app tooling** | `tools/generate_manifest.py` (requires `pyyaml`) and `launch_local.py` are the only non-browser runtimes for the app. |
 | **Content data** | YAML under `data/`, registered in `manifest.json` (auto-generated — regenerate after data changes). |
 | **PWA behavior** | Must prevent native browser gestures (`touch-action` rules) and respect iPhone safe areas — see Conventions. |
 | **Docs stay in sync** | Any change in program behavior requires a documentation update in the same change. Any structural change to the software requires a new document or an update of the existing ones (see Documentation Map and How to Work Here). |
@@ -121,6 +122,7 @@ Documentation updates are part of the change, not an afterthought:
 |---|---|
 | `docs/data-specifications.md` | YAML formats (instruments, sound packs, rhythms), pattern/dynamics syntax, manifest structure. |
 | `docs/project-constraints.md` | Technology stack, architecture patterns, PWA constraints, development workflow. |
+| `docs/testing.md` | E2E browser tests (Playwright): scope (Node only in `tests/`), how to run, iPhone 16 / PWA / Dynamic Island simulation. |
 | `docs/requirements/default-rhythm.md` | Default rhythm configuration + `?rhythm=` URL override. |
 | `docs/requirements/bpm-behavior.md` | BPM system: `playback.currentPlayheadBpm` as single source of truth, section overrides. |
 | `docs/requirements/tempo-acceleration.md` | Per-repetition tempo acceleration (`tempo_acceleration`). |
@@ -202,3 +204,5 @@ Always add `touch-action: none` to interactive elements (range sliders, custom d
 - After content changes: `cd tools && python generate_manifest.py`.
 - Test both frontends: `index.html?mode=desktop` and `index.html?mode=mobile` (or open the HTML files directly).
 - Test in a browser manually; for mobile, verify on a real iPhone in PWA (standalone) mode — safe areas and gesture behavior only behave correctly there.
+- Run the E2E suite (Node only inside `tests/`, starts/stops the server automatically): `bash tests/run_e2e_tests.sh`. Five projects: desktop, iPhone 16 mobile portrait/landscape (Safari-like), and PWA full-screen portrait/landscape with Dynamic Island safe-area simulation — see `docs/testing.md`.
+- The opencode agent can inspect the running app interactively through the Playwright MCP browser tools (configured in `opencode.json`); screenshots are returned as images.

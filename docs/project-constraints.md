@@ -8,12 +8,12 @@ This document captures the technical and architectural constraints of the Percus
 
 | Constraint | Details | Source |
 |-----------|---------|--------|
-| **Vanilla JavaScript** | No frameworks (React, Vue, Angular, etc.). No npm, no build tools, no bundlers. | `AGENTS.md:3` |
+| **Vanilla JavaScript** | No frameworks (React, Vue, Angular, etc.). No build step, no bundlers, no `package.json` in the app runtime. | `AGENTS.md:3` |
 | **ES Modules** | All JS files use native ES module syntax (`import`/`export`) loaded via `<script type="module">`. | `AGENTS.md:3` |
-| **No npm ecosystem** | No `package.json`, no `node_modules`, no package manager. | Filesystem scan |
-| **No automated tests** | All testing is manual in a browser. | `AGENTS.md:9` |
+| **No npm ecosystem (app)** | The app itself has no `package.json`, no `node_modules`, no package manager. The deployed site must never contain a Node artifact. | `AGENTS.md:3` |
+| **Automated tests (Playwright)** | Node.js/npm are allowed **only inside `tests/`** to run the Playwright E2E suite (dev-only). Everything else stays Python/browser-only. See `docs/testing.md`. | `AGENTS.md:3` |
 
-| **No Node.js** | Node.js must not be used at any point — not in production, not for local development, not for tooling or tests. The only runtime dependency outside the browser is Python (for manifest generation). | `AGENTS.md:3`, explicit project rule |
+| **No Node.js in the app** | Node.js must not be used by the application, its data tooling, or deployment — only by the Playwright E2E tests under `tests/`. The only runtime dependency outside the browser is Python (manifest generation, local server). | `AGENTS.md:3`, explicit project rule |
 
 ### Allowed External Dependencies (loaded from CDN)
 
@@ -58,7 +58,7 @@ These are loaded as regular `<script>` tags in `mobile.html` and `desktop.html`,
 
 | Constraint | Details | Source |
 |-----------|---------|--------|
-| **PWA mode** | App runs as a PWA on iOS via `apple-mobile-web-app-capable: yes`. Test in standalone mode on real iPhone. | `mobile.html:132-135`, `AGENTS.md:8` |
+| **PWA mode** | App runs as a PWA on iOS via `apple-mobile-web-app-capable: yes`. Test in standalone mode on real iPhone. E2E tests approximate standalone via a full-screen viewport + CDP safe-area injection (`Emulation.setSafeAreaInsetsOverride`). | `mobile.html:132-135`, `AGENTS.md:8`, `docs/testing.md` |
 | **Safe areas** | Use `env(safe-area-inset-*)` CSS functions for iPhone notch/home indicator. Example: `pb-[calc(env(safe-area-inset-bottom,0px)+1rem)]`. | `AGENTS.md:80-82` |
 | **Gesture prevention** | Add `touch-action: none` to interactive elements (sliders, drag handles) to prevent iOS scroll/zoom/pull-to-refresh. | `AGENTS.md:87-97` |
 | **Tap delay** | Use `touch-action: manipulation` on buttons and `[data-action]` elements to remove 300ms tap delay. | `mobile.html:88-92` |
@@ -72,6 +72,7 @@ These are loaded as regular `<script>` tags in `mobile.html` and `desktop.html`,
 | Constraint | Details | Source |
 |-----------|---------|--------|
 | **Local server** | Run `python launch_local.py` (starts HTTP on port 8000, auto-generates manifest). Add `--verbose` to log every HTTP request. | `README.md:35-42` |
+| **E2E tests** | Run `bash tests/run_e2e_tests.sh` (Node only inside `tests/`). The runner starts/stops `tests/test_launch_local.py` as the web server. Rule: changes to `launch_local.py` must be mirrored in `tests/test_launch_local.py`; test-only fixes there are NOT ported back. See `docs/testing.md`. | `docs/testing.md` |
 | **Caching** | All data fetches use `cache: 'no-store'` (manifest, YAML, Batà metadata). `desktop.html` and `mobile.html` carry no-cache meta tags. Data freshness is hardcoded — there is no dev/prod config flag. | `js/services/dataLoader.js` |
 | **Manifest regeneration** | Run `cd tools && python generate_manifest.py` after any data file changes. | `README.md:155-158` |
 | **Deployment** | Deployed to GitHub Pages at `https://pich78.github.io/percussion-studio/`. | `AGENTS.md:7` |
