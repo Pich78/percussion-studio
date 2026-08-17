@@ -7,6 +7,7 @@ playwright-report/
 blob-report/
 playwright/.cache/
 tests/.cache/
+.playwright-mcp/
 
 # Python
 .ruff_cache/
