@@ -1,0 +1,11 @@
+{
+  "name": "percussion-studio-e2e",
+  "private": true,
+  "description": "E2E browser tests for Percussion Studio. Node.js is used ONLY to run these tests — the application itself never uses Node.",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.60.0"
+  }
+}
