@@ -261,13 +261,13 @@ Apri **☰ → Opzioni di Editing** per scegliere come aggiungere i simboli alla
 
 1. Clicca **+ Add Track** sotto l'ultima traccia di una misura.
 2. Scegli un **Instrument Type** (colonna sinistra) — es. IYA, ITO, OKO, CON.
-3. Scegli un **Sound Pack** (colonna destra).
+3. Scegli un **Sound Pack** (colonna destra) — i pack sono elencati in due colonne; selezionandone uno compaiono i nomi dei suoi suoni in due colonne, il suono aperto viene riprodotto automaticamente e puoi cliccare un nome per ascoltarlo prima di scegliere.
 4. Clicca **OK** (attivo solo quando entrambi sono selezionati) oppure **Cancel**.
 
 ### Cambiare Strumento o Sound Pack
 
 1. Clicca il pulsante **📦** su una riga traccia (riproduzione ferma).
-2. Seleziona un diverso Strumento o Sound Pack.
+2. Seleziona un diverso Strumento o Sound Pack — i nomi dei suoni sono elencati in due colonne così puoi ascoltarli prima di applicare.
 3. Clicca **OK** per applicare.
 
 > **Nota**: volume e mute sono globali per strumento — valgono per ogni occorrenza dello strumento in tutte le sezioni. **Non vengono salvati** e si azzerano caricando un nuovo ritmo.

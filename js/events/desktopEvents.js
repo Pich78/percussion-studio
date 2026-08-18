@@ -70,6 +70,7 @@ const createActionRouter = () => {
         'close-modal-bg': (e, target) => { if (e.target === target) modalHandlers.handleCloseModal(); },
         'select-instrument': (e, target) => modalHandlers.handleSelectInstrument(target),
         'select-sound-pack': (e, target) => modalHandlers.handleSelectSoundPack(target),
+        'preview-sound': (e, target) => modalHandlers.handlePreviewSound(target),
         'confirm-instrument-selection': () => modalHandlers.handleConfirmInstrumentSelection(),
         'toggle-folder': (e, target) => modalHandlers.handleToggleFolder(target),
         'select-rhythm-confirm': (e, target) => modalHandlers.handleSelectRhythmConfirm(target),

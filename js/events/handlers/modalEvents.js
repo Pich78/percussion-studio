@@ -8,6 +8,7 @@ import { getActiveSection } from '../../store/stateSelectors.js';
 import { eventBus } from '../../services/eventBus.js';
 import { actions } from '../../actions.js';
 import { dataLoader } from '../../services/dataLoader.js';
+import { audioEngine } from '../../services/audioEngine.js';
 
 /**
  * Handle open add instrument modal
@@ -118,6 +119,20 @@ export const handleSelectInstrument = (target) => {
 };
 
 /**
+ * Play a single sound from a pack (preview in the instrument modal)
+ * @param {string} instrumentSymbol - e.g. 'ITO'
+ * @param {string} pack - e.g. 'cp.chaworo'
+ * @param {string} letter - Stroke letter, e.g. 'O'
+ */
+const playPackSound = async (instrumentSymbol, pack, letter) => {
+    const soundConfig = await dataLoader.loadSoundPackConfig(pack, instrumentSymbol);
+    if (!soundConfig || !soundConfig.files[letter]) return;
+
+    const url = `${soundConfig._basePath}${soundConfig.files[letter]}`;
+    audioEngine.previewSound(url);
+};
+
+/**
  * Handle select sound pack
  * @param {HTMLElement} target - The sound pack option element
  */
@@ -125,6 +140,28 @@ export const handleSelectSoundPack = (target) => {
     const pack = target.dataset.pack;
     state.uiState.pendingSoundPack = pack;
     eventBus.emit('grid-refresh');
+
+    // Auto-play the open tone of the pack for instant feedback
+    // (fall back to the first available letter for packs without an open tone)
+    const instrument = state.uiState.pendingInstrument;
+    const letters = dataLoader.manifest?.instruments?.[instrument]?.packs?.[pack];
+    if (instrument && letters) {
+        const firstLetter = letters['O'] ? 'O' : Object.keys(letters)[0];
+        if (firstLetter) playPackSound(instrument, pack, firstLetter);
+    }
+};
+
+/**
+ * Handle preview a single sound from the selected pack
+ * @param {HTMLElement} target - The preview chip element
+ */
+export const handlePreviewSound = (target) => {
+    const instrument = target.dataset.instrument;
+    const pack = target.dataset.pack;
+    const letter = target.dataset.letter;
+    if (instrument && pack && letter) {
+        playPackSound(instrument, pack, letter);
+    }
 };
 
 /**

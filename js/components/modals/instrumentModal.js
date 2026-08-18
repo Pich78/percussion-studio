@@ -9,6 +9,7 @@ import { dataLoader } from '../../services/dataLoader.js';
 
 // Icons
 import { SpeakerWaveIcon } from '../../icons/speakerWaveIcon.js';
+import { PlayIcon } from '../../icons/playIcon.js';
 import { XMarkIcon } from '../../icons/xMarkIcon.js';
 
 /**
@@ -42,12 +43,56 @@ const renderInstrumentList = (selectedInstrument, instrumentDefinitions = {}) =>
 };
 
 /**
+ * Render the preview list for the selected sound pack's individual sounds
+ * @param {string} instrumentSymbol - Selected instrument symbol
+ * @param {string} pack - Selected sound pack name
+ * @param {object} instrumentDefinitions - Loaded instrument definitions for display names
+ * @returns {string} HTML string
+ */
+const renderSoundPreviewList = (instrumentSymbol, pack, instrumentDefinitions = {}) => {
+    const instData = dataLoader.manifest?.instruments?.[instrumentSymbol];
+    const packFiles = instData?.packs?.[pack];
+    if (!packFiles) return '';
+
+    const instDef = instrumentDefinitions[instrumentSymbol];
+    const nameByLetter = {};
+    (instDef?.sounds || []).forEach(s => { nameByLetter[s.letter] = s.name; });
+
+    const soundButtons = Object.keys(packFiles).map(letter => `
+            <button
+              data-action="preview-sound"
+              data-instrument="${instrumentSymbol}"
+              data-pack="${pack}"
+              data-letter="${letter}"
+              title="Play ${nameByLetter[letter] || letter} sound"
+              class="
+                flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-700
+                bg-gray-800/60 hover:bg-cyan-600/20 hover:border-cyan-500 hover:text-cyan-300
+                transition-all text-sm font-medium text-gray-300 text-left
+              "
+            >
+              ${PlayIcon('w-3.5 h-3.5 text-cyan-400')}
+              <span class="pointer-events-none">${nameByLetter[letter] || letter}</span>
+            </button>
+          `).join('');
+
+    return `
+            <div class="mt-4 pt-3 border-t border-gray-800 col-span-2">
+              <h5 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Preview Sounds</h5>
+              <div class="grid grid-cols-2 gap-2">
+                ${soundButtons}
+              </div>
+            </div>
+          `;
+};
+
+/**
  * Render the sound pack selection list
  * @param {string|null} selectedInstrument - Currently selected instrument
  * @param {string|null} selectedPack - Currently selected sound pack
  * @returns {string} HTML string
  */
-const renderSoundPackList = (selectedInstrument, selectedPack) => {
+const renderSoundPackList = (selectedInstrument, selectedPack, instrumentDefinitions = {}) => {
   if (!selectedInstrument) {
     return '<div class="text-center text-gray-500 py-8">Select an instrument to view sound packs</div>';
   }
@@ -58,7 +103,7 @@ const renderSoundPackList = (selectedInstrument, selectedPack) => {
     return '<div class="text-center text-gray-500">No sound packs found for this instrument.</div>';
   }
 
-  return Object.keys(packs).map(pack => {
+  const packButtons = Object.keys(packs).map(pack => {
     const isSelected = selectedPack === pack;
     return `
             <button
@@ -74,6 +119,11 @@ const renderSoundPackList = (selectedInstrument, selectedPack) => {
             </button>
           `;
   }).join('');
+
+  return `
+            ${packButtons}
+            ${selectedPack ? renderSoundPreviewList(selectedInstrument, selectedPack, instrumentDefinitions) : ''}
+          `;
 };
 
 /**
@@ -99,8 +149,8 @@ export const InstrumentModal = (uiState, instrumentDefinitions = {}) => {
           <!-- Right Column: Sound Packs -->
           <div class="pl-2">
             <h4 class="text-sm font-bold text-gray-400 uppercase tracking-wide mb-3">Sound Pack</h4>
-            <div class="grid grid-cols-1 gap-3">
-              ${renderSoundPackList(selectedInstrument, selectedPack)}
+            <div class="grid grid-cols-2 gap-2">
+              ${renderSoundPackList(selectedInstrument, selectedPack, instrumentDefinitions)}
             </div>
           </div>
         </div>

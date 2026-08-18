@@ -279,6 +279,48 @@ class AudioEngine {
     playStrokeNow(instrumentSymbol, stroke, dynamic = DynamicType.Normal) {
         this.playStroke(instrumentSymbol, stroke, this.getCurrentTime(), dynamic);
     }
+
+    /**
+     * Plays a single WAV file immediately (for sound pack preview in the modal).
+     * Uses a dedicated preview gain node (NOT the sequencer buffers), so previewing
+     * a pack never corrupts the samples used by existing tracks.
+     * @param {string} url - Absolute or relative URL of the WAV file
+     */
+    async previewSound(url) {
+        this.init();
+        if (!this.ctx || !this.masterGain) return;
+
+        try {
+            if (!this.previewBuffers) {
+                this.previewBuffers = {};
+            }
+
+            let buffer = this.previewBuffers[url];
+            if (!buffer) {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`HTTP ${response.status} for ${url}`);
+                const arrayBuffer = await response.arrayBuffer();
+                buffer = await this.ctx.decodeAudioData(arrayBuffer);
+                this.previewBuffers[url] = buffer;
+            }
+
+            if (this.ctx.state === 'suspended') {
+                await this.ctx.resume();
+            }
+
+            const source = this.ctx.createBufferSource();
+            source.buffer = buffer;
+
+            const previewGain = this.ctx.createGain();
+            previewGain.gain.value = 1.0;
+            source.connect(previewGain);
+            previewGain.connect(this.masterGain);
+
+            source.start(this.ctx.currentTime);
+        } catch (error) {
+            console.error(`[Preview] Failed to play ${url}:`, error);
+        }
+    }
 }
 
 export const audioEngine = new AudioEngine();

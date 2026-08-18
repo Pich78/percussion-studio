@@ -261,13 +261,13 @@ Open **☰ → Editing Options** to choose how you add symbols to the grid:
 
 1. Click **+ Add Track** below the last track of a measure.
 2. Choose an **Instrument Type** (left column) — e.g., IYA, ITO, OKO, CON.
-3. Choose a **Sound Pack** (right column).
+3. Choose a **Sound Pack** (right column) — packs are listed in two columns; selecting one shows its sound names in two columns, its open tone plays automatically, and you can click any name to hear it before choosing.
 4. Click **OK** (enabled once both are selected) or **Cancel**.
 
 ### Changing Instrument or Sound Pack
 
 1. Click the **📦** button on a track row (playback stopped).
-2. Select a different Instrument or Sound Pack.
+2. Select a different Instrument or Sound Pack — the sound names are listed in two columns so you can hear them before applying.
 3. Click **OK** to apply.
 
 > **Note**: Volume and mute settings are global per instrument — they apply to every occurrence of that instrument in all sections. They are **not saved** and reset when loading a new rhythm.
