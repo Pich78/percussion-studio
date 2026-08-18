@@ -173,6 +173,13 @@ class AudioEngine {
             const url = `${soundConfig._basePath}${filename}`;
 
             try {
+                // Reuse decoded buffer from preview cache if available,
+                // avoiding a redundant fetch + decodeAudioData cycle.
+                if (this.previewBuffers?.[url]) {
+                    this.buffers[symbol][strokeKey] = this.previewBuffers[url];
+                    return;
+                }
+
                 const response = await fetch(url);
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const arrayBuffer = await response.arrayBuffer();
@@ -284,6 +291,8 @@ class AudioEngine {
      * Plays a single WAV file immediately (for sound pack preview in the modal).
      * Uses a dedicated preview gain node (NOT the sequencer buffers), so previewing
      * a pack never corrupts the samples used by existing tracks.
+     * The decoded buffer is cached in previewBuffers[url] and may be reused by
+     * loadSoundPack() to avoid redundant fetch + decode when the user confirms.
      * @param {string} url - Absolute or relative URL of the WAV file
      */
     async previewSound(url) {
