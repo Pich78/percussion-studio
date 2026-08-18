@@ -1,0 +1,6 @@
+<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Vertical stick: longer, truly vertical -->
+  <line x1="12" y1="4" x2="12" y2="20" stroke="#D9A066" stroke-width="2.25" stroke-linecap="round"/>
+  <!-- Leaning stick: 45°, shorter, crosses center at (12,12) -->
+  <line x1="7" y1="7" x2="17" y2="17" stroke="#D9A066" stroke-width="2" stroke-linecap="round"/>
+</svg>
