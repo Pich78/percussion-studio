@@ -142,9 +142,10 @@ export const TubsCell = ({
       // Try to find SVG in instrument definition
       if (instrumentDef && instrumentDef.sounds) {
         const soundDef = instrumentDef.sounds.find(s => s.letter === stroke);
-        if (soundDef && soundDef.svg) {
+        const iconFile = soundDef?.svg || (soundDef?.name ? `${soundDef.name.toLowerCase()}.svg` : null);
+        if (iconFile) {
           // Wrap in a span that handles the dynamic scaling/glowing so the image itself isn't distorted
-          return `<img src="data/assets/icons/${soundDef.svg}?v=5" style="width: ${iconSizePx}px; height: ${iconSizePx}px; ${dynStyle}" class="pointer-events-none select-none drop-shadow-md transition-all duration-200 ${dynClasses}" alt="${stroke}${dynamic !== '-' ? dynamic : ''}" />`;
+          return `<img src="data/assets/icons/${iconFile}?v=5" style="width: ${iconSizePx}px; height: ${iconSizePx}px; ${dynStyle}" class="pointer-events-none select-none drop-shadow-md transition-all duration-200 ${dynClasses}" alt="${stroke}${dynamic !== '-' ? dynamic : ''}" />`;
         }
       }
 

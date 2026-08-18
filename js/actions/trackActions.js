@@ -128,7 +128,7 @@ export const updateTrackSteps = (trackIdx, measureIdx, newTrackSteps) => {
  * @param {string} instrumentSymbol - Instrument symbol e.g. 'ITO'
  * @param {string} soundPack - Sound pack name
  */
-export const addTrack = async (instrumentSymbol, soundPack = "basic_bata") => {
+export const addTrack = async (instrumentSymbol, soundPack = "cp") => {
     if (!state.toque) return;
     const section = getActiveSection(state);
     if (!section) return;
@@ -171,7 +171,7 @@ export const addTrack = async (instrumentSymbol, soundPack = "basic_bata") => {
  * @param {string} newSymbol - New instrument symbol
  * @param {string} soundPack - Sound pack name
  */
-export const updateTrackInstrument = async (trackIdx, newSymbol, soundPack = "basic_bata") => {
+export const updateTrackInstrument = async (trackIdx, newSymbol, soundPack = "cp") => {
     const section = getActiveSection(state);
     if (!section || !section.measures[0]) return;
 

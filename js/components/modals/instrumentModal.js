@@ -52,11 +52,13 @@ const renderSoundPackList = (selectedInstrument, selectedPack) => {
     return '<div class="text-center text-gray-500 py-8">Select an instrument to view sound packs</div>';
   }
 
-  if (!dataLoader.manifest || !dataLoader.manifest.sound_packs) {
-    return '<div class="text-center text-gray-500">No sound packs found.</div>';
+  const instData = dataLoader.manifest?.instruments?.[selectedInstrument];
+  const packs = instData?.packs;
+  if (!instData || !packs) {
+    return '<div class="text-center text-gray-500">No sound packs found for this instrument.</div>';
   }
 
-  return Object.keys(dataLoader.manifest.sound_packs).map(pack => {
+  return Object.keys(packs).map(pack => {
     const isSelected = selectedPack === pack;
     return `
             <button

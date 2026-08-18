@@ -4,7 +4,7 @@ global_bpm: 120
 sound_kit:
   iya:
     instrument: "IYA"
-    pack: "cp_bata_chaworo"
+    pack: "cp.chaworo"
 
 playback_flow:
   - name: "Section 1"

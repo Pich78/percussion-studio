@@ -23,7 +23,7 @@ export const INSTRUMENT_COLORS = {
     'TUM': 'border-l-4 border-l-indigo-600', // Tumbadora
 
     // Small Percussion
-    'CLV': 'border-l-4 border-l-white-400', // Clave
+    'CLV': 'border-l-4 border-l-[#d9a066]', // Clave
     'CAM': 'border-l-4 border-l-slate-400',   // Campana
     'CAT': 'border-l-4 border-l-orange-500', // Cata (Guagua)
 

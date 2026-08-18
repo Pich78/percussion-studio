@@ -108,6 +108,12 @@ export const handleCloseModal = () => {
 export const handleSelectInstrument = (target) => {
     const inst = target.dataset.instrument;
     state.uiState.pendingInstrument = inst;
+
+    // Reset the pack if it's not available for the newly selected instrument
+    const packs = dataLoader.manifest?.instruments?.[inst]?.packs;
+    if (!packs || !packs[state.uiState.pendingSoundPack]) {
+        state.uiState.pendingSoundPack = null;
+    }
     eventBus.emit('grid-refresh');
 };
 

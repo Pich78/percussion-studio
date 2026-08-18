@@ -21,32 +21,31 @@ All application data resides in the `data/` folder. A `manifest.json` file at th
     │   ├── ITO.yaml
     │   ├── OKO.yaml
     │   └── ...
-    ├── sounds/                  # Sound Packs (Folders)
-    │   ├── basic_bata/          # Pack Name: "basic_bata"
-    │   │   ├── ITO.basic_bata.yaml  # Sound config for Itotele in this pack
-    │   │   ├── OKO.basic_bata.yaml  # Sound config for Okonkolo in this pack
-    │   │   ├── ito_open.wav
-    │   │   └── oko_slap.wav
-    │   └── vintage_conga/
-    │       ├── CON.vintage_conga.yaml
-    │       └── ...
+    ├── sounds/                  # Instrument sound folders (one folder per instrument)
+    │   ├── itotele/             # Folder name = lowercase instrument name
+    │   │   ├── ito.open.cp.wav      # {symbol}.{sound}.{pack}.wav convention
+    │   │   ├── ito.open.cp.chaworo.wav
+    │   │   └── ito.slap.basic.wav
+    │   ├── clave/
+    │   │   └── CLV.clave.sg.cuba.wav
+    │   └── ...
     └── rhythms/                 # Rhythm compositions
         ├── iyakota_1.yaml
         └── ...
 ```
 
----
-
 ## 2. File Formats (YAML)
 
 ### A. Instrument Definition
 **Location:** `data/instruments/{INSTRUMENT_SYMBOL}.yaml`
-**Purpose:** Defines the abstract capabilities of an instrument type (e.g., "Itotele", "Conga") regardless of the specific audio sample used.
+**Purpose:** Defines the abstract capabilities of an instrument type (e.g., "Itotele", "Clave") regardless of the specific audio sample used.
 
-*   **`symbol`**: A unique 3-letter identifier (e.g., `ITO`, `CON`). This is used to link Sound Packs and Rhythms.
+*   **`symbol`**: A unique 3-letter identifier (e.g., `ITO`, `CLV`). This is used to link Sound Packs and Rhythms.
+*   **`name`**: The full lowercase instrument name (e.g., `itotele`). This determines the sound folder name in `data/sounds/`.
 *   **`sounds`**: A list of articulations.
-    *   `letter`: The character used in rhythm patterns (Case-insensitive).
-    *   `svg`: Filename of the icon located in `data/assets/icons/`.
+    *   `letter`: The character used in rhythm patterns (Case-insensitive). E.g. `O` for Open.
+    *   `name`: The lowercase sound name (e.g., `open`). Used to build the SVG icon path (`data/assets/icons/{name}.svg`) and the WAV filename convention.
+    *   `description`: Human-readable description of the sound.
 
 ```yaml
 name: "Itotele"
@@ -54,34 +53,52 @@ symbol: "ITO"
 description: "The middle drum of the Batá set."
 sounds:
   - letter: "O"
-    name: "Open Tone (Enu)"
-    svg: "open.svg"
-  - letter: "S"
-    name: "Slap (Enu)"
-    svg: "slap.svg"
+    name: "open"
+    description: "Open tone (Enu)"
   - letter: "P"
-    name: "Presionado"
-    svg: "closed.svg"
+    name: "presionado"
+    description: "Presionado (Enu)"
+  - letter: "S"
+    name: "slap"
+    description: "Slap (Chacha)"
+  - letter: "R"
+    name: "mordito"
+    description: "Mordito"
+  - letter: "H"
+    name: "half_mordito"
+    description: "Half Mordito"
 ```
 
-### B. Sound Pack Configuration
-**Location:** `data/sounds/{PACK_NAME}/{INSTRUMENT_SYMBOL}.{PACK_NAME}.yaml`
-**Naming Convention:** The filename **must** follow the format `{SYMBOL}.{PACK_NAME}.yaml`.
-**Purpose:** Maps the abstract sound letters defined in an Instrument Definition to concrete audio files for a specific pack.
+**Note:** There is **no sound pack configuration YAML** anymore. Sound packs are derived entirely from WAV file names (see section B).
 
-*   The keys in `files` must match the `letter` defined in the Instrument YAML.
-*   Audio files must reside in the same folder as this YAML file.
+### B. Sound Files (Convention-Driven)
 
-**Example:** `data/sounds/basic_bata/ITO.basic_bata.yaml`
+**Location:** `data/sounds/{instrument-name}/{symbol}.{sound}.{pack}.wav`
 
-```yaml
-name: "Itotele (Basic Batá Pack)"
-description: "Standard studio recording"
-files:
-  O: "ito_open.wav"
-  S: "ito_slap.wav"
-  P: "ito_press.wav"
+Sound packs are no longer folders or YAML files — they are identified by the **file name** of each WAV file:
+
 ```
+{SYMBOL}.{SOUND_NAME}.{PACK_NAME}.wav
+```
+
+*   `SYMBOL`: Instrument symbol (case-insensitive, e.g., `ito` or `ITO`).
+*   `SOUND_NAME`: The sound name as defined in the instrument YAML `sounds[].name`.
+*   `PACK_NAME`: The sound pack identifier, e.g. `cp`, `basic`, `sg.cuba`. Packs can have multiple segments separated by dots (e.g., `cp.chaworo` = the "chaworo" variant of the "cp" pack).
+
+**Examples:**
+
+| File | Instrument | Sound | Pack |
+|------|-----------|-------|------|
+| `ito.open.cp.wav` | Itotele | open | cp |
+| `ito.open.cp.chaworo.wav` | Itotele | open | cp.chaworo |
+| `ito.slap.basic.wav` | Itotele | slap | basic |
+| `CLV.clave.sg.cuba.wav` | Clave | clave | sg.cuba |
+
+**Rules:**
+*   Every WAV file **must** match this convention — the manifest generator parses the filename to build the pack → letter → wav mapping.
+*   All WAV files of an instrument live in the same folder (`data/sounds/{instrument-name}/`).
+*   Audio files must follow the naming convention exactly; if a sound has no WAV file, it simply doesn't appear in any pack (the palette may still show it, e.g. `dedo`/`bass` for future congas).
+*   The SVG icon for a sound is auto-derived: `data/assets/icons/{sound-name}.svg` (e.g., `open` → `open.svg`).
 
 ### C. Rhythm Definition
 **Location:** `data/rhythms/{RHYTHM_ID}.yaml`
@@ -89,25 +106,25 @@ files:
 
 *   **`sound_kit`**: Defines the "Tracks". Keys are arbitrary IDs (e.g., `itotele_main`).
     *   `instrument`: Must match an Instrument Symbol (filename in `data/instruments/`).
-    *   `pack`: Must match a Sound Pack folder name (in `data/sounds/`).
-    *   *Logic:* The app will look for the sound config at: `data/sounds/{pack}/{instrument}.{pack}.yaml`.
+    *   `pack`: Must match a Sound Pack name as derived from WAV filenames (e.g., `cp.chaworo`).
+    *   *Logic:* The app resolves the pack through the manifest: `manifest.instruments[instrument].packs[pack]`.
 *   **`playback_flow`**: An ordered list of musical sections.
     *   **`measures`**: An ordered list of measures within the section.
         *   **`pattern`**: A mapping of Track IDs to ASCII pattern strings.
         *   **`dynamics`** *(optional)*: A mapping of Track IDs to ASCII dynamics strings. Same format and length as `pattern`. Only needs to be specified for tracks that contain non-normal dynamics.
 
 ```yaml
-name: "Iyakota Sequence 1"
-global_bpm: 108
+name: "Yakota - Base"
+global_bpm: 90
 
 sound_kit:
   itotele_main:        # Track ID (Arbitrary)
     instrument: "ITO"  # Uses definition: data/instruments/ITO.yaml
-    pack: "basic_bata" # Uses sound config: data/sounds/basic_bata/ITO.basic_bata.yaml
-  
+    pack: "cp.chaworo" # Uses pack: data/sounds/itotele/ito.*.cp.chaworo.wav
+
   okonkolo_main:       # Track ID
     instrument: "OKO"
-    pack: "basic_bata" # Uses sound config: data/sounds/basic_bata/OKO.basic_bata.yaml
+    pack: "cp.chaworo"
 
 playback_flow:
   - name: "Intro"
@@ -163,25 +180,61 @@ Dynamics strings follow the same separator and resolution rules as pattern strin
 To enable file discovery without server-side logic, a `manifest.json` must be present at the root.
 
 **Generation:**
-Run the `tools/generate_manifest.py` script before deploying or committing changes.
+Run the `tools/generate_manifest.py` script before deploying or committing changes (regenerates both the manifest and the Batà metadata).
 
 **Structure:**
-*   **instruments:** Maps Symbol to File Path.
-*   **sound_packs:** Maps Pack Name to Directory Path. The application handles constructing the specific filename `{SYMBOL}.{PACK}.yaml`.
+*   **instruments:** Maps Symbol to an object with:
+    *   `name`: lowercase instrument name (sound folder name)
+    *   `definition`: path to the instrument YAML
+    *   `path`: the instrument sound folder
+    *   `packs`: map of pack name → letter → wav filename
 *   **rhythms:** Maps Rhythm ID to File Path.
 
 ```json
 {
   "instruments": {
-    "ITO": "data/instruments/ITO.yaml",
-    "OKO": "data/instruments/OKO.yaml"
-  },
-  "sound_packs": {
-    "basic_bata": "data/sounds/basic_bata/",
-    "vintage_conga": "data/sounds/vintage_conga/"
+    "ITO": {
+      "name": "itotele",
+      "definition": "data/instruments/ITO.yaml",
+      "path": "data/sounds/itotele/",
+      "packs": {
+        "cp": {
+          "O": "ito.open.cp.wav",
+          "P": "ito.presionado.cp.wav",
+          "S": "ito.slap.cp.wav",
+          "R": "ito.mordito.cp.wav"
+        },
+        "cp.chaworo": {
+          "O": "ito.open.cp.chaworo.wav",
+          "P": "ito.presionado.cp.chaworo.wav",
+          "S": "ito.slap.cp.chaworo.wav",
+          "R": "ito.mordito.cp.chaworo.wav"
+        },
+        "basic": {
+          "O": "ito.open.basic.wav",
+          "S": "ito.slap.basic.wav"
+        }
+      }
+    },
+    "CLV": {
+      "name": "clave",
+      "definition": "data/instruments/CLV.yaml",
+      "path": "data/sounds/clave/",
+      "packs": {
+        "sg.cuba": { "C": "CLV.clave.sg.cuba.wav" }
+      }
+    }
   },
   "rhythms": {
-    "iyakota_1": "data/rhythms/iyakota_1.yaml"
+    "Batà/Yakota/yakota_-_base": "data/rhythms/Batà/Yakota/yakota_-_base.yaml"
   }
 }
 ```
+
+**Note:** There is no top-level `sound_packs` key anymore. Pack information is nested under each instrument.
+
+---
+
+## 5. Adding a New Instrument
+
+See [docs/adding-instruments.md](adding-instruments.md) for the step-by-step guide.

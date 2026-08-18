@@ -1,0 +1,7 @@
+name: "Clave"
+symbol: "CLV"
+description: "Two wooden sticks struck together. A single, sharp percussive sound."
+sounds:
+  - letter: "C"
+    name: "clave"
+    description: "Clave stroke"

@@ -1,13 +1,102 @@
 {
   "instruments": {
-    "ITO": "data/instruments/ITO.yaml",
-    "OKO": "data/instruments/OKO.yaml",
-    "IYA": "data/instruments/IYA.yaml"
-  },
-  "sound_packs": {
-    "cp_bata_chaworo": "data/sounds/cp_bata_chaworo/",
-    "cp_bata": "data/sounds/cp_bata/",
-    "basic_bata": "data/sounds/basic_bata/"
+    "CLV": {
+      "name": "clave",
+      "definition": "data/instruments/CLV.yaml",
+      "path": "data/sounds/clave/",
+      "packs": {
+        "cp.columbia": {
+          "C": "CLV.clave.cp.columbia.wav"
+        },
+        "cp.conga": {
+          "C": "CLV.clave.cp.conga.wav"
+        },
+        "cp.guaguanco": {
+          "C": "CLV.clave.cp.guaguanco.wav"
+        },
+        "sg.clave": {
+          "C": "CLV.clave.sg.clave.wav"
+        },
+        "sg.cuba": {
+          "C": "CLV.clave.sg.cuba.wav"
+        },
+        "sg.ebo": {
+          "C": "CLV.clave.sg.ebo.wav"
+        },
+        "sg.lp": {
+          "C": "CLV.clave.sg.lp.wav"
+        },
+        "sg.traditional": {
+          "C": "CLV.clave.sg.traditional.wav"
+        }
+      }
+    },
+    "ITO": {
+      "name": "itotele",
+      "definition": "data/instruments/ITO.yaml",
+      "path": "data/sounds/itotele/",
+      "packs": {
+        "cp.chaworo": {
+          "R": "ito.mordito.cp.chaworo.wav",
+          "O": "ito.open.cp.chaworo.wav",
+          "P": "ito.presionado.cp.chaworo.wav",
+          "S": "ito.slap.cp.chaworo.wav"
+        },
+        "cp": {
+          "R": "ito.mordito.cp.wav",
+          "O": "ito.open.cp.wav",
+          "P": "ito.presionado.cp.wav",
+          "S": "ito.slap.cp.wav"
+        },
+        "basic": {
+          "O": "ito.open.basic.wav",
+          "S": "ito.slap.basic.wav"
+        }
+      }
+    },
+    "IYA": {
+      "name": "iya",
+      "definition": "data/instruments/IYA.yaml",
+      "path": "data/sounds/iya/",
+      "packs": {
+        "cp.chaworo": {
+          "R": "iya.mordito.cp.chaworo.wav",
+          "M": "iya.muff.cp.chaworo.wav",
+          "O": "iya.open.cp.chaworo.wav",
+          "S": "iya.slap.cp.chaworo.wav"
+        },
+        "cp": {
+          "M": "iya.muff.cp.wav",
+          "O": "iya.open.cp.wav",
+          "S": "iya.slap.cp.wav"
+        },
+        "basic": {
+          "O": "iya.open.basic.wav",
+          "S": "iya.slap.basic.wav"
+        }
+      }
+    },
+    "OKO": {
+      "name": "okonkolo",
+      "definition": "data/instruments/OKO.yaml",
+      "path": "data/sounds/okonkolo/",
+      "packs": {
+        "cp.chaworo": {
+          "R": "oko.mordito.cp.chaworo.wav",
+          "O": "oko.open.cp.chaworo.wav",
+          "S": "oko.slap.cp.chaworo.wav"
+        },
+        "cp": {
+          "R": "oko.mordito.cp.wav",
+          "O": "oko.open.cp.wav",
+          "S": "oko.slap.cp.wav"
+        },
+        "basic": {
+          "O": "oko.open.basic.wav",
+          "S": "oko.slap.basic.wav"
+        }
+      }
+    }
   },
   "rhythms": {
     "tests/test_dynamics_2": "data/rhythms/tests/test_dynamics_2.yaml",

@@ -53,11 +53,12 @@ percussion-studio/
 ├── js/                     # Application source code
 ├── data/                   # All content data
 │   ├── instruments/        # Instrument definitions
-│   ├── sounds/             # Sound packs with audio files
+│   ├── sounds/             # Instrument sound folders (WAV files)
 │   ├── rhythms/            # Rhythm compositions
 │   └── assets/             # Shared assets (icons, etc.)
 └── tools/                  # Utility scripts
-    └── generate_manifest.py
+    ├── generate_manifest.py
+    └── migrate_sounds.py
 ```
 
 ## Creating Content
@@ -76,35 +77,34 @@ symbol: "CON"
 description: "A tall, narrow, single-headed drum from Cuba"
 sounds:
   - letter: "O"
-    name: "Open Tone"
-    svg: "open.svg"
+    name: "open"
+    description: "Open tone"
   - letter: "S"
-    name: "Slap"
-    svg: "slap.svg"
+    name: "slap"
+    description: "Slap"
   - letter: "B"
-    name: "Bass"
-    svg: "bass.svg"
-  - letter: "T"
-    name: "Tip"
-    svg: "tip.svg"
+    name: "bass"
+    description: "Bass"
+  - letter: "D"
+    name: "dedo"
+    description: "Finger stroke"
 ```
+
+> Full step-by-step guide: [docs/adding-instruments.md](docs/adding-instruments.md)
 
 ### 2. Creating a Sound Pack
 
-Sound packs map instrument articulations to actual audio files.
+Sound packs are **convention-driven**: just drop WAV files in the instrument's sound folder following the naming pattern `{SYMBOL}.{SOUND}.{PACK}.wav`. No YAML needed.
 
-**Location:** `data/sounds/{PACK_NAME}/{SYMBOL}.{PACK_NAME}.yaml`
+**Location:** `data/sounds/{instrument-name}/`
 
-**Example:** `data/sounds/studio_conga/CON.studio_conga.yaml`
+**Example:** `data/sounds/conga/`
 
-```yaml
-name: "Conga (Studio Recording)"
-description: "High-quality studio recorded conga samples"
-files:
-  O: "conga_open.wav"
-  S: "conga_slap.wav"
-  B: "conga_bass.wav"
-  T: "conga_tip.wav"
+```
+con.open.studio.wav
+con.slap.studio.wav
+con.bass.studio.wav
+con.open.studio.live.wav
 ```
 
 ### 3. Creating a Rhythm
@@ -122,11 +122,11 @@ global_bpm: 120
 sound_kit:
   conga_1:
     instrument: "CON"
-    pack: "studio_conga"
+    pack: "studio"
   
   conga_2:
     instrument: "CON"
-    pack: "studio_conga"
+    pack: "studio"
 
 playback_flow:
   - name: "Main Pattern"
@@ -220,6 +220,7 @@ Comprehensive guides for using Percussion Studio:
 ## Documentation
 
 - **[data-specifications.md](docs/data-specifications.md)**: Detailed technical specifications
+- **[adding-instruments.md](docs/adding-instruments.md)**: Step-by-step guide for adding new instruments
 
 ## License
 

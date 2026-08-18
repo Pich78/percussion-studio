@@ -51,7 +51,7 @@ export const exportRhythmToYAML = (state) => {
             const currentMeasureKeys = new Set();
 
             measure.tracks.forEach((track, trackIdx) => {
-                const trackPack = track.pack || 'basic_bata';
+                const trackPack = track.pack || 'cp';
                 let assignedKey = null;
 
                 // 1. Try to find a reusable key

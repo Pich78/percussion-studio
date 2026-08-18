@@ -98,9 +98,9 @@ During playback the sequencer emits `step` events; `renderer.js` forwards them t
 - Implement, then **keep the spec in sync** if behavior intentionally changes.
 
 ### Change content data
-1. Edit the YAML under `data/` (follow `docs/data-specifications.md` formats).
-2. Regenerate the manifest: `cd tools && python generate_manifest.py`.
-3. Test with `python launch_local.py` (it regenerates the manifest automatically).
+1. Edit the YAML under `data/` (follow `docs/data-specifications.md` formats) or drop WAV files following the naming convention (`{SYMBOL}.{sound}.{pack}.wav` — see `docs/adding-instruments.md`).
+2. Regenerate the manifest: `python3 tools/generate_manifest.py` (or `cd tools && python3 generate_manifest.py`).
+3. Test with `python3 launch_local.py` (it regenerates the manifest automatically).
 
 ### Add a view
 - Create a definition under `js/views/` (see `viewManager.js` for the required interface: `id`, `layout`, `setupEvents`, optional `onStep` / `onRender`).
@@ -120,7 +120,8 @@ Documentation updates are part of the change, not an afterthought:
 
 | Doc | Contents |
 |---|---|
-| `docs/data-specifications.md` | YAML formats (instruments, sound packs, rhythms), pattern/dynamics syntax, manifest structure. |
+| `docs/data-specifications.md` | YAML formats (instruments, rhythms), WAV naming convention, pattern/dynamics syntax, manifest structure. |
+| `docs/adding-instruments.md` | Step-by-step guide for adding a new instrument and running the generator. |
 | `docs/project-constraints.md` | Technology stack, architecture patterns, PWA constraints, development workflow. |
 | `docs/testing.md` | E2E browser tests (Playwright): scope (Node only in `tests/`), how to run, iPhone 16 / PWA / Dynamic Island simulation. |
 | `docs/requirements/default-rhythm.md` | Default rhythm configuration + `?rhythm=` URL override. |

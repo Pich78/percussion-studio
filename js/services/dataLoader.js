@@ -59,13 +59,13 @@ class DataLoaderService {
     async loadInstrumentDefinition(symbol) {
         if (!this.manifest) await this.init();
 
-        const path = this.manifest.instruments[symbol];
-        if (!path) {
+        const instData = this.manifest.instruments[symbol];
+        if (!instData) {
             console.error(`Instrument symbol '${symbol}' not found in manifest.`);
             return null;
         }
 
-        const data = await this._fetchYaml(path);
+        const data = await this._fetchYaml(instData.definition);
         if (data) {
             // Validation: Ensure the loaded symbol matches the requested one
             if (data.symbol !== symbol) {
@@ -77,32 +77,30 @@ class DataLoaderService {
 
     /**
      * 2. Load Sound Pack Configuration
-     * Fetches data/sounds/{packName}/{symbol}.{packName}.yaml
-     * @param {string} packName - e.g., "basic_bata"
+     * Reads the letter -> wav file mapping directly from the manifest.
+     * @param {string} packName - e.g., "cp"
      * @param {string} instrumentSymbol - e.g., "ITO"
      */
     async loadSoundPackConfig(packName, instrumentSymbol) {
         if (!this.manifest) await this.init();
 
-        const packFolder = this.manifest.sound_packs[packName];
-        if (!packFolder) {
-            console.error(`Sound pack '${packName}' not found in manifest.`);
+        const instData = this.manifest.instruments[instrumentSymbol];
+        if (!instData) {
+            console.error(`Instrument '${instrumentSymbol}' not found in manifest.`);
             return null;
         }
 
-        // Construct the filename based on the Spec: {SYMBOL}.{PACK_NAME}.yaml
-        // Ensure packFolder ends with a slash
-        const basePath = packFolder.endsWith('/') ? packFolder : packFolder + '/';
-        const filename = `${instrumentSymbol}.${packName}.yaml`;
-        const fullPath = basePath + filename;
-
-        const data = await this._fetchYaml(fullPath);
-
-        if (data) {
-            // Inject the base path into the data object so the Audio Engine knows where to find the .wavs
-            data._basePath = basePath;
+        const files = instData.packs?.[packName];
+        if (!files) {
+            console.error(`Sound pack '${packName}' not found for instrument '${instrumentSymbol}'.`);
+            return null;
         }
-        return data;
+
+        return {
+            // Inject the base path so the Audio Engine knows where to find the .wavs
+            _basePath: instData.path,
+            files,
+        };
     }
 
     /**

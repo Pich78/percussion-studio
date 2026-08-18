@@ -135,7 +135,7 @@ export const TrackRow = ({
   // not from a per-track field.
   const isMutedOrZero = isInstrumentMuted(state, track.instrument) || getMixVolume(state, track.instrument) === 0;
 
-  // Get pack display name (format: basic_bata -> Basic Bata)
+  // Get pack display name (format: cp.chaworo -> Cp Chaworo)
   const packName = track.pack ? track.pack.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : 'Default';
 
   return `

@@ -71,8 +71,9 @@ export const PieMenu = ({
 
         // Render either the SVG icon or text fallback
         let iconHtml;
-        if (sound.svg) {
-            iconHtml = `<img src="data/assets/icons/${sound.svg}?v=5" class="w-6 h-6 drop-shadow-md pointer-events-none select-none" alt="${sound.name || sound.letter}" />`;
+        const iconFile = sound.svg || `${sound.name.toLowerCase()}.svg`;
+        if (iconFile) {
+            iconHtml = `<img src="data/assets/icons/${iconFile}?v=5" class="w-6 h-6 drop-shadow-md pointer-events-none select-none" alt="${sound.name || sound.letter}" />`;
         } else {
             iconHtml = `<span class="font-bold text-sm text-white pointer-events-none select-none">${sound.letter}</span>`;
         }
