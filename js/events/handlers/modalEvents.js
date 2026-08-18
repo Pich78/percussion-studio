@@ -98,6 +98,7 @@ const preloadInstrumentDefinitions = async () => {
  * Handle close modal
  */
 export const handleCloseModal = () => {
+    audioEngine.clearPreviewBuffers();
     commit('setModal', { open: false });
     eventBus.emit('render');
 };
@@ -179,6 +180,7 @@ export const handleConfirmInstrumentSelection = async () => {
         await actions.updateTrackInstrument(state.uiState.editingTrackIndex, inst, pack);
     }
 
+    audioEngine.clearPreviewBuffers();
     commit('setModal', { open: false });
     eventBus.emit('render');
 };

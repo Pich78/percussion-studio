@@ -41,6 +41,10 @@ const loadInstrumentsInParallel = async (trackConfig) => {
     });
 
     await Promise.all(loadPromises);
+
+    // Release decoded buffers for instruments no longer in this rhythm
+    const activeSymbols = Object.values(trackConfig).map(c => c.instrument);
+    audioEngine.clearStaleBuffers(activeSymbols);
 };
 
 /**

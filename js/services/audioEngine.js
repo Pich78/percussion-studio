@@ -154,6 +154,29 @@ class AudioEngine {
     }
 
     /**
+     * Clears the preview buffer cache. Called when the instrument modal closes
+     * (confirm or cancel) to free memory accumulated during pack browsing.
+     * The confirmed instrument's buffer is already in this.buffers via the
+     * cache bridge in loadSoundPack(), so this does not affect playback.
+     */
+    clearPreviewBuffers() {
+        this.previewBuffers = {};
+    }
+
+    /**
+     * Removes decoded buffers for instruments no longer in the active set.
+     * Called after loadRhythm() to free memory from previous rhythms.
+     * @param {string[]} activeSymbols - Instruments still needed (e.g. ['ITO', 'IYA', 'OKO'])
+     */
+    clearStaleBuffers(activeSymbols) {
+        for (const symbol of Object.keys(this.buffers)) {
+            if (!activeSymbols.includes(symbol)) {
+                delete this.buffers[symbol];
+            }
+        }
+    }
+
+    /**
      * Loads audio samples for a specific instrument based on a Sound Pack config.
      * @param {string} symbol - The instrument symbol (e.g., 'ITO')
      * @param {object} soundConfig - The parsed YAML object from dataLoader (contains .files and ._basePath)
