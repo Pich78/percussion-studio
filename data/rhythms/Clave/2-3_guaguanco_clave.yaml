@@ -1,0 +1,16 @@
+name: "2-3 Guaguanco Clave"
+global_bpm: 80
+
+sound_kit:
+  clv:
+    instrument: "CLV"
+    pack: "sg.cuba"
+
+playback_flow:
+  - name: "Base"
+    repetitions: 1
+    steps: 16
+    subdivision: 4
+    measures:
+      - pattern:
+          clv: "||--C-|C---|C--C|---C||"
