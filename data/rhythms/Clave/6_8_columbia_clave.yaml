@@ -1,0 +1,16 @@
+name: "6/8 Columbia Clave"
+global_bpm: 80
+
+sound_kit:
+  clv:
+    instrument: "CLV"
+    pack: "cp.columbia"
+
+playback_flow:
+  - name: "Base"
+    repetitions: 1
+    steps: 12
+    subdivision: 3
+    measures:
+      - pattern:
+          clv: "||C-C|--C|-C-|C--||"
