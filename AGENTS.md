@@ -122,6 +122,7 @@ Documentation updates are part of the change, not an afterthought:
 |---|---|
 | `docs/data-specifications.md` | YAML formats (instruments, rhythms), WAV naming convention, pattern/dynamics syntax, manifest structure. |
 | `docs/adding-instruments.md` | Step-by-step guide for adding a new instrument and running the generator. |
+| `docs/symbol-design.md` | Symbol design philosophy: bouba/kiki effect, shape grammar, color language, extensibility rules. |
 | `docs/project-constraints.md` | Technology stack, architecture patterns, PWA constraints, development workflow. |
 | `docs/testing.md` | E2E browser tests (Playwright): scope (Node only in `tests/`), how to run, iPhone 16 / PWA / Dynamic Island simulation. |
 | `docs/requirements/default-rhythm.md` | Default rhythm configuration + `?rhythm=` URL override. |

@@ -221,6 +221,7 @@ Comprehensive guides for using Percussion Studio:
 
 - **[data-specifications.md](docs/data-specifications.md)**: Detailed technical specifications
 - **[adding-instruments.md](docs/adding-instruments.md)**: Step-by-step guide for adding new instruments
+- **[symbol-design.md](docs/symbol-design.md)**: Shape-sound design principles (phono-symbolism)
 
 ## License
 
