@@ -59,6 +59,28 @@ export const initStrokeCursors = async () => {
 };
 
 /**
+ * Preload cursor SVGs for a dynamic palette.
+ * Only loads SVGs not already in the cache (incremental).
+ * @param {Array<{type: string, svg: string}>} palette - Palette items to preload
+ */
+export const preloadCursorsForPalette = async (palette) => {
+    if (!palette) return;
+
+    const loadPromises = [];
+    for (const item of palette) {
+        if (item.svg && !svgCache.has(item.type)) {
+            loadPromises.push(
+                loadSvgRaw(item.svg).then(svgText => {
+                    if (svgText) svgCache.set(item.type, svgText);
+                })
+            );
+        }
+    }
+
+    await Promise.all(loadPromises);
+};
+
+/**
  * Get the cursor CSS value for a stroke type and dynamic
  * @param {string} strokeType - The stroke type (e.g., StrokeType.Open)
  * @param {string} dynamicType - The dynamic level to apply styles for

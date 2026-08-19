@@ -4,6 +4,8 @@
   These selectors derive computed values without mutating state.
 */
 
+import { STROKE_PALETTE } from '../constants.js';
+
 /**
  * Get the active section from state
  * @param {object} state - Application state
@@ -182,6 +184,41 @@ export const getValidStrokes = (state, instrumentSymbol) => {
     const def = getInstrumentDefinition(state, instrumentSymbol);
     if (!def || !def.sounds) return [];
     return def.sounds.map(s => s.letter.toUpperCase());
+};
+
+/**
+ * Build the palette dynamically from loaded instrument definitions.
+ * Returns only the strokes (sounds) that exist in the current rhythm's instruments.
+ * Always includes Rest as the first entry.
+ * Falls back to the full STROKE_PALETTE when no instruments are loaded.
+ * @param {object} state - Application state
+ * @returns {Array<{type: string, label: string, svg: string}>}
+ */
+export const getPaletteFromInstruments = (state) => {
+    if (!state.instrumentDefinitions || Object.keys(state.instrumentDefinitions).length === 0) {
+        return STROKE_PALETTE;
+    }
+
+    const seen = new Set();
+    const palette = [{ type: ' ', label: 'Rest', svg: 'rest.svg' }];
+    seen.add(' ');
+
+    for (const def of Object.values(state.instrumentDefinitions)) {
+        if (!def || !def.sounds) continue;
+        for (const sound of def.sounds) {
+            const letter = sound.letter;
+            if (!seen.has(letter)) {
+                seen.add(letter);
+                palette.push({
+                    type: letter,
+                    label: sound.name,
+                    svg: `${sound.name.toLowerCase()}.svg`
+                });
+            }
+        }
+    }
+
+    return palette;
 };
 
 /**

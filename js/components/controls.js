@@ -10,10 +10,10 @@ const DYNAMIC_OPTIONS = [
   { type: DynamicType.Accent, label: 'Accent', iconClass: 'scale-[1.4] text-red-500 brightness-125', style: 'box-shadow: 0 0 12px 3px rgba(239,68,68,0.9);' }
 ];
 
-export const Controls = ({ selectedStroke, selectedDynamic = DynamicType.Normal }) => {
+export const Controls = ({ selectedStroke, selectedDynamic = DynamicType.Normal, palette = STROKE_PALETTE }) => {
 
   const renderPalette = () => {
-    return STROKE_PALETTE.map((item) => {
+    return palette.map((item) => {
       const isSelected = selectedStroke === item.type;
 
       const activeClass = isSelected

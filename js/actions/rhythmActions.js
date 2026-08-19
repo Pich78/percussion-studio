@@ -12,8 +12,9 @@ import {
     buildRuntimeSections,
     buildToqueState
 } from '../utils/rhythmTransformers.js';
-import { getExplorerRhythmMeta } from '../store/stateSelectors.js';
+import { getExplorerRhythmMeta, getPaletteFromInstruments } from '../store/stateSelectors.js';
 import { updateActiveSection } from './sectionActions.js';
+import { preloadCursorsForPalette } from '../utils/strokeCursors.js';
 
 /**
  * Load all instruments for a rhythm in parallel
@@ -65,6 +66,9 @@ export const loadRhythm = async (rhythmId) => {
         // 2. Pre-load Instruments and Audio Kits IN PARALLEL
         await loadInstrumentsInParallel(rhythmDef.sound_kit);
 
+        // 2b. Preload cursor SVGs for the newly loaded instruments' strokes
+        await preloadCursorsForPalette(getPaletteFromInstruments(state));
+
         // 3. Build Runtime Sections
         const sections = buildRuntimeSections(rhythmDef);
 
@@ -107,6 +111,9 @@ export const loadRhythmFromFile = async (file) => {
 
         // 3. Pre-load Instruments and Audio Kits IN PARALLEL
         await loadInstrumentsInParallel(rhythmDef.sound_kit);
+
+        // 3b. Preload cursor SVGs for the newly loaded instruments' strokes
+        await preloadCursorsForPalette(getPaletteFromInstruments(state));
 
         // 4. Build Runtime Sections
         const sections = buildRuntimeSections(rhythmDef);

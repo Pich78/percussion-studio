@@ -4,12 +4,13 @@
 */
 
 import { state, commit } from '../store.js';
-import { getActiveSection } from '../store/stateSelectors.js';
+import { getActiveSection, getPaletteFromInstruments } from '../store/stateSelectors.js';
 import { eventBus } from '../services/eventBus.js';
 import { audioEngine } from '../services/audioEngine.js';
 import { dataLoader } from '../services/dataLoader.js';
 import { StrokeType, DynamicType } from '../types.js';
 import { isValidStroke } from '../utils/patternParser.js';
+import { preloadCursorsForPalette } from '../utils/strokeCursors.js';
 
 /**
  * Handle updating a stroke at a specific position
@@ -150,6 +151,9 @@ export const addTrack = async (instrumentSymbol, soundPack = "cp") => {
     // 3. Ensure global mix entry
     commit('ensureMixEntry', { symbol: instrumentSymbol });
 
+    // 3b. Preload cursor SVGs for any new strokes from this instrument
+    await preloadCursorsForPalette(getPaletteFromInstruments(state));
+
     // 4. Add to all measures in section
     // (Volume/muted live in state.mix — not on the track object)
     commit('addTrackToSection', {
@@ -196,6 +200,9 @@ export const updateTrackInstrument = async (trackIdx, newSymbol, soundPack = "cp
 
     // Ensure mix entry
     commit('ensureMixEntry', { symbol: newSymbol });
+
+    // Preload cursor SVGs for any new strokes from the updated instrument
+    await preloadCursorsForPalette(getPaletteFromInstruments(state));
 
     // Update all measures (volume/muted live in state.mix, not on track objects)
     commit('updateTrackInstrumentInSection', {

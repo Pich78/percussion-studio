@@ -1,5 +1,5 @@
 import { state, playback } from '../../store.js';
-import { getActiveSection } from '../../store/stateSelectors.js';
+import { getActiveSection, getPaletteFromInstruments } from '../../store/stateSelectors.js';
 import { Timeline } from '../../components/timeline.js';
 import { TubsGrid } from '../../components/tubsGrid.js';
 import { Controls } from '../../components/controls.js';
@@ -235,7 +235,7 @@ export const DesktopLayout = () => {
           </div>
         </main>
       </div>
-      ${Controls({ selectedStroke: state.selectedStroke, selectedDynamic: state.selectedDynamic })}
+      ${Controls({ selectedStroke: state.selectedStroke, selectedDynamic: state.selectedDynamic, palette: getPaletteFromInstruments(state) })}
     </div>
     ${renderUserGuideModal()}
     ${BataExplorerModal({ isMobile: false, bataExplorer: state.uiState.bataExplorer })}
