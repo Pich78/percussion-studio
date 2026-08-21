@@ -161,11 +161,13 @@ const handlePointerDown = (e) => {
     drag.apply(e);
 
     // Keep pointermove/pointerup flowing when the pointer leaves the
-    // element or the browser window.
+    // element or the browser window. Failure is benign (synthetic events
+    // in tests have no active pointer; rare capture races self-heal via
+    // the lostpointercapture net) — stay silent.
     try {
         drag.element.setPointerCapture(e.pointerId);
-    } catch (err) {
-        console.error('[PointerDrag] setPointerCapture failed:', err);
+    } catch {
+        /* capture unavailable — drag still works within the element */
     }
 };
 
