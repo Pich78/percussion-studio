@@ -64,6 +64,10 @@ eventBus ('render') → viewManager.getActiveView().layout() → string → #roo
 | **Views** | `js/views/` | Registered view definitions (`desktopEditorView`, `mobileGridView`, `mobileDualModeView`) — each provides `layout()`, `setupEvents()`, `onStep()`. |
 | **Constants** | `js/types.js`, `js/constants.js` | Frozen enums (`StrokeType`, `DynamicType`, `PlayMode`), instrument colors. |
 
+### Dependency direction
+
+Imports flow one way only: **the engine side (`store`, `actions`, `services`) must never import from the UI side (`events`, `components`, `views`, `ui`).** UI code may import engine modules freely (e.g., layouts subscribing to `eventBus`, interaction modules like `ui/pointerDrag.js` emitting on it). When an engine module needs to reach the UI, it emits on the `eventBus` instead of importing UI code — this keeps every module under `js/services/` loadable without a DOM.
+
 ### Rendering model
 
 Renders are **full-page replacements**: the active view's `layout()` returns the entire DOM string, written to `#root.innerHTML`. Because of this:
