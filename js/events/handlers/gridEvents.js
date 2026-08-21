@@ -114,26 +114,29 @@ export const handleToggleTrackSnap = (target) => {
 
 // ─── Volume repaint scheduling ──────────────────────────────────────────
 // Actions no longer emit repaint events. Drag ticks never schedule (the
-// drag machinery emits one reconciling grid-refresh on release); keyboard
-// or programmatic ticks coalesce through this 50 ms leading+trailing
+// drag machinery emits one reconciling render on release); keyboard or
+// programmatic ticks coalesce through this 50 ms leading+trailing
 // throttle, so held-arrow updates stay visible without flooding renders.
+// Full render, not grid-refresh: muted/solo styling is template-bound
+// and lives on surfaces grid-refresh never touches (dual-mode views,
+// mixer modals).
 const VOLUME_REFRESH_THROTTLE_MS = 50;
 let volumeRefreshLast = 0;
 let volumeRefreshTimer = null;
 
-export const scheduleVolumeGridRefresh = () => {
+export const scheduleVolumeRepaint = () => {
     const now = performance.now();
     const elapsed = now - volumeRefreshLast;
     if (elapsed >= VOLUME_REFRESH_THROTTLE_MS) {
         volumeRefreshLast = now;
-        eventBus.emit('grid-refresh');
+        eventBus.emit('render');
         return;
     }
     if (!volumeRefreshTimer) {
         volumeRefreshTimer = setTimeout(() => {
             volumeRefreshTimer = null;
             volumeRefreshLast = performance.now();
-            eventBus.emit('grid-refresh');
+            eventBus.emit('render');
         }, VOLUME_REFRESH_THROTTLE_MS - elapsed);
     }
 };
@@ -149,7 +152,7 @@ export const scheduleVolumeGridRefresh = () => {
  *
  * Repaint policy: pointer-drag ticks never schedule a grid-refresh (the
  * drag machinery emits one on release); any other input source (keyboard,
- * programmatic dispatch) goes through scheduleVolumeGridRefresh().
+ * programmatic dispatch) goes through scheduleVolumeRepaint().
  *
  * @param {Event} e - The input event (target is the slider element)
  */
@@ -164,7 +167,7 @@ export const handleVolumeInput = (e) => {
     actions.setGlobalVolume(track.instrument, newVolume);
 
     if (e.detail?.source !== 'pointer-drag') {
-        scheduleVolumeGridRefresh();
+        scheduleVolumeRepaint();
     }
 
     // Direct DOM update of the outside pct text so the prominent value

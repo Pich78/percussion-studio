@@ -77,6 +77,7 @@ Renders are **full-page replacements**: the active view's `layout()` returns the
 - Keep layout functions pure, derived from `state` / `playback`.
 - `renderer.js` already preserves focus and scroll position across re-renders — don't re-implement that.
 - For small updates (slider values, playhead, mute visuals) prefer targeted DOM updates (`playheadUtils.js`) or `grid-refresh` over a full `render`.
+- **`grid-refresh` scope caveat**: it rebuilds only `#grid-container`. Surfaces outside it (dual-mode views, mixer/BPM modals) and template-bound styling (muted/solo graying) reconcile only on full `render` — which is why volume/BPM gestures emit `render` on release or via the repaint throttle.
 
 ### Playback visuals
 

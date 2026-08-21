@@ -15,7 +15,7 @@ import { trackMixer } from '../services/trackMixer.js';
 import { setupPointerDrags, consumeSliderClickGuard } from '../ui/pointerDrag.js';
 import { updateVolumeSliderVisuals, updateBpmSliderVisuals } from '../ui/sliderVisuals.js';
 import { getValidInstrumentSteps } from '../utils/gridUtils.js';
-import { scheduleVolumeGridRefresh } from './handlers/gridEvents.js';
+import { scheduleVolumeRepaint } from './handlers/gridEvents.js';
 
 // Import modular handlers
 import * as playbackHandlers from './handlers/playbackEvents.js';
@@ -623,7 +623,7 @@ export const setupMobileEvents = () => {
                 // grid-refresh (the drag machinery emits one on release);
                 // other input sources coalesce via the shared throttle.
                 if (e.detail?.source !== 'pointer-drag') {
-                    scheduleVolumeGridRefresh();
+                    scheduleVolumeRepaint();
                 }
 
                 // Direct DOM update for instant visual feedback (no re-render
@@ -697,9 +697,10 @@ export const setupMobileEvents = () => {
         if (action === 'update-volume') {
             // Volume was already written to state.mix on every input event.
             // The change event here just signals the drag ended — emit a
-            // single grid-refresh so every surface rebuilds from state.mix
-            // (the source of truth).
-            eventBus.emit('grid-refresh');
+            // single render so every surface (including template-bound
+            // muted/solo styling outside #grid-container) rebuilds from
+            // state.mix, the source of truth.
+            eventBus.emit('render');
         }
         if (action === 'dual-mode-set-reps') {
             const sectionId = target.dataset.sectionId;

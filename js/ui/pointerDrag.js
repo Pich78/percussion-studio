@@ -23,8 +23,9 @@
  * (audio gain, BPM, all surface patches). Direct DOM visuals are applied in
  * parallel for snappiness. No repaint happens mid-drag by construction:
  * actions never emit UI events, and drag-tick listeners skip scheduling —
- * a single grid-refresh/render on drag end rebuilds every surface from
- * state.
+ * a single render on drag end rebuilds every surface from state (full
+ * render, not grid-refresh: muted/solo styling is template-bound and
+ * grid-refresh only covers #grid-container).
  */
 
 import { eventBus } from '../services/eventBus.js';
@@ -81,7 +82,10 @@ const buildVolumeDrag = (container) => {
         },
         end: (cancelled) => {
             markDragFinished(cancelled);
-            if (!cancelled) eventBus.emit('grid-refresh');
+            // Full render, not grid-refresh: muted/solo graying is
+            // template-bound and exists on surfaces grid-refresh never
+            // touches (dual-mode views, mixer modals).
+            if (!cancelled) eventBus.emit('render');
         }
     };
 };
