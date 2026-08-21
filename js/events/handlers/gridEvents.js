@@ -6,7 +6,6 @@
 import { state, commit } from '../../store.js';
 import { getActiveSection, snapStepIndex } from '../../store/stateSelectors.js';
 import { eventBus } from '../../services/eventBus.js';
-import { trackMixer } from '../../services/trackMixer.js';
 import { isSliderDragging, scheduleVolumeRepaint } from '../../ui/pointerDrag.js';
 import { actions } from '../../actions.js';
 import { StrokeType } from '../../types.js';
@@ -64,7 +63,8 @@ export const handleToggleMute = (target) => {
     const mIdx = parseInt(target.dataset.measureIndex || 0);
     const track = section.measures[mIdx].tracks[tIdx];
 
-    trackMixer.toggleMute(tIdx, track, track.instrument);
+    actions.toggleTrackMute(tIdx, track.instrument);
+    eventBus.emit('render');
 };
 
 /**

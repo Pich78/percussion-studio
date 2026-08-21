@@ -28,6 +28,7 @@
 
 import { state, commit } from '../store.js';
 import { audioEngine } from '../services/audioEngine.js';
+import { isInstrumentMuted } from '../store/stateSelectors.js';
 
 /**
  * Set the volume for an instrument in the global mix.
@@ -83,6 +84,63 @@ export const setMixMuted = (instrumentSymbol, muted) => {
 
     // 5. Report transition; repaints are the caller's decision
     return { muteChanged: mix.muted !== wasMuted };
+};
+
+// ─── Track mute/solo state machine ─────────────────────────────────────────
+// Ported verbatim from the former services/trackMixer.js write methods
+// (behavior freeze): services must not import actions, and all state
+// writes flow through commit(). No UI events are emitted here — callers
+// own repaints.
+
+/**
+ * Toggle mute for a track. If this track is currently soloed, clearing
+ * the solo re-mutes it (solo-unmute coupling).
+ * @param {number} trackIndex
+ * @param {string} instrumentSymbol - e.g. 'ITO'
+ */
+export const toggleTrackMute = (trackIndex, instrumentSymbol) => {
+    const isSolo = state.soloTrack === trackIndex;
+    const isMuted = isInstrumentMuted(state, instrumentSymbol);
+
+    if (isSolo) {
+        commit('setSoloTrack', { trackIndex: null });
+        setMixMuted(instrumentSymbol, true);
+    } else if (isMuted) {
+        setMixMuted(instrumentSymbol, false);
+    } else {
+        setMixMuted(instrumentSymbol, true);
+    }
+};
+
+/**
+ * Toggle solo for a track (only one solo at a time). Soloing a muted
+ * track unmutes it.
+ * @param {number} trackIndex
+ * @param {string} instrumentSymbol - e.g. 'ITO'
+ */
+export const toggleTrackSolo = (trackIndex, instrumentSymbol) => {
+    const isSolo = state.soloTrack === trackIndex;
+    const isMuted = isInstrumentMuted(state, instrumentSymbol);
+
+    if (isSolo) {
+        commit('setSoloTrack', { trackIndex: null });
+    } else if (isMuted) {
+        commit('setSoloTrack', { trackIndex });
+        setMixMuted(instrumentSymbol, false);
+    } else {
+        commit('setSoloTrack', { trackIndex });
+    }
+};
+
+/**
+ * Reset the whole mix to defaults: clear solo, wipe mix entries (they
+ * re-create lazily with volume 1.0 / unmuted via ensureMixEntry) and
+ * reset the audio engine's gain nodes so they match the fresh state.
+ */
+export const resetMix = () => {
+    commit('resetMix');
+    commit('setSoloTrack', { trackIndex: null });
+    audioEngine.resetInstrumentGains();
 };
 
 // ─── Backward-compatible aliases ────────────────────────────────────────────

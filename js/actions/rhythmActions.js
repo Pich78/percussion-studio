@@ -7,12 +7,12 @@ import { state, commit } from '../store.js';
 import { stopPlayback } from '../services/sequencer.js';
 import { audioEngine } from '../services/audioEngine.js';
 import { dataLoader } from '../services/dataLoader.js';
-import { trackMixer } from '../services/trackMixer.js';
 import {
     buildRuntimeSections,
     buildToqueState
 } from '../utils/rhythmTransformers.js';
 import { getExplorerRhythmMeta, getPaletteFromInstruments } from '../store/stateSelectors.js';
+import { resetMix } from './mixerActions.js';
 import { updateActiveSection } from './sectionActions.js';
 import { preloadCursorsForPalette } from '../utils/strokeCursors.js';
 
@@ -79,7 +79,7 @@ export const loadRhythm = async (rhythmId) => {
         commit('setToque', { toque: buildToqueState(rhythmId, rhythmDef, sections, explorerMeta) });
         commit('setRhythmSource', { source: 'repo', rhythmId });
 
-        trackMixer.reset();
+        resetMix();
         updateActiveSection(sections[0].id);
 
     } catch (e) {
@@ -123,7 +123,7 @@ export const loadRhythmFromFile = async (file) => {
         commit('setToque', { toque: buildToqueState(localId, rhythmDef, sections) });
         commit('setRhythmSource', { source: 'local' });
 
-        trackMixer.reset();
+        resetMix();
         updateActiveSection(sections[0].id);
 
     } catch (e) {

@@ -11,7 +11,6 @@ import { togglePlay, stopPlayback } from '../services/sequencer.js';
 import { eventBus } from '../services/eventBus.js';
 import { viewManager } from '../views/viewManager.js';
 import { audioEngine } from '../services/audioEngine.js';
-import { trackMixer } from '../services/trackMixer.js';
 import { setupPointerDrags, consumeSliderClickGuard, isSliderDragging, scheduleVolumeRepaint } from '../ui/pointerDrag.js';
 import { updateVolumeSliderVisuals, updateBpmSliderVisuals } from '../ui/sliderVisuals.js';
 import { getValidInstrumentSteps } from '../utils/gridUtils.js';
@@ -189,7 +188,7 @@ const createMobileActionRouter = () => ({
     'close-toque-details': () => bataHandlers.handleCloseToqueDetails(),
     'load-toque-confirm': (e, target) => handleMobileLoadToqueConfirm(target),
 
-    // Mute/Track controls - delegates to trackMixer
+    // Mute/Track controls - routes through the central toggleTrackMute action
     'toggle-mute': (e, target) => {
         const section = getActiveSection(state);
         const tIdx = parseInt(target.dataset.trackIndex);
@@ -197,7 +196,7 @@ const createMobileActionRouter = () => ({
         const track = section?.measures[mIdx]?.tracks[tIdx];
         if (!track) return;
 
-        trackMixer.toggleMute(tIdx, track, track.instrument);
+        actions.toggleTrackMute(tIdx, track.instrument);
         eventBus.emit('render');
     },
 
@@ -300,14 +299,14 @@ const createMobileActionRouter = () => ({
         eventBus.emit('render');
     },
 
-    // Toggle solo on a track - delegates to trackMixer
+    // Toggle solo on a track - routes through the central toggleTrackSolo action
     'dual-mode-solo': (e, target) => {
         const section = getActiveSection(state);
         const trackIdx = parseInt(target.dataset.trackIndex, 10);
         const track = section?.measures[0]?.tracks[trackIdx];
         if (isNaN(trackIdx) || !track) return;
 
-        trackMixer.toggleSolo(trackIdx, track, track.instrument);
+        actions.toggleTrackSolo(trackIdx, track.instrument);
         eventBus.emit('render');
     },
 

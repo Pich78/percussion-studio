@@ -138,11 +138,11 @@ class AudioEngine {
 
     /**
      * Reset all known instrument gain nodes to 1.0 and clear mute flags.
-     * Called from trackMixer.reset() during rhythm load so that the audio
-     * engine stays in sync with the freshly-cleared state.mix. Without this,
-     * gain values from a previous rhythm would carry over and the user
-     * would hear the old volume even though state.mix defaults to 1.0
-     * (visible mismatch: slider at 100%, audio at e.g. 1%).
+     * Called from the resetMix() action during rhythm load so that the
+     * audio engine stays in sync with the freshly-cleared state.mix.
+     * Without this, gain values from a previous rhythm would carry over
+     * and the user would hear the old volume even though state.mix
+     * defaults to 1.0 (visible mismatch: slider at 100%, audio at e.g. 1%).
      */
     resetInstrumentGains() {
         if (!this.ctx) return;

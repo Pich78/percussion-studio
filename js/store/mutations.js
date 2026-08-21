@@ -393,6 +393,15 @@ export const setMixMuted = (state, { symbol, muted }) => {
     }
 };
 
+/**
+ * Set the soloed track (null clears solo)
+ * @param {object} state
+ * @param {{ trackIndex: number|null }} payload
+ */
+export const setSoloTrack = (state, { trackIndex }) => {
+    state.soloTrack = (trackIndex === null || trackIndex === undefined) ? null : trackIndex;
+};
+
 // ─── Track Resize Mutations ─────────────────────────────────────────────────
 
 /**
@@ -544,6 +553,7 @@ export const MUTATIONS = {
     ensureMixEntry,
     setMixVolume,
     setMixMuted,
+    setSoloTrack,
     // Track Resize
     resizeTracksToSteps,
     // Playback

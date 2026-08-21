@@ -51,11 +51,11 @@ eventBus ('render') → viewManager.getActiveView().layout() → string → #roo
 |---|---|---|
 | **Bootstrap** | `js/app.js` | Registers views in the view manager, loads manifest + Batá metadata, loads the default rhythm (`manifest.default_rhythm`, overridable via `?rhythm=`). |
 | **State** | `js/store.js` | `state` (persistent app data: `toque`, `mix`, `soloTrack`, `uiState`, ...) and `playback` (runtime: `currentPlayheadBpm`, `repetitionCounter`, ...). All changes go through `commit(name, payload)` → `store/mutations.js`. Read helpers in `store/stateSelectors.js`. |
-| **Actions** | `js/actions/` | The only write paths for state (e.g., `loadRhythm`, `setMixVolume` / `setMixMuted`). |
+| **Actions** | `js/actions/` | The only write paths for state (e.g., `loadRhythm`, `setMixVolume` / `setMixMuted`, `toggleTrackMute` / `toggleTrackSolo` / `resetMix`). |
 | **Core services** | `js/services/` | UI-agnostic singletons: |
 | | `audioEngine.js` | Web Audio graph: `source → noteGain (dynamics) → instrumentGain (state.mix volume) → masterGain`. |
 | | `sequencer.js` | Playback state machine: `togglePlay()` / `stopPlayback()`, scheduling, section transitions, play modes, tempo acceleration. |
-| | `trackMixer.js` | Mute/solo/volume state machine over `state.mix` + `state.soloTrack`. |
+| | `trackMixer.js` | Mute/solo read-model — getters over `state.soloTrack` + `state.mix`; write paths live in `actions/mixerActions.js` (`toggleTrackMute` / `toggleTrackSolo` / `resetMix`). |
 | | `dataLoader.js` | Fetches manifest + YAML with `cache: 'no-store'` (fresh data always). |
 | | `eventBus.js` | Emits `render`, `grid-refresh`, `step`, `scroll-to-measure`. |
 | **Events** | `js/events/` | Action routers (`desktopEvents.js`, `mobileEvents.js`) delegate by `data-action` name to `events/handlers/*`. |
