@@ -9,7 +9,7 @@ import { getActiveSection, snapStepIndex } from '../store/stateSelectors.js';
 import { actions } from '../actions.js';
 import { togglePlay, stopPlayback } from '../services/sequencer.js';
 import { eventBus } from '../services/eventBus.js';
-import { setupPointerDrags } from '../ui/pointerDrag.js';
+import { setupPointerDrags, consumeSliderClickGuard, resetSliderClickGuard } from '../ui/pointerDrag.js';
 import { StrokeType } from '../types.js';
 
 // Import modular handlers
@@ -188,11 +188,10 @@ export const setupDesktopEvents = () => {
             return;
         }
 
-        // Consume the release-click after a slider drag (set in the
-        // document mouseup handler) so it can't close modals via the
+        // Consume the release-click after a slider drag (armed by the
+        // pointer drag machinery) so it can't close modals via the
         // backdrop common-ancestor click.
-        if (window.__sliderDragFinished) {
-            window.__sliderDragFinished = false;
+        if (consumeSliderClickGuard()) {
             return;
         }
 
@@ -238,7 +237,7 @@ export const setupDesktopEvents = () => {
     // Mouse events for Long-Press Pie Menu support
     root.addEventListener('mousedown', (e) => {
         window.__ignoreNextClick = false; // Reset on new sequence
-        window.__sliderDragFinished = false; // Reset on new sequence
+        resetSliderClickGuard(); // Reset on new sequence
 
         const cell = e.target.closest('[data-role="tubs-cell"]');
 

@@ -12,7 +12,7 @@ import { eventBus } from '../services/eventBus.js';
 import { viewManager } from '../views/viewManager.js';
 import { audioEngine } from '../services/audioEngine.js';
 import { trackMixer } from '../services/trackMixer.js';
-import { setupPointerDrags } from '../ui/pointerDrag.js';
+import { setupPointerDrags, consumeSliderClickGuard } from '../ui/pointerDrag.js';
 import { updateVolumeSliderVisuals, updateBpmSliderVisuals } from '../ui/sliderVisuals.js';
 import { getValidInstrumentSteps } from '../utils/gridUtils.js';
 
@@ -573,11 +573,10 @@ export const setupMobileEvents = () => {
         audioEngine.init();
         audioEngine.resume();
 
-        // Consume the release-tap after a slider drag (set in the
-        // document touchend handler) so it can't close an open popover
+        // Consume the release-tap after a slider drag (armed by the
+        // pointer drag machinery) so it can't close an open popover
         // via the backdrop common-ancestor click.
-        if (window.__sliderDragFinished) {
-            window.__sliderDragFinished = false;
+        if (consumeSliderClickGuard()) {
             return;
         }
 

@@ -36,11 +36,27 @@ const BPM_MAX = 240;
 
 let activeDrag = null; // { type, element, apply(e), end(cancelled) }
 
+// ─── Slider click guard ─────────────────────────────────────────────────
+// Belt-and-suspenders for the backdrop common-ancestor click: with
+// pointerdown canceled the click can never fire, but consuming one click
+// after a drag is harmless insurance across browsers. UI-layer state:
+// armed by a successful drag end, consumed (and reset) by the events
+// layer's root click handler.
+
+let sliderClickGuard = false;
+
+export const resetSliderClickGuard = () => {
+    sliderClickGuard = false;
+};
+
+export const consumeSliderClickGuard = () => {
+    const armed = sliderClickGuard;
+    sliderClickGuard = false;
+    return armed;
+};
+
 const markDragFinished = (cancelled) => {
-    // Belt-and-suspenders for the backdrop common-ancestor click: with
-    // pointerdown canceled the click can never fire, but consuming one
-    // click after a drag is harmless insurance across browsers.
-    if (!cancelled) window.__sliderDragFinished = true;
+    if (!cancelled) sliderClickGuard = true;
 };
 
 const buildVolumeDrag = (container) => {
@@ -59,7 +75,7 @@ const buildVolumeDrag = (container) => {
             fraction = Math.max(0, Math.min(1, fraction));
             const volume = parseFloat(fraction.toFixed(2));
             input.value = volume;
-            input.dispatchEvent(new Event('input', { bubbles: true }));
+            input.dispatchEvent(new CustomEvent('input', { bubbles: true, detail: { source: 'pointer-drag' } }));
             if (groupContainer) updateVolumeSliderVisuals(groupContainer, volume);
         },
         end: (cancelled) => {
@@ -86,7 +102,7 @@ const buildBpmDrag = (container) => {
             fraction = Math.max(0, Math.min(1, fraction));
             const bpm = Math.round(BPM_MIN + fraction * (BPM_MAX - BPM_MIN));
             input.value = bpm;
-            input.dispatchEvent(new Event('input', { bubbles: true }));
+            input.dispatchEvent(new CustomEvent('input', { bubbles: true, detail: { source: 'pointer-drag' } }));
             if (groupContainer) updateBpmSliderVisuals(groupContainer, bpm);
         },
         end: (cancelled) => {
@@ -119,7 +135,7 @@ const handlePointerDown = (e) => {
 
     // Reset on new sequence so a drag with no release (e.g. pointercancel)
     // can't swallow a later legitimate click.
-    window.__sliderDragFinished = false;
+    resetSliderClickGuard();
 
     const drag = resolveDrag(e.target);
     if (!drag) return;
