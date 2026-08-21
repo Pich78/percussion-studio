@@ -36,6 +36,7 @@ These are loaded as regular `<script>` tags in `mobile.html` and `desktop.html`,
 | **State shape** | Application state lives in the `state` object (`js/store.js:23`). Playback runtime state lives in the separate `playback` object (`js/store.js:103`). | `js/store.js` |
 | **Components** | Functions returning template strings with `data-action` attributes. No JSX, no virtual DOM. | `AGENTS.md:31-37` |
 | **Rendering** | Views registered via `viewManager.registerView()`. The active view's `render()` function produces the full DOM string. Re-renders replace the entire `#root` innerHTML. | `js/app.js:21-23` |
+| **Repaint policy** | Engine code (actions, services) never emits view repaints based on gesture state. Actions mutate state, drive the audio engine, and return transition info (e.g. `{ muteChanged }`); the events/UI layers decide when to emit `render` / `grid-refresh`. Drag ticks suppress repaints by construction — no flags (see `js/ui/pointerDrag.js`, `js/actions/mixerActions.js`). | `AGENTS.md` (Dependency direction) |
 | **CSS** | Tailwind utility classes. Custom CSS is minimal and lives in `<style>` tags in HTML files. | `AGENTS.md:75` |
 | **Naming** | Files: `kebab-case.js`. Functions: `camelCase`. Constants: `PascalCase`. CSS classes: `kebab-case`. | `AGENTS.md` |
 | **Orientation layouts** | Mobile uses `portrait:`/`landscape:` Tailwind prefixes. Complex views may live in separate files under `js/ui/mobile/dual-mode/`. | `AGENTS.md:84-87` |

@@ -68,6 +68,8 @@ eventBus ('render') → viewManager.getActiveView().layout() → string → #roo
 
 Imports flow one way only: **the engine side (`store`, `actions`, `services`) must never import from the UI side (`events`, `components`, `views`, `ui`).** UI code may import engine modules freely (e.g., layouts subscribing to `eventBus`, interaction modules like `ui/pointerDrag.js` emitting on it). When an engine module needs to reach the UI, it emits on the `eventBus` instead of importing UI code — this keeps every module under `js/services/` loadable without a DOM.
 
+The same one-way rule governs repaints: **engine modules must never gate or trigger view updates from gesture state.** Actions mutate state and drive the audio engine only, returning transition info (e.g., `setMixVolume` → `{ muteChanged }`); the interaction layer owns repaint cadence — drag ticks never refresh mid-drag (a single reconciling refresh fires on release), discrete gestures refresh explicitly.
+
 ### Rendering model
 
 Renders are **full-page replacements**: the active view's `layout()` returns the entire DOM string, written to `#root.innerHTML`. Because of this:
