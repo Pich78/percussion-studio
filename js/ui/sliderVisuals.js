@@ -2,7 +2,7 @@
  * js/ui/sliderVisuals.js
  *
  * Shared direct-DOM visual updaters for sliders (no re-render).
- * Used by the unified pointer drag machinery (js/services/pointerDrag.js)
+ * Used by the unified pointer drag machinery (js/ui/pointerDrag.js)
  * to keep the fill/handle/percentage in lock-step with the cursor during a
  * drag. The state (state.mix, playback) remains the single source of truth;
  * these functions only mirror it onto the DOM for snappiness. A single

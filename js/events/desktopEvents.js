@@ -9,7 +9,7 @@ import { getActiveSection, snapStepIndex } from '../store/stateSelectors.js';
 import { actions } from '../actions.js';
 import { togglePlay, stopPlayback } from '../services/sequencer.js';
 import { eventBus } from '../services/eventBus.js';
-import { setupPointerDrags } from '../services/pointerDrag.js';
+import { setupPointerDrags } from '../ui/pointerDrag.js';
 import { StrokeType } from '../types.js';
 
 // Import modular handlers

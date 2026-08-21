@@ -1,5 +1,5 @@
 /**
- * js/services/pointerDrag.js
+ * js/ui/pointerDrag.js
  *
  * Unified pointer-based drag machinery (Pointer Events + setPointerCapture).
  * Replaces the legacy per-platform mousedown/mousemove/mouseup and
@@ -26,8 +26,8 @@
  * every surface from state).
  */
 
-import { eventBus } from './eventBus.js';
-import { updateVolumeSliderVisuals, updateBpmSliderVisuals } from '../ui/sliderVisuals.js';
+import { eventBus } from '../services/eventBus.js';
+import { updateVolumeSliderVisuals, updateBpmSliderVisuals } from './sliderVisuals.js';
 
 const BPM_MIN = 40;
 const BPM_MAX = 240;

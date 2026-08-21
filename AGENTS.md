@@ -58,10 +58,9 @@ eventBus ('render') → viewManager.getActiveView().layout() → string → #roo
 | | `trackMixer.js` | Mute/solo/volume state machine over `state.mix` + `state.soloTrack`. |
 | | `dataLoader.js` | Fetches manifest + YAML with `cache: 'no-store'` (fresh data always). |
 | | `eventBus.js` | Emits `render`, `grid-refresh`, `step`, `scroll-to-measure`. |
-| | `pointerDrag.js` | Unified pointer-event drag machinery for sliders (shared visuals in `ui/sliderVisuals.js`). |
 | **Events** | `js/events/` | Action routers (`desktopEvents.js`, `mobileEvents.js`) delegate by `data-action` name to `events/handlers/*`. |
 | **Components** | `js/components/` | Shared template-string functions returning HTML with `data-action` attributes (grid, timeline, modals, pie menu, ...). |
-| **UI layouts** | `js/ui/` | Renderer (`renderer.js`), view-specific layout modules (`ui/desktop/`, `ui/mobile/standard/`, `ui/mobile/dual-mode/`), playback DOM updates (`ui/playheadUtils.js`). |
+| **UI layouts** | `js/ui/` | Renderer (`renderer.js`), view-specific layout modules (`ui/desktop/`, `ui/mobile/standard/`, `ui/mobile/dual-mode/`), playback DOM updates (`ui/playheadUtils.js`), unified slider drag machinery (`ui/pointerDrag.js`, shared visuals in `ui/sliderVisuals.js`). |
 | **Views** | `js/views/` | Registered view definitions (`desktopEditorView`, `mobileGridView`, `mobileDualModeView`) — each provides `layout()`, `setupEvents()`, `onStep()`. |
 | **Constants** | `js/types.js`, `js/constants.js` | Frozen enums (`StrokeType`, `DynamicType`, `PlayMode`), instrument colors. |
 

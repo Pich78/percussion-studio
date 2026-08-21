@@ -12,7 +12,7 @@ import { eventBus } from '../services/eventBus.js';
 import { viewManager } from '../views/viewManager.js';
 import { audioEngine } from '../services/audioEngine.js';
 import { trackMixer } from '../services/trackMixer.js';
-import { setupPointerDrags } from '../services/pointerDrag.js';
+import { setupPointerDrags } from '../ui/pointerDrag.js';
 import { updateVolumeSliderVisuals, updateBpmSliderVisuals } from '../ui/sliderVisuals.js';
 import { getValidInstrumentSteps } from '../utils/gridUtils.js';
 
