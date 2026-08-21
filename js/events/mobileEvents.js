@@ -12,10 +12,9 @@ import { eventBus } from '../services/eventBus.js';
 import { viewManager } from '../views/viewManager.js';
 import { audioEngine } from '../services/audioEngine.js';
 import { trackMixer } from '../services/trackMixer.js';
-import { setupPointerDrags, consumeSliderClickGuard } from '../ui/pointerDrag.js';
+import { setupPointerDrags, consumeSliderClickGuard, isSliderDragging, scheduleVolumeRepaint } from '../ui/pointerDrag.js';
 import { updateVolumeSliderVisuals, updateBpmSliderVisuals } from '../ui/sliderVisuals.js';
 import { getValidInstrumentSteps } from '../utils/gridUtils.js';
-import { scheduleVolumeRepaint } from './handlers/gridEvents.js';
 
 // Import modular handlers
 import * as playbackHandlers from './handlers/playbackEvents.js';
@@ -619,10 +618,14 @@ export const setupMobileEvents = () => {
                 // for both the slider and the audio engine gain node.
                 actions.setMixVolume(track.instrument, newVolume);
 
-                // Repaint policy: pointer-drag ticks never schedule a
-                // grid-refresh (the drag machinery emits one on release);
-                // other input sources coalesce via the shared throttle.
-                if (e.detail?.source !== 'pointer-drag') {
+                // Repaint policy: gesture ticks never schedule a repaint
+                // (the drag machinery emits one throttled render on
+                // release). Gesture ticks are recognized two ways — the
+                // 'pointer-drag' detail marker AND the live
+                // isSliderDragging() flag — because real devices can
+                // deliver native range-input events without the marker
+                // while our drag is active.
+                if (!isSliderDragging() && e.detail?.source !== 'pointer-drag') {
                     scheduleVolumeRepaint();
                 }
 

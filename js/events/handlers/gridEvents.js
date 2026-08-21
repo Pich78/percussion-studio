@@ -7,6 +7,7 @@ import { state, commit } from '../../store.js';
 import { getActiveSection, snapStepIndex } from '../../store/stateSelectors.js';
 import { eventBus } from '../../services/eventBus.js';
 import { trackMixer } from '../../services/trackMixer.js';
+import { isSliderDragging, scheduleVolumeRepaint } from '../../ui/pointerDrag.js';
 import { actions } from '../../actions.js';
 import { StrokeType } from '../../types.js';
 import { getValidInstrumentSteps } from '../../utils/gridUtils.js';
@@ -112,35 +113,6 @@ export const handleToggleTrackSnap = (target) => {
     eventBus.emit('grid-refresh');
 };
 
-// ─── Volume repaint scheduling ──────────────────────────────────────────
-// Actions no longer emit repaint events. Drag ticks never schedule (the
-// drag machinery emits one reconciling render on release); keyboard or
-// programmatic ticks coalesce through this 50 ms leading+trailing
-// throttle, so held-arrow updates stay visible without flooding renders.
-// Full render, not grid-refresh: muted/solo styling is template-bound
-// and lives on surfaces grid-refresh never touches (dual-mode views,
-// mixer modals).
-const VOLUME_REFRESH_THROTTLE_MS = 50;
-let volumeRefreshLast = 0;
-let volumeRefreshTimer = null;
-
-export const scheduleVolumeRepaint = () => {
-    const now = performance.now();
-    const elapsed = now - volumeRefreshLast;
-    if (elapsed >= VOLUME_REFRESH_THROTTLE_MS) {
-        volumeRefreshLast = now;
-        eventBus.emit('render');
-        return;
-    }
-    if (!volumeRefreshTimer) {
-        volumeRefreshTimer = setTimeout(() => {
-            volumeRefreshTimer = null;
-            volumeRefreshLast = performance.now();
-            eventBus.emit('render');
-        }, VOLUME_REFRESH_THROTTLE_MS - elapsed);
-    }
-};
-
 /**
  * Handle volume slider input.
  * Delegates to the central setGlobalVolume action — state.mix[symbol].volume
@@ -150,9 +122,13 @@ export const scheduleVolumeRepaint = () => {
  * slider position during drag (mirrors the BPM pattern at
  * playbackEvents.js:42-45 and mobileEvents.js:634-635).
  *
- * Repaint policy: pointer-drag ticks never schedule a grid-refresh (the
- * drag machinery emits one on release); any other input source (keyboard,
- * programmatic dispatch) goes through scheduleVolumeRepaint().
+ * Repaint policy: gesture ticks never schedule a repaint (the drag
+ * machinery emits one throttled render on release). Gesture ticks are
+ * recognized two ways — the 'pointer-drag' detail marker AND the live
+ * isSliderDragging() flag — because real devices can deliver native
+ * range-input events without the marker while our drag is active. Any
+ * other source (keyboard, programmatic dispatch) goes through the
+ * shared 50 ms throttle (scheduleVolumeRepaint, in pointerDrag.js).
  *
  * @param {Event} e - The input event (target is the slider element)
  */
@@ -166,7 +142,7 @@ export const handleVolumeInput = (e) => {
 
     actions.setGlobalVolume(track.instrument, newVolume);
 
-    if (e.detail?.source !== 'pointer-drag') {
+    if (!isSliderDragging() && e.detail?.source !== 'pointer-drag') {
         scheduleVolumeRepaint();
     }
 

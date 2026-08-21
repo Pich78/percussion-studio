@@ -38,6 +38,40 @@ const BPM_MAX = 240;
 
 let activeDrag = null; // { type, pointerId, element, apply(e), end(cancelled) }
 
+/**
+ * True while a slider drag is in flight. Input handlers consult this to
+ * classify ticks as gesture-driven regardless of event provenance: on
+ * real devices, native range-input events can fire alongside (or instead
+ * of) our synthetic ones, without the 'pointer-drag' detail marker.
+ */
+export const isSliderDragging = () => activeDrag !== null;
+
+// ─── Volume repaint throttle ────────────────────────────────────────────
+// Full renders are reconciliations of last resort: one per gesture end,
+// never per tick. Leading+trailing 50 ms throttle — the first release in
+// a burst paints immediately, subsequent ones coalesce (fast swiping on
+// a slow device must not turn into a render storm).
+const VOLUME_REPAINT_THROTTLE_MS = 50;
+let volumeRepaintLast = 0;
+let volumeRepaintTimer = null;
+
+export const scheduleVolumeRepaint = () => {
+    const now = performance.now();
+    const elapsed = now - volumeRepaintLast;
+    if (elapsed >= VOLUME_REPAINT_THROTTLE_MS) {
+        volumeRepaintLast = now;
+        eventBus.emit('render');
+        return;
+    }
+    if (!volumeRepaintTimer) {
+        volumeRepaintTimer = setTimeout(() => {
+            volumeRepaintTimer = null;
+            volumeRepaintLast = performance.now();
+            eventBus.emit('render');
+        }, VOLUME_REPAINT_THROTTLE_MS - elapsed);
+    }
+};
+
 // ─── Slider click guard ─────────────────────────────────────────────────
 // Belt-and-suspenders for the backdrop common-ancestor click: with
 // pointerdown canceled the click can never fire, but consuming one click
@@ -82,10 +116,11 @@ const buildVolumeDrag = (container) => {
         },
         end: (cancelled) => {
             markDragFinished(cancelled);
-            // Full render, not grid-refresh: muted/solo graying is
-            // template-bound and exists on surfaces grid-refresh never
-            // touches (dual-mode views, mixer modals).
-            if (!cancelled) eventBus.emit('render');
+            // Full render (never grid-refresh): muted/solo graying is
+            // template-bound and lives on surfaces grid-refresh never
+            // touches (dual-mode views, mixer modals). Throttled so fast
+            // repeated swipes coalesce instead of stacking long tasks.
+            if (!cancelled) scheduleVolumeRepaint();
         }
     };
 };
@@ -178,11 +213,11 @@ const handlePointerMove = (e) => {
 
 const handlePointerEnd = (e, cancelled) => {
     if (!activeDrag || e.pointerId !== activeDrag.pointerId) return;
-    if (activeDrag.element.hasPointerCapture && activeDrag.element.hasPointerCapture(e.pointerId)) {
-        activeDrag.element.releasePointerCapture(e.pointerId);
-    }
-    activeDrag.end(cancelled);
+    const drag = activeDrag;
+    // Retire BEFORE end() — releasePointerCapture/lostpointercapture and
+    // any listener side-effects must never re-enter this handler.
     activeDrag = null;
+    drag.end(cancelled);
 };
 
 // ─── Styles ─────────────────────────────────────────────────────────────
@@ -231,7 +266,7 @@ export const setupPointerDrags = (root) => {
         if (activeDrag && e.pointerId === activeDrag.pointerId) {
             handlePointerEnd(e, true);
         }
-    });
+    }, true); // capture phase — lostpointercapture does not bubble
     // Runs after renderer's own 'render' listener within the same emit,
     // so innerHTML is already swapped when the containment check runs.
     eventBus.on('render', () => {
