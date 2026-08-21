@@ -19,6 +19,14 @@ def main():
     args = parser.parse_args()
 
     class RequestHandler(http.server.SimpleHTTPRequestHandler):
+        def end_headers(self):
+            # Dev server: forbid heuristic caching. Without this, Chromium
+            # serves stale ES modules after code edits, producing
+            # mixed-vintage module graphs that fail with cryptic import
+            # errors (no-cache still allows cheap 304 revalidation).
+            self.send_header("Cache-Control", "no-cache")
+            super().end_headers()
+
         def log_request(self, code="-", size="-"):
             # Verbose mode logs every request; otherwise keep the console quiet.
             # Errors (404 etc.) are still reported via log_message/log_error.
