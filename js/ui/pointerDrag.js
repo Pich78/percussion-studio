@@ -35,7 +35,7 @@ const BPM_MAX = 240;
 
 // ─── Active drag state ──────────────────────────────────────────────────
 
-let activeDrag = null; // { type, element, apply(e), end(cancelled) }
+let activeDrag = null; // { type, pointerId, element, apply(e), end(cancelled) }
 
 // ─── Slider click guard ─────────────────────────────────────────────────
 // Belt-and-suspenders for the backdrop common-ancestor click: with
@@ -128,9 +128,17 @@ const resolveDrag = (target) => {
 // ─── Event handlers ─────────────────────────────────────────────────────
 
 const handlePointerDown = (e) => {
-    if (activeDrag) return;
     if (!e.isPrimary) return;
     if (e.pointerType === 'mouse' && e.button !== 0) return;
+
+    // A still-active drag here means its end was lost (element detached by
+    // an involuntary re-render, pointercancel swallowed by the browser...).
+    // Retire it — cancelled, no refresh — so a zombie can never block the
+    // new gesture. New primary presses always win.
+    if (activeDrag) {
+        activeDrag.end(true);
+        activeDrag = null;
+    }
 
     // Reset on new sequence so a drag with no release (e.g. pointercancel)
     // can't swallow a later legitimate click.
@@ -144,6 +152,7 @@ const handlePointerDown = (e) => {
     // backdrop can no longer synthesize a backdrop click.
     e.preventDefault();
 
+    drag.pointerId = e.pointerId;
     activeDrag = drag;
     drag.apply(e);
 
@@ -157,12 +166,12 @@ const handlePointerDown = (e) => {
 };
 
 const handlePointerMove = (e) => {
-    if (!activeDrag) return;
+    if (!activeDrag || e.pointerId !== activeDrag.pointerId) return;
     activeDrag.apply(e);
 };
 
 const handlePointerEnd = (e, cancelled) => {
-    if (!activeDrag) return;
+    if (!activeDrag || e.pointerId !== activeDrag.pointerId) return;
     if (activeDrag.element.hasPointerCapture && activeDrag.element.hasPointerCapture(e.pointerId)) {
         activeDrag.element.releasePointerCapture(e.pointerId);
     }
@@ -196,6 +205,14 @@ const injectDragStyles = () => {
 /**
  * Set up the unified drag machinery. Delegated on root so it survives
  * re-renders (sliders are rebuilt on every 'render' event).
+ *
+ * Robustness nets (a lost gesture end must never wedge the machinery):
+ * - lostpointercapture: browser revoked our capture (element detached,
+ *   system gesture) — retire the drag cleanly.
+ * - eventBus 'render': involuntary re-renders (e.g. sequencer section
+ *   transitions) replace the DOM under a live capture; once the element
+ *   is detached, cancel instead of leaving a zombie that would block
+ *   every later pointerdown.
  * @param {HTMLElement} root - The #root container
  */
 export const setupPointerDrags = (root) => {
@@ -204,4 +221,17 @@ export const setupPointerDrags = (root) => {
     root.addEventListener('pointermove', handlePointerMove);
     root.addEventListener('pointerup', (e) => handlePointerEnd(e, false));
     root.addEventListener('pointercancel', (e) => handlePointerEnd(e, true));
+    root.addEventListener('lostpointercapture', (e) => {
+        if (activeDrag && e.pointerId === activeDrag.pointerId) {
+            handlePointerEnd(e, true);
+        }
+    });
+    // Runs after renderer's own 'render' listener within the same emit,
+    // so innerHTML is already swapped when the containment check runs.
+    eventBus.on('render', () => {
+        if (activeDrag && !document.contains(activeDrag.element)) {
+            activeDrag.end(true);
+            activeDrag = null;
+        }
+    });
 };
