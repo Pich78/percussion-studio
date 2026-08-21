@@ -79,6 +79,9 @@ class TrackMixer {
         } else if (isMuted) {
             state.soloTrack = trackIndex;
             setMixMuted(instrument, false);
+            // Actions no longer emit UI events — repaint here so the
+            // unmute + solo transition is visible immediately.
+            eventBus.emit('render');
         } else {
             state.soloTrack = trackIndex;
             eventBus.emit('render');

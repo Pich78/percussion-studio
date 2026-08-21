@@ -15,6 +15,7 @@ import { trackMixer } from '../services/trackMixer.js';
 import { setupPointerDrags, consumeSliderClickGuard } from '../ui/pointerDrag.js';
 import { updateVolumeSliderVisuals, updateBpmSliderVisuals } from '../ui/sliderVisuals.js';
 import { getValidInstrumentSteps } from '../utils/gridUtils.js';
+import { scheduleVolumeGridRefresh } from './handlers/gridEvents.js';
 
 // Import modular handlers
 import * as playbackHandlers from './handlers/playbackEvents.js';
@@ -284,8 +285,9 @@ const createMobileActionRouter = () => ({
 
     // Step volume up/down from the dual-mode Mixer chip modal.
     // Routes through the central setMixVolume action — state.mix is the
-    // single source of truth, so the slider position updates on the
-    // next render without any manual DOM patching.
+    // single source of truth. Discrete button press: repaint immediately
+    // so the mixer modal slider and every other volume surface reflect
+    // the new value without waiting for an unrelated render.
     'dual-mode-vol-step': (e, target) => {
         const trackIdx = parseInt(target.dataset.trackIndex, 10);
         const delta = parseFloat(target.dataset.delta);
@@ -296,6 +298,7 @@ const createMobileActionRouter = () => ({
         const currentVolume = state.mix[track.instrument]?.volume ?? 1.0;
         const newVolume = Math.max(0, Math.min(1, currentVolume + delta));
         actions.setMixVolume(track.instrument, newVolume);
+        eventBus.emit('render');
     },
 
     // Toggle solo on a track - delegates to trackMixer
@@ -611,13 +614,17 @@ export const setupMobileEvents = () => {
             const newVolume = parseFloat(target.value);
             const track = section?.measures[0]?.tracks[tIdx];
             if (track) {
-                // Mark drag in progress so setMixVolume suppresses grid-refresh
-                window.__volumeDragging = true;
-
                 // Route through the central setMixVolume action —
                 // state.mix[symbol].volume is the single source of truth
                 // for both the slider and the audio engine gain node.
                 actions.setMixVolume(track.instrument, newVolume);
+
+                // Repaint policy: pointer-drag ticks never schedule a
+                // grid-refresh (the drag machinery emits one on release);
+                // other input sources coalesce via the shared throttle.
+                if (e.detail?.source !== 'pointer-drag') {
+                    scheduleVolumeGridRefresh();
+                }
 
                 // Direct DOM update for instant visual feedback (no re-render
                 // during drag). On touchend/mouseup the document-level handler
@@ -689,10 +696,9 @@ export const setupMobileEvents = () => {
         }
         if (action === 'update-volume') {
             // Volume was already written to state.mix on every input event.
-            // The change event here just signals the drag ended — clear
-            // the dragging flag and emit a single grid-refresh so every
-            // surface rebuilds from state.mix (the source of truth).
-            window.__volumeDragging = false;
+            // The change event here just signals the drag ended — emit a
+            // single grid-refresh so every surface rebuilds from state.mix
+            // (the source of truth).
             eventBus.emit('grid-refresh');
         }
         if (action === 'dual-mode-set-reps') {

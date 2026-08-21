@@ -17,18 +17,26 @@
   Track objects do NOT carry volume or muted fields anymore. UI elements
   read state.mix directly via the getMixVolume / isInstrumentMuted
   selectors in stateSelectors.js.
+
+  Actions NEVER emit UI events ('render' / 'grid-refresh'): they mutate
+  state and drive the audio engine only. Repaint policy belongs to the
+  interaction layer (events/ui), which knows the gesture context — drag
+  ticks suppress repaints by construction, discrete gestures refresh
+  explicitly. Both actions return { muteChanged } so callers can react
+  to mute-coupling transitions without the action doing UI work.
 */
 
 import { state, commit } from '../store.js';
-import { eventBus } from '../services/eventBus.js';
 import { audioEngine } from '../services/audioEngine.js';
 
 /**
  * Set the volume for an instrument in the global mix.
  * Single source of truth: state.mix[symbol].volume.
+ * Emits no UI events; returns { muteChanged } for callers that repaint.
  *
  * @param {string} instrumentSymbol - Instrument symbol e.g. 'ITO'
  * @param {number} volume - Volume level 0.0 to 1.0
+ * @returns {{ muteChanged: boolean }} True if the mute coupling flipped
  */
 export const setMixVolume = (instrumentSymbol, volume) => {
     // 1. Ensure mix entry exists
@@ -43,15 +51,8 @@ export const setMixVolume = (instrumentSymbol, volume) => {
     // 4. REAL-TIME: Update audio engine gain node immediately
     audioEngine.setInstrumentVolume(instrumentSymbol, state.mix[instrumentSymbol].volume);
 
-    // 5. Detect mute state change (setMixVolume couples volume<->muted)
-    const mix = state.mix[instrumentSymbol];
-    const muteChanged = mix.muted !== wasMuted;
-
-    // 6. Refresh Grid only if mute state changed AND not currently dragging
-    // (Dragging will refresh on mouseup/touchend to avoid breaking the drag)
-    if (muteChanged && !window.__volumeDragging) {
-        eventBus.emit('grid-refresh');
-    }
+    // 5. Report mute state transition (setMixVolume couples volume<->muted)
+    return { muteChanged: state.mix[instrumentSymbol].muted !== wasMuted };
 };
 
 /**
@@ -59,24 +60,29 @@ export const setMixVolume = (instrumentSymbol, volume) => {
  * Single source of truth: state.mix[symbol].muted.
  * SYNC: If muted, set volume to 0 (storing prior volume in lastVolume).
  *       If unmuted, restore from lastVolume.
+ * Emits no UI events; returns { muteChanged } for callers that repaint.
  *
  * @param {string} instrumentSymbol - Instrument symbol e.g. 'ITO'
  * @param {boolean} muted - True to mute
+ * @returns {{ muteChanged: boolean }} True if the flag flipped
  */
 export const setMixMuted = (instrumentSymbol, muted) => {
     // 1. Ensure mix entry exists
     commit('ensureMixEntry', { symbol: instrumentSymbol });
 
-    // 2. Update mute state via commit
+    // 2. Track previous mute state for change detection
+    const wasMuted = state.mix[instrumentSymbol].muted;
+
+    // 3. Update mute state via commit
     commit('setMixMuted', { symbol: instrumentSymbol, muted });
 
-    // 3. REAL-TIME: Update audio engine mute + volume state
+    // 4. REAL-TIME: Update audio engine mute + volume state
     const mix = state.mix[instrumentSymbol];
     audioEngine.setInstrumentMuted(instrumentSymbol, muted);
     audioEngine.setInstrumentVolume(instrumentSymbol, mix.volume);
 
-    // 4. Refresh grid for visual feedback (mute toggle is a discrete event)
-    eventBus.emit('grid-refresh');
+    // 5. Report transition; repaints are the caller's decision
+    return { muteChanged: mix.muted !== wasMuted };
 };
 
 // ─── Backward-compatible aliases ────────────────────────────────────────────

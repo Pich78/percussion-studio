@@ -112,29 +112,60 @@ export const handleToggleTrackSnap = (target) => {
     eventBus.emit('grid-refresh');
 };
 
+// ─── Volume repaint scheduling ──────────────────────────────────────────
+// Actions no longer emit repaint events. Drag ticks never schedule (the
+// drag machinery emits one reconciling grid-refresh on release); keyboard
+// or programmatic ticks coalesce through this 50 ms leading+trailing
+// throttle, so held-arrow updates stay visible without flooding renders.
+const VOLUME_REFRESH_THROTTLE_MS = 50;
+let volumeRefreshLast = 0;
+let volumeRefreshTimer = null;
+
+export const scheduleVolumeGridRefresh = () => {
+    const now = performance.now();
+    const elapsed = now - volumeRefreshLast;
+    if (elapsed >= VOLUME_REFRESH_THROTTLE_MS) {
+        volumeRefreshLast = now;
+        eventBus.emit('grid-refresh');
+        return;
+    }
+    if (!volumeRefreshTimer) {
+        volumeRefreshTimer = setTimeout(() => {
+            volumeRefreshTimer = null;
+            volumeRefreshLast = performance.now();
+            eventBus.emit('grid-refresh');
+        }, VOLUME_REFRESH_THROTTLE_MS - elapsed);
+    }
+};
+
 /**
  * Handle volume slider input.
- * Delegates to the central setMixVolume action — state.mix[symbol].volume
+ * Delegates to the central setGlobalVolume action — state.mix[symbol].volume
  * is the single source of truth and the next render rebuilds the slider
  * from it. Also writes the outside percentage text directly so the
  * prominent value next to the track name updates in lock-step with the
  * slider position during drag (mirrors the BPM pattern at
  * playbackEvents.js:42-45 and mobileEvents.js:634-635).
- * @param {HTMLInputElement} target - The slider element
+ *
+ * Repaint policy: pointer-drag ticks never schedule a grid-refresh (the
+ * drag machinery emits one on release); any other input source (keyboard,
+ * programmatic dispatch) goes through scheduleVolumeGridRefresh().
+ *
+ * @param {Event} e - The input event (target is the slider element)
  */
-export const handleVolumeInput = (target) => {
+export const handleVolumeInput = (e) => {
+    const target = e.target;
     const section = getActiveSection(state);
     const tIdx = parseInt(target.dataset.trackIndex);
     const mIdx = parseInt(target.dataset.measureIndex || 0);
     const track = section.measures[mIdx].tracks[tIdx];
     const newVolume = parseFloat(target.value);
 
-    // Mark a drag in progress so the action suppresses grid-refresh
-    // mid-drag (re-rendering would break the drag). On mouseup the
-    // desktop event handler emits a single grid-refresh that snaps
-    // every surface to truth.
-    window.__volumeDragging = true;
     actions.setGlobalVolume(track.instrument, newVolume);
+
+    if (e.detail?.source !== 'pointer-drag') {
+        scheduleVolumeGridRefresh();
+    }
 
     // Direct DOM update of the outside pct text so the prominent value
     // next to the track name updates on every input tick (drag, keyboard,

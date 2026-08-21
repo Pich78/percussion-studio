@@ -18,12 +18,13 @@
  *
  * Model-driven UI: state (state.mix, playback) is the single source of
  * truth. On every move the underlying input[data-action] element is updated
- * and a synthetic 'input' event is dispatched, so the existing root input
- * listeners apply the model updates (audio gain, BPM, all surface patches).
- * Direct DOM visuals are applied in parallel for snappiness (no re-render
- * mid-drag — the __volumeDragging/__bpmDragging flags keep grid-refresh
- * suppressed until the drag ends, then a single grid-refresh/render rebuilds
- * every surface from state).
+ * and a synthetic 'input' event (detail.source='pointer-drag') is
+ * dispatched, so the existing root input listeners apply the model updates
+ * (audio gain, BPM, all surface patches). Direct DOM visuals are applied in
+ * parallel for snappiness. No repaint happens mid-drag by construction:
+ * actions never emit UI events, and drag-tick listeners skip scheduling —
+ * a single grid-refresh/render on drag end rebuilds every surface from
+ * state.
  */
 
 import { eventBus } from '../services/eventBus.js';
@@ -79,7 +80,6 @@ const buildVolumeDrag = (container) => {
             if (groupContainer) updateVolumeSliderVisuals(groupContainer, volume);
         },
         end: (cancelled) => {
-            window.__volumeDragging = false;
             markDragFinished(cancelled);
             if (!cancelled) eventBus.emit('grid-refresh');
         }
@@ -106,7 +106,6 @@ const buildBpmDrag = (container) => {
             if (groupContainer) updateBpmSliderVisuals(groupContainer, bpm);
         },
         end: (cancelled) => {
-            window.__bpmDragging = false;
             markDragFinished(cancelled);
             if (!cancelled) eventBus.emit('render');
         }
@@ -144,11 +143,6 @@ const handlePointerDown = (e) => {
     // mouse events (mousedown/mouseup/click) — a drag that ends over a modal
     // backdrop can no longer synthesize a backdrop click.
     e.preventDefault();
-
-    // Set the drag flag before the first apply so mid-drag grid-refresh
-    // stays suppressed (snappiness: no re-render while dragging).
-    if (drag.type === 'vol') window.__volumeDragging = true;
-    else window.__bpmDragging = true;
 
     activeDrag = drag;
     drag.apply(e);

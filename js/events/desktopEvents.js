@@ -311,7 +311,7 @@ export const setupDesktopEvents = () => {
         }
 
         if (action === 'update-volume') {
-            gridHandlers.handleVolumeInput(target);
+            gridHandlers.handleVolumeInput(e);
             return;
         }
 
