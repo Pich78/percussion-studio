@@ -95,6 +95,35 @@ const markDragFinished = (cancelled) => {
     if (!cancelled) sliderClickGuard = true;
 };
 
+// ─── On-device diagnostics (?dragdebug=1) ───────────────────────────────
+// Flag-gated corner panel logging the pointer lifecycle (newest first).
+// Exists because PWA standalone has no console: reproduce a gesture bug
+// on the iPhone, then read the event story off the screen.
+
+let dragDebugEl = null;
+let dragDebugT0 = 0;
+let dragDebugLastMove = 0;
+
+const dragDebug = (evt, e) => {
+    if (!dragDebugEl) return;
+    const t = Math.round(performance.now() - dragDebugT0);
+    const x = Number.isFinite(e?.clientX) ? Math.round(e.clientX) : '-';
+    const line = `${String(t).padStart(6)}ms ${evt} id=${e?.pointerId ?? '-'}`;
+    dragDebugEl.textContent =
+        `${line} x=${x}\n${dragDebugEl.textContent}`.split('\n').slice(0, 9).join('\n');
+};
+
+const initDragDebug = () => {
+    if (!new URLSearchParams(location.search).has('dragdebug')) return;
+    dragDebugT0 = performance.now();
+    dragDebugEl = document.createElement('pre');
+    dragDebugEl.style.cssText =
+        'position:fixed;left:8px;top:8px;z-index:9999;background:rgba(0,0,0,.75);' +
+        'color:#4ade80;font:10px/1.5 monospace;padding:6px 8px;border-radius:6px;' +
+        'pointer-events:none;white-space:pre;margin:0';
+    document.body.appendChild(dragDebugEl);
+};
+
 const buildVolumeDrag = (container) => {
     const input = container.matches('[data-action="update-volume"]')
         ? container
@@ -175,6 +204,7 @@ const handlePointerDown = (e) => {
     // Retire it — cancelled, no refresh — so a zombie can never block the
     // new gesture. New primary presses always win.
     if (activeDrag) {
+        dragDebug('zombie-retired', { pointerId: activeDrag.pointerId });
         activeDrag.end(true);
         activeDrag = null;
     }
@@ -190,6 +220,7 @@ const handlePointerDown = (e) => {
     // mouse events (mousedown/mouseup/click) — a drag that ends over a modal
     // backdrop can no longer synthesize a backdrop click.
     e.preventDefault();
+    dragDebug('down', e);
 
     drag.pointerId = e.pointerId;
     activeDrag = drag;
@@ -208,6 +239,11 @@ const handlePointerDown = (e) => {
 
 const handlePointerMove = (e) => {
     if (!activeDrag || e.pointerId !== activeDrag.pointerId) return;
+    const now = performance.now();
+    if (now - dragDebugLastMove > 100) {
+        dragDebugLastMove = now;
+        dragDebug('move', e);
+    }
     activeDrag.apply(e);
 };
 
@@ -217,6 +253,7 @@ const handlePointerEnd = (e, cancelled) => {
     // Retire BEFORE end() — releasePointerCapture/lostpointercapture and
     // any listener side-effects must never re-enter this handler.
     activeDrag = null;
+    dragDebug(cancelled ? 'cancel' : 'up', e);
     drag.end(cancelled);
 };
 
@@ -257,6 +294,7 @@ const injectDragStyles = () => {
  * @param {HTMLElement} root - The #root container
  */
 export const setupPointerDrags = (root) => {
+    initDragDebug();
     injectDragStyles();
     root.addEventListener('pointerdown', handlePointerDown, { passive: false });
     root.addEventListener('pointermove', handlePointerMove);
@@ -264,6 +302,7 @@ export const setupPointerDrags = (root) => {
     root.addEventListener('pointercancel', (e) => handlePointerEnd(e, true));
     root.addEventListener('lostpointercapture', (e) => {
         if (activeDrag && e.pointerId === activeDrag.pointerId) {
+            dragDebug('lost-capture', e);
             handlePointerEnd(e, true);
         }
     }, true); // capture phase — lostpointercapture does not bubble
@@ -271,6 +310,7 @@ export const setupPointerDrags = (root) => {
     // so innerHTML is already swapped when the containment check runs.
     eventBus.on('render', () => {
         if (activeDrag && !document.contains(activeDrag.element)) {
+            dragDebug('render-cancel', { pointerId: activeDrag.pointerId });
             activeDrag.end(true);
             activeDrag = null;
         }
