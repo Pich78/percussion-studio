@@ -147,7 +147,7 @@ export const renderSectionRow = (s, idx, isActive, showAcceleration = false) => 
             <!-- Random Toggle - Dice emoji -->
             <button data-action="dual-mode-toggle-random" data-section-id="${s.id}"
                 class="w-9 h-9 rounded-lg flex items-center justify-center text-base transition-colors
-                       ${s.random ? 'bg-amber-500/20 shadow-inner border border-amber-500/40 opacity-100 grayscale-0' : 'bg-gray-900 border border-gray-700 opacity-50 grayscale hover:opacity-100'}">
+                       ${s.randomRepetitions ? 'bg-amber-500/20 shadow-inner border border-amber-500/40 opacity-100 grayscale-0' : 'bg-gray-900 border border-gray-700 opacity-50 grayscale hover:opacity-100'}">
                 🎲
             </button>
             

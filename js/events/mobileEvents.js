@@ -356,7 +356,7 @@ const createMobileActionRouter = () => ({
         const sectionId = target.dataset.sectionId;
         const section = state.toque.sections.find(s => s.id === sectionId);
         if (section) {
-            section.random = !section.random;
+            section.randomRepetitions = !section.randomRepetitions;
             eventBus.emit('render');
         }
     },
