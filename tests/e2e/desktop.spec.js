@@ -132,3 +132,34 @@ test('removing tracks reconciles soloTrack', async ({ page }) => {
     });
     expect(cleared).toBeNull();
 });
+
+test('toggling BPM override updates the timeline tempo badge immediately', async ({ page }) => {
+    await page.goto('/desktop.html');
+    await expect(page.locator('#grid-container')).toBeVisible();
+
+    // The timeline renders one tempo badge per section, tagged by title.
+    const countTitles = () => page.evaluate(() => ({
+        custom: document.querySelectorAll('[title="Custom Tempo"]').length,
+        global: document.querySelectorAll('[title="Global Tempo"]').length
+    }));
+
+    const before = await countTitles();
+    const activeIsCustom = await page.evaluate(async () => {
+        const { state } = await import('/js/store.js');
+        const section = state.toque.sections.find(s => s.id === state.activeSectionId);
+        return section.bpm !== undefined;
+    });
+
+    await page.locator('[data-action="toggle-bpm-override"]').first().click();
+
+    // Only the ACTIVE section flips; its badge must update immediately —
+    // no waiting for an unrelated full render.
+    const after = await countTitles();
+    if (activeIsCustom) {
+        expect(after.custom).toBe(before.custom - 1);
+        expect(after.global).toBe(before.global + 1);
+    } else {
+        expect(after.custom).toBe(before.custom + 1);
+        expect(after.global).toBe(before.global - 1);
+    }
+});

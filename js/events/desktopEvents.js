@@ -123,7 +123,9 @@ const createActionRouter = () => {
             const section = getActiveSection(state);
             if (section) {
                 commit('toggleBpmOverride', { section, globalBpm: playback.currentPlayheadBpm });
-                eventBus.emit('grid-refresh');
+                // Full render, not grid-refresh: the Timeline tempo badge
+                // lives outside #grid-container and would go stale.
+                eventBus.emit('render');
             }
         },
         'select-stroke': (e, target) => gridHandlers.handleSelectStroke(target),
