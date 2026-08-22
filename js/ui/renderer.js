@@ -150,7 +150,7 @@ export const renderApp = () => {
   // Render static playhead when not playing
   if (!state.isPlaying && state.currentStep >= 0) {
     setTimeout(() => {
-      updateVisualStep(state.currentStep, state.currentMeasure || 0);
+      updateVisualStep(state.currentStep, playback.currentMeasureIndex);
     }, 0);
   }
 
@@ -210,7 +210,7 @@ export const refreshGrid = () => {
     // Render static playhead when not playing
     if (!state.isPlaying && state.currentStep >= 0) {
       setTimeout(() => {
-        updateVisualStep(state.currentStep, state.currentMeasure || 0);
+        updateVisualStep(state.currentStep, playback.currentMeasureIndex);
       }, 0);
     }
   }
