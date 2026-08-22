@@ -62,7 +62,9 @@ export const mobileDualModeView = {
         }
     },
 
-    onStep: ({ step, measure, rep }) => {
+    /** Handle transport stream updates (phase 'playing') */
+    onTransport: ({ phase, step, measure, rep }) => {
+        if (phase !== 'playing') return;
         updateVisualStep(step, measure);
         scrollToMeasure(measure);
 

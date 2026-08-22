@@ -118,7 +118,7 @@ export const scrollToMeasure = (measureIndex) => {
 
 /**
  * Update all BPM slider UI elements to reflect the current live BPM.
- * Called on step 0 (repetition boundaries) from all view onStep handlers.
+ * Called on step 0 (repetition boundaries) from all view onTransport handlers.
  */
 export const updateBpmUi = () => {
     const bpmVal = playback.currentPlayheadBpm;
@@ -170,7 +170,7 @@ export const updateBpmUi = () => {
 /**
  * Update all volume slider UI elements to reflect state.mix[symbol].volume
  * for the active section. Called on step 0 (repetition boundaries) from all
- * view onStep handlers as the single reconciliation point — guarantees the
+ * view onTransport handlers as the single reconciliation point — guarantees the
  * slider position is always a faithful reflection of the source of truth.
  *
  * Mirrors updateBpmUi() but for per-instrument volume.
@@ -230,5 +230,36 @@ export const updateVolumeUi = () => {
                 muteBtn.setAttribute('title', 'Mute');
             }
         }
+    });
+};
+
+/**
+ * Update all count-in chip visuals across layouts.
+ * Called from the renderer's 'transport' subscriber on countin-phase events.
+ *
+ * Only LIVE playback aspects are touched here (beat number + counting pulse):
+ * enabled/disabled coloring is user-action state and stays render-driven
+ * (toggling count-in always emits a full render).
+ *
+ * Per-site template differences are encoded by the templates themselves:
+ *   - [data-role="countin-chip"]          → chip button; pulses only when
+ *                                           data-countin-pulse="true"
+ *   - [data-role="countin-value"]         → beat number span
+ *       data-countin-idle                 → idle text (beats per subdivision)
+ *       data-blank-disabled="true"        → blank the value when count-in is
+ *                                           disabled (dual-mode chips)
+ */
+export const updateCountInUi = ({ beat, active }) => {
+    document.querySelectorAll('[data-role="countin-chip"]').forEach(chip => {
+        if (chip.dataset.countinPulse === 'true') {
+            chip.classList.toggle('animate-pulse', active);
+            chip.classList.toggle('ring-2', active);
+            chip.classList.toggle('ring-cyan-400', active);
+        }
+    });
+
+    document.querySelectorAll('[data-role="countin-value"]').forEach(el => {
+        const showIdle = el.dataset.blankDisabled !== 'true' || state.countInEnabled;
+        el.textContent = active ? beat : (showIdle ? (el.dataset.countinIdle ?? '') : '');
     });
 };

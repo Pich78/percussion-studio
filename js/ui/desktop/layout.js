@@ -93,10 +93,10 @@ const renderHeader = () => {
                         ${state.isPlaying ? playback.repetitionCounter : 1}
                       </span>
                       <span class="text-gray-600 font-mono">/</span>
-                      ${activeSection.randomRepetitions && state.isPlaying && playback.effectiveRepetitions != null
-                        ? `<span class="text-cyan-400 font-mono">🎲${playback.effectiveRepetitions}</span><span class="text-gray-600 font-mono text-[10px] ml-0.5">(${activeSection.repetitions || 1})</span>`
-                        : `<span class="text-gray-500 font-mono">${activeSection.randomRepetitions ? '🎲' : ''}${activeSection.repetitions || 1}</span>`
-                      }
+                      <span data-role="random-reps-live" class="${activeSection.randomRepetitions && state.isPlaying && playback.effectiveRepetitions != null ? '' : 'hidden'}">
+                        <span class="text-cyan-400 font-mono">🎲<span data-role="random-reps-value">${playback.effectiveRepetitions ?? ''}</span></span><span class="text-gray-600 font-mono text-[10px] ml-0.5">(${activeSection.repetitions || 1})</span>
+                      </span>
+                      <span data-role="rep-total" class="${activeSection.randomRepetitions && state.isPlaying && playback.effectiveRepetitions != null ? 'hidden ' : ''}text-gray-500 font-mono">${activeSection.randomRepetitions ? '🎲' : ''}${activeSection.repetitions || 1}</span>
                     `;
                   }
                 })()}
@@ -150,9 +150,9 @@ const renderHeader = () => {
         : '';
 
       return `
-          <button data-action="toggle-count-in" class="flex items-center gap-1.5 px-3 py-2 rounded-lg border transition-all ${enabledClass} ${countingInClass}" title="Toggle count-in (${countInBeats} beats)">
+          <button data-action="toggle-count-in" data-role="countin-chip" data-countin-pulse="true" class="flex items-center gap-1.5 px-3 py-2 rounded-lg border transition-all ${enabledClass} ${countingInClass}" title="Toggle count-in (${countInBeats} beats)">
             <span class="text-[10px] font-bold uppercase tracking-wide">Count</span>
-            <span class="font-mono font-bold text-sm">${isCountingIn ? countInStep : countInBeats}</span>
+            <span class="font-mono font-bold text-sm" data-role="countin-value" data-countin-idle="${countInBeats}">${isCountingIn ? countInStep : countInBeats}</span>
           </button>
           `;
     })()}

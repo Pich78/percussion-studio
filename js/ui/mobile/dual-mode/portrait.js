@@ -105,12 +105,14 @@ const renderPortraitBpmRow = () => {
         </div>
 
         <!-- Count-in button -->
-        <button data-action="toggle-count-in"
+        <button data-action="toggle-count-in" data-role="countin-chip"
             class="w-20 h-14 p-3 rounded-2xl flex flex-col items-center justify-center gap-0 flex-shrink-0 bg-gray-900 border border-gray-800 transition-all
                    ${state.countInEnabled ? 'text-cyan-400' : 'text-gray-500'}"
             title="Toggle count-in">
             <span class="text-[10px] font-bold uppercase">Count</span>
-            <span class="font-mono text-xs font-bold">${state.countInEnabled ? (isCountingIn ? playback.countInStep : countInBeats) : ''}</span>
+            <span class="font-mono text-xs font-bold" data-role="countin-value"
+                  data-countin-idle="${countInBeats}"
+                  data-blank-disabled="true">${state.countInEnabled ? (isCountingIn ? playback.countInStep : countInBeats) : ''}</span>
         </button>
     </div>`;
 };

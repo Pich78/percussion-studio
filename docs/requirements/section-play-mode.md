@@ -161,8 +161,26 @@ The `_playedOnce` flag is reset in three scenarios:
 
 The `selectNextSection()` function handles section transitions:
 - First pass: find next playable section (not SKIP or PLAYED)
-- Second pass: if all sections exhausted, reset `_playedOnce` and try again
+- Second pass: if all sections are exhausted, reset `_playedOnce` and try again
 - This prevents playback from stalling when all sections are disabled or have been played
+
+### Transition Rendering Semantics
+
+A section transition (including a single-section rhythm wrapping back to
+itself, as with "Eni So" at `repetitions: 1`) is **not** accompanied by a
+scheduler-issued render. The sequencer only emits ordered `transport` events;
+the renderer reconciles the structural change from the incoming section's first
+`sectionId` — rebuilding synchronously *before* that step's playhead is drawn.
+Consequences:
+
+- The outgoing section's last-step highlight always lives out its full
+  duration (this was not true historically: a same-instant render used to wipe
+  it — see `docs/requirements/playback-events.md`, §5).
+- Same-section repetition wraps never trigger a full rebuild; repetition
+  counters and live BPM reconcile via targeted updates on `step === 0`.
+- Random repetitions (`randomRepetitions`) re-resolve their effective budget
+  per wrap in state; the desktop 🎲 badge refreshes via a targeted update on
+  the incoming repetition's first step.
 
 ## Files Modified
 

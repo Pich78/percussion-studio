@@ -19,8 +19,9 @@ export const mobileGridView = {
     /** Sets up mobile-specific event listeners */
     setupEvents: setupMobileEvents,
 
-    /** Handle playback step visual updates */
-    onStep({ step, measure, rep }) {
+    /** Handle transport stream updates (phase 'playing') */
+    onTransport({ phase, step, measure, rep }) {
+        if (phase !== 'playing') return;
         updateVisualStep(step, measure);
         scrollToMeasure(measure);
         const repEl = document.getElementById('header-rep-count');

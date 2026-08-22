@@ -118,9 +118,9 @@ const renderHeader = (activeSection) => {
         : '';
 
       return `
-              <button data-action="toggle-count-in" class="flex items-center gap-1 px-2 py-1 rounded-lg border transition-all ${enabledClass} ${countingInClass}">
+              <button data-action="toggle-count-in" data-role="countin-chip" data-countin-pulse="true" class="flex items-center gap-1 px-2 py-1 rounded-lg border transition-all ${enabledClass} ${countingInClass}">
                 <span class="text-[8px] font-bold uppercase">Cnt</span>
-                <span class="font-mono font-bold text-xs">${isCountingIn ? countInStep : countInBeats}</span>
+                <span class="font-mono font-bold text-xs" data-role="countin-value" data-countin-idle="${countInBeats}">${isCountingIn ? countInStep : countInBeats}</span>
               </button>
               `;
     })()}

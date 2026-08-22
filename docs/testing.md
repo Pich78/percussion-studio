@@ -60,13 +60,14 @@ npx playwright test e2e/mobile-pwa-portrait.spec.js
 
 ## 4. What is covered
 
-Five projects, one test each:
+Six projects, one test each:
 
 | Project | Viewport / device | Spec |
 |---|---|---|
 | `desktop` | chromium 1280×800 | `e2e/desktop.spec.js` — grid renders, play/stop toggles state. |
 | `mobile-portrait` | iPhone 16, Safari-like **393×659** | `e2e/mobile-portrait.spec.js` — portrait control surface, toggles play. |
 | `mobile-landscape` | iPhone 16, Safari-like **734×343** | `e2e/mobile-landscape.spec.js` — landscape read-only grid, toggles play. |
+| `mobile-landscape-playhead` | iPhone 16, Safari-like **734×343** | `e2e/playhead-loop.spec.js` — playback-loop regression for the transport stream contract: playhead visible on every step across loop boundaries (incl. last column of the last measure), zero full rebuilds during steady playback, count-in chip ticks via targeted updates. |
 | `mobile-pwa-portrait` | iPhone 16, full-screen **393×852** | `e2e/mobile-pwa-portrait.spec.js` — full viewport + Dynamic Island insets. |
 | `mobile-pwa-landscape` | iPhone 16, full-screen **852×393** | `e2e/mobile-pwa-landscape.spec.js` — full viewport + Dynamic Island insets. |
 

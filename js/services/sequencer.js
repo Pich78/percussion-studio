@@ -12,6 +12,12 @@
  * 
  * REFACTORED: State mutations flow through commit(), advanceStep() is pure,
  * DOM manipulation removed (renderer handles all visual updates).
+ *
+ * TRANSPORT STREAM: the scheduler never emits 'render'. All playback-driven
+ * UI updates flow exclusively through ordered 'transport' events
+ * (phase 'countin' / 'playing') consumed by the renderer — which owns
+ * structural reconciliation on section transitions. See
+ * docs/requirements/playback-events.md for the contract.
  */
 
 import { state, playback, commit } from '../store.js';
@@ -365,15 +371,29 @@ const scheduler = () => {
         const stepDuration = getStepDuration(playback.currentPlayheadBpm, stepsPerBeat);
 
         // Queue visual update (will fire at approximately the right time)
-        // We use setTimeout here because visual updates don't need sample accuracy
+        // We use setTimeout here because visual updates don't need sample accuracy.
+        // The payload is a complete "transport fact": everything the UI needs to
+        // reconcile structure (sectionId) and update visuals (step/measure/rep).
+        // The scheduler NEVER emits 'render' — structural reconciliation on
+        // section transitions is owned by the renderer (see the 'transport'
+        // subscriber in js/ui/renderer.js and docs/requirements/playback-events.md).
         const stepToShow = playback.currentStep;
         const measureToShow = playback.currentMeasureIndex;
         const repToShow = playback.repetitionCounter;
+        const sectionIdToShow = activeSec.id;
+        const effectiveRepsToShow = playback.effectiveRepetitions;
         const timeUntilNote = (playback.nextNoteTime - currentTime) * 1000;
 
         setTimeout(() => {
             if (state.isPlaying) {
-                eventBus.emit('step', { step: stepToShow, measure: measureToShow, rep: repToShow });
+                eventBus.emit('transport', {
+                    phase: 'playing',
+                    step: stepToShow,
+                    measure: measureToShow,
+                    rep: repToShow,
+                    sectionId: sectionIdToShow,
+                    effectiveRepetitions: effectiveRepsToShow
+                });
             }
         }, Math.max(0, timeUntilNote));
 
@@ -381,13 +401,6 @@ const scheduler = () => {
         const result = computeNextStep(currentToque, playback);
         applyStepResult(result);
         activeSec = result.activeSec;
-
-        // If section changed, schedule a re-render
-        if (result.sectionChanged) {
-            setTimeout(() => {
-                if (state.isPlaying) eventBus.emit('render');
-            }, Math.max(0, timeUntilNote));
-        }
 
         // Advance the note time
         playback.nextNoteTime += stepDuration;
@@ -487,7 +500,12 @@ export const togglePlay = () => {
                     setTimeout(() => {
                         if (state.isPlaying && playback.isCountingIn) {
                             playback.countInStep = beatIndex + 1;
-                            eventBus.emit('render');
+                            eventBus.emit('transport', {
+                                phase: 'countin',
+                                beat: beatIndex + 1,
+                                total: countInBeats,
+                                active: true
+                            });
                         }
                     }, Math.max(0, timeUntilClick));
 
@@ -500,10 +518,15 @@ export const togglePlay = () => {
                 // Schedule end of count-in phase
                 const countInDuration = countInBeats * beatDuration * 1000;
                 setTimeout(() => {
-                    if (state.isPlaying) {
+                    if (state.isPlaying && playback.isCountingIn) {
                         playback.isCountingIn = false;
                         playback.countInStep = 0;
-                        eventBus.emit('render');
+                        eventBus.emit('transport', {
+                            phase: 'countin',
+                            beat: 0,
+                            total: countInBeats,
+                            active: false
+                        });
                     }
                 }, Math.max(0, countInDuration));
             }

@@ -43,6 +43,8 @@ data/*.yaml  →  manifest.json  →  dataLoader  →  state.toque
 user gesture → [data-action] → events/* router → handlers/* → actions/* → commit() → state
                                                        ↓
 eventBus ('render') → viewManager.getActiveView().layout() → string → #root.innerHTML
+
+sequencer (audio clock) → eventBus ('transport', ordered facts) → renderer reconciles → targeted DOM updates
 ```
 
 ### Layer map
@@ -54,14 +56,14 @@ eventBus ('render') → viewManager.getActiveView().layout() → string → #roo
 | **Actions** | `js/actions/` | The only write paths for state (e.g., `loadRhythm`, `setMixVolume` / `setMixMuted`, `toggleTrackMute` / `toggleTrackSolo` / `resetMix`). |
 | **Core services** | `js/services/` | UI-agnostic singletons: |
 | | `audioEngine.js` | Web Audio graph: `source → noteGain (dynamics) → instrumentGain (state.mix volume) → masterGain`. |
-| | `sequencer.js` | Playback state machine: `togglePlay()` / `stopPlayback()`, scheduling, section transitions, play modes, tempo acceleration. |
+| | `sequencer.js` | Playback state machine: `togglePlay()` / `stopPlayback()`, scheduling, section transitions, play modes, tempo acceleration. Emits ordered `transport` events; never emits `render` during playback. |
 | | `trackMixer.js` | Mute/solo read-model — getters over `state.soloTrack` + `state.mix`; write paths live in `actions/mixerActions.js` (`toggleTrackMute` / `toggleTrackSolo` / `resetMix`). |
 | | `dataLoader.js` | Fetches manifest + YAML with `cache: 'no-store'` (fresh data always). |
-| | `eventBus.js` | Emits `render`, `grid-refresh`, `step`, `scroll-to-measure`. |
+| | `eventBus.js` | Carries `transport`, `render`, `grid-refresh`, `scroll-to-measure`. |
 | **Events** | `js/events/` | Action routers (`desktopEvents.js`, `mobileEvents.js`) delegate by `data-action` name to `events/handlers/*`. |
 | **Components** | `js/components/` | Shared template-string functions returning HTML with `data-action` attributes (grid, timeline, modals, pie menu, ...). |
 | **UI layouts** | `js/ui/` | Renderer (`renderer.js`), view-specific layout modules (`ui/desktop/`, `ui/mobile/standard/`, `ui/mobile/dual-mode/`), playback DOM updates (`ui/playheadUtils.js`), unified slider drag machinery (`ui/pointerDrag.js`, shared visuals in `ui/sliderVisuals.js`). |
-| **Views** | `js/views/` | Registered view definitions (`desktopEditorView`, `mobileGridView`, `mobileDualModeView`) — each provides `layout()`, `setupEvents()`, `onStep()`. |
+| **Views** | `js/views/` | Registered view definitions (`desktopEditorView`, `mobileGridView`, `mobileDualModeView`) — each provides `layout()`, `setupEvents()`, `onTransport()`. |
 | **Constants** | `js/types.js`, `js/constants.js` | Frozen enums (`StrokeType`, `DynamicType`, `PlayMode`), instrument colors. |
 
 ### Dependency direction
@@ -79,9 +81,23 @@ Renders are **full-page replacements**: the active view's `layout()` returns the
 - For small updates (slider values, playhead, mute visuals) prefer targeted DOM updates (`playheadUtils.js`) or `grid-refresh` over a full `render`.
 - **`grid-refresh` scope caveat**: it rebuilds only `#grid-container`. Surfaces outside it (dual-mode views, mixer/BPM modals) and template-bound styling (muted/solo graying) reconcile only on full `render` — which is why volume/BPM gestures emit `render` on release or via the repaint throttle.
 
-### Playback visuals
+### Playback visuals and the transport stream
 
-During playback the sequencer emits `step` events; `renderer.js` forwards them to the active view's `onStep()`, which updates the DOM in place via `js/ui/playheadUtils.js` (`updateVisualStep`, `scrollToMeasure`, `updateBpmUi`, `updateVolumeUi`). `updateBpmUi()` runs on `step === 0` (repetition boundaries).
+During playback the sequencer emits ordered `transport` events and **never
+emits `render`**. `renderer.js` consumes them: count-in facts (`phase:
+'countin'`) become targeted chip updates; playing facts (`phase: 'playing'`)
+are reconciled by section — if `payload.sectionId` differs from what is on
+screen, a full rebuild runs synchronously *before* forwarding to the active
+view's `onTransport()`, which updates the DOM in place via
+`js/ui/playheadUtils.js` (`updateVisualStep`, `scrollToMeasure`, `updateBpmUi`,
+`updateVolumeUi`, `updateCountInUi`). Same-section repetition wraps never
+rebuild. The full contract (event schema, binding rule, rationale) lives in
+`docs/requirements/playback-events.md`.
+
+**Binding rule**: templates bind only user-action state (mix, mute, section
+settings) which always re-renders synchronously; live playback state (playhead,
+rep counters, live BPM, count-in phase) must never appear in templates — it
+reconciles exclusively via transport-driven targeted updates.
 
 ### Mobile specifics
 
@@ -109,7 +125,7 @@ During playback the sequencer emits `step` events; `renderer.js` forwards them t
 3. Test with `python3 launch_local.py` (it regenerates the manifest automatically).
 
 ### Add a view
-- Create a definition under `js/views/` (see `viewManager.js` for the required interface: `id`, `layout`, `setupEvents`, optional `onStep` / `onRender`).
+- Create a definition under `js/views/` (see `viewManager.js` for the required interface: `id`, `layout`, `setupEvents`, optional `onTransport` / `onRender`).
 - Register it in `js/app.js` and set it as active for the target platform.
 
 ### Keep docs in sync (mandatory)
@@ -131,6 +147,7 @@ Documentation updates are part of the change, not an afterthought:
 | `docs/symbol-design.md` | Symbol design philosophy: bouba/kiki effect, shape grammar, color language, extensibility rules. |
 | `docs/project-constraints.md` | Technology stack, architecture patterns, PWA constraints, development workflow. |
 | `docs/testing.md` | E2E browser tests (Playwright): scope (Node only in `tests/`), how to run, iPhone 16 / PWA / Dynamic Island simulation. |
+| `docs/requirements/playback-events.md` | Transport stream contract: ordered playback events, renderer reconciliation, template binding rule. |
 | `docs/requirements/default-rhythm.md` | Default rhythm configuration + `?rhythm=` URL override. |
 | `docs/requirements/bpm-behavior.md` | BPM system: `playback.currentPlayheadBpm` as single source of truth, section overrides. |
 | `docs/requirements/tempo-acceleration.md` | Per-repetition tempo acceleration (`tempo_acceleration`). |
@@ -212,7 +229,7 @@ Always add `touch-action: none` to interactive elements (range sliders, custom d
 - After content changes: `cd tools && python generate_manifest.py`.
 - Test both frontends: `index.html?mode=desktop` and `index.html?mode=mobile` (or open the HTML files directly).
 - Test in a browser manually; for mobile, verify on a real iPhone in PWA (standalone) mode — safe areas and gesture behavior only behave correctly there.
-- Run the E2E suite (Node only inside `tests/`, starts/stops the server automatically): `bash tests/run_e2e_tests.sh`. Five projects: desktop, iPhone 16 mobile portrait/landscape (Safari-like), and PWA full-screen portrait/landscape with Dynamic Island safe-area simulation — see `docs/testing.md`.
-- **Kill the server BEFORE starting anything. ALWAYS.** Whether starting the E2E suite or a manual browser session: first run `pkill -f launch_local.py` (and `pkill -f test_launch_local.py`) unconditionally — do not check whether port 8000 is occupied first, just kill. Then start a fresh server (`python3 launch_local.py` for manual testing, or the suite's own runner for E2E). A stale server holding the port makes the app hang on the loading screen and all 5 E2E tests fail with `#grid-container` never visible.
+- Run the E2E suite (Node only inside `tests/`, starts/stops the server automatically): `bash tests/run_e2e_tests.sh`. Six projects: desktop, iPhone 16 mobile portrait/landscape (Safari-like), a playback-loop regression project, and PWA full-screen portrait/landscape with Dynamic Island safe-area simulation — see `docs/testing.md`.
+- **Kill the server BEFORE starting anything. ALWAYS.** Whether starting the E2E suite or a manual browser session: first run `pkill -f launch_local.py` (and `pkill -f test_launch_local.py`) unconditionally — do not check whether port 8000 is occupied first, just kill. Then start a fresh server (`python3 launch_local.py` for manual testing, or the suite's own runner for E2E). A stale server holding the port makes the app hang on the loading screen and all E2E tests fail with `#grid-container` never visible.
 - After the testing session finishes, kill any server the agent started: `pkill -f launch_local.py` (the E2E runner stops its own server, but any manually launched `launch_local.py` must be terminated).
 - The opencode agent can inspect the running app interactively through the Playwright MCP browser tools (configured in `opencode.json`); screenshots are returned as images.

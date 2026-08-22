@@ -4,10 +4,12 @@
  * E2E test configuration for Percussion Studio.
  * Node.js is used ONLY inside tests/ to run these browser tests (see docs/testing.md).
  *
- * Projects (5):
+ * Projects (6):
  *  - desktop:                  chromium, 1280x800 (desktop editor).
  *  - mobile-portrait:          iPhone 16, Safari-like 393x659.
  *  - mobile-landscape:         iPhone 16, Safari-like 734x343.
+ *  - mobile-landscape-playhead: iPhone 16, Safari-like 734x343 — playback
+ *                              loop regression (transport stream contract).
  *  - mobile-pwa-portrait:      iPhone 16, full-screen 393x852 (PWA "more screen") +
  *                              Dynamic Island safe-area insets via CDP.
  *  - mobile-pwa-landscape:     iPhone 16, full-screen 852x393 (PWA "more screen") +
@@ -54,6 +56,11 @@ module.exports = defineConfig({
             name: 'mobile-landscape',
             use: { ...IPHONE_16, viewport: { width: 734, height: 343 } },
             testMatch: /mobile-landscape\.spec\.js/,
+        },
+        {
+            name: 'mobile-landscape-playhead',
+            use: { ...IPHONE_16, viewport: { width: 734, height: 343 } },
+            testMatch: /playhead-loop\.spec\.js/,
         },
         {
             name: 'mobile-pwa-portrait',

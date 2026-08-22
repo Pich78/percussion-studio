@@ -15,7 +15,7 @@ import { TubsGrid, autoScrollGrid } from '../components/tubsGrid.js';
 import { MobileLayout, calculateMobileCellSize } from './mobile/standard/layout.js';
 import { DesktopLayout } from './desktop/layout.js';
 import { eventBus } from '../services/eventBus.js';
-import { updateVisualStep, scrollToMeasure } from './playheadUtils.js';
+import { updateVisualStep, scrollToMeasure, updateCountInUi } from './playheadUtils.js';
 
 // Re-export playhead utilities for backward compatibility
 export { updateVisualStep, scrollToMeasure };
@@ -37,16 +37,50 @@ const root = document.getElementById('root');
 
 // ─── Event Bus Subscriptions ────────────────────────────────────────────────
 
-eventBus.on('render', () => renderApp());
+// ─── Transport Stream Reconciliation ────────────────────────────────────────
+// The sequencer emits ordered 'transport' facts and NEVER emits 'render'
+// during playback (contract: docs/requirements/playback-events.md).
+// Section transitions are reconciled here from payload.sectionId: when it
+// differs from the section currently on screen, a structural rebuild runs
+// synchronously BEFORE the view draws the playhead — so a rebuild can never
+// wipe a freshly drawn highlight. Same-section repetition wraps never rebuild.
+let lastRenderedSectionId = null;
+
+const syncRenderedSectionId = () => {
+  lastRenderedSectionId = state.activeSectionId || null;
+};
+
+eventBus.on('render', () => {
+  renderApp();
+  // Any full render (user action, stop, rhythm load, boot) repaints from the
+  // current state — re-sync the cache so the next transport event compares
+  // against fresh DOM.
+  syncRenderedSectionId();
+});
 
 eventBus.on('grid-refresh', () => refreshGrid());
 
 eventBus.on('scroll-to-measure', ({ measure }) => scrollToMeasure(measure));
 
-eventBus.on('step', (payload) => {
+eventBus.on('transport', (payload) => {
+  if (payload.phase === 'countin') {
+    // Count-in visuals are purely targeted updates — no structural change.
+    updateCountInUi(payload);
+    return;
+  }
+
+  // phase === 'playing' — reconcile structure first, then draw visuals.
+  if (lastRenderedSectionId === null) {
+    // Cache not initialized yet: DOM is fresh from boot/load render.
+    syncRenderedSectionId();
+  } else if (payload.sectionId !== lastRenderedSectionId) {
+    renderApp();
+    syncRenderedSectionId();
+  }
+
   const view = _viewProvider?.getActiveView();
-  if (view && view.onStep) {
-    view.onStep(payload);
+  if (view && view.onTransport) {
+    view.onTransport(payload);
   } else {
     // Fallback before view provider is wired
     updateVisualStep(payload.step, payload.measure);

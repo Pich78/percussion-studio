@@ -8,7 +8,10 @@
  *   - name:         human-readable label for menus (e.g. 'Classic Grid')
  *   - layout:       () => string   — returns the full page HTML
  *   - setupEvents:  () => void     — attaches DOM event listeners
- *   - onStep:       ({ step, measure, rep }) => void  — playback visual update
+ *   - onTransport:  ({ phase, ... }) => void  — transport stream update
+ *                     (phase 'playing': { step, measure, rep, sectionId,
+ *                      effectiveRepetitions }; 'countin' events are handled
+ *                     centrally by the renderer and never reach views)
  *   - onRender:     () => void     (optional) — hook called after renderApp()
  * 
  * Usage:
