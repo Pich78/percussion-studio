@@ -64,14 +64,26 @@ Six projects, one test each:
 
 | Project | Viewport / device | Spec |
 |---|---|---|
-| `desktop` | chromium 1280×800 | `e2e/desktop.spec.js` — grid renders, play/stop toggles state. |
-| `mobile-portrait` | iPhone 16, Safari-like **393×659** | `e2e/mobile-portrait.spec.js` — portrait control surface, toggles play. |
+| `desktop` | chromium 1280×800 | `e2e/desktop.spec.js` — grid renders, play/stop toggles state; regression pins: static playhead parks in the paused measure across re-renders, new-rhythm clears any active solo, track removal reconciles `soloTrack`, BPM-override flips the timeline tempo badge immediately. |
+| `mobile-portrait` | iPhone 16, Safari-like **393×659** | `e2e/mobile-portrait.spec.js` — portrait control surface, toggles play; regression pin: random-reps dice toggle writes the canonical `randomRepetitions` field (sequencer + templates read it) and the 🎲 badge appears. |
 | `mobile-landscape` | iPhone 16, Safari-like **734×343** | `e2e/mobile-landscape.spec.js` — landscape read-only grid, toggles play. |
 | `mobile-landscape-playhead` | iPhone 16, Safari-like **734×343** | `e2e/playhead-loop.spec.js` — playback-loop regression for the transport stream contract: playhead visible on every step across loop boundaries (incl. last column of the last measure), zero full rebuilds during steady playback, count-in chip ticks via targeted updates. |
 | `mobile-pwa-portrait` | iPhone 16, full-screen **393×852** | `e2e/mobile-pwa-portrait.spec.js` — full viewport + Dynamic Island insets. |
 | `mobile-pwa-landscape` | iPhone 16, full-screen **852×393** | `e2e/mobile-pwa-landscape.spec.js` — full viewport + Dynamic Island insets. |
 
 Screenshots are written to `tests/test-results/` (gitignored) on demand and on failure.
+
+### Bug-fix procedure
+
+Every bug fix ships with a regression test — the cycle is mandatory (also in AGENTS.md §7):
+
+1. Detect the bug reading the code.
+2. Write the failing E2E test first.
+3. Run it and confirm it fails **for the expected reason** (real presence of the bug).
+4. Fix minimally.
+5. Re-run to green, then run the full suite before finishing.
+
+If step 3 shows the test already passes, the defect is latent: still fix the code, and ship the test as an invariant pin. Tests may reach into app modules directly via dynamic `import()` inside `page.evaluate` (same module instances the app uses — see the `playback`/`state` assertions pattern).
 
 ### iPhone 16 device
 

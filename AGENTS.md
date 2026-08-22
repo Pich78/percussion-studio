@@ -225,6 +225,7 @@ Always add `touch-action: none` to interactive elements (range sliders, custom d
 
 ## 7. Verification
 
+- **Every bug fix ships with a regression test.** The standing cycle: detect the bug reading the code → write the failing E2E test → run it and confirm it fails for the expected reason (real presence of the bug) → fix minimally → re-run to green → full suite green before finishing. If the test cannot be made to fail, the defect is latent: still fix the code, and ship the test as an invariant pin.
 - Run `python launch_local.py` (regenerates the manifest and serves on port 8000). Add `--verbose` to log every HTTP request — useful for debugging data loading.
 - After content changes: `cd tools && python generate_manifest.py`.
 - Test both frontends: `index.html?mode=desktop` and `index.html?mode=mobile` (or open the HTML files directly).
