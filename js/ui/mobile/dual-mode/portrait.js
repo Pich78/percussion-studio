@@ -10,6 +10,7 @@ import { ArrowTrendingDownIcon } from '../../../icons/arrowTrendingDownIcon.js';
 import { SpeakerWaveIcon } from '../../../icons/speakerWaveIcon.js';
 import { SpeakerXMarkIcon } from '../../../icons/speakerXMarkIcon.js';
 import { renderPortraitSectionModal } from './sectionModal.js';
+import { renderWheelPicker } from './wheelPicker.js';
 
 const liveBpm = () => Math.round(playback.currentPlayheadBpm);
 
@@ -260,5 +261,6 @@ export const renderPortrait = (activeSection) => {
 
         ${renderPortraitPlayBar()}
         ${popoverHtml}
+        ${renderWheelPicker()}
     </div>`;
 };

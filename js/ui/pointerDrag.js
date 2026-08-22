@@ -30,6 +30,7 @@
 
 import { eventBus } from '../services/eventBus.js';
 import { updateVolumeSliderVisuals, updateBpmSliderVisuals } from './sliderVisuals.js';
+import { WHEEL_ITEM_H, setWheelPosition, animateWheelTo, stopWheelAnimation, settleWheel } from './mobile/dual-mode/wheelPicker.js';
 
 const BPM_MIN = 40;
 const BPM_MAX = 240;
@@ -180,10 +181,81 @@ const buildBpmDrag = (container) => {
     };
 };
 
+// ─── Wheel picker drag (dual-mode mobile, see ui/mobile/dual-mode/wheelPicker.js) ──
+// Direct manipulation of a drum-roll list: 1:1 finger tracking in item
+// units, velocity-tracked flick with projection on release, tap-to-select.
+// All visuals are targeted DOM writes (setWheelPosition); the draft lands
+// in data-index only when the wheel settles, and the picker's Done action
+// reads it. No state writes and no renders mid-gesture.
+
+const WHEEL_FLICK_MS = 160;       // projection horizon for release velocity
+const WHEEL_TAP_TOLERANCE_PX = 6; // movement below this counts as a tap
+
+const buildWheelDrag = (container) => {
+    const count = parseInt(container.dataset.count, 10) || 0;
+    let pos = 0, startY = 0, lastY = 0, lastT = 0, velocity = 0;
+    let moved = false, downIdx = null;
+
+    const clampPos = (p) => Math.max(0, Math.min(count - 1, p));
+
+    return {
+        type: 'wheel',
+        element: container,
+        begin: (e) => {
+            stopWheelAnimation(container);
+            pos = parseFloat(container.dataset.index) || 0;
+            startY = lastY = e.clientY;
+            lastT = performance.now();
+            velocity = 0;
+            moved = false;
+            const item = e.target.closest('.wheel-item');
+            downIdx = item ? parseInt(item.dataset.idx, 10) : null;
+        },
+        apply: (e) => {
+            const now = performance.now();
+            const dy = e.clientY - lastY;
+            const dt = now - lastT;
+            if (Math.abs(e.clientY - startY) > WHEEL_TAP_TOLERANCE_PX) moved = true;
+            if (dt > 0) velocity = velocity * 0.7 + (dy / dt) * 0.3;
+            pos = clampPos(pos - dy / WHEEL_ITEM_H);
+            setWheelPosition(container, pos);
+            lastY = e.clientY;
+            lastT = now;
+        },
+        end: (cancelled) => {
+            if (cancelled) {
+                // Involuntary end (re-render, lost capture): return to the
+                // committed draft without changing it.
+                const committed = parseFloat(container.dataset.index) || 0;
+                animateWheelTo(container, pos, committed, 150, () => settleWheel(container, committed));
+                return;
+            }
+            // A pause before release kills the flick — holding still then
+            // letting go must settle in place, not fling (iOS behavior).
+            if (performance.now() - lastT > 100) velocity = 0;
+            const current = Math.round(pos);
+            const isTap = !moved;
+            const target = isTap && downIdx != null
+                ? clampPos(downIdx)
+                : clampPos(Math.round(pos - (velocity * WHEEL_FLICK_MS) / WHEEL_ITEM_H));
+            const duration = isTap ? 200 : Math.min(320, 140 + Math.abs(target - pos) * 55);
+            animateWheelTo(container, pos, target, duration, () => settleWheel(container, target));
+            // Swallow the release click after a real gesture so it can't
+            // reach the picker's backdrop (cancel) — same insurance as sliders.
+            if (moved || (downIdx != null && downIdx !== current)) {
+                markDragFinished(false);
+            }
+        }
+    };
+};
+
 /**
  * Resolve the drag target from the pointerdown target.
  */
 const resolveDrag = (target) => {
+    const wheelContainer = target.closest('.group\\/wheel');
+    if (wheelContainer) return buildWheelDrag(wheelContainer);
+
     const volContainer = target.closest('.group\\/vol') || target.closest('[data-action="update-volume"]');
     if (volContainer) return buildVolumeDrag(volContainer);
 
@@ -224,7 +296,9 @@ const handlePointerDown = (e) => {
 
     drag.pointerId = e.pointerId;
     activeDrag = drag;
-    drag.apply(e);
+    // Drags with a begin hook (wheel) initialize from their committed value
+    // instead of applying the pointer position as an immediate value jump.
+    if (drag.begin) drag.begin(e); else drag.apply(e);
 
     // Keep pointermove/pointerup flowing when the pointer leaves the
     // element or the browser window. Failure is benign (synthetic events
@@ -271,6 +345,7 @@ const injectDragStyles = () => {
     style.textContent = `
         .group\\/vol,
         .group\\/bpm,
+        .group\\/wheel,
         [data-action="update-volume"],
         [data-action="update-global-bpm"] {
             touch-action: none;

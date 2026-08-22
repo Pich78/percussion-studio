@@ -13,6 +13,7 @@ import { viewManager } from '../views/viewManager.js';
 import { audioEngine } from '../services/audioEngine.js';
 import { setupPointerDrags, consumeSliderClickGuard, isSliderDragging, scheduleVolumeRepaint } from '../ui/pointerDrag.js';
 import { updateVolumeSliderVisuals, updateBpmSliderVisuals } from '../ui/sliderVisuals.js';
+import { setRepetitions, REP_DISPLAY_VALUES, ACCEL_VALUES } from '../ui/mobile/dual-mode/wheelPicker.js';
 import { getValidInstrumentSteps } from '../utils/gridUtils.js';
 
 // Import modular handlers
@@ -40,7 +41,9 @@ const MOBILE_ALLOWED_ACTIONS = [
     'dual-mode-toggle-popover', 'dual-mode-close-popover',
     'dual-mode-bpm-step', 'dual-mode-solo',
     'dual-mode-select-section', 'dual-mode-toggle-random',
-    'dual-mode-cycle-colour', 'dual-mode-prev-section', 'dual-mode-next-section'
+    'dual-mode-cycle-colour', 'dual-mode-prev-section', 'dual-mode-next-section',
+    'dual-mode-open-reps-picker', 'dual-mode-open-accel-picker',
+    'dual-mode-wheel-done', 'dual-mode-wheel-cancel'
 ];
 
 /**
@@ -305,6 +308,52 @@ const createMobileActionRouter = () => ({
             section.randomRepetitions = !section.randomRepetitions;
             eventBus.emit('render');
         }
+    },
+
+    // Open the wheel picker for a section's repetitions
+    'dual-mode-open-reps-picker': (e, target) => {
+        const sectionId = target.dataset.sectionId;
+        if (sectionId) {
+            state.uiState.dualModeWheelPicker = { type: 'reps', sectionId };
+            eventBus.emit('render');
+        }
+    },
+
+    // Open the wheel picker for a section's tempo acceleration
+    'dual-mode-open-accel-picker': (e, target) => {
+        const sectionId = target.dataset.sectionId;
+        if (sectionId) {
+            state.uiState.dualModeWheelPicker = { type: 'accel', sectionId };
+            eventBus.emit('render');
+        }
+    },
+
+    // Commit the wheel picker's draft selection (data-index on the wheel).
+    // The dual-mode view keeps both orientation layouts in the DOM, so pick
+    // the visible wheel copy (the one the user actually dragged).
+    'dual-mode-wheel-done': () => {
+        const picker = state.uiState.dualModeWheelPicker;
+        state.uiState.dualModeWheelPicker = null;
+        if (picker && state.toque) {
+            const section = state.toque.sections.find(s => s.id === picker.sectionId);
+            const wheelEls = [...document.querySelectorAll('.group\\/wheel')];
+            const wheelEl = wheelEls.find(el => el.offsetParent !== null) || wheelEls[0];
+            const idx = parseInt(wheelEl?.dataset.index ?? '0', 10) || 0;
+            if (section) {
+                if (picker.type === 'reps') {
+                    setRepetitions(section, REP_DISPLAY_VALUES[idx] ?? '1');
+                } else {
+                    section.tempoAcceleration = parseFloat(ACCEL_VALUES[idx] ?? '0') || 0;
+                }
+            }
+        }
+        eventBus.emit('render');
+    },
+
+    // Dismiss the wheel picker without committing
+    'dual-mode-wheel-cancel': () => {
+        state.uiState.dualModeWheelPicker = null;
+        eventBus.emit('render');
     },
 
     // Cycle subdivision on the landscape grid by tapping instrument name

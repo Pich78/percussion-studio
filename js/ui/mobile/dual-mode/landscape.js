@@ -11,6 +11,7 @@ import { ArrowTrendingDownIcon } from '../../../icons/arrowTrendingDownIcon.js';
 import { renderBpmModal } from './bpmModal.js';
 import { renderMixerModal } from './mixerModal.js';
 import { renderSectionModal } from './sectionModal.js';
+import { renderWheelPicker } from './wheelPicker.js';
 
 const liveBpm = () => Math.round(playback.currentPlayheadBpm);
 
@@ -209,7 +210,9 @@ const renderLandscapeBottomBar = (activeSection) => {
         ${activePopoverHtml}
         <div data-action="dual-mode-close-popover"
              class="fixed inset-x-0 top-0 z-[60]" style="bottom: 52px; background: rgba(0,0,0,0.4); backdrop-filter: blur(2px);">
-        </div>` : ''
+        </div>` : '',
+
+        wheelPickerHtml: renderWheelPicker()
     };
 };
 
@@ -224,7 +227,7 @@ export const renderLandscape = (activeSection) => {
     const iconSizePx = cellSizePx >= 36 ? 32 : cellSizePx >= 28 ? 24 : 16;
     const fontSizePx = cellSizePx >= 36 ? '0.875rem' : cellSizePx >= 28 ? '0.75rem' : '0.625rem';
 
-    const { barHtml, overlayHtml } = renderLandscapeBottomBar(activeSection);
+    const { barHtml, overlayHtml, wheelPickerHtml } = renderLandscapeBottomBar(activeSection);
 
     return `
     <div class="landscape:flex portrait:hidden flex-col flex-1 h-full w-full">
@@ -235,5 +238,6 @@ export const renderLandscape = (activeSection) => {
         </main>
         ${barHtml}
         ${overlayHtml}
+        ${wheelPickerHtml}
     </div>`;
 };
