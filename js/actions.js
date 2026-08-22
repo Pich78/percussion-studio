@@ -11,32 +11,5 @@
   - './actions/mixerActions.js'
 */
 
-// Re-export the unified actions object for backward compatibility
+// Single import surface: consumers use the unified `actions` object.
 export { actions } from './actions/index.js';
-
-// Also re-export individual actions for direct imports
-export {
-  loadRhythm,
-  loadRhythmFromFile,
-  createNewRhythm,
-  updateActiveSection,
-  addSection,
-  deleteSection,
-  duplicateSection,
-  resizeTracks,
-  handleUpdateStroke,
-  handleUpdateStrokeDirectly,
-  updateTrackSteps,
-  addTrack,
-  updateTrackInstrument,
-  addMeasure,
-  deleteMeasure,
-  duplicateMeasure,
-  setMixVolume,
-  setMixMuted,
-  setGlobalVolume,
-  setGlobalMute
-} from './actions/index.js';
-
-// Legacy: Also export parsePatternString for any external usage
-export { parsePatternString } from './utils/patternParser.js';

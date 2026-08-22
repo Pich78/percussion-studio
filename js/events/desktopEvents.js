@@ -112,11 +112,6 @@ const createActionRouter = () => {
         'toggle-play-mode-dropdown': (e, target) => timelineHandlers.handleTogglePlayModeDropdown(target),
         'select-play-mode': (e, target) => timelineHandlers.handleSelectPlayMode(target),
         'reset-played-once': (e, target) => timelineHandlers.handleResetPlayedOnce(target),
-        'toggle-bata-rhythm-mode': () => timelineHandlers.handleToggleBataRhythmMode(),
-        'toggle-metadata-orisha-dropdown': () => timelineHandlers.handleToggleMetadataOrishaDropdown(),
-        'toggle-rhythm-orisha': (e, target) => timelineHandlers.handleToggleRhythmOrisha(target),
-        'remove-rhythm-orisha': (e, target) => timelineHandlers.handleRemoveRhythmOrisha(target),
-        'set-rhythm-classification': (e, target) => timelineHandlers.handleSetRhythmClassification(target),
 
         // Settings
         'toggle-bpm-override': () => {

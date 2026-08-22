@@ -1,41 +1,17 @@
 /*
   js/actions/index.js
-  Central re-export of all action modules.
-  
-  ============================================================================
-  BARREL EXPORTS PATTERN
-  ============================================================================
-  
-  This file implements the "barrel exports" pattern, which provides:
-  
-  1. UNIFIED API: All actions are accessible via a single `actions` object,
-     making it easy to discover available operations without knowing which
-     file they live in.
-  
-  2. BACKWARD COMPATIBILITY: Legacy code can still use `actions.loadRhythm()`,
-     while new code can use direct imports for better tree-shaking.
-  
-  3. SINGLE IMPORT POINT: Event handlers can import one object instead of
-     multiple files:
-     
-       // Instead of:
-       import { loadRhythm } from './rhythmActions.js';
-       import { addTrack } from './trackActions.js';
-       
-       // Use:
-       import { actions } from './actions.js';
-       actions.loadRhythm(id);
-       actions.addTrack('ITO');
-  
-  4. REFACTORING SAFETY: Actions can be moved between files without updating
-     every import site - only this barrel file needs to change.
-  
+  Central re-export of all action modules as a single `actions` object.
+
+  SINGLE IMPORT POINT: Event handlers import one object instead of
+  multiple files:
+
+    import { actions } from '../actions.js';
+    actions.loadRhythm(id);
+
   ADDING NEW ACTIONS:
     1. Create the action function in the appropriate *Actions.js file
     2. Import it at the top of this file
     3. Add it to the `actions` object
-    4. Add it to the named exports at the bottom
-  ============================================================================
 */
 
 
@@ -44,7 +20,7 @@ import { loadRhythm, loadRhythmFromFile, createNewRhythm } from './rhythmActions
 import { updateActiveSection, addSection, deleteSection, duplicateSection, resizeTracks } from './sectionActions.js';
 import { handleUpdateStroke, handleUpdateStrokeDirectly, updateTrackSteps, addTrack, updateTrackInstrument } from './trackActions.js';
 import { addMeasure, deleteMeasure, duplicateMeasure } from './measureActions.js';
-import { setMixVolume, setMixMuted, setGlobalVolume, setGlobalMute, toggleTrackMute, toggleTrackSolo, resetMix } from './mixerActions.js';
+import { setMixVolume, setMixMuted, toggleTrackMute, toggleTrackSolo, resetMix } from './mixerActions.js';
 
 /**
  * Unified actions object for backward compatibility.
@@ -75,49 +51,10 @@ export const actions = {
   deleteMeasure,
   duplicateMeasure,
 
-  // Mixer actions (BPM-style: setMixVolume/setMixMuted are the canonical names;
-  // setGlobalVolume/setGlobalMute are kept for backward compat)
+  // Mixer actions
   setMixVolume,
   setMixMuted,
   toggleTrackMute,
   toggleTrackSolo,
-  resetMix,
-  setGlobalVolume,
-  setGlobalMute
-};
-
-// Also export individual actions for direct imports
-export {
-  // Rhythm
-  loadRhythm,
-  loadRhythmFromFile,
-  createNewRhythm,
-
-  // Section
-  updateActiveSection,
-  addSection,
-  deleteSection,
-  duplicateSection,
-  resizeTracks,
-
-  // Track
-  handleUpdateStroke,
-  handleUpdateStrokeDirectly,
-  updateTrackSteps,
-  addTrack,
-  updateTrackInstrument,
-
-  // Measure
-  addMeasure,
-  deleteMeasure,
-  duplicateMeasure,
-
-  // Mixer
-  setMixVolume,
-  setMixMuted,
-  toggleTrackMute,
-  toggleTrackSolo,
-  resetMix,
-  setGlobalVolume,
-  setGlobalMute
+  resetMix
 };

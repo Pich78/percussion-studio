@@ -29,20 +29,8 @@ const MOBILE_ALLOWED_ACTIONS = [
     'select-rhythm-confirm', 'toggle-mute', 'update-global-bpm', 'toggle-folder',
     'update-volume', 'close-modal', 'close-modal-bg', 'open-structure', 'open-view-mode', 'select-view-mode',
     'toggle-user-guide-submenu', 'open-user-guide', 'share-rhythm', 'toggle-count-in',
-    // Player view section navigation
-    'player-prev-section', 'player-next-section', 'toggle-mixer-sheet',
     // Section dropdown
     'toggle-section-dropdown', 'select-section-item',
-    // Dashboard (P2) grid overlay
-    'toggle-grid-overlay',
-    // Dashboard Playlist (P2c) actions
-    'playlist-select-section', 'playlist-play-pause-active',
-    // P3 Toolbar Actions
-    'toggle-toolbar-drawer',
-    'chip-toggle-popover', 'chip-close-popover', 'chip-update-rep', 'chip-toggle-random', 'chip-select-section',
-    'toggle-gestures-bpm', 'toggle-gestures-mixer', 'toggle-gestures-sections',
-    // Dimension B Action
-    'toggle-dim-b-mode',
     // BataExplorer actions
     'close-bata-explorer', 'close-bata-explorer-bg', 'toggle-filter-dropdown',
     'toggle-orisha-filter', 'remove-orisha-filter', 'toggle-type-filter',
@@ -50,10 +38,9 @@ const MOBILE_ALLOWED_ACTIONS = [
     'load-toque-confirm',
     // Dual Mode actions
     'dual-mode-toggle-popover', 'dual-mode-close-popover',
-    'dual-mode-bpm-step', 'dual-mode-vol-step', 'dual-mode-solo',
-    'dual-mode-select-section', 'dual-mode-rep-step', 'dual-mode-set-reps', 'dual-mode-toggle-random',
-    'dual-mode-cycle-colour', 'dual-mode-prev-section', 'dual-mode-next-section',
-    'dual-mode-set-accel-unit', 'dual-mode-set-accel-tenth'
+    'dual-mode-bpm-step', 'dual-mode-solo',
+    'dual-mode-select-section', 'dual-mode-toggle-random',
+    'dual-mode-cycle-colour', 'dual-mode-prev-section', 'dual-mode-next-section'
 ];
 
 /**
@@ -231,18 +218,6 @@ const createMobileActionRouter = () => ({
         eventBus.emit('render');
     },
 
-    // Dimension B specific toggles
-    'toggle-dim-b-mode': (e, target) => {
-        const mode = target.dataset.mode;
-        if (mode === 'play' || mode === 'view') {
-            state.uiState.dimensionBMode = mode;
-            if (mode === 'view' && state.isPlaying) {
-                stopPlayback();
-            }
-            eventBus.emit('render');
-        }
-    },
-
     // ── Dual Mode actions ─────────────────────────────────────────────────
 
     // Toggle a chip popover (BPM / Mixer / Section)
@@ -279,24 +254,6 @@ const createMobileActionRouter = () => ({
             playback.userHasOverriddenBpm = true;
             eventBus.emit('render');
         }
-    },
-
-    // Step volume up/down from the dual-mode Mixer chip modal.
-    // Routes through the central setMixVolume action — state.mix is the
-    // single source of truth. Discrete button press: repaint immediately
-    // so the mixer modal slider and every other volume surface reflect
-    // the new value without waiting for an unrelated render.
-    'dual-mode-vol-step': (e, target) => {
-        const trackIdx = parseInt(target.dataset.trackIndex, 10);
-        const delta = parseFloat(target.dataset.delta);
-        if (isNaN(trackIdx) || isNaN(delta)) return;
-        const section = getActiveSection(state);
-        const track = section?.measures[0]?.tracks[trackIdx];
-        if (!track) return;
-        const currentVolume = state.mix[track.instrument]?.volume ?? 1.0;
-        const newVolume = Math.max(0, Math.min(1, currentVolume + delta));
-        actions.setMixVolume(track.instrument, newVolume);
-        eventBus.emit('render');
     },
 
     // Toggle solo on a track - routes through the central toggleTrackSolo action
@@ -340,49 +297,12 @@ const createMobileActionRouter = () => ({
         }
     },
 
-    // Step repetitions for a section from the dual-mode section modal
-    'dual-mode-rep-step': (e, target) => {
-        const sectionId = target.dataset.sectionId;
-        const delta = parseInt(target.dataset.delta, 10);
-        const section = state.toque.sections.find(s => s.id === sectionId);
-        if (section) {
-            section.repetitions = Math.max(1, (section.repetitions || 1) + delta);
-            eventBus.emit('render');
-        }
-    },
-
     // Toggle random repetitions switch
     'dual-mode-toggle-random': (e, target) => {
         const sectionId = target.dataset.sectionId;
         const section = state.toque.sections.find(s => s.id === sectionId);
         if (section) {
             section.randomRepetitions = !section.randomRepetitions;
-            eventBus.emit('render');
-        }
-    },
-
-    // Set acceleration value via dual wheel (units)
-    'dual-mode-set-accel-unit': (e, target) => {
-        const sectionId = target.dataset.sectionId;
-        const section = state.toque.sections.find(s => s.id === sectionId);
-        if (section) {
-            const unit = parseInt(target.value, 10) || 0;
-            const currentTenth = Math.round(Math.abs(((section.tempoAcceleration || 0) - Math.trunc(section.tempoAcceleration || 0)) * 10));
-            const sign = unit < 0 ? -1 : 1;
-            section.tempoAcceleration = Math.max(-10, Math.min(10, sign * (Math.abs(unit) + currentTenth / 10)));
-            eventBus.emit('render');
-        }
-    },
-
-    // Set acceleration value via dual wheel (tenths)
-    'dual-mode-set-accel-tenth': (e, target) => {
-        const sectionId = target.dataset.sectionId;
-        const section = state.toque.sections.find(s => s.id === sectionId);
-        if (section) {
-            const tenth = parseInt(target.value, 10) || 0;
-            const currentUnit = Math.trunc(section.tempoAcceleration || 0);
-            const sign = currentUnit < 0 ? -1 : 1;
-            section.tempoAcceleration = Math.max(-10, Math.min(10, sign * (Math.abs(currentUnit) + tenth / 10)));
             eventBus.emit('render');
         }
     },
@@ -402,161 +322,6 @@ const createMobileActionRouter = () => ({
 
         actions.updateTrackSteps(trackIdx, measureIdx, newSteps);
         eventBus.emit('render');
-    },
-
-    // Toolbar drawer toggle (P3 view)
-    'toggle-toolbar-drawer': () => {
-        const drawer = document.getElementById('toolbar-drawer');
-        const chevron = document.getElementById('drawer-chevron');
-        if (drawer) {
-            const isClosed = drawer.classList.contains('translate-y-[calc(100%-48px)]');
-            if (isClosed) {
-                drawer.classList.remove('translate-y-[calc(100%-48px)]');
-                drawer.classList.add('translate-y-0');
-                if (chevron) chevron.classList.add('rotate-180');
-            } else {
-                drawer.classList.remove('translate-y-0');
-                drawer.classList.add('translate-y-[calc(100%-48px)]');
-                if (chevron) chevron.classList.remove('rotate-180');
-            }
-        }
-    },
-
-    // Toolbar Gestures toggle panels (P3b view)
-    'toggle-gestures-bpm': () => {
-        const sheet = document.getElementById('gestures-bpm-sheet');
-        if (sheet) {
-            const isOpen = !sheet.classList.contains('translate-y-full');
-            if (isOpen) {
-                sheet.classList.add('translate-y-full');
-                sheet.style.pointerEvents = 'none';
-            } else {
-                sheet.classList.remove('translate-y-full');
-                sheet.style.pointerEvents = 'auto';
-            }
-        }
-    },
-    'toggle-gestures-mixer': () => {
-        const sheet = document.getElementById('gestures-mixer-sheet');
-        if (sheet) {
-            const isOpen = !sheet.classList.contains('translate-x-full');
-            if (isOpen) {
-                sheet.classList.add('translate-x-full');
-                sheet.style.pointerEvents = 'none';
-            } else {
-                sheet.classList.remove('translate-x-full');
-                sheet.style.pointerEvents = 'auto';
-            }
-        }
-    },
-    'toggle-gestures-sections': () => {
-        const sheet = document.getElementById('gestures-sections-sheet');
-        if (sheet) {
-            const isOpen = !sheet.classList.contains('-translate-x-full');
-            if (isOpen) {
-                sheet.classList.add('-translate-x-full');
-                sheet.style.pointerEvents = 'none';
-            } else {
-                sheet.classList.remove('-translate-x-full');
-                sheet.style.pointerEvents = 'auto';
-            }
-        }
-    },
-
-    // Toolbar P3a chips popovers
-    'chip-toggle-popover': (e, target) => {
-        const popoverId = target.dataset.popoverId;
-        if (state.uiState.activeChipPopover === popoverId) {
-            state.uiState.activeChipPopover = null;
-        } else {
-            state.uiState.activeChipPopover = popoverId;
-        }
-        eventBus.emit('render');
-    },
-    'chip-close-popover': () => {
-        state.uiState.activeChipPopover = null;
-        eventBus.emit('render');
-    },
-    'chip-update-rep': (e, target) => {
-        const delta = parseInt(target.dataset.delta, 10);
-        const section = getActiveSection(state);
-        const currentReps = section.repetitions || 1;
-        actions.updateSectionSettings(section.id, { repetitions: Math.max(1, currentReps + delta) });
-    },
-    'chip-toggle-random': () => {
-        // Placeholder for random sequence UI
-        eventBus.emit('render');
-    },
-    'chip-select-section': (e, target) => {
-        const sectionId = target.dataset.sectionId;
-        if (sectionId) {
-            document.dispatchEvent(new CustomEvent('timeline-select', { detail: sectionId }));
-            state.uiState.activeChipPopover = null;
-        }
-    },
-
-    // Mixer sheet toggle (P1a view)
-    'toggle-mixer-sheet': () => {
-        const sheet = document.getElementById('mixer-sheet');
-        if (sheet) {
-            const isOpen = !sheet.classList.contains('translate-y-full');
-            if (isOpen) {
-                sheet.classList.add('translate-y-full');
-                sheet.style.pointerEvents = 'none';
-            } else {
-                sheet.classList.remove('translate-y-full');
-                sheet.style.pointerEvents = 'auto';
-            }
-        }
-    },
-
-    // Dashboard (P2) grid overlay toggle
-    'toggle-grid-overlay': (e, target) => {
-        // If a section id is provided, switch to that section first
-        const sectionId = target?.dataset?.sectionId;
-        if (sectionId) {
-            document.dispatchEvent(new CustomEvent('timeline-select', { detail: sectionId }));
-        }
-        state.uiState.dashboardGridOpen = !state.uiState.dashboardGridOpen;
-        eventBus.emit('render');
-    },
-
-    // Dashboard Playlist (P2c) actions
-    'playlist-select-section': (e, target) => {
-        const sectionId = target.dataset.sectionId;
-        if (sectionId && sectionId !== state.activeSectionId) {
-            document.dispatchEvent(new CustomEvent('timeline-select', { detail: sectionId }));
-        } else if (sectionId === state.activeSectionId) {
-            // If tapping already active section, toggle playback
-            togglePlay();
-        }
-    },
-    'playlist-play-pause-active': () => {
-        togglePlay();
-    },
-
-    // Player view: previous section
-    'player-prev-section': () => {
-        const sections = state.toque.sections;
-        const currentIdx = sections.findIndex(s => s.id === state.activeSectionId);
-        if (currentIdx > 0) {
-            document.dispatchEvent(new CustomEvent('timeline-select', { detail: sections[currentIdx - 1].id }));
-        } else if (sections.length > 1) {
-            // Wrap to last
-            document.dispatchEvent(new CustomEvent('timeline-select', { detail: sections[sections.length - 1].id }));
-        }
-    },
-
-    // Player view: next section
-    'player-next-section': () => {
-        const sections = state.toque.sections;
-        const currentIdx = sections.findIndex(s => s.id === state.activeSectionId);
-        if (currentIdx < sections.length - 1) {
-            document.dispatchEvent(new CustomEvent('timeline-select', { detail: sections[currentIdx + 1].id }));
-        } else if (sections.length > 1) {
-            // Wrap to first
-            document.dispatchEvent(new CustomEvent('timeline-select', { detail: sections[0].id }));
-        }
     },
 
     // Close modal
@@ -703,15 +468,6 @@ export const setupMobileEvents = () => {
             // muted/solo styling outside #grid-container) rebuilds from
             // state.mix, the source of truth.
             eventBus.emit('render');
-        }
-        if (action === 'dual-mode-set-reps') {
-            const sectionId = target.dataset.sectionId;
-            const reps = parseInt(target.value, 10);
-            const section = state.toque.sections.find(s => s.id === sectionId);
-            if (section && !isNaN(reps)) {
-                section.repetitions = Math.max(1, reps);
-                eventBus.emit('render');
-            }
         }
     });
 

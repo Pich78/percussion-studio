@@ -18,29 +18,6 @@ export const handleTimelineSelect = (sectionId) => {
 };
 
 /**
- * Handle add section
- */
-export const handleAddSection = () => {
-    actions.addSection();
-};
-
-/**
- * Handle delete section
- * @param {HTMLElement} target - The delete button element
- */
-export const handleDeleteSection = (target) => {
-    actions.deleteSection(target.dataset.id);
-};
-
-/**
- * Handle duplicate section
- * @param {HTMLElement} target - The duplicate button element
- */
-export const handleDuplicateSection = (target) => {
-    actions.duplicateSection(target.dataset.id);
-};
-
-/**
  * Handle section name update
  * @param {HTMLInputElement} target - The input element
  */
@@ -110,20 +87,6 @@ export const handleUpdateCustomSteps = (target) => {
 };
 
 /**
- * Handle custom subdivision update
- * @param {HTMLInputElement} target - The input element
- */
-export const handleUpdateCustomSubdivision = (target) => {
-    const section = getActiveSection(state);
-    if (!section) return;
-
-    const newSubdivision = Math.max(1, Math.min(12, parseInt(target.value) || 1));
-    section.subdivision = newSubdivision;
-    eventBus.emit('grid-refresh');
-    eventBus.emit('render');
-};
-
-/**
  * Handle repetitions update
  * @param {HTMLInputElement} target - The input element
  */
@@ -159,24 +122,6 @@ export const handleToggleSectionEnabled = (target) => {
             section.playMode = 'skip';
         } else if (section.playMode === 'skip') {
             section.playMode = 'loop';
-        }
-        eventBus.emit('render');
-    }
-};
-
-/**
- * Handle play mode update from settings bar
- * @param {HTMLSelectElement} target - The select element
- */
-export const handleUpdatePlayMode = (target) => {
-    const section = getActiveSection(state);
-    if (section) {
-        const playMode = target.value;
-        section.playMode = playMode;
-        if (playMode === 'skip') {
-            section.skip = true;
-        } else {
-            section.skip = false;
         }
         eventBus.emit('render');
     }
@@ -266,94 +211,6 @@ export const handleRhythmNameKeydown = (e, target) => {
         e.preventDefault();
         target.blur();
     }
-};
-
-/**
- * Handle add measure
- */
-export const handleAddMeasure = () => {
-    actions.addMeasure();
-};
-
-/**
- * Handle delete measure
- * @param {HTMLElement} target - The delete button element
- */
-export const handleDeleteMeasure = (target) => {
-    actions.deleteMeasure(parseInt(target.dataset.measureIndex));
-};
-
-/**
- * Handle duplicate measure
- * @param {HTMLElement} target - The duplicate button element
- */
-export const handleDuplicateMeasure = (target) => {
-    actions.duplicateMeasure(parseInt(target.dataset.measureIndex));
-};
-
-/**
- * Handle rhythm metadata: toggle Batá mode
- */
-export const handleToggleBataRhythmMode = () => {
-    state.toque.isBata = !state.toque.isBata;
-    if (state.toque.isBata) {
-        if (!state.toque.orisha) state.toque.orisha = [];
-        if (state.toque.classification === undefined) state.toque.classification = null;
-        if (state.toque.description === undefined) state.toque.description = '';
-    }
-    eventBus.emit('render');
-};
-
-/**
- * Handle toggle metadata Orisha dropdown
- */
-export const handleToggleMetadataOrishaDropdown = () => {
-    state.uiState.metadataEditor.orishaDropdownOpen = !state.uiState.metadataEditor.orishaDropdownOpen;
-    eventBus.emit('render');
-};
-
-/**
- * Handle toggle rhythm Orisha
- * @param {HTMLElement} target - The Orisha option element
- */
-export const handleToggleRhythmOrisha = (target) => {
-    const orisha = target.dataset.orisha;
-    if (!state.toque.orisha) state.toque.orisha = [];
-    const idx = state.toque.orisha.indexOf(orisha);
-    if (idx >= 0) {
-        state.toque.orisha.splice(idx, 1);
-    } else {
-        state.toque.orisha.push(orisha);
-    }
-    state.uiState.metadataEditor.orishaDropdownOpen = false;
-    eventBus.emit('render');
-};
-
-/**
- * Handle remove rhythm Orisha
- * @param {HTMLElement} target - The remove button element
- */
-export const handleRemoveRhythmOrisha = (target) => {
-    const orisha = target.dataset.orisha;
-    if (state.toque.orisha) {
-        const idx = state.toque.orisha.indexOf(orisha);
-        if (idx >= 0) state.toque.orisha.splice(idx, 1);
-    }
-    eventBus.emit('render');
-};
-
-/**
- * Handle set rhythm classification
- * @param {HTMLElement} target - The classification option element
- */
-export const handleSetRhythmClassification = (target) => {
-    const classification = target.dataset.classification;
-    if (state.toque.classification === classification) {
-        state.toque.classification = null;
-    } else {
-        state.toque.classification = classification;
-    }
-    eventBus.emit('render');
 };
 
 /**

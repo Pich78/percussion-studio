@@ -258,23 +258,6 @@ export const handleTriggerFileInput = () => {
 };
 
 /**
- * Handle load rhythm file
- * @param {HTMLInputElement} target - The file input element
- */
-export const handleLoadRhythmFile = async (target) => {
-    const file = target.files?.[0];
-    if (file) {
-        if (confirm("Load this rhythm file? Unsaved changes will be lost.")) {
-            await actions.loadRhythmFromFile(file);
-            state.uiState.modalOpen = false;
-            eventBus.emit('render');
-        }
-        // Reset file input so the same file can be selected again
-        target.value = '';
-    }
-};
-
-/**
  * Handle open user guide
  * @param {HTMLElement} target - The user guide link element
  * @param {boolean} isMobile - Whether on mobile

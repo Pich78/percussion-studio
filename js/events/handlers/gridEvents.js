@@ -14,46 +14,6 @@ import { updateGlobalCursor } from '../../utils/strokeCursors.js';
 import * as pieMenuState from './pieMenuState.js';
 
 /**
- * Handle cell click (update stroke)
- * @param {HTMLElement} target - The clicked cell element
- */
-export const handleCellClick = (target) => {
-    // If this click is the release of a long press that opened the menu, ignore it
-    if (pieMenuState.consumeLongPressFlag()) {
-        return;
-    }
-
-    // If pie menu is open and we click a cell normally, just close the menu and ignore click
-    if (state.uiState.pieMenu.isOpen) {
-        closePieMenu();
-        return;
-    }
-
-    const section = getActiveSection(state);
-    const trackIdx = parseInt(target.dataset.trackIndex);
-    const measureIdx = parseInt(target.dataset.measureIndex || 0);
-    const rawStepIdx = parseInt(target.dataset.stepIndex);
-
-    const track = section.measures[measureIdx].tracks[trackIdx];
-
-    const targetStepIdx = snapStepIndex(rawStepIdx, track, section);
-
-    actions.handleUpdateStroke(trackIdx, targetStepIdx, measureIdx);
-};
-
-/**
- * Handle cell right-click (clear stroke)
- * @param {HTMLElement} target - The clicked cell element
- */
-export const handleCellRightClick = (target) => {
-    const section = getActiveSection(state);
-    const trackIdx = parseInt(target.dataset.trackIndex);
-    const stepIdx = parseInt(target.dataset.stepIndex);
-    section.tracks[trackIdx].strokes[stepIdx] = StrokeType.None;
-    eventBus.emit('grid-refresh');
-};
-
-/**
  * Handle mute toggle
  * @param {HTMLElement} target - The mute button element
  */
@@ -115,7 +75,7 @@ export const handleToggleTrackSnap = (target) => {
 
 /**
  * Handle volume slider input.
- * Delegates to the central setGlobalVolume action — state.mix[symbol].volume
+ * Delegates to the central setMixVolume action — state.mix[symbol].volume
  * is the single source of truth and the next render rebuilds the slider
  * from it. Also writes the outside percentage text directly so the
  * prominent value next to the track name updates in lock-step with the
@@ -140,7 +100,7 @@ export const handleVolumeInput = (e) => {
     const track = section.measures[mIdx].tracks[tIdx];
     const newVolume = parseFloat(target.value);
 
-    actions.setGlobalVolume(track.instrument, newVolume);
+    actions.setMixVolume(track.instrument, newVolume);
 
     if (!isSliderDragging() && e.detail?.source !== 'pointer-drag') {
         scheduleVolumeRepaint();
@@ -154,17 +114,6 @@ export const handleVolumeInput = (e) => {
     const container = target.closest('.group\\/vol');
     const outsidePct = container?.parentElement?.querySelector('[data-role="volume-pct-outside"]');
     if (outsidePct) outsidePct.textContent = `${Math.round(newVolume * 100)}%`;
-};
-
-/**
- * Handle track steps dropdown change
- * @param {HTMLSelectElement} target - The select element
- */
-export const handleTrackStepsChange = (target) => {
-    const trackIdx = parseInt(target.dataset.trackIndex);
-    const measureIdx = parseInt(target.dataset.measureIndex || 0);
-    const newSteps = parseInt(target.value);
-    actions.updateTrackSteps(trackIdx, measureIdx, newSteps);
 };
 
 /**

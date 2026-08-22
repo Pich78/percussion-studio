@@ -54,8 +54,8 @@ export const state = {
     uiState: {
         isMenuOpen: false,
         modalOpen: false,
-        modalType: 'instrument', // 'instrument' | 'rhythm' | 'userGuide'
-        modalStep: 'instrument', // 'instrument' | 'soundpack'
+        // 'instrument' | 'rhythm' | 'editingOptions' | 'structure' | 'viewMode' | 'userGuide'
+        modalType: 'instrument',
         pendingInstrument: null, // Intermediate state for 2-step selection
         pendingSoundPack: null, // Selected sound pack before confirmation
         editingTrackIndex: null,
@@ -92,10 +92,6 @@ export const state = {
         },
         // Rhythm metadata editor state in timeline
         sectionDropdownOpen: false, // Mobile header section switcher
-        metadataEditor: {
-            orishaDropdownOpen: false
-        },
-        dimensionBMode: 'play', // 'play' | 'view' mode toggle for Dimension B
         mixerOpen: false // Desktop mixer modal visibility
     }
 };

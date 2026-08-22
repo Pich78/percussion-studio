@@ -3,17 +3,17 @@
  * 
  * Simple pub/sub event bus for decoupling backend services from UI rendering.
  * 
- * Services (sequencer, actions) emit events like 'render', 'step', 'section-changed'.
- * Views subscribe to these events and handle UI updates in their own way.
- * 
- * This enables swappable views: each view can subscribe to the same events
- * but render differently.
+ * Services (sequencer, actions) emit events; the renderer and views subscribe
+ * and handle UI updates in their own way. This enables swappable views: each
+ * view can subscribe to the same events but render differently.
  * 
  * Events:
- *   'render'           - Full re-render requested (payload: none)
- *   'step'             - Playback step advanced (payload: { step, measure, rep })
- *   'section-changed'  - Active section changed during playback (payload: none)
- *   'grid-refresh'     - Grid-only refresh requested (payload: none)
+ *   'render'            - Full re-render requested (payload: none)
+ *   'transport'         - Ordered playback fact from the sequencer
+ *                         (payload: { phase: 'playing'|'countin', ... } — see
+ *                         docs/requirements/playback-events.md)
+ *   'grid-refresh'      - Grid-only refresh requested (payload: none)
+ *   'scroll-to-measure' - Scroll the grid to a measure (payload: { measure })
  */
 
 const listeners = {};

@@ -5,7 +5,7 @@
 
 import { state, playback } from '../../store.js';
 import { getActiveSection } from '../../store/stateSelectors.js';
-import { togglePlay, stopPlayback } from '../../services/sequencer.js';
+import { togglePlay } from '../../services/sequencer.js';
 import { eventBus } from '../../services/eventBus.js';
 
 /**
@@ -13,13 +13,6 @@ import { eventBus } from '../../services/eventBus.js';
  */
 export const handleTogglePlay = () => {
     togglePlay();
-};
-
-/**
- * Handle stop playback
- */
-export const handleStop = () => {
-    stopPlayback();
 };
 
 /**
@@ -55,42 +48,6 @@ export const handleGlobalBpmChange = (target) => {
     playback.currentPlayheadBpm = newBpm;
     playback.userHasOverriddenBpm = true;
     eventBus.emit('render');
-};
-
-/**
- * Handle section BPM input
- * @param {HTMLInputElement} target - The input element
- */
-export const handleSectionBpmInput = (target) => {
-    const section = getActiveSection(state);
-    if (section) {
-        section.bpm = Number(target.value);
-        playback.currentPlayheadBpm = section.bpm;
-        playback.userHasOverriddenBpm = true;
-    }
-};
-
-/**
- * Handle section BPM change (on blur/enter)
- * @param {HTMLInputElement} target - The input element
- */
-export const handleSectionBpmChange = (target) => {
-    const section = getActiveSection(state);
-    if (section) {
-        section.bpm = Number(target.value);
-        playback.currentPlayheadBpm = section.bpm;
-        playback.userHasOverriddenBpm = true;
-    }
-};
-
-/**
- * Handle BPM override toggle
- */
-export const handleToggleBpmOverride = () => {
-    const section = getActiveSection(state);
-    if (section) {
-        section.bpm = (section.bpm !== undefined) ? undefined : playback.currentPlayheadBpm;
-    }
 };
 
 /**

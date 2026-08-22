@@ -142,14 +142,3 @@ export const resetMix = () => {
     commit('setSoloTrack', { trackIndex: null });
     audioEngine.resetInstrumentGains();
 };
-
-// ─── Backward-compatible aliases ────────────────────────────────────────────
-// These names predate the BPM-style refactor; keep them so legacy callers
-// in events and tests still work. New code should call setMixVolume /
-// setMixMuted directly.
-
-/** @deprecated Use setMixVolume */
-export const setGlobalVolume = setMixVolume;
-
-/** @deprecated Use setMixMuted */
-export const setGlobalMute = setMixMuted;

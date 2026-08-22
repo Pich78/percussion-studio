@@ -9,8 +9,6 @@
   Side effects (rendering, audio, network) belong in actions, not here.
 */
 
-import { playback } from '../store.js';
-
 // ─── UI State Mutations ─────────────────────────────────────────────────────
 
 /**
@@ -147,15 +145,6 @@ export const toggleBpmOverride = (state, { section, globalBpm }) => {
  */
 export const setSectionSubdivision = (state, { section, subdivision }) => {
     section.subdivision = subdivision;
-};
-
-/**
- * Set the global BPM
- * @param {object} state
- * @param {{ bpm: number }} payload
- */
-export const setGlobalBpm = (state, { bpm }) => {
-    state.toque.globalBpm = bpm;
 };
 
 // ─── Track Mutations ────────────────────────────────────────────────────────
@@ -485,32 +474,6 @@ export const resetPlayback = (state, { sectionId }) => {
 // ─── Mutation Registry ──────────────────────────────────────────────────────
 
 /**
- * Set section play mode
- * @param {object} state
- * @param {{ section: object, playMode: string }} payload
- */
-export const setSectionPlayMode = (state, { section, playMode }) => {
-    section.playMode = playMode;
-    if (playMode !== 'skip') {
-        section.skip = false;
-    }
-};
-
-/**
- * Toggle section enabled/disabled
- * @param {object} state
- * @param {{ section: object }} payload
- */
-export const toggleSectionEnabled = (state, { section }) => {
-    section.skip = !section.skip;
-    if (section.skip) {
-        section.playMode = 'skip';
-    } else if (section.playMode === 'skip') {
-        section.playMode = 'loop';
-    }
-};
-
-/**
  * Map of all mutation names to functions.
  * Used by commit() for named dispatch.
  */
@@ -532,9 +495,6 @@ export const MUTATIONS = {
     setSectionBpm,
     toggleBpmOverride,
     setSectionSubdivision,
-    setGlobalBpm,
-    setSectionPlayMode,
-    toggleSectionEnabled,
     // Track
     toggleTrackSnap,
     clearSectionPattern,
