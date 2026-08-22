@@ -50,12 +50,12 @@ module.exports = defineConfig({
         {
             name: 'mobile-portrait',
             use: { ...IPHONE_16, viewport: { width: 393, height: 659 } },
-            testMatch: /mobile-portrait\.spec\.js/,
+            testMatch: /mobile-(portrait|wheel-picker)\.spec\.js/,
         },
         {
             name: 'mobile-landscape',
             use: { ...IPHONE_16, viewport: { width: 734, height: 343 } },
-            testMatch: /mobile-landscape\.spec\.js/,
+            testMatch: /mobile-(landscape|wheel-picker)\.spec\.js/,
         },
         {
             name: 'mobile-landscape-playhead',
