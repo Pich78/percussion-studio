@@ -189,6 +189,14 @@ export const removeTrack = (state, { section, trackIdx }) => {
     section.measures.forEach(measure => {
         measure.tracks.splice(trackIdx, 1);
     });
+    // Keep the solo invariant intact: soloTrack indexes into every
+    // measure's track list, so removing a track must re-anchor it
+    // (tracks after the removed one shift down) or clear it.
+    if (state.soloTrack === trackIdx) {
+        state.soloTrack = null;
+    } else if (state.soloTrack !== null && state.soloTrack > trackIdx) {
+        state.soloTrack -= 1;
+    }
 };
 
 /**

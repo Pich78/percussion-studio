@@ -58,3 +58,77 @@ test('static playhead parks in the paused measure across re-renders', async ({ p
     const expectedMeasure = await page.evaluate(() => window.__pb.currentMeasureIndex);
     expect(drawnMeasure).toBe(expectedMeasure);
 });
+
+test('creating a new rhythm clears any active solo', async ({ page }) => {
+    await page.goto('/desktop.html');
+    await expect(page.locator('#grid-container')).toBeVisible();
+
+    // Seed a solo through its canonical write path (the action).
+    const soloState = await page.evaluate(async () => {
+        const { state } = await import('/js/store.js');
+        const { actions } = await import('/js/actions/index.js');
+        const section = state.toque.sections.find(s => s.id === state.activeSectionId);
+        const track = section.measures[0].tracks[0];
+        actions.toggleTrackSolo(0, track.instrument);
+        return state.soloTrack;
+    });
+    expect(soloState).toBe(0);
+
+    // New Rhythm lives behind the hamburger menu; its flow uses confirm().
+    page.on('dialog', d => d.accept());
+    await page.locator('[data-action="toggle-menu"]').first().click();
+    await page.locator('[data-action="new-rhythm"]').first().click();
+
+    const soloAfter = await page.evaluate(async () => {
+        const { state } = await import('/js/store.js');
+        return state.soloTrack;
+    });
+    expect(soloAfter).toBeNull();
+});
+
+test('removing tracks reconciles soloTrack', async ({ page }) => {
+    await page.goto('/desktop.html');
+    await expect(page.locator('#grid-container')).toBeVisible();
+    page.on('dialog', d => d.accept());
+
+    const trackCount = await page.evaluate(async () => {
+        const { state } = await import('/js/store.js');
+        const section = state.toque.sections.find(s => s.id === state.activeSectionId);
+        return section.measures[0].tracks.length;
+    });
+    expect(trackCount).toBeGreaterThanOrEqual(2);
+
+    // Case 1: soloing the LAST track, then removing the FIRST one shifts
+    // the solo down by one — it must keep pointing at the same instrument.
+    await page.evaluate(async (idx) => {
+        const { state } = await import('/js/store.js');
+        const { actions } = await import('/js/actions/index.js');
+        const section = state.toque.sections.find(s => s.id === state.activeSectionId);
+        actions.toggleTrackSolo(idx, section.measures[0].tracks[idx].instrument);
+    }, trackCount - 1);
+
+    await page.locator('[data-action="remove-track"][data-track-index="0"]').first().click();
+
+    const shifted = await page.evaluate(async () => {
+        const { state } = await import('/js/store.js');
+        return state.soloTrack;
+    });
+    expect(shifted).toBe(trackCount - 2);
+
+    // Case 2: removing the currently-soloed track clears the solo entirely.
+    const lastIndex = trackCount - 2;
+    await page.evaluate(async (idx) => {
+        const { state } = await import('/js/store.js');
+        const { actions } = await import('/js/actions/index.js');
+        const section = state.toque.sections.find(s => s.id === state.activeSectionId);
+        actions.toggleTrackSolo(idx, section.measures[0].tracks[idx].instrument);
+    }, lastIndex);
+
+    await page.locator(`[data-action="remove-track"][data-track-index="${lastIndex}"]`).first().click();
+
+    const cleared = await page.evaluate(async () => {
+        const { state } = await import('/js/store.js');
+        return state.soloTrack;
+    });
+    expect(cleared).toBeNull();
+});

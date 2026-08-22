@@ -54,7 +54,9 @@ const loadInstrumentsInParallel = async (trackConfig) => {
  */
 export const loadRhythm = async (rhythmId) => {
     stopPlayback();
-    commit('resetMix');
+    // Full reset (mix + solo + audio gains) before any async work so no
+    // stale mix state from the previous rhythm can leak into the load.
+    resetMix();
 
     try {
         // 1. Fetch Rhythm YAML
@@ -79,7 +81,6 @@ export const loadRhythm = async (rhythmId) => {
         commit('setToque', { toque: buildToqueState(rhythmId, rhythmDef, sections, explorerMeta) });
         commit('setRhythmSource', { source: 'repo', rhythmId });
 
-        resetMix();
         updateActiveSection(sections[0].id);
 
     } catch (e) {
@@ -95,7 +96,9 @@ export const loadRhythm = async (rhythmId) => {
  */
 export const loadRhythmFromFile = async (file) => {
     stopPlayback();
-    commit('resetMix');
+    // Full reset (mix + solo + audio gains) before any async work so no
+    // stale mix state from the previous rhythm can leak into the load.
+    resetMix();
 
     try {
         // 1. Read file content
@@ -123,7 +126,6 @@ export const loadRhythmFromFile = async (file) => {
         commit('setToque', { toque: buildToqueState(localId, rhythmDef, sections) });
         commit('setRhythmSource', { source: 'local' });
 
-        resetMix();
         updateActiveSection(sections[0].id);
 
     } catch (e) {
@@ -139,7 +141,10 @@ export const createNewRhythm = () => {
     stopPlayback();
     const newId = crypto.randomUUID();
 
-    commit('resetMix');
+    // Full reset via the action: clears mix, solo AND audio gains — a raw
+    // commit('resetMix') would leak the previous rhythm's solo into the
+    // new one.
+    resetMix();
 
     commit('setToque', {
         toque: {
