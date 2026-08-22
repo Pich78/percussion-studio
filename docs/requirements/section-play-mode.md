@@ -39,7 +39,7 @@ The section never plays. It is completely bypassed during playback.
 
 ## UI Control
 
-In the Section Modal, each section row has a repetition picker button that displays the current mode:
+In the Section Modal, each section row has a repetition chip that displays the current mode. Tapping it opens the custom drum picker (`js/ui/mobile/dual-mode/wheelPicker.js`): drag or flick to scroll, tap a value to center it, **Done** commits the selection to the section, **Cancel** (or tapping the backdrop) discards it.
 
 | Display | Meaning |
 |---------|---------|
@@ -187,7 +187,8 @@ Consequences:
 - `js/types.js` - Added PlayMode constant
 - `js/utils/rhythmTransformers.js` - Added skip and playMode properties to section builder
 - `js/services/sequencer.js` - Added SectionPlayState, getSectionPlayState() and selectNextSection() functions, refactored sequencer logic
-- `js/ui/mobile/practitioner/sectionModal.js` - Updated UI with new picker values
+- `js/ui/mobile/dual-mode/sectionModal.js` - Section rows with the reps chip
+- `js/ui/mobile/dual-mode/wheelPicker.js` - Custom drum picker used to edit repetitions / play modes
 - `js/store/mutations.js` - Added _playedOnce reset on new rhythm load
 
 ## Limitations

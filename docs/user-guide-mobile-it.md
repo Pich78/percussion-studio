@@ -112,9 +112,9 @@ Per ogni strumento della sezione:
 
 - Mostra tutte le sezioni: tocca una riga per **saltarci**.
 - **Pulsante 🎲**: attiva le ripetizioni casuali (ogni ciclo suona un numero casuale di volte tra 1 e il valore impostato).
-- **Selettore ripetizioni**: tocca il numero per aprire la ruota con i valori `1`-`64`, `∞` (Play Forever), `play once` e `disabled` (salta).
+- **Selettore ripetizioni**: tocca il numero per aprire il selettore a tamburo con i valori `1`-`64`, `∞` (Play Forever), `play once` e `disabled` (salta). Trascina o fai scorrere il tamburo, tocca un valore per centrarlo, poi tocca **Done** per applicare (o **Cancel** per annullare).
   - ∞ appare in viola, le sezioni disabilitate e già suonate appaiono attenuate.
-- **Selettore accelerazione** (solo per sezioni loop con più di 1 ripetizione): ruota da `-10.0%` a `+10.0%` con passi da 0.1.
+- **Selettore accelerazione** (solo per sezioni loop con più di 1 ripetizione): stesso selettore a tamburo, da `-10.0%` a `+10.0%` con passi da 0.1.
 
 > **Nota**: queste impostazioni di sezione valgono solo per la sessione e si azzerano caricando un nuovo ritmo (vedi [Sezioni](#sezioni)).
 

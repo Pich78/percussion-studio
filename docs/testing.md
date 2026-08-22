@@ -65,8 +65,8 @@ Six projects, one test each:
 | Project | Viewport / device | Spec |
 |---|---|---|
 | `desktop` | chromium 1280×800 | `e2e/desktop.spec.js` — grid renders, play/stop toggles state; regression pins: static playhead parks in the paused measure across re-renders, new-rhythm clears any active solo, track removal reconciles `soloTrack`, BPM-override flips the timeline tempo badge immediately. |
-| `mobile-portrait` | iPhone 16, Safari-like **393×659** | `e2e/mobile-portrait.spec.js` — portrait control surface, toggles play; regression pin: random-reps dice toggle writes the canonical `randomRepetitions` field (sequencer + templates read it) and the 🎲 badge appears. |
-| `mobile-landscape` | iPhone 16, Safari-like **734×343** | `e2e/mobile-landscape.spec.js` — landscape read-only grid, toggles play. |
+| `mobile-portrait` | iPhone 16, Safari-like **393×659** | `e2e/mobile-portrait.spec.js` — portrait control surface, toggles play; regression pin: random-reps dice toggle writes the canonical `randomRepetitions` field (sequencer + templates read it) and the 🎲 badge appears. Plus shared `e2e/mobile-wheel-picker.spec.js` — drum picker: tap-to-center commit, slow-drag-with-hold (no flick), Cancel discards the draft, skip mode, accel wheel gating/commit. |
+| `mobile-landscape` | iPhone 16, Safari-like **734×343** | `e2e/mobile-landscape.spec.js` — landscape read-only grid, toggles play. Plus shared `e2e/mobile-wheel-picker.spec.js` (same picker coverage). |
 | `mobile-landscape-playhead` | iPhone 16, Safari-like **734×343** | `e2e/playhead-loop.spec.js` — playback-loop regression for the transport stream contract: playhead visible on every step across loop boundaries (incl. last column of the last measure), zero full rebuilds during steady playback, count-in chip ticks via targeted updates. |
 | `mobile-pwa-portrait` | iPhone 16, full-screen **393×852** | `e2e/mobile-pwa-portrait.spec.js` — full viewport + Dynamic Island insets. |
 | `mobile-pwa-landscape` | iPhone 16, full-screen **852×393** | `e2e/mobile-pwa-landscape.spec.js` — full viewport + Dynamic Island insets. |
@@ -120,7 +120,7 @@ Use it to inspect the running app interactively during development (mirrors the 
 ## 6. Adding a test
 
 1. Put specs in `tests/e2e/`. Common selectors: `[data-action="toggle-play"]`, `[data-action="stop"]`, `#grid-container`, `#dual-mode-landscape-header`. Dual-mode renders both orientations in the DOM, so use `:visible` (e.g. `[data-action="toggle-play"]:visible`) to target the active one.
-2. One spec file per project/config; add the matching `project` entry (with its viewport/device) in `tests/playwright.config.js` and point its `testMatch` at the new file.
+2. One spec file per project/config; add the matching `project` entry (with its viewport/device) in `tests/playwright.config.js` and point its `testMatch` at the new file. A spec that is orientation-agnostic (like the wheel picker) can be shared by several projects via a regex `testMatch` (e.g. `/mobile-(portrait|wheel-picker)\.spec\.js/`).
 3. For PWA/safe-area checks, reuse `applySafeAreaOverride`, `IPHONE_16_SAFE_AREAS`, `readCssVar`, `expectInsetPadding` from `helpers/safeArea.js`.
 4. Keep screenshots in `test-results/` (gitignored), never commit them.
 5. Run the suite (section 3) and confirm it passes before finishing.

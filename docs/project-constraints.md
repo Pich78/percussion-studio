@@ -21,9 +21,12 @@ This document captures the technical and architectural constraints of the Percus
 |---------|---------|--------|---------|
 | js-yaml | 4.1.0 | `cdnjs.cloudflare.com` | YAML parsing |
 | Tailwind CSS | latest (play CDN) | `cdn.tailwindcss.com` | CSS utility framework |
-| mobile-select | latest | `cdn.jsdelivr.net/npm/mobile-select` | Mobile picker UI |
 
 These are loaded as regular `<script>` tags in `mobile.html` and `desktop.html`, **not** as ES module imports.
+
+The mobile wheel picker (repetitions / tempo acceleration) is a custom
+in-app component (`js/ui/mobile/dual-mode/wheelPicker.js`) — the app has no
+third-party picker dependency.
 
 ---
 

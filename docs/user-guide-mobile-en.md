@@ -112,9 +112,9 @@ For each instrument in the section:
 
 - Shows all sections: tap a row to **jump** to it.
 - **🎲 button**: toggles random repetitions (each cycle plays a random number of times between 1 and the set value).
-- **Repetitions picker**: tap the number to open the wheel picker with values `1`-`64`, `∞` (Play Forever), `play once`, and `disabled` (skip).
+- **Repetitions picker**: tap the number to open the drum picker with values `1`-`64`, `∞` (Play Forever), `play once`, and `disabled` (skip). Drag or flick the drum to scroll, tap a value to center it, then tap **Done** to apply (or **Cancel** to discard).
   - ∞ shows purple, disabled and already-played sections show grayed out.
-- **Acceleration picker** (only for loop sections with more than 1 repetition): wheel picker from `-10.0%` to `+10.0%` in 0.1 steps.
+- **Acceleration picker** (only for loop sections with more than 1 repetition): same drum picker, from `-10.0%` to `+10.0%` in 0.1 steps.
 
 > **Note**: these section settings are session-only and reset when loading a new rhythm (see [Sections](#sections)).
 
