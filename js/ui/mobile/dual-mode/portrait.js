@@ -186,10 +186,6 @@ const renderPortraitSectionBar = (activeSection) => {
     const canEdit = !state.isPlaying;
     const sections = state.toque.sections;
     const sectionIdx = sections.findIndex(s => s.id === state.activeSectionId);
-    const isModalOpen = state.uiState.dualModePortraitSectionModal === true
-        && !state.isPlaying;
-
-    const sectionModal = isModalOpen ? renderPortraitSectionModal(activeSection) : '';
 
     return `
     <div class="mx-4 flex-shrink-0 relative">
@@ -215,7 +211,6 @@ const renderPortraitSectionBar = (activeSection) => {
                 </svg>
             </div>
         </button>
-        ${sectionModal}
     </div>`;
 };
 
