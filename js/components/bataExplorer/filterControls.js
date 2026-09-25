@@ -39,9 +39,10 @@ export const FilterToken = (label, value, removeAction, dataAttr) => `
  * @param {string} toggleAction - Data action for toggling selection
  * @param {boolean} isOpen - Whether dropdown is open
  * @param {object} colorMap - Optional color map for options
+ * @param {'left'|'right'} panelAlign - Panel anchor side (defaults to right)
  * @returns {string} HTML string
  */
-export const FilterDropdown = (id, title, icon, options, selectedValues, toggleAction, isOpen = false, colorMap = {}) => {
+export const FilterDropdown = (id, title, icon, options, selectedValues, toggleAction, isOpen = false, colorMap = {}, panelAlign = 'right') => {
     const hasSelection = selectedValues.length > 0;
 
     return `
@@ -70,7 +71,7 @@ export const FilterDropdown = (id, title, icon, options, selectedValues, toggleA
             </button>
 
             ${isOpen ? `
-                <div class="absolute top-full right-0 mt-2 w-64 max-h-80 overflow-y-auto bg-gray-900 border border-gray-700 rounded-lg shadow-2xl z-50 p-1">
+                <div class="absolute top-full ${panelAlign === 'left' ? 'left-0' : 'right-0'} mt-2 w-64 max-h-80 overflow-y-auto bg-gray-900 border border-gray-700 rounded-lg shadow-2xl z-50 p-1">
                     ${options.map(option => {
             const isSelected = selectedValues.includes(option);
             return `

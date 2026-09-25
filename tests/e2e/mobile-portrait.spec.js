@@ -74,12 +74,14 @@ test('Batà Explorer filters stay reachable in portrait', async ({ page }) => {
     await expect(type).toBeInViewport();
     await expect(close).toBeInViewport();
 
-    // And they must actually open their option lists.
+    // And their option lists must open fully inside the viewport, so the
+    // names stay readable (right-anchoring pushed the Orisha panel off the
+    // left edge once the filters wrapped to their own row).
     await orisha.click();
-    await expect(page.locator('[data-action="toggle-orisha-filter"]:visible').first()).toBeVisible();
+    await expect(page.locator('[data-action="toggle-orisha-filter"]:visible').first()).toBeInViewport({ ratio: 1 });
     await orisha.click();
     await type.click();
-    await expect(page.locator('[data-action="toggle-type-filter"]:visible').first()).toBeVisible();
+    await expect(page.locator('[data-action="toggle-type-filter"]:visible').first()).toBeInViewport({ ratio: 1 });
 });
 
 test('random-reps toggle writes canonical randomRepetitions field', async ({ page }) => {

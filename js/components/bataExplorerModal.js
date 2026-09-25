@@ -229,7 +229,7 @@ export const BataExplorerModal = ({ isMobile = false, bataExplorer = {} }) => {
 
                     <!-- Filter Dropdowns (portrait: wrap under the search bar) -->
                     <div class="flex items-center gap-2 basis-full landscape:basis-auto landscape:order-3">
-                        ${FilterDropdown('orisha', 'Orisha', musicIcon, orishas, selectedOrishas, 'toggle-orisha-filter', bata.orishaDropdownOpen || false, orishaColors)}
+                        ${FilterDropdown('orisha', 'Orisha', musicIcon, orishas, selectedOrishas, 'toggle-orisha-filter', bata.orishaDropdownOpen || false, orishaColors, 'left')}
                         ${FilterDropdown('type', 'Classification', filterIcon, TOQUE_CLASSIFICATIONS, selectedTypes, 'toggle-type-filter', bata.typeDropdownOpen || false)}
                     </div>
                 </div>
