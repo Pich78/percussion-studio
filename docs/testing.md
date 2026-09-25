@@ -68,8 +68,8 @@ Six projects, one test each:
 | `mobile-portrait` | iPhone 16, Safari-like **393×659** | `e2e/mobile-portrait.spec.js` — portrait control surface, toggles play; regression pin: random-reps dice toggle writes the canonical `randomRepetitions` field (sequencer + templates read it) and the 🎲 badge appears. Plus shared `e2e/mobile-wheel-picker.spec.js` — drum picker: tap-to-center commit, slow-drag-with-hold (no flick), Cancel discards the draft, skip mode, accel wheel gating/commit. |
 | `mobile-landscape` | iPhone 16, Safari-like **734×343** | `e2e/mobile-landscape.spec.js` — landscape read-only grid, toggles play. Plus shared `e2e/mobile-wheel-picker.spec.js` (same picker coverage). |
 | `mobile-landscape-playhead` | iPhone 16, Safari-like **734×343** | `e2e/playhead-loop.spec.js` — playback-loop regression for the transport stream contract: playhead visible on every step across loop boundaries (incl. last column of the last measure), zero full rebuilds during steady playback, count-in chip ticks via targeted updates. |
-| `mobile-pwa-portrait` | iPhone 16, full-screen **393×852** | `e2e/mobile-pwa-portrait.spec.js` — full viewport + Dynamic Island insets. |
-| `mobile-pwa-landscape` | iPhone 16, full-screen **852×393** | `e2e/mobile-pwa-landscape.spec.js` — full viewport + Dynamic Island insets. |
+| `mobile-pwa-portrait` | iPhone 16, full-screen **393×852** | `e2e/mobile-pwa-portrait.spec.js` — full viewport + Dynamic Island insets. Plus shared `e2e/mobile-rotation.spec.js` — rotation regression (see below). |
+| `mobile-pwa-landscape` | iPhone 16, full-screen **852×393** | `e2e/mobile-pwa-landscape.spec.js` — full viewport + Dynamic Island insets. Plus shared `e2e/mobile-rotation.spec.js` — rotation regression (see below). |
 
 Screenshots are written to `tests/test-results/` (gitignored) on demand and on failure.
 
@@ -108,6 +108,12 @@ If the CDP command is unavailable, the helper falls back to overriding the `--sa
 
 **Limitation:** the E2E suite approximates PWA standalone. Final safe-area and gesture verification must still be done on a real iPhone in PWA mode (see AGENTS.md) — behavior there differs from the emulation.
 
+### Rotation coverage
+
+`e2e/mobile-rotation.spec.js` (shared by both PWA projects, driven by `helpers/rotation.js`) pins the app-side rotation invariants implemented in `js/ui/mobileViewport.js`: the visible header survives portrait → landscape → portrait, `#root` keeps filling the viewport, the document is not scrolled, and orientation-scoped popovers close. It also covers an open rhythm browser across a rotation.
+
+**Limitation:** Chromium cannot emulate iOS's stale `env(safe-area-inset-*)` after rotation, so the suite cannot reproduce the original "header hidden behind the Dynamic Island" defect — it guards the invariant instead. Final verification stays on a real iPhone in PWA mode.
+
 ## 5. Interactive inspection via opencode MCP
 
 `opencode.json` registers the official **Playwright MCP** (`npx -y @playwright/mcp@latest`). After restarting opencode, the agent can:
@@ -122,8 +128,9 @@ Use it to inspect the running app interactively during development (mirrors the 
 1. Put specs in `tests/e2e/`. Common selectors: `[data-action="toggle-play"]`, `[data-action="stop"]`, `#grid-container`, `#dual-mode-landscape-header`. Dual-mode renders both orientations in the DOM, so use `:visible` (e.g. `[data-action="toggle-play"]:visible`) to target the active one.
 2. One spec file per project/config; add the matching `project` entry (with its viewport/device) in `tests/playwright.config.js` and point its `testMatch` at the new file. A spec that is orientation-agnostic (like the wheel picker) can be shared by several projects via a regex `testMatch` (e.g. `/mobile-(portrait|wheel-picker)\.spec\.js/`).
 3. For PWA/safe-area checks, reuse `applySafeAreaOverride`, `IPHONE_16_SAFE_AREAS`, `readCssVar`, `expectInsetPadding` from `helpers/safeArea.js`.
-4. Keep screenshots in `test-results/` (gitignored), never commit them.
-5. Run the suite (section 3) and confirm it passes before finishing.
+4. For rotation checks, reuse `rotateTo(page, 'portrait'|'landscape')` from `helpers/rotation.js` — it resizes the viewport, re-applies the matching safe-area override and waits for the app's settle re-renders.
+5. Keep screenshots in `test-results/` (gitignored), never commit them.
+6. Run the suite (section 3) and confirm it passes before finishing.
 
 ## 7. Troubleshooting
 

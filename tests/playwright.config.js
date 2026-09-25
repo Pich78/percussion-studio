@@ -65,12 +65,12 @@ module.exports = defineConfig({
         {
             name: 'mobile-pwa-portrait',
             use: { ...IPHONE_16, viewport: { width: 393, height: 852 } },
-            testMatch: /mobile-pwa-portrait\.spec\.js/,
+            testMatch: /mobile-(pwa-portrait|rotation)\.spec\.js/,
         },
         {
             name: 'mobile-pwa-landscape',
             use: { ...IPHONE_16, viewport: { width: 852, height: 393 } },
-            testMatch: /mobile-pwa-landscape\.spec\.js/,
+            testMatch: /mobile-(pwa-landscape|rotation)\.spec\.js/,
         },
     ],
     webServer: {

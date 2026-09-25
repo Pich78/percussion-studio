@@ -52,6 +52,23 @@
             --safe-area-bottom: env(safe-area-inset-bottom, 0px);
         }
 
+        /* iOS standalone: pin the app shell to the viewport so rotation
+           cannot leave the document scrolled or rubber-banding, which would
+           move the (non-sticky) headers out of view. */
+        html {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            overscroll-behavior: none;
+        }
+
+        #root {
+            position: fixed;
+            inset: 0;
+        }
+
         /* Custom scrollbar for the grid container */
         .custom-scrollbar::-webkit-scrollbar {
             height: 12px;

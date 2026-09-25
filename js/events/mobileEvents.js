@@ -13,6 +13,7 @@ import { viewManager } from '../views/viewManager.js';
 import { audioEngine } from '../services/audioEngine.js';
 import { setupPointerDrags, consumeSliderClickGuard, isSliderDragging, scheduleVolumeRepaint } from '../ui/pointerDrag.js';
 import { updateVolumeSliderVisuals, updateBpmSliderVisuals } from '../ui/sliderVisuals.js';
+import { setupMobileViewportHandling } from '../ui/mobileViewport.js';
 import { setRepetitions, REP_DISPLAY_VALUES, ACCEL_VALUES } from '../ui/mobile/dual-mode/wheelPicker.js';
 import { getValidInstrumentSteps } from '../utils/gridUtils.js';
 
@@ -548,14 +549,14 @@ export const setupMobileEvents = () => {
     });
 
     // Orientation change / resize handler
-    // Re-render when viewport dimensions change (e.g., rotation from portrait to landscape)
-    let resizeTimeout = null;
-    window.addEventListener('resize', () => {
-        // Debounce to avoid multiple rapid re-renders during rotation animation
-        if (resizeTimeout) clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(() => {
-            eventBus.emit('render');
-        }, 100);
+    // Re-render when viewport dimensions change (e.g., rotation from portrait
+    // to landscape). Orientation flips additionally reset the document scroll
+    // and close orientation-scoped popovers (see js/ui/mobileViewport.js).
+    setupMobileViewportHandling({
+        onOrientationChange: () => {
+            state.uiState.dualModePopover = null;
+            state.uiState.dualModePortraitSectionModal = false;
+        }
     });
 
     // Unified slider drag machinery (Pointer Events)

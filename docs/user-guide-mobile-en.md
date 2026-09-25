@@ -319,6 +319,7 @@ You can share and receive direct links to specific rhythms.
 3. **Use solo (portrait)** to isolate a single instrument.
 4. **Slow down with the tempo popover** for learning complex rhythms.
 5. **Explore sections** with the arrows, swipe, or the Sections chip.
+6. **Rotating closes open popovers** (BPM / Mixer / Sections); tap the chip again to reopen.
 
 ---
 

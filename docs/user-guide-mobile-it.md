@@ -319,6 +319,7 @@ Puoi condividere e ricevere link diretti a ritmi specifici.
 3. **Usa il solo (verticale)** per isolare un singolo strumento.
 4. **Rallenta con il popover del tempo** per imparare ritmi complessi.
 5. **Esplora le sezioni** con le frecce, lo swipe o la chip Sezioni.
+6. **Ruotare chiude i popover aperti** (BPM / Mixer / Sezioni); tocca di nuovo la chip per riaprirli.
 
 ---
 

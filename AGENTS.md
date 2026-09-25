@@ -221,6 +221,9 @@ Use `env(safe-area-inset-*)` for notch/home-indicator avoidance, e.g. `pb-[calc(
 ### PWA: gesture prevention (critical)
 Always add `touch-action: none` to interactive elements (range sliders, custom drag surfaces) so iOS Safari doesn't hijack touches for scroll, zoom, or pull-to-refresh.
 
+### PWA: orientation changes
+Handle `orientationchange` + `visualViewport.resize`, not just `resize` (`js/ui/mobileViewport.js`): orientation flips reset the document scroll, close orientation-scoped popovers and re-render immediately plus at settle time (~350/650ms). iOS standalone keeps viewport/safe-area measurements stale for ~500ms after rotation, and the mobile shell must stay pinned (`html`/`body` overflow hidden, `#root` fixed). Never trust a single immediate re-render on rotation.
+
 ---
 
 ## 7. Verification
