@@ -221,7 +221,13 @@ export const handleToggleFolder = (target) => {
     } else {
         state.uiState.expandedFolders.add(folderPath);
     }
-    eventBus.emit('grid-refresh');
+
+    // The modal lives inside #grid-container on desktop and Classic mobile,
+    // where grid-refresh repaints it in place. Dual Mode renders it outside
+    // the grid (renderSharedModals), so refreshGrid() would be a no-op and
+    // the folder would never visibly expand — fall back to a full render.
+    const insideGrid = !!document.getElementById('grid-container');
+    eventBus.emit(insideGrid ? 'grid-refresh' : 'render');
 
     // Restore scroll position after re-render
     requestAnimationFrame(() => {

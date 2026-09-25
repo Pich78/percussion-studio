@@ -24,6 +24,23 @@ test('portrait shows control surface and toggles play', async ({ page }) => {
     await expect(play).toHaveClass(/bg-indigo-600/);
 });
 
+test('rhythm browser expands non-Batà folders in Dual Mode', async ({ page }) => {
+    await page.goto('/mobile.html');
+
+    await page.locator('[data-action="toggle-menu"]:visible').first().click();
+    await page.locator('[data-action="load-rhythm"]:visible').first().click();
+    await expect(page.getByRole('heading', { name: 'Load Rhythm' })).toBeVisible();
+
+    // Dual Mode renders the modal outside #grid-container, so expanding a
+    // folder must repaint the modal itself. Regression: it emitted
+    // grid-refresh, a no-op there, leaving the folder visibly dead.
+    await page.locator('[data-action="toggle-folder"][data-folder-path="Clave"]:visible').first().click();
+
+    await expect(
+        page.locator('[data-action="select-rhythm-confirm"][data-rhythm-id="Clave/2-3_son_clave"]:visible').first()
+    ).toBeVisible();
+});
+
 test('rhythm browser back buttons return to menu and Batà list', async ({ page }) => {
     await page.goto('/mobile.html');
 
