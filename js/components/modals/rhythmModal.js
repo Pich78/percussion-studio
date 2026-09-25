@@ -115,7 +115,7 @@ export const RhythmModal = (uiState, isMobile = false) => {
           <div class="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl max-w-lg w-full flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
               <div class="p-4 border-b border-gray-800 flex justify-between items-center bg-gray-950">
                   <div class="flex items-center gap-1">
-                      ${isMobile ? `
+                      ${isMobile && uiState.rhythmBrowserOrigin === 'menu' ? `
                       <button data-action="back-to-menu" aria-label="Back to menu" class="p-1 -ml-1 text-gray-400 hover:text-white">
                           ${ChevronRightIcon('w-6 h-6 rotate-180 pointer-events-none')}
                       </button>` : ''}

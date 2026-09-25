@@ -42,7 +42,7 @@ L'interfaccia desktop è composta da quattro aree principali:
 |----------|-------------|
 | **Menu Hamburger (☰)** | Operazioni sui file, opzioni di editing e guida utente |
 | **Titolo** | Mostra "Percussion Studio" |
-| **Info Ritmo** | Nome del ritmo corrente, nome della sezione attiva e badge ripetizioni |
+| **Info Ritmo** | Nome del ritmo corrente, nome della sezione attiva e badge ripetizioni. **Clicca il nome del ritmo per aprire direttamente il browser dei ritmi** (un passo — la voce nel menu qui sotto funziona ancora) |
 | **BPM Live** | Tempo effettivo durante la riproduzione (verde quando suona, riflette l'accelerazione) |
 | **Mixer (🎚)** | Apre il mixer per volume/mute per strumento |
 | **Slider BPM Globale** | Regola il tempo base (40-240 BPM) |
@@ -82,7 +82,7 @@ Clicca l'icona **☰** in alto a sinistra per accedere a:
 | Opzione | Descrizione |
 |---------|-------------|
 | **Nuovo Ritmo** | Crea un nuovo ritmo vuoto (chiede conferma; le modifiche non salvate andranno perse) |
-| **Carica Ritmo...** | Apre il browser dei ritmi (albero cartelle + Batà Explorer) |
+| **Carica Ritmo...** | Apre il browser dei ritmi (albero cartelle + Batà Explorer). Suggerimento: cliccare il nome del ritmo nell'intestazione fa lo stesso in un passo |
 | **Scarica Ritmo** | Salva il ritmo corrente come file YAML sul tuo computer |
 | **Condividi Ritmo** | Copia un link condivisibile (solo per ritmi della libreria, vedi [Link Condivisibili](#link-condivisibili)) |
 | **Opzioni di Editing** | Configura come dipingere i colpi (vedi [Modalità di Editing](#modalità-di-editing)) |
@@ -96,16 +96,17 @@ Clicca l'icona **☰** in alto a sinistra per accedere a:
 
 ### Browser Ritmi (ritmi non Batà)
 
-1. Clicca **Carica Ritmo...** per aprire il browser.
-2. Naviga nell'albero delle cartelle — clicca ▶ per espandere le cartelle.
-3. Clicca sul nome di un ritmo per caricarlo.
-4. **File Locali**: clicca **Carica da PC** per aprire un file `.yaml` dal tuo computer.
+1. Clicca il **nome del ritmo** nell'intestazione per aprire direttamente il browser — un passo. (**☰ → Carica Ritmo...** resta disponibile come alternativa.)
+2. La cartella che contiene il ritmo corrente si apre già espansa, così i ritmi vicini sono a un clic.
+3. Naviga nell'albero delle cartelle — clicca ▶ per espandere le altre cartelle.
+4. Clicca sul nome di un ritmo per caricarlo.
+5. **File Locali**: clicca **Carica da PC** per aprire un file `.yaml` dal tuo computer.
 
 ### Batà Explorer
 
 I toques Batà hanno un browser dedicato con ricerca e filtri:
 
-1. Apri **Carica Ritmo...** — le famiglie Batà appaiono come schede.
+1. Apri il browser (clicca il **nome del ritmo** nell'intestazione, oppure **☰ → Carica Ritmo...**) e clicca **Batà** — le famiglie Batà appaiono come schede.
 2. Usa la **barra di ricerca** per trovare un toque per nome, famiglia o variazione.
 3. Usa i filtri a tendina **Orisha** e **Classificazione** (Specific, Shared, Generic). Quando un filtro Orisha è attivo, i risultati sono organizzati in zone colorate.
 4. Clicca una scheda famiglia per aprire i dettagli (badge classificazione, Orishas associati, variazioni disponibili).

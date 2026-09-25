@@ -42,7 +42,7 @@ The desktop interface consists of four main areas:
 |---------|-------------|
 | **Hamburger Menu (☰)** | File operations, editing options, and user guide |
 | **Title** | Shows "Percussion Studio" |
-| **Rhythm Info** | Current rhythm name, active section name, and repetition badge |
+| **Rhythm Info** | Current rhythm name, active section name, and repetition badge. **Click the rhythm name to open the rhythm browser directly** (one step — the menu entry below still works) |
 | **Live BPM** | Actual tempo during playback (green while playing, reflects acceleration) |
 | **Mixer (🎚)** | Opens the per-instrument volume/mute mixer modal |
 | **Global BPM Slider** | Adjust the base tempo (40-240 BPM) |
@@ -82,7 +82,7 @@ Click the **☰** icon in the top-left to access:
 | Option | Description |
 |--------|-------------|
 | **New Rhythm** | Create a new empty rhythm (asks for confirmation; unsaved changes are lost) |
-| **Load Rhythm...** | Open the rhythm browser (folder tree + Batà Explorer) |
+| **Load Rhythm...** | Open the rhythm browser (folder tree + Batà Explorer). Tip: clicking the rhythm name in the header does the same in one step |
 | **Download Rhythm** | Save the current rhythm as a YAML file to your computer |
 | **Share Rhythm** | Copy a shareable link (only for library rhythms, see [Shareable Links](#shareable-links)) |
 | **Editing Options** | Configure how you paint strokes (see [Editing Modes](#editing-modes)) |
@@ -96,16 +96,17 @@ Click the **☰** icon in the top-left to access:
 
 ### Rhythm Browser (non-Batà rhythms)
 
-1. Click **Load Rhythm...** to open the browser.
-2. Navigate the folder tree — click ▶ to expand folders.
-3. Click a rhythm name to load it.
-4. **Local Files**: click **Load from PC** to open a `.yaml` file from your computer.
+1. Click the **rhythm name** in the header to open the browser directly — one step. (**☰ → Load Rhythm...** remains available as a fallback.)
+2. The folder containing the current rhythm opens already expanded, so its neighbors are one click away.
+3. Navigate the folder tree — click ▶ to expand other folders.
+4. Click a rhythm name to load it.
+5. **Local Files**: click **Load from PC** to open a `.yaml` file from your computer.
 
 ### Batà Explorer
 
 Batà toques have their own browser with search and filters:
 
-1. Open **Load Rhythm...** — Batà families appear as cards.
+1. Open the browser (click the **rhythm name** in the header, or **☰ → Load Rhythm...**) and click **Batà** — Batà families appear as cards.
 2. Use the **search bar** to find a toque by name, family, or variation.
 3. Use the **Orisha** and **Classification** filter dropdowns (Specific, Shared, Generic). When an Orisha filter is active, results are organized in colored zones.
 4. Click a family card to open its details (classification badge, associated Orishas, available variations).

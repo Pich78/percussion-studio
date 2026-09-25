@@ -23,3 +23,14 @@ test('landscape shows read-only grid and toggles play', async ({ page }) => {
     await stop.click();
     await expect(play).toHaveClass(/bg-indigo-600/);
 });
+
+test('landscape header rhythm name opens the browser in one step', async ({ page }) => {
+    await page.goto('/mobile.html');
+
+    const trigger = page.locator('#dual-mode-landscape-header [data-action="load-rhythm"]:visible').first();
+    await expect(trigger).toBeVisible();
+    await trigger.click();
+
+    await expect(page.getByRole('heading', { name: 'Load Rhythm' })).toBeVisible();
+    await expect(page.locator('[data-action="back-to-menu"]:visible')).toHaveCount(0);
+});

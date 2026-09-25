@@ -43,6 +43,20 @@ export const handleNewRhythm = () => {
  * Handle load rhythm (open modal)
  */
 export const handleLoadRhythm = () => {
+    // Origin drives the mobile back arrow: the hamburger drawer can return
+    // to the menu, a direct tap on the header rhythm name cannot.
+    state.uiState.rhythmBrowserOrigin = state.uiState.isMenuOpen ? 'menu' : 'switcher';
+
+    // Pre-expand the current rhythm's folder so its siblings are one tap away.
+    if (state.rhythmSource === 'repo' && state.currentRhythmId?.includes('/')) {
+        const parts = state.currentRhythmId.split('/');
+        let prefix = '';
+        for (let i = 0; i < parts.length - 1; i++) {
+            prefix = prefix ? `${prefix}/${parts[i]}` : parts[i];
+            state.uiState.expandedFolders.add(prefix);
+        }
+    }
+
     commit('setModal', { open: true, type: 'rhythm' });
     commit('setMenuOpen', { isOpen: false });
     eventBus.emit('render');

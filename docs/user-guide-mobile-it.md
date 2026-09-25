@@ -53,7 +53,7 @@ La barra superiore mostra:
 | Elemento | Descrizione |
 |----------|-------------|
 | **☰** | Apre il menu di navigazione |
-| **Nome ritmo** | Titolo del ritmo corrente (indaco) |
+| **Nome ritmo** | Titolo del ritmo corrente (indaco). **Toccalo per aprire direttamente il browser dei ritmi** |
 | **‹ Sezione (n/N) ›** | Pulsanti sezione precedente/successiva con nome e posizione |
 | **Badge Rep** | Ripetizione corrente (es. `2/4`), 🎲 per ripetizioni casuali, ∞ per Play Forever |
 | **Badge accel** | Accelerazione di tempo per ripetizione (↑ verde per positiva, ↓ rossa per negativa) |
@@ -126,7 +126,7 @@ In verticale il telefono diventa un player per la pratica:
 
 ### Intestazione e Info
 
-- **☰** menu e nome del ritmo.
+- **☰** menu e nome del ritmo — tocca il nome per cambiare ritmo in un passo.
 - **Nome sezione + badge Rep** (corrente/totale, 🎲 o ∞, con accel %).
 - **BPM live** — verde durante la riproduzione.
 
@@ -165,7 +165,7 @@ Tocca **☰** per aprire il menu:
 
 | Opzione | Descrizione |
 |---------|-------------|
-| **Load Rhythm** | Sfoglia e carica i ritmi (albero cartelle + Batà Explorer) |
+| **Load Rhythm** | Sfoglia e carica i ritmi (albero cartelle + Batà Explorer). Suggerimento: toccare il nome del ritmo nell'intestazione fa lo stesso in un passo |
 | **Show Structure** | Vista in sola lettura di tutte le sezioni — tocca una sezione per saltarci |
 | **View Mode** | Passa tra **Standard** (Griglia Classica) e **Dual Mode ↔** |
 | **Share Rhythm** | Condividi il ritmo corrente (share sheet del dispositivo o appunti, solo ritmi della libreria) |
@@ -173,11 +173,11 @@ Tocca **☰** per aprire il menu:
 
 ### Caricamento dei Ritmi
 
-Tocca **Load Rhythm** per aprire il browser dei ritmi:
+Tocca il **nome del ritmo** nell'intestazione (barra superiore in orizzontale o intestazione in verticale) per aprire direttamente il browser dei ritmi in un passo — oppure usa **☰ → Load Rhythm**.
 
-1. Tocca una cartella (**Clave**, **tests**) per espanderla, poi tocca un ritmo per caricarlo.
+1. La cartella che contiene il ritmo corrente si apre già espansa; tocca un ritmo per caricarlo. Tocca una cartella (**Clave**, **tests**) per espanderla/richiuderla.
 2. Tocca **Batà** per aprire il Batà Explorer con ricerca e filtri.
-3. La freccia **←** nell'intestazione del browser torna al menu — nel Batà Explorer torna all'elenco delle cartelle. **✕** / **Cancel** chiude il browser alla schermata principale.
+3. La freccia **←** appare solo quando il browser è stato aperto dal menu e vi ritorna — nel Batà Explorer torna all'elenco delle cartelle. **✕** / **Cancel** chiude il browser alla schermata principale.
 
 ---
 

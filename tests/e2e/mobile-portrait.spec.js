@@ -28,7 +28,7 @@ test('rhythm browser expands non-Batà folders in Dual Mode', async ({ page }) =
     await page.goto('/mobile.html');
 
     await page.locator('[data-action="toggle-menu"]:visible').first().click();
-    await page.locator('[data-action="load-rhythm"]:visible').first().click();
+    await page.locator('nav [data-action="load-rhythm"]:visible').first().click();
     await expect(page.getByRole('heading', { name: 'Load Rhythm' })).toBeVisible();
 
     // Dual Mode renders the modal outside #grid-container, so expanding a
@@ -46,12 +46,12 @@ test('rhythm browser back buttons return to menu and Batà list', async ({ page 
 
     // Load Rhythm → back arrow returns to the hamburger menu.
     await page.locator('[data-action="toggle-menu"]:visible').first().click();
-    await page.locator('[data-action="load-rhythm"]:visible').first().click();
+    await page.locator('nav [data-action="load-rhythm"]:visible').first().click();
     await page.locator('[data-action="back-to-menu"]:visible').first().click();
-    await expect(page.locator('[data-action="load-rhythm"]:visible').first()).toBeVisible();
+    await expect(page.locator('nav [data-action="load-rhythm"]:visible').first()).toBeVisible();
 
     // Load Rhythm → Batà → back arrow returns to the folder list.
-    await page.locator('[data-action="load-rhythm"]:visible').first().click();
+    await page.locator('nav [data-action="load-rhythm"]:visible').first().click();
     await page.locator('[data-action="toggle-folder"]:visible', { hasText: 'Batà' }).first().click();
     await page.locator('[data-action="back-to-rhythm-list"]:visible').first().click();
     await expect(page.getByRole('heading', { name: 'Load Rhythm' })).toBeVisible();
@@ -61,7 +61,7 @@ test('Batà Explorer filters stay reachable in portrait', async ({ page }) => {
     await page.goto('/mobile.html');
 
     await page.locator('[data-action="toggle-menu"]:visible').first().click();
-    await page.locator('[data-action="load-rhythm"]:visible').first().click();
+    await page.locator('nav [data-action="load-rhythm"]:visible').first().click();
     await page.locator('[data-action="toggle-folder"]:visible', { hasText: 'Batà' }).first().click();
 
     // The explorer back arrow must not push the filter controls (or the
@@ -82,6 +82,26 @@ test('Batà Explorer filters stay reachable in portrait', async ({ page }) => {
     await orisha.click();
     await type.click();
     await expect(page.locator('[data-action="toggle-type-filter"]:visible').first()).toBeInViewport({ ratio: 1 });
+});
+
+test('tapping the header rhythm name opens the browser in one step', async ({ page }) => {
+    await page.goto('/mobile.html?rhythm=' + encodeURIComponent('Clave/2-3_son_clave'));
+
+    // The rhythm name in the portrait header is the direct switcher trigger.
+    const trigger = page.locator('header [data-action="load-rhythm"]:visible').first();
+    await expect(trigger).toBeVisible();
+    await trigger.click();
+
+    await expect(page.getByRole('heading', { name: 'Load Rhythm' })).toBeVisible();
+
+    // Opened from the switcher, not the menu: no back-to-menu arrow.
+    await expect(page.locator('[data-action="back-to-menu"]:visible')).toHaveCount(0);
+
+    // The current rhythm's folder is pre-expanded, so its entry is visible
+    // without tapping the folder first.
+    await expect(
+        page.locator('[data-action="select-rhythm-confirm"][data-rhythm-id="Clave/2-3_son_clave"]:visible').first()
+    ).toBeVisible();
 });
 
 test('random-reps toggle writes canonical randomRepetitions field', async ({ page }) => {

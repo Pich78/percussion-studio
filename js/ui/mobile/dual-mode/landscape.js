@@ -2,6 +2,7 @@ import { state, playback } from '../../../store.js';
 import { calculateMobileCellSize } from '../standard/layout.js';
 import { DualModeMeasureRenderer } from './dualModeMeasureRenderer.js';
 import { SectionSettings } from '../../../components/grid/sectionSettings.js';
+import { RhythmSwitcherButton } from '../../../components/rhythmSwitcherButton.js';
 import { Bars3Icon } from '../../../icons/bars3Icon.js';
 import { StopIcon } from '../../../icons/stopIcon.js';
 import { PlayIcon } from '../../../icons/playIcon.js';
@@ -91,7 +92,12 @@ const renderLandscapeTopBar = (activeSection) => {
         </button>
 
         <!-- Track Name -->
-        <span class="text-sm font-bold text-indigo-400 truncate flex-shrink-0 max-w-[120px]">${state.toque.name}</span>
+        ${RhythmSwitcherButton({
+            name: state.toque.name,
+            textClass: 'text-sm font-bold text-indigo-400 truncate',
+            chevronClass: 'text-indigo-400/60',
+            className: 'flex-shrink-0 max-w-[150px]'
+        })}
 
         <span class="text-gray-700 flex-shrink-0">﹒</span>
 

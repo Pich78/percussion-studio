@@ -53,7 +53,7 @@ The top bar shows:
 | Element | Description |
 |---------|-------------|
 | **☰** | Opens the navigation menu |
-| **Rhythm name** | Current rhythm title (indigo) |
+| **Rhythm name** | Current rhythm title (indigo). **Tap it to open the rhythm browser directly** |
 | **‹ Section (n/N) ›** | Previous/next section buttons with the section name and position |
 | **Rep badge** | Current repetition (e.g. `2/4`), 🎲 for random repetitions, ∞ for Play Forever |
 | **Accel badge** | Tempo acceleration per repetition (↑ green for positive, ↓ red for negative) |
@@ -126,7 +126,7 @@ In portrait, the phone becomes a practice player:
 
 ### Header & Info
 
-- **☰** menu and rhythm name.
+- **☰** menu and rhythm name — tap the name to switch rhythm in one step.
 - **Section name + Rep badge** (current/total, 🎲 or ∞, with accel %).
 - **Live BPM** — green while playing.
 
@@ -165,7 +165,7 @@ Tap **☰** to open the menu:
 
 | Option | Description |
 |--------|-------------|
-| **Load Rhythm** | Browse and load rhythms (folder tree + Batà Explorer) |
+| **Load Rhythm** | Browse and load rhythms (folder tree + Batà Explorer). Tip: tapping the rhythm name in the header does the same in one step |
 | **Show Structure** | Read-only view of all sections — tap a section to jump to it |
 | **View Mode** | Switch between **Standard** (Classic Grid) and **Dual Mode ↔** |
 | **Share Rhythm** | Share the current rhythm (device share sheet or clipboard, library rhythms only) |
@@ -173,11 +173,11 @@ Tap **☰** to open the menu:
 
 ### Loading Rhythms
 
-Tap **Load Rhythm** to open the rhythm browser:
+Tap the **rhythm name** in the header (landscape top bar or portrait header) to open the rhythm browser directly in one step — or use **☰ → Load Rhythm**.
 
-1. Tap a folder (**Clave**, **tests**) to expand it, then tap a rhythm to load it.
+1. The folder containing the current rhythm opens already expanded; tap a rhythm to load it. Tap a folder (**Clave**, **tests**) to expand/collapse it.
 2. Tap **Batà** to open the Batà Explorer with search and filters.
-3. The **←** back arrow in the browser header returns to the menu — in the Batà Explorer it returns to the folder list. **✕** / **Cancel** closes the browser to the main screen.
+3. The **←** back arrow appears only when the browser was opened from the menu and returns to it — in the Batà Explorer it returns to the folder list. **✕** / **Cancel** closes the browser to the main screen.
 
 ---
 

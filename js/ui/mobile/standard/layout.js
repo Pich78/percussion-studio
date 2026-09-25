@@ -13,6 +13,7 @@ import { BataExplorerModal } from '../../../components/bataExplorerModal.js';
 import { viewManager } from '../../../views/viewManager.js';
 import { ViewModeModal } from '../../../components/viewModeModal.js';
 import { MobileMenuPanel } from '../../../components/mobileMenuPanel.js';
+import { RhythmSwitcherButton } from '../../../components/rhythmSwitcherButton.js';
 
 const renderHeader = (activeSection) => {
   const sections = state.toque.sections;
@@ -32,7 +33,11 @@ const renderHeader = (activeSection) => {
         <!-- Center: Section Info & Status -->
         <div class="flex items-center justify-center flex-1 min-w-0 gap-2 overflow-visible">
              <!-- Rhythm and Section Names -->
-             <span class="text-sm font-bold text-amber-400 truncate">${state.toque.name}</span>
+             ${RhythmSwitcherButton({
+               name: state.toque.name,
+               textClass: 'text-sm font-bold text-amber-400 truncate',
+               chevronClass: 'text-amber-500/60'
+             })}
              <span class="text-gray-600 text-sm">/</span>
              <!-- Section Dropdown Trigger -->
              <div class="relative flex items-center min-w-0">

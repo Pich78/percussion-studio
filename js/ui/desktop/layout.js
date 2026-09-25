@@ -11,6 +11,7 @@ import { StopIcon } from '../../icons/stopIcon.js';
 import { PlayIcon } from '../../icons/playIcon.js';
 import { PauseIcon } from '../../icons/pauseIcon.js';
 import { BataExplorerModal } from '../../components/bataExplorerModal.js';
+import { RhythmSwitcherButton } from '../../components/rhythmSwitcherButton.js';
 import { PieMenu } from '../../components/pieMenu.js';
 import { EditingOptionsModal } from '../../components/editingOptionsModal.js';
 import { renderMixerModal } from './mixerModal.js';
@@ -74,7 +75,11 @@ const renderHeader = () => {
         <h1 class="text-xl font-bold text-gray-100 whitespace-nowrap hidden sm:block">Percussion Studio</h1>
         <div class="h-6 w-px bg-gray-800 hidden sm:block"></div>
          <div class="flex items-center gap-3 min-w-0 overflow-hidden flex-1">
-            <span class="text-amber-400 font-bold text-lg truncate whitespace-nowrap">${state.toque.name}</span>
+            ${RhythmSwitcherButton({
+              name: state.toque.name,
+              textClass: 'text-amber-400 font-bold text-lg truncate whitespace-nowrap',
+              chevronClass: 'text-amber-500/60'
+            })}
             <span class="text-gray-600">/</span>
             <span class="text-gray-200 font-bold text-lg truncate whitespace-nowrap">${activeSection.name}</span>
              <div class="flex items-center gap-1 ml-2 bg-gray-900 px-2 py-0.5 rounded border border-gray-800 flex-shrink-0">

@@ -62,6 +62,9 @@ export const state = {
         isLoadingRhythm: false, // True when rhythm is being loaded
         loadingRhythmName: null, // Name of the rhythm being loaded
         expandedFolders: new Set(), // Tracks which rhythm folders are expanded
+        // Where the rhythm browser was opened from: 'menu' (hamburger) or
+        // 'switcher' (header rhythm name). Controls the mobile back arrow.
+        rhythmBrowserOrigin: null,
         userGuideSubmenuOpen: false, // Tracks if user guide language submenu is open
         userGuideContent: null, // Loaded markdown content for user guide modal
         userGuideLanguage: null, // 'en' | 'it' - currently selected language

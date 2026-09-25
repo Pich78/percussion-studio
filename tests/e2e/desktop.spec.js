@@ -24,6 +24,24 @@ test('desktop grid renders and play/stop toggles state', async ({ page }) => {
     await expect(play).toHaveClass(/bg-green-600/);
 });
 
+test('header rhythm name opens the browser in one step', async ({ page }) => {
+    await page.goto('/desktop.html?rhythm=' + encodeURIComponent('Clave/2-3_son_clave'));
+    await expect(page.locator('#grid-container')).toBeVisible();
+
+    // The header rhythm name is the direct switcher trigger.
+    const trigger = page.locator('header [data-action="load-rhythm"]').first();
+    await expect(trigger).toBeVisible();
+    await trigger.click();
+
+    await expect(page.getByRole('heading', { name: 'Load Rhythm' })).toBeVisible();
+
+    // The current rhythm's folder is pre-expanded, so its entry is visible
+    // without expanding Clave first.
+    await expect(
+        page.locator('[data-action="select-rhythm-confirm"][data-rhythm-id="Clave/2-3_son_clave"]:visible').first()
+    ).toBeVisible();
+});
+
 test('static playhead parks in the paused measure across re-renders', async ({ page }) => {
     // Eni So has 2 measures per section — pausing beyond measure 0 is possible.
     // Go straight to desktop.html: index.html's mode redirect drops ?rhythm=.

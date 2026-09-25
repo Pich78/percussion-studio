@@ -1,6 +1,7 @@
 import { state, playback } from '../../../store.js';
 import { trackMixer } from '../../../services/trackMixer.js';
 import { getMixVolume, isInstrumentMuted } from '../../../store/stateSelectors.js';
+import { RhythmSwitcherButton } from '../../../components/rhythmSwitcherButton.js';
 import { Bars3Icon } from '../../../icons/bars3Icon.js';
 import { StopIcon } from '../../../icons/stopIcon.js';
 import { PlayIcon } from '../../../icons/playIcon.js';
@@ -42,7 +43,12 @@ const renderPortraitHeader = () => `
                    ${state.uiState.isMenuOpen ? 'bg-gray-800 text-white' : ''}">
             ${Bars3Icon('w-6 h-6 pointer-events-none')}
         </button>
-        <span class="text-base font-bold text-indigo-400 truncate">${state.toque.name}</span>
+        ${RhythmSwitcherButton({
+            name: state.toque.name,
+            textClass: 'text-base font-bold text-indigo-400 truncate max-w-[220px]',
+            chevronClass: 'text-indigo-400/60',
+            className: 'min-w-0'
+        })}
     </header>`;
 
 const renderPortraitInfoRow = (activeSection) => `
