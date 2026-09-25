@@ -1,3 +1,4 @@
+import hashlib
 import os
 import json
 import yaml  # pip install pyyaml
@@ -8,7 +9,16 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Configuration
 DATA_DIR = os.path.join(REPO_ROOT, "data")
 MANIFEST_FILE = os.path.join(REPO_ROOT, "manifest.json")
+PRECACHE_FILE = os.path.join(REPO_ROOT, "precache.json")
 DEFAULT_RHYTHM = "Batà/Yakota/yakota_-_base"
+
+# Service worker snapshot contents (repo-root relative).
+# `sw.js` and `precache.json` are deliberately excluded: the browser updates
+# the worker script itself, and precache.json is the version descriptor.
+PRECACHE_STATIC = ["index.html", "mobile.html", "desktop.html", "favicon.svg", "manifest.json"]
+PRECACHE_DIRS = ["js", "data", "icons"]
+PRECACHE_DOC_PREFIX = "user-guide-"
+PRECACHE_DOC_SUFFIX = ".md"
 
 # Batà Metadata Constants
 BATA_METADATA_FILE = os.path.join(DATA_DIR, "rhythms/Batà/bata_metadata.json")
@@ -247,6 +257,74 @@ def generate_bata_metadata(rhythms_map):
     print(f"   - Batà Rhythms Found: {count}")
 
 
+def sha256_file(path):
+    """Hex SHA-256 of a file's bytes (chunked so large WAVs stay cheap)."""
+    digest = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def collect_precache_paths():
+    """Repo-root-relative paths that make up the offline app snapshot."""
+    paths = set()
+
+    for rel in PRECACHE_STATIC:
+        if os.path.isfile(os.path.join(REPO_ROOT, rel)):
+            paths.add(rel)
+
+    for rel_dir in PRECACHE_DIRS:
+        base = os.path.join(REPO_ROOT, rel_dir)
+        if not os.path.isdir(base):
+            continue
+        for root, dirs, files in os.walk(base):
+            dirs[:] = [d for d in dirs if not d.startswith(".")]
+            for f in files:
+                if f.startswith("."):
+                    continue
+                paths.add(rel_path(os.path.join(root, f)))
+
+    docs_dir = os.path.join(REPO_ROOT, "docs")
+    if os.path.isdir(docs_dir):
+        for f in os.listdir(docs_dir):
+            if f.startswith(PRECACHE_DOC_PREFIX) and f.endswith(PRECACHE_DOC_SUFFIX):
+                paths.add(f"docs/{f}")
+
+    paths.discard("precache.json")
+    paths.discard("sw.js")
+    return sorted(paths)
+
+
+def generate_precache():
+    """Writes precache.json: the atomic app snapshot descriptor.
+
+    `version` is a content hash over every asset hash, so it changes iff any
+    shipped file changes. The service worker downloads/verifies exactly this
+    list and only then activates the new version (see sw.js).
+    """
+    assets = []
+    for rel in collect_precache_paths():
+        full_path = os.path.join(REPO_ROOT, rel)
+        assets.append(
+            {
+                "path": rel,
+                "hash": sha256_file(full_path),
+                "size": os.path.getsize(full_path),
+            }
+        )
+
+    version_source = "\n".join(f"{a['path']}:{a['hash']}" for a in assets)
+    version = hashlib.sha256(version_source.encode("utf-8")).hexdigest()
+
+    with open(PRECACHE_FILE, "w", encoding="utf-8") as f:
+        json.dump({"version": version, "assets": assets}, f, indent=2, ensure_ascii=False)
+
+    print(f"Generated {PRECACHE_FILE}")
+    print(f"   - Version: {version[:12]}...")
+    print(f"   - Assets:  {len(assets)}")
+
+
 def generate():
     rhythms = scan_rhythms()
     instruments = scan_instrument_sounds()
@@ -264,8 +342,12 @@ def generate():
     print(f"   - Instruments: {len(manifest['instruments'])}")
     print(f"   - Rhythms:     {len(manifest['rhythms'])}")
 
-    # Generate Batà specific metadata
+    # Generate Batà specific metadata (must run before the precache so the
+    # rewritten bata_metadata.json makes it into the snapshot hash).
     generate_bata_metadata(rhythms)
+
+    # Generate the atomic offline snapshot descriptor
+    generate_precache()
 
 
 if __name__ == "__main__":

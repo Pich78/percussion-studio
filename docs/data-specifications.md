@@ -180,7 +180,7 @@ Dynamics strings follow the same separator and resolution rules as pattern strin
 To enable file discovery without server-side logic, a `manifest.json` must be present at the root.
 
 **Generation:**
-Run the `tools/generate_manifest.py` script before deploying or committing changes (regenerates both the manifest and the Batà metadata).
+Run the `tools/generate_manifest.py` script before deploying or committing changes. It regenerates the manifest, the Batà metadata and the offline snapshot descriptor `precache.json` (version + per-asset hashes consumed by `sw.js` — see `docs/requirements/offline-updates.md`); commit all three.
 
 **Structure:**
 *   **instruments:** Maps Symbol to an object with:

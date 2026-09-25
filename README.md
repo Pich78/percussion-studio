@@ -50,7 +50,10 @@ percussion-studio/
 ├── desktop.html            # Desktop interface
 ├── mobile.html             # Mobile interface
 ├── manifest.json           # Auto-generated resource registry
+├── precache.json           # Auto-generated offline snapshot (SW version + hashes)
+├── sw.js                   # Service worker: atomic offline cache/updates
 ├── js/                     # Application source code
+│   └── vendor/             # Vendored browser deps (js-yaml, Tailwind)
 ├── data/                   # All content data
 │   ├── instruments/        # Instrument definitions
 │   ├── sounds/             # Instrument sound folders (WAV files)

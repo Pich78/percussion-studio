@@ -1,7 +1,9 @@
 /* 
   js/services/dataLoader.js
   Handles fetching and parsing of YAML data files based on the Manifest.
-  Requires: js-yaml library loaded in index.html (window.jsyaml)
+  Requires: js-yaml loaded by the HTML shells as window.jsyaml — vendored at
+  js/vendor/js-yaml-4.1.0.min.js so it is part of the offline service-worker
+  snapshot (see docs/requirements/offline-updates.md).
 */
 
 class DataLoaderService {

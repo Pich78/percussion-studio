@@ -12,10 +12,11 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
 
-    <!-- YAML Parser Library (Required for Data Loading) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
+    <!-- Vendored dependencies: same files previously loaded from CDNs, kept
+         local so the app boots offline from the service worker snapshot. -->
+    <script src="./js/vendor/js-yaml-4.1.0.min.js"></script>
 
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="./js/vendor/tailwind-play-3.4.17.js"></script>
     <script>
         tailwind.config = {
             theme: {

@@ -15,6 +15,8 @@ import { dataLoader } from './services/dataLoader.js';
 import { actions } from './actions.js';
 import { initStrokeCursors, updateGlobalCursor } from './utils/strokeCursors.js';
 import { state } from './store.js';
+import { eventBus } from './services/eventBus.js';
+import { isSliderDragging } from './ui/pointerDrag.js';
 
 // ─── View Registration ──────────────────────────────────────────────────────
 // Register all available views. New views can be added here.
@@ -36,10 +38,75 @@ setViewProvider(viewManager);
 window.actions = actions;
 window.dataLoader = dataLoader;
 
+/**
+ * Register the atomic offline service worker (sw.js) and reload when a new
+ * verified snapshot becomes available.
+ *
+ * - Registration is skipped on localhost/127.0.0.1 (the dev server serves
+ *   no-cache) unless `?sw=1` is present, which the E2E suite uses.
+ * - Reloads are deferred while audio is playing or a slider drag is in
+ *   flight, so a swap never interrupts a session (docs/requirements/
+ *   offline-updates.md).
+ * - Every step is best-effort: without service worker support (or if
+ *   anything fails) the app behaves exactly as before.
+ */
+const setupServiceWorker = () => {
+    if (!('serviceWorker' in navigator)) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const isLocalDev = window.location.hostname === 'localhost'
+        || window.location.hostname === '127.0.0.1';
+    if (isLocalDev && !params.has('sw')) return;
+
+    let pendingReload = false;
+    let wasControlled = !!navigator.serviceWorker.controller;
+
+    const tryReload = () => {
+        if (!pendingReload) return;
+        if (state.isPlaying || isSliderDragging()) return;
+        pendingReload = false;
+        window.location.reload();
+    };
+
+    navigator.serviceWorker.addEventListener('message', (event) => {
+        if (event.data?.type === 'app-version-ready') {
+            pendingReload = true;
+            tryReload();
+        }
+    });
+
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+        // The first claim (initial install) needs no reload: the page already
+        // runs the current bundle. Later controller swaps mean a new worker
+        // took over an old one.
+        if (!wasControlled) {
+            wasControlled = true;
+            return;
+        }
+        pendingReload = true;
+        tryReload();
+    });
+
+    // Stopping playback emits 'render'; retry deferred reloads on the next
+    // foreground moment too.
+    eventBus.on('render', tryReload);
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') tryReload();
+    });
+
+    navigator.serviceWorker.register('./sw.js').catch((error) => {
+        console.warn('[ServiceWorker] registration failed:', error);
+    });
+};
+
 const init = async () => {
     // 1. Setup global event listeners (Event Delegation)
     // We do this first so the UI is responsive as soon as it renders.
     setupEventListeners();
+
+    // Offline snapshot installation is independent of startup; it runs after
+    // the UI is wired so a slow first build can never delay the app.
+    setupServiceWorker();
 
     // 2. Initialize Data Layer (Fetch manifest.json)
     try {

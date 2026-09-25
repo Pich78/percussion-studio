@@ -98,12 +98,18 @@ From the repository root:
 python3 tools/generate_manifest.py
 ```
 
-This regenerates `manifest.json` (and the Batà metadata). The generator:
+This regenerates `manifest.json`, the Batà metadata and the offline snapshot
+descriptor `precache.json` (version + per-asset SHA-256 for the service
+worker — see `docs/requirements/offline-updates.md`). The generator:
 
 1. Scans `data/instruments/` for instrument definitions
 2. Scans `data/sounds/{name}/` for WAV files
 3. Parses each filename to build the pack → letter → wav mapping
 4. Writes the new manifest
+5. Hashes every shipped asset and writes `precache.json`
+
+Commit all three generated files together (`manifest.json`,
+`data/rhythms/Batà/bata_metadata.json`, `precache.json`).
 
 You can also run `python3 launch_local.py` to regenerate and serve the app locally on port 8000.
 
@@ -123,4 +129,5 @@ These are UI conveniences; the manifest alone is enough for data discovery.
 - [ ] WAV files follow `{SYMBOL}.{sound}.{pack}.wav`
 - [ ] (If needed) SVG icons exist in `data/assets/icons/`
 - [ ] `python3 tools/generate_manifest.py` ran successfully
+- [ ] `manifest.json` and `precache.json` committed (the snapshot version changed)
 - [ ] Instrument appears in the manifest under `instruments`

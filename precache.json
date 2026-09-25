@@ -1,0 +1,1070 @@
+{
+  "version": "02d8357461dc0a6ab36d9645f5fabcbc624df600d6dd6559aac7f1757e4d2e1d",
+  "assets": [
+    {
+      "path": "data/assets/icons/bass.svg",
+      "hash": "b1bea47ba0fd02032f775955ba0915795ec3f6ef34c2bace38b4905ff19daf31",
+      "size": 278
+    },
+    {
+      "path": "data/assets/icons/clave.svg",
+      "hash": "93cf6231d805d8cc499adc7d06ab541c36d838fd84473dd7b64382f8210898a9",
+      "size": 395
+    },
+    {
+      "path": "data/assets/icons/dedo.svg",
+      "hash": "083c6c03cc320ab0b0cd50e49fd5ab455a61988c3a695a36bca185fad720a501",
+      "size": 128
+    },
+    {
+      "path": "data/assets/icons/half_mordito.svg",
+      "hash": "14ce9ddf4d1412b8b3f7023380b7398bf6a261344554231432998ce841f05471",
+      "size": 723
+    },
+    {
+      "path": "data/assets/icons/mordito.svg",
+      "hash": "8948502d1850d84712ec54f6be4831680016c10efe31b0fb64d309724bf5e124",
+      "size": 239
+    },
+    {
+      "path": "data/assets/icons/muff.svg",
+      "hash": "c8e90a7652a8997c8da0009bd05fba5f20faaaf6f132fca858561f4262efb035",
+      "size": 247
+    },
+    {
+      "path": "data/assets/icons/not_allowed.svg",
+      "hash": "a62620e23b696d1f0b2c6195409632c122c50b9262363b9249fa87b7a718c96c",
+      "size": 245
+    },
+    {
+      "path": "data/assets/icons/open.svg",
+      "hash": "9d9569f01f87d03e4e9c37886eca3903f09069bdb09f0af97f20e9e0a12e1df9",
+      "size": 147
+    },
+    {
+      "path": "data/assets/icons/presionado.svg",
+      "hash": "62eae99376c5e681bc826ed62201896d796e0140044bdf2473f7268b6a25dfa1",
+      "size": 563
+    },
+    {
+      "path": "data/assets/icons/rest.svg",
+      "hash": "9a990ba977f6a9f8986b0b1a6b0a41a8c5f38067322f342b64f405764f7e6c90",
+      "size": 225
+    },
+    {
+      "path": "data/assets/icons/slap.svg",
+      "hash": "944fc8b19f0c79da670c035d82ed056224a17151b3c1139c15b8bcdecf936c13",
+      "size": 171
+    },
+    {
+      "path": "data/instruments/CLV.yaml",
+      "hash": "9c38bde1f707303a95e43a92c064c3cea413548e46462598e842ffe24afad87f",
+      "size": 185
+    },
+    {
+      "path": "data/instruments/ITO.yaml",
+      "hash": "8370c2ae6b8e7c3fc7bada64f8eae5242bd928909a0fe09fc5d02c3b65e2b5ec",
+      "size": 431
+    },
+    {
+      "path": "data/instruments/IYA.yaml",
+      "hash": "f6d2b0209f37b1b4870655bb0bfd619857a20901cf9a6db63d511788ca357c54",
+      "size": 484
+    },
+    {
+      "path": "data/instruments/OKO.yaml",
+      "hash": "315a39815c5762bcbbc775dbb1fe3985e7a88b42f82af41afa05f7ed3d0a3dff",
+      "size": 283
+    },
+    {
+      "path": "data/rhythms/Batà/Agguere/Agguere_metadata.yaml",
+      "hash": "0780103b8fc2fffd51684c4d6137357010663558b02a19224ea617097fb9228c",
+      "size": 63
+    },
+    {
+      "path": "data/rhythms/Batà/Agguere/agguere_1_-_base.yaml",
+      "hash": "9967c0cda29dbb3ef587094b7d5435694d5b8b0e87ba84ee0df5d25c292dde1e",
+      "size": 587
+    },
+    {
+      "path": "data/rhythms/Batà/Alumbanche/Alumbanche_metadata.yaml",
+      "hash": "e3873bf3cdf59b8db81f5430acaf15ae7f6ac9296ed012c264c70ea8b2f772cb",
+      "size": 67
+    },
+    {
+      "path": "data/rhythms/Batà/Alumbanche/alumbanche_base.yaml",
+      "hash": "11a07b8f7d27cd33e2888cce684f74dbc89170ffdf0688f5725d4775b16955ec",
+      "size": 518
+    },
+    {
+      "path": "data/rhythms/Batà/Alumbanche/alumbanche_llamada_y_base.yaml",
+      "hash": "53bef8d62e1006e24315fda8446b85c1307d68799da10eb5cd6b5d9791f35636",
+      "size": 850
+    },
+    {
+      "path": "data/rhythms/Batà/Chachalokafun/Chachalokafun_metadata.yaml",
+      "hash": "0bb778281bd73ae9b23626432547490d81f2f69f9f5cd17b6d5871a3d7fefb77",
+      "size": 128
+    },
+    {
+      "path": "data/rhythms/Batà/Chachalokafun/chachalokafun_-_llamada_y_base.yaml",
+      "hash": "d953d057053892c685dd49f0a654fbec7cf095c787157b919f647c782e7aeff6",
+      "size": 1989
+    },
+    {
+      "path": "data/rhythms/Batà/Cierre de Yakota/Cierre_de_Yakota_metadata.yaml",
+      "hash": "4c60ddf37ba9ca3b147d7c7b61a3675f5e4306ad732654d9ca2e5979f052d6f1",
+      "size": 69
+    },
+    {
+      "path": "data/rhythms/Batà/Cierre de Yakota/cierre_de_yakota.yaml",
+      "hash": "0a5366f2e9a1db32de087ff619a32a7d5a5fad6f81b85313550a53fec94b987c",
+      "size": 436
+    },
+    {
+      "path": "data/rhythms/Batà/Dadà/Dadà_metadata.yaml",
+      "hash": "0a1f0867c3fa6f576888f66737d9762d4939b31c624795083c87623bedeb72e5",
+      "size": 87
+    },
+    {
+      "path": "data/rhythms/Batà/Dadà/dada_base.yaml",
+      "hash": "f435abbc07fb9e7df686d20c26d67d4f5858a880022af84f12788af1ce0c8ad3",
+      "size": 563
+    },
+    {
+      "path": "data/rhythms/Batà/Dadà/dada_y_primera_conversacion.yaml",
+      "hash": "38122893d1ccfd17bdb7c9cadfaf52580d87180b17726dc5cc32ed36d578a39f",
+      "size": 1196
+    },
+    {
+      "path": "data/rhythms/Batà/Eni So/Eni So_metadata.yaml",
+      "hash": "e9fc76b53aa4aa9ebc06c80e5509fff15ba218208faab12947d7b211500c4d37",
+      "size": 62
+    },
+    {
+      "path": "data/rhythms/Batà/Eni So/eni_so.yaml",
+      "hash": "7fdd13221b662be93871a5934aa84a9dbc86f6812658efdfe89d69bcd591b81d",
+      "size": 558
+    },
+    {
+      "path": "data/rhythms/Batà/Ewi Bami/Ewi Bami_metadata.yaml",
+      "hash": "2c4b933b35f7395c300c9970d0a7b6f33774221c612b2be6a2fee9100a53643b",
+      "size": 64
+    },
+    {
+      "path": "data/rhythms/Batà/Ewi Bami/ewi_bami.yaml",
+      "hash": "8c651a85ba8708f4dcc3d22c3a4e83acaa304606defa14e82c93716b6bbcd9d1",
+      "size": 447
+    },
+    {
+      "path": "data/rhythms/Batà/Iyama/Iyama_metadata.yaml",
+      "hash": "5bceb369d24e53c8128d1158766c9f2e0db2fabd8a418b62c84927e2733d9d94",
+      "size": 76
+    },
+    {
+      "path": "data/rhythms/Batà/Iyama/iyamà_-_base.yaml",
+      "hash": "d1fa08df8df2ba2b3b69277128c1b7b1f3d91dee16e510500b72cd960908457a",
+      "size": 405
+    },
+    {
+      "path": "data/rhythms/Batà/Iyama/iyamà_-_llamada_y_base.yaml",
+      "hash": "d30e7d1fa83a7c291171dd2ac00cd3fd761ccd79a83a271ff26a586086492c16",
+      "size": 604
+    },
+    {
+      "path": "data/rhythms/Batà/Iyama/iyamà_-_llamada_y_base_-_variante.yaml",
+      "hash": "e2942b66ce8abcc7a886fae8390910b15ffa75e3cb8863c6162ecd8ffec151c6",
+      "size": 615
+    },
+    {
+      "path": "data/rhythms/Batà/Iyesa/Iyesa_metadata.yaml",
+      "hash": "88ab495a28b29e8c11bde494a4120e3928357efd416d7749a90f54285d036a28",
+      "size": 120
+    },
+    {
+      "path": "data/rhythms/Batà/Iyesa/iyesa.yaml",
+      "hash": "7f58640cdaa0a485e9df0f4ea0adbf8dbe20d473086a0d903e49c35b476f3280",
+      "size": 1632
+    },
+    {
+      "path": "data/rhythms/Batà/Latopa/Latopa_metadata.yaml",
+      "hash": "b86cbd30d99a949a934d8c07bf0f5e16873a90d5936062cc7cb386aaca619f85",
+      "size": 63
+    },
+    {
+      "path": "data/rhythms/Batà/Latopa/latopa_2_part_base.yaml",
+      "hash": "8a4c0d93a925506ded848275232e7794e571eb3ac485918a159d4bbc4e793de9",
+      "size": 549
+    },
+    {
+      "path": "data/rhythms/Batà/Latopa/latopa_3.yaml",
+      "hash": "ec24f139042ab6246a1746a51661986c21a2c38d9a13cf7c9bb3ba09e0ea0c83",
+      "size": 561
+    },
+    {
+      "path": "data/rhythms/Batà/Latopa/latopa_base.yaml",
+      "hash": "8ff85e80fb78e704df8e20f7a27ca8f700096a223bd5b6548e79723c63768705",
+      "size": 479
+    },
+    {
+      "path": "data/rhythms/Batà/Los Guerreros/Los Guerreros_metadata.yaml",
+      "hash": "1bfceed3f908542b3ac36692f21ce0e6522cc17b6465ddee5c1ee8751bf0f695",
+      "size": 85
+    },
+    {
+      "path": "data/rhythms/Batà/Los Guerreros/los_guerreros_-_base.yaml",
+      "hash": "d4360a352f33821f3eed6c0cbe19b874b0c03c493fdfd9dd6c69158ef3db8747",
+      "size": 524
+    },
+    {
+      "path": "data/rhythms/Batà/Los Guerreros/los_guerreros_-_llamada_y_base.yaml",
+      "hash": "aa9d40bd0c37bd047d95c79ea99f334fd83940760fe4499e1b6598ad70a3fa9c",
+      "size": 723
+    },
+    {
+      "path": "data/rhythms/Batà/Oggun - Rezo/Oggun - Rezo_metadata.yaml",
+      "hash": "1c55e9aea074571900bb33ebcff8b320546d326980553aeebfa16d8cb370718c",
+      "size": 67
+    },
+    {
+      "path": "data/rhythms/Batà/Oggun - Rezo/oggun_-_rezo_-_base.yaml",
+      "hash": "b8ebaa9b90e057d974eda0b4433ee4d4540be9805379466d47ff25906e4b80e6",
+      "size": 423
+    },
+    {
+      "path": "data/rhythms/Batà/Oggun - Rezo/oggun_-_rezo_-_llamada_y_base.yaml",
+      "hash": "241911ce7c3b2896ce7afc25dd91ee28b326b8ae87d62ee4690f4840d8dc8532",
+      "size": 634
+    },
+    {
+      "path": "data/rhythms/Batà/Olokun/Olokun_metadata.yaml",
+      "hash": "277f80bc4623c1e084f8efb233d259ea2f0eb55adfb7daf8b783c494ae5984cd",
+      "size": 86
+    },
+    {
+      "path": "data/rhythms/Batà/Olokun/olokun_-_base.yaml",
+      "hash": "1b0feccbc49d67476fd4303991d3a5d4a682fee847ce82079bd716cd5ae5b766",
+      "size": 444
+    },
+    {
+      "path": "data/rhythms/Batà/Olokun/olokun_-_llamada_-_base_-_1_conversacion.yaml",
+      "hash": "3a68511f04ed2ea6a52a2db4c7bca2f19d3b208e024b4f866904bd98b59b00c6",
+      "size": 1769
+    },
+    {
+      "path": "data/rhythms/Batà/Olokun/olokun_-_llamada_-_base_-_2_conversacion.yaml",
+      "hash": "283e565dad0cedf59c9d77e13d992b8adce612ba61b071f051e2682be102cbfa",
+      "size": 3225
+    },
+    {
+      "path": "data/rhythms/Batà/Olokun/olokun_-_llamada_-_base_-_3_conversacion.yaml",
+      "hash": "23a2dab3ec60562240b81b2eec6dcdada4c2651da49dd9fde288e85f4bd563b5",
+      "size": 3225
+    },
+    {
+      "path": "data/rhythms/Batà/Olokun/olokun_-_llamada_y_base.yaml",
+      "hash": "278f36c981cf2f695ca81c274bb4208742dc51cfa6a4ced7e76e73d20cf4835e",
+      "size": 779
+    },
+    {
+      "path": "data/rhythms/Batà/Wemilere (Vuelta de Yakota)/wemilere_(vuelta_de_yakota).yaml",
+      "hash": "1896aaf3b8e5f08f11d8e5dc7a0a98c42968eda245f0b178108cb9cf6c028903",
+      "size": 653
+    },
+    {
+      "path": "data/rhythms/Batà/Wemilere (Vuelta de Yakota)/wemilere_metadata.yaml",
+      "hash": "3c846d75af14a171b716469366157fae0dc820c36dc5caeb8641a697997d447d",
+      "size": 90
+    },
+    {
+      "path": "data/rhythms/Batà/Yakota/Yakota_metadata.yaml",
+      "hash": "d08b109444658a3ebcda4fc60caeb638195e316a38e7ca39bab7a6bcac439d1d",
+      "size": 90
+    },
+    {
+      "path": "data/rhythms/Batà/Yakota/yakota_-_base.yaml",
+      "hash": "f2496a572cde31d58eb03dbe47c6a2a3fb4fb3d323fe61aaf69f4ecf948e6dc2",
+      "size": 404
+    },
+    {
+      "path": "data/rhythms/Batà/Yakota/yakota_-_llamada_y_base.yaml",
+      "hash": "76948ed0ae53636bab4bd1e0c7e7894efd77681da61b123027b4c291c74c7f75",
+      "size": 603
+    },
+    {
+      "path": "data/rhythms/Batà/bata_metadata.json",
+      "hash": "d8fd4b4ff8dc82b27784a7559d3989ad912148428e28baabe2b6ad12868cb6b4",
+      "size": 9397
+    },
+    {
+      "path": "data/rhythms/Batà/orishas.yaml",
+      "hash": "12b92079be1a94c1e63eff99573d42c321facfb96d3d633065fef108a97675eb",
+      "size": 2864
+    },
+    {
+      "path": "data/rhythms/Clave/2-3_guaguanco_clave.yaml",
+      "hash": "2f0a132143b62e74ec92e1401e82d8a14788139066053e78515075a0f0d03bd6",
+      "size": 261
+    },
+    {
+      "path": "data/rhythms/Clave/2-3_son_clave.yaml",
+      "hash": "99cb6b1b4262df2d845b60278c8196fd6b23db2981e07f66925fbbcb4aa34155",
+      "size": 255
+    },
+    {
+      "path": "data/rhythms/Clave/3-2_guaguanco_clave.yaml",
+      "hash": "d1577738343ef171c6251d2f605af133f8530a077bbd0908f9b468856c0e4890",
+      "size": 261
+    },
+    {
+      "path": "data/rhythms/Clave/3-2_son_clave.yaml",
+      "hash": "3a99746bec8afec885c5b98e60926e533468cd04ade6b05ac24b11ed4f7464a6",
+      "size": 255
+    },
+    {
+      "path": "data/rhythms/Clave/6_8_columbia_clave.yaml",
+      "hash": "165ff29d9c5938edc3e0bc32d8452d9b00f38283ae38f716590bff040f591137",
+      "size": 260
+    },
+    {
+      "path": "data/rhythms/tests/24_steps.yaml",
+      "hash": "a421ece7c10f13f95f3ecfaed6c71e4a68ede2c7392e75e64aea9cfcdfb2b135",
+      "size": 453
+    },
+    {
+      "path": "data/rhythms/tests/test_dynamics.yaml",
+      "hash": "1c9e6902bac6ffcd808fc6c3c2de1b8023c5ad50385fdbd45eb13da422629588",
+      "size": 323
+    },
+    {
+      "path": "data/rhythms/tests/test_dynamics_2.yaml",
+      "hash": "bbdbd17921f66ee61bd6a071dd5b1a0ee145c8ee5b3e80bac88841ae9a7a7be4",
+      "size": 418
+    },
+    {
+      "path": "data/sounds/clave/CLV.clave.cp.columbia.wav",
+      "hash": "8bb5c961eb3e971954bec11a4a9d3d884c8d0696c44137dc3d28c55643aa9d1e",
+      "size": 180316
+    },
+    {
+      "path": "data/sounds/clave/CLV.clave.cp.conga.wav",
+      "hash": "231aa6e571ae80dc7066f2ee3a07d9831957979308ce0356e60eb429ec3cb7d0",
+      "size": 208378
+    },
+    {
+      "path": "data/sounds/clave/CLV.clave.cp.guaguanco.wav",
+      "hash": "2a0fc95b1e8b3b008a73fc6e64af21d4727c79016b3d911304eb69570294b4e5",
+      "size": 203470
+    },
+    {
+      "path": "data/sounds/clave/CLV.clave.sg.clave.wav",
+      "hash": "84964308795842a1e592c92620500cfe70ccc6fda4af1300da18b6174cc3266e",
+      "size": 65194
+    },
+    {
+      "path": "data/sounds/clave/CLV.clave.sg.cuba.wav",
+      "hash": "ee1617033ab183cff09953f60b07ec99fc85d2643192197ff60d1484e72f5ea4",
+      "size": 117640
+    },
+    {
+      "path": "data/sounds/clave/CLV.clave.sg.ebo.wav",
+      "hash": "136882f3590e02fc0db89c23a6b4cfb41ba31f8a09eb4416cd298b19b9562d3d",
+      "size": 126214
+    },
+    {
+      "path": "data/sounds/clave/CLV.clave.sg.lp.wav",
+      "hash": "918eeed475b1b1bc6e4d8c1050abd77880101f597ebedb733a637dd95ceb6b1d",
+      "size": 109600
+    },
+    {
+      "path": "data/sounds/clave/CLV.clave.sg.traditional.wav",
+      "hash": "506a7e729e607d68c16e33f9ff70523e2b2649013bb871ee8f633a07617e1cdc",
+      "size": 65044
+    },
+    {
+      "path": "data/sounds/itotele/ito.mordito.cp.chaworo.wav",
+      "hash": "9c5b005d4b6173cc294dbe746e02c558f1f2a5403040c8edf2a8a8c78ffb1479",
+      "size": 221242
+    },
+    {
+      "path": "data/sounds/itotele/ito.mordito.cp.wav",
+      "hash": "9c5b005d4b6173cc294dbe746e02c558f1f2a5403040c8edf2a8a8c78ffb1479",
+      "size": 221242
+    },
+    {
+      "path": "data/sounds/itotele/ito.open.basic.wav",
+      "hash": "3785a73a6d3627bd9b3a73f7cbdc1a4a469523efc8c67c05cc4e30ec94ef6fc1",
+      "size": 1148892
+    },
+    {
+      "path": "data/sounds/itotele/ito.open.cp.chaworo.wav",
+      "hash": "193a47f3a0b240a6e3ee75ccc32e2b39d8069339d89ebc5add0b9efcb3e87d45",
+      "size": 263512
+    },
+    {
+      "path": "data/sounds/itotele/ito.open.cp.wav",
+      "hash": "193a47f3a0b240a6e3ee75ccc32e2b39d8069339d89ebc5add0b9efcb3e87d45",
+      "size": 263512
+    },
+    {
+      "path": "data/sounds/itotele/ito.presionado.cp.chaworo.wav",
+      "hash": "49ffc55bac82f5f225dd402a05089b3dfeb7fe7d6c0fe7149050439abbb640af",
+      "size": 217474
+    },
+    {
+      "path": "data/sounds/itotele/ito.presionado.cp.wav",
+      "hash": "49ffc55bac82f5f225dd402a05089b3dfeb7fe7d6c0fe7149050439abbb640af",
+      "size": 217474
+    },
+    {
+      "path": "data/sounds/itotele/ito.slap.basic.wav",
+      "hash": "e2a5cfe55931029c82ae08c6960a23afefbb77617e4a0a5e53838735c9eb57c4",
+      "size": 1148892
+    },
+    {
+      "path": "data/sounds/itotele/ito.slap.cp.chaworo.wav",
+      "hash": "bcfb8abc89007299fd1190893c5f00909617771b65192084f424dc331d20f5f6",
+      "size": 199642
+    },
+    {
+      "path": "data/sounds/itotele/ito.slap.cp.wav",
+      "hash": "bcfb8abc89007299fd1190893c5f00909617771b65192084f424dc331d20f5f6",
+      "size": 199642
+    },
+    {
+      "path": "data/sounds/iya/iya.mordito.cp.chaworo.wav",
+      "hash": "d34be230fe1b10ff78034abdf305b42838e4fe2041b617844184b576b023b490",
+      "size": 354358
+    },
+    {
+      "path": "data/sounds/iya/iya.muff.cp.chaworo.wav",
+      "hash": "1c47f7725156b00f0d86e23ddebfabe900fb479963970241d9787d23f9dec7d0",
+      "size": 320344
+    },
+    {
+      "path": "data/sounds/iya/iya.muff.cp.wav",
+      "hash": "a916264b98083e4bfb8efd41edebf9341d99de825137b84bc9dd62c26775b0db",
+      "size": 241870
+    },
+    {
+      "path": "data/sounds/iya/iya.open.basic.wav",
+      "hash": "95fd609a1e7e362c202d17e55289631c9d4e029bc67235504b91691f2cc8c48c",
+      "size": 1148892
+    },
+    {
+      "path": "data/sounds/iya/iya.open.cp.chaworo.wav",
+      "hash": "2ef0aa9697c474ea9262514de42a553d9382331ce7a351948633595862ffeaf2",
+      "size": 731232
+    },
+    {
+      "path": "data/sounds/iya/iya.open.cp.wav",
+      "hash": "4059fd06182b15f15d782f12dbf70693de497f45331654bb8053ab3391697ca3",
+      "size": 293656
+    },
+    {
+      "path": "data/sounds/iya/iya.slap.basic.wav",
+      "hash": "76553b30cb09375df4666bf426ee62f3804e2bb767dd675d1d2d7b83f7900c40",
+      "size": 1148892
+    },
+    {
+      "path": "data/sounds/iya/iya.slap.cp.chaworo.wav",
+      "hash": "f128f9c009ba9d7dd9439e9dfed01349bc58217a0bc52501806c65bc699a4654",
+      "size": 540738
+    },
+    {
+      "path": "data/sounds/iya/iya.slap.cp.wav",
+      "hash": "5fe0d81a0dba197bd3c1f28df8ad720ab6f5ef29ff8bc46bfc2b20e29deb465d",
+      "size": 238738
+    },
+    {
+      "path": "data/sounds/okonkolo/oko.mordito.cp.chaworo.wav",
+      "hash": "cf0f35afa3427206f95de8248530d8525ee079dea13df11dd3088eeaff88fa97",
+      "size": 218692
+    },
+    {
+      "path": "data/sounds/okonkolo/oko.mordito.cp.wav",
+      "hash": "cf0f35afa3427206f95de8248530d8525ee079dea13df11dd3088eeaff88fa97",
+      "size": 218692
+    },
+    {
+      "path": "data/sounds/okonkolo/oko.open.basic.wav",
+      "hash": "fbe3b11bd47360621605ef1242df9e5532e745e945f87508c05ec194cd565848",
+      "size": 259670
+    },
+    {
+      "path": "data/sounds/okonkolo/oko.open.cp.chaworo.wav",
+      "hash": "a1455e6bc7711422eee2f049a4ef8f3f23fb7f8810abc31bdcc4c6f52e83df1a",
+      "size": 219604
+    },
+    {
+      "path": "data/sounds/okonkolo/oko.open.cp.wav",
+      "hash": "a1455e6bc7711422eee2f049a4ef8f3f23fb7f8810abc31bdcc4c6f52e83df1a",
+      "size": 219604
+    },
+    {
+      "path": "data/sounds/okonkolo/oko.slap.basic.wav",
+      "hash": "bca36fb65d606b432713b7db7d1060f76da1205c59030a612fb4aaa4d5fd4e4a",
+      "size": 1148892
+    },
+    {
+      "path": "data/sounds/okonkolo/oko.slap.cp.chaworo.wav",
+      "hash": "9ea60d3d59d2073d28654c2aaaa6fe7c1e58b654ba2d1f4c9f917adfe4498230",
+      "size": 186100
+    },
+    {
+      "path": "data/sounds/okonkolo/oko.slap.cp.wav",
+      "hash": "9ea60d3d59d2073d28654c2aaaa6fe7c1e58b654ba2d1f4c9f917adfe4498230",
+      "size": 186100
+    },
+    {
+      "path": "desktop.html",
+      "hash": "aef5e60b7b0e789ca858977206ffc0ed8fdd2ea78722720a5843706ce88f0881",
+      "size": 4794
+    },
+    {
+      "path": "docs/user-guide-desktop-en.md",
+      "hash": "119a4d5ec1ac8a7fa43b8f72419e5e051fd050ee24c83404e2c0b0d4fda7df1c",
+      "size": 15785
+    },
+    {
+      "path": "docs/user-guide-desktop-it.md",
+      "hash": "1491f374b36619126531fe641fc534995836610e50d097ad221222bdbdb8468a",
+      "size": 17260
+    },
+    {
+      "path": "docs/user-guide-mobile-en.md",
+      "hash": "63e8ac9bf0ff33892c88ebd896ed1a883532c922576e15201fcce94ccad04662",
+      "size": 12226
+    },
+    {
+      "path": "docs/user-guide-mobile-it.md",
+      "hash": "076bc864a09e1ca45fcb7dee210bd348e652fe63a3c54b21975b14eaab7b5618",
+      "size": 13414
+    },
+    {
+      "path": "favicon.svg",
+      "hash": "845aaed47bbc60a9556dd8769855a0591afaa8156a618af82afaea087c2088da",
+      "size": 433
+    },
+    {
+      "path": "icons/icon-192.png",
+      "hash": "4a9d2649098daec41d23276d86c7dd1f3f1df2330639c56708ec7d03346d11be",
+      "size": 1139
+    },
+    {
+      "path": "index.html",
+      "hash": "646ede4ed2932dbe9fa6cea40843c50901a3e1747d3b4b36e21117c96f144c79",
+      "size": 1362
+    },
+    {
+      "path": "js/actions.js",
+      "hash": "b20ffd95f9e980d9babd36257b51477b98861776f709452be3b627195fe97faa",
+      "size": 484
+    },
+    {
+      "path": "js/actions/index.js",
+      "hash": "f010689106e45681fb3ff6d46c12252ba0e16872e053a9188773d1fd5620862c",
+      "size": 1617
+    },
+    {
+      "path": "js/actions/measureActions.js",
+      "hash": "f2f8eae63af455754ed6886cee2726dcc72d4452989902dea8be14740a527a56",
+      "size": 2442
+    },
+    {
+      "path": "js/actions/mixerActions.js",
+      "hash": "0af5d657b5ce4dcdf1b867e8a99205f245f45f8880b2863f3a0e7c9a24e91925",
+      "size": 5771
+    },
+    {
+      "path": "js/actions/rhythmActions.js",
+      "hash": "2edcd1607ef3c1d9fbc44f3b281feb475f0bd04d25843b47e95a6e46101e9749",
+      "size": 6142
+    },
+    {
+      "path": "js/actions/sectionActions.js",
+      "hash": "155a13459463f34291da708133de7d7fee23dff90832e5ca7e68f82b057fa45d",
+      "size": 2818
+    },
+    {
+      "path": "js/actions/trackActions.js",
+      "hash": "ea7fcd3067b672f1a3661a5c7cc226b2ac2fec2545ced27860d9a5dda31592a2",
+      "size": 9228
+    },
+    {
+      "path": "js/app.js",
+      "hash": "8089e740af43fcbb4a8d8f5acb5be714b777e2b39982f95b211e8cf7fc854472",
+      "size": 7824
+    },
+    {
+      "path": "js/components/bataExplorer/filterControls.js",
+      "hash": "80b9bab65efa61cec8b9f82b51d76ba8e3d40eff455662f5263d8f9abe3584a2",
+      "size": 7258
+    },
+    {
+      "path": "js/components/bataExplorer/toqueCard.js",
+      "hash": "4de3ef4332a14bb76cdc0c5fa25721e078a6c00a061dbd4ed256d91d4b5e7f23",
+      "size": 4549
+    },
+    {
+      "path": "js/components/bataExplorerModal.js",
+      "hash": "e702fd26b4b235b8406c2cf2e342c3d93e92be1ee4b1ad2c5e64e99e8d835736",
+      "size": 13593
+    },
+    {
+      "path": "js/components/controls.js",
+      "hash": "0847ef7cfcdf80797c68a8f79364ef0dc947e8536e23c61d32ee96c3747ef09b",
+      "size": 4114
+    },
+    {
+      "path": "js/components/editingOptionsModal.js",
+      "hash": "2fdd09ffd513e7084137e0b499edf84489527791ef0fce24a784d0fd0d6af40a",
+      "size": 11135
+    },
+    {
+      "path": "js/components/grid/measureRenderer.js",
+      "hash": "8a5be0fa4838f0f9e05fe79db2c07acd4288b0b1b76c5a2092a6ed77688a6ea7",
+      "size": 5364
+    },
+    {
+      "path": "js/components/grid/sectionSettings.js",
+      "hash": "2b23986c40719c2e215e633a04e6e1ce4173c65a45a80bf43fb0ab34293372cf",
+      "size": 9877
+    },
+    {
+      "path": "js/components/grid/trackRow.js",
+      "hash": "e20937a6b14e3c3097809acf799954848895333ffed127264811ed61dc0d39cc",
+      "size": 6983
+    },
+    {
+      "path": "js/components/mobileMenuPanel.js",
+      "hash": "b246be58f8a4ee759277b7cfbf6fb5f98cff126faa5da6a5466078a7268f409a",
+      "size": 9542
+    },
+    {
+      "path": "js/components/modals/instrumentModal.js",
+      "hash": "0a52bc8aad236c177a25219a7964add0ea0699e41a99ddb281afc07a095fcb14",
+      "size": 8266
+    },
+    {
+      "path": "js/components/modals/rhythmModal.js",
+      "hash": "9821dc8f28daed195735bbd73ff4b332096e9d37bdc583338603491e741965d4",
+      "size": 6774
+    },
+    {
+      "path": "js/components/pieMenu.js",
+      "hash": "66193ad514dd7688247792e9f99a66cf6b38c6d885345e963ac9967f76a9e96a",
+      "size": 5113
+    },
+    {
+      "path": "js/components/rhythmSwitcherButton.js",
+      "hash": "9bf1ae6296897303afd2f71a0838323083244cc49c0ed7633814aa63405458ed",
+      "size": 976
+    },
+    {
+      "path": "js/components/timeline.js",
+      "hash": "f565a79af320e5921b72a06dfd374d46b44094f7174a87ec9a5090c528993fc9",
+      "size": 9998
+    },
+    {
+      "path": "js/components/tubsCell.js",
+      "hash": "92a572629ec1ddba3fbd1174c1f1e0c61118cbc51bc4c8add8b2e4e706938674",
+      "size": 6605
+    },
+    {
+      "path": "js/components/tubsGrid.js",
+      "hash": "45c6d3c0f718caac216b90743630148b03335a3cf098e155957fbee129fb8e93",
+      "size": 5658
+    },
+    {
+      "path": "js/components/viewModeModal.js",
+      "hash": "aed9102f1bce3aafdf427cfe2bc51c94a5a1df3f42c1eb8e334008e588c83301",
+      "size": 4665
+    },
+    {
+      "path": "js/constants.js",
+      "hash": "e37f78b5c9b74116470b02988c52aa01aa694a2c43dd69a0729d6a4e5fb6e0bc",
+      "size": 2568
+    },
+    {
+      "path": "js/events.js",
+      "hash": "944aa8fce63134539cae1db36072edfc23b2a6cda3da038c35c6365a5dbc7ca6",
+      "size": 326
+    },
+    {
+      "path": "js/events/desktopEvents.js",
+      "hash": "4a094b662932d1067a7bf40ab588b30638ddc61b030f02c517495408c79f817c",
+      "size": 18681
+    },
+    {
+      "path": "js/events/handlers/bataExplorerEvents.js",
+      "hash": "822f61c5a4a66702c3766bbda17d50133d7d279136d5d964d3eec40016ddd1ec",
+      "size": 5476
+    },
+    {
+      "path": "js/events/handlers/gridEvents.js",
+      "hash": "adc18f374ca1cace6551824a0fc84177321d3828100ce056ff7f4cdd36994856",
+      "size": 12423
+    },
+    {
+      "path": "js/events/handlers/menuEvents.js",
+      "hash": "5d3aebaa3d55b68a925c26014ba4222521aa203bce9bce5f44cc26eaf5cba533",
+      "size": 3090
+    },
+    {
+      "path": "js/events/handlers/modalEvents.js",
+      "hash": "8fba9f062380361d7ff39178926df8c88338c17baa8647df5c2fabef28ecbf5f",
+      "size": 13387
+    },
+    {
+      "path": "js/events/handlers/pieMenuState.js",
+      "hash": "061b63c7d9c732ebcd987573ee63b91674217a39d4e36363adcf3ff55716de40",
+      "size": 3883
+    },
+    {
+      "path": "js/events/handlers/playbackEvents.js",
+      "hash": "e9dca6c72f20be4ddfe0c9e7c580f0b580785f19b3b75101ae1f9d5f7cde257c",
+      "size": 2060
+    },
+    {
+      "path": "js/events/handlers/timelineEvents.js",
+      "hash": "18f34ed43d12401cb2c86d5ba0de14b5fbb70b50a333a42d8ca5b7791009c5f9",
+      "size": 7664
+    },
+    {
+      "path": "js/events/mobileEvents.js",
+      "hash": "1ca83b8223d4389824204f4de3ae517786cea34935343569c06fb9d009fd5896",
+      "size": 23955
+    },
+    {
+      "path": "js/icons/DevicePhoneMobileIcon.js",
+      "hash": "a3ed86cba27016268cee4f08a16999f0b2c3a94aaa512b54e9392c119177310b",
+      "size": 431
+    },
+    {
+      "path": "js/icons/DeviceRotateIcon.js",
+      "hash": "0d3bdca577c04c3a782c9efd864a67a296dbe9311575cff54daab67298dbcf4f",
+      "size": 1449
+    },
+    {
+      "path": "js/icons/arrowDownTrayIcon.js",
+      "hash": "75ad9b0bb4897bb4875e31718bec5c2f231577c6eb5f1d31cba03a8bca4cfce7",
+      "size": 374
+    },
+    {
+      "path": "js/icons/arrowTrendingDownIcon.js",
+      "hash": "58e4a6a4602aa151b8447606a178f3a81f150a901daf9d40970b1940b4918c3e",
+      "size": 545
+    },
+    {
+      "path": "js/icons/arrowTrendingUpIcon.js",
+      "hash": "bf178aaf638b77c1d98116b08df655cc8a041dc9038652a443a4e11833adf848",
+      "size": 509
+    },
+    {
+      "path": "js/icons/bars3Icon.js",
+      "hash": "c44751b73aee67bfd4c4cfa2cd42326c31d9fad39485b516c5f63151c17c0a75",
+      "size": 451
+    },
+    {
+      "path": "js/icons/chartBarIcon.js",
+      "hash": "c68185add9724046c2344601fc84b2a91f5e4769b2dab3f9b469058963c9538c",
+      "size": 672
+    },
+    {
+      "path": "js/icons/chevronDownIcon.js",
+      "hash": "1ad29c7d37be7016c0efa9821d6a0ed151cc852fcd01dc03afeb3caca71050e0",
+      "size": 292
+    },
+    {
+      "path": "js/icons/chevronRightIcon.js",
+      "hash": "532c2148f44e1afe80e1589d66c83ef4883f85147dcbce69e1aaec619a398558",
+      "size": 292
+    },
+    {
+      "path": "js/icons/computerDesktopIcon.js",
+      "hash": "eaa85474a0c773ccfb70b76c4a11cad4b93f3abb2b750b78e8f5aee554e7560e",
+      "size": 570
+    },
+    {
+      "path": "js/icons/documentDuplicateIcon.js",
+      "hash": "34390eb603bbbff517187cef2d815d4f82d6dbe0ab135f9d80b8762605362e03",
+      "size": 493
+    },
+    {
+      "path": "js/icons/documentPlusIcon.js",
+      "hash": "b84112e35fba3d5ba4563e070cfe1190b9f15ea368f3aad4bc504567c6632eab",
+      "size": 710
+    },
+    {
+      "path": "js/icons/folderOpenIcon.js",
+      "hash": "91ecf984150d916d7b24d353ca463344baa7ff17c9d801cb69601ea99a995484",
+      "size": 438
+    },
+    {
+      "path": "js/icons/lockClosedIcon.js",
+      "hash": "d4b2e0630ce17a828005fe1df765a9bfe00d17904f3543a2cada9d9cb6c5cdd3",
+      "size": 405
+    },
+    {
+      "path": "js/icons/lockOpenIcon.js",
+      "hash": "9b5a70bec1a6b60807e38bcc0dbfd92fb2df2fa600e9e2da138de4b7043f7ddb",
+      "size": 374
+    },
+    {
+      "path": "js/icons/minusIcon.js",
+      "hash": "70fe17e0b96496c7cf370d08574cb9fe0859b11631c8e1d1d1f4d94f43206e76",
+      "size": 298
+    },
+    {
+      "path": "js/icons/musicalNoteIcon.js",
+      "hash": "5d8685bf11fd1b634f70d2e9077c3316a5138e06017bad16d86e433d52ca9ca8",
+      "size": 390
+    },
+    {
+      "path": "js/icons/pauseIcon.js",
+      "hash": "ab61ddeb7097cdaf6567499da2cf8d8a6a9b5c6c6d8145cfa498f55af42606c4",
+      "size": 435
+    },
+    {
+      "path": "js/icons/playIcon.js",
+      "hash": "90c4db3c5c2c35601552cf5dae29d89cefd61e08298b7a9328538aa4fd3f6e49",
+      "size": 355
+    },
+    {
+      "path": "js/icons/plusIcon.js",
+      "hash": "7b3ff18efe89b3cffd5cc0739e341361a51c66cff0ab94ff8159af9481f97671",
+      "size": 367
+    },
+    {
+      "path": "js/icons/speakerWaveIcon.js",
+      "hash": "658446104e344b909e6677347d772c9baf4af4b61287f639ded8eef889d5bde7",
+      "size": 669
+    },
+    {
+      "path": "js/icons/speakerXMarkIcon.js",
+      "hash": "efb913e90d99e500d25636159f9695d2371d09702c432041343415687b9ca765",
+      "size": 588
+    },
+    {
+      "path": "js/icons/stopIcon.js",
+      "hash": "a5c114cb367fc85c4e8e1a3f1327fa2c6f6e6d9b51d7071a7f8a9d6ec4aa249d",
+      "size": 295
+    },
+    {
+      "path": "js/icons/trashIcon.js",
+      "hash": "c7b70fb3789dbc816e325084896c14eaebdceb718c72e59efbfaf4c2b17cbb03",
+      "size": 813
+    },
+    {
+      "path": "js/icons/xMarkIcon.js",
+      "hash": "109c3967d377377f61de2315fd0dade0aa364b04ca712a9222ebdf14d52300db",
+      "size": 418
+    },
+    {
+      "path": "js/services/audioEngine.js",
+      "hash": "4fd9111fd4914877847b3b84c3a2579525839501da9ea92043ae1c5e4568a859",
+      "size": 14105
+    },
+    {
+      "path": "js/services/bataEmulation.js",
+      "hash": "717389ef6d63df1fd529a30bebe79b6b235c56e92200554d7d8cc408c69c22df",
+      "size": 5225
+    },
+    {
+      "path": "js/services/dataLoader.js",
+      "hash": "62d5d8dee5645b214538e2c186c844062aa9b89b3ba2c4eeecf6f4cc3c7f839c",
+      "size": 4962
+    },
+    {
+      "path": "js/services/eventBus.js",
+      "hash": "6051e0fb2aaf15a2cad674e1b21c35070b78f2c23b87c8dced8d142168c8114e",
+      "size": 1683
+    },
+    {
+      "path": "js/services/sequencer.js",
+      "hash": "86ec945cdd6537a852af19af5ff0dda99af6b7ee9c6e93ff14e75c95e928c023",
+      "size": 21276
+    },
+    {
+      "path": "js/services/trackMixer.js",
+      "hash": "a87b147e903eca27438137cd2acf7c7dfff71bec541c97d3b87e0705783d5ba4",
+      "size": 1650
+    },
+    {
+      "path": "js/store.js",
+      "hash": "a23615d288a213bbd491e4ce442dafc63d5291332cacbe301c51937e0ede9ad1",
+      "size": 4882
+    },
+    {
+      "path": "js/store/mutations.js",
+      "hash": "dddf5582bcd9939cfba3331bf0565fbcc8edd8dc62289d5113a2bca4f4d4ef75",
+      "size": 16702
+    },
+    {
+      "path": "js/store/stateSelectors.js",
+      "hash": "c74905e16e0eef3bb759c8632609e1f03b62cf56fcede0b53ff36f0a6d99586b",
+      "size": 9660
+    },
+    {
+      "path": "js/types.js",
+      "hash": "d4d4b8b38a479f2990c4fc23a3add2be9acb780cfa737d70581e1a07002db520",
+      "size": 934
+    },
+    {
+      "path": "js/ui/desktop/layout.js",
+      "hash": "80068961a639779c20f684b2773ef2eecee1143259e208b9751b49fc14e32bd3",
+      "size": 18944
+    },
+    {
+      "path": "js/ui/desktop/mixerModal.js",
+      "hash": "df31b73c065d339f6ed2e08702996e236047d3e9e53d6573af81a3bc1b8c46be",
+      "size": 5200
+    },
+    {
+      "path": "js/ui/mobile/dual-mode/bpmModal.js",
+      "hash": "f065b644330db1a46760d115550a4fe37809f5bbd8e1503d880e27871dafc02f",
+      "size": 2568
+    },
+    {
+      "path": "js/ui/mobile/dual-mode/dualModeMeasureRenderer.js",
+      "hash": "bf3d91ffc4cfc07229db05d0e432c2d2a41dff56241ea8f8139f184b0c169be0",
+      "size": 3632
+    },
+    {
+      "path": "js/ui/mobile/dual-mode/dualModeTrackRow.js",
+      "hash": "3d0c85fc23565d7fc9c48a9d26f27983f67a8c914ad0417b80c034c73cec14ae",
+      "size": 6979
+    },
+    {
+      "path": "js/ui/mobile/dual-mode/landscape.js",
+      "hash": "0e4f5d94c8bfa48466c69257b55f835d4dcbba80f9fef3e5cc63f67cb50aa25e",
+      "size": 12277
+    },
+    {
+      "path": "js/ui/mobile/dual-mode/layout.js",
+      "hash": "b51ab413d229d5188479b02fc8f2adbfb17ad181d72707581ed29d9e106bc12b",
+      "size": 6328
+    },
+    {
+      "path": "js/ui/mobile/dual-mode/mixerModal.js",
+      "hash": "31baa8415d349242b38d1dd019d3a124319aeb1b6bef65aab5a1c136aa8d6039",
+      "size": 4616
+    },
+    {
+      "path": "js/ui/mobile/dual-mode/portrait.js",
+      "hash": "3aa9cd8154ae76515896aa422e751be22be8d4ef22ed222df7c3abf1749392b1",
+      "size": 15590
+    },
+    {
+      "path": "js/ui/mobile/dual-mode/sectionModal.js",
+      "hash": "ea265f6d9af704e46714bc259209b45cd0aac28e62ea9f4a721927c62e493f94",
+      "size": 7623
+    },
+    {
+      "path": "js/ui/mobile/dual-mode/wheelPicker.js",
+      "hash": "78ee3d5a355a9156df1ab209e4818895a8d53b6a5e15d2f7f6a13ea6238214a8",
+      "size": 10445
+    },
+    {
+      "path": "js/ui/mobile/standard/layout.js",
+      "hash": "036f09306c0c2688d131661b4350ddcd9f61f81391cb310d9497f109433cea0d",
+      "size": 16050
+    },
+    {
+      "path": "js/ui/mobileViewport.js",
+      "hash": "b2ce1a147c52974a3ba98a0cdcd9813137bf3c71a74bac23a1af12854579e625",
+      "size": 2914
+    },
+    {
+      "path": "js/ui/playheadUtils.js",
+      "hash": "4a5f068199334f383f3d11ec5dcee1cfb155186fc1ecd24f8336ef28caf1ff74",
+      "size": 12504
+    },
+    {
+      "path": "js/ui/pointerDrag.js",
+      "hash": "e06ef41335c2bdbc626bcb1ac337e1169a0b7ae2066e02dacd2a7f952513517d",
+      "size": 17010
+    },
+    {
+      "path": "js/ui/renderer.js",
+      "hash": "9483c763cd7f434e8ed4c93eaa88b91264bf590f15a52e4108489cd039ac26de",
+      "size": 7750
+    },
+    {
+      "path": "js/ui/sliderVisuals.js",
+      "hash": "2550f3c8edeee83ba776557771e618144757ca25513d5a46a99e3e8121948328",
+      "size": 2090
+    },
+    {
+      "path": "js/utils/gridUtils.js",
+      "hash": "3c693cad67a51077901c064796de98e321dcc13035689e4a42389a794f1ac3c2",
+      "size": 6156
+    },
+    {
+      "path": "js/utils/patternParser.js",
+      "hash": "20da60f831d3739238bc5bc64b38e3278d9b0794c354111d869b4613262f8c8c",
+      "size": 5004
+    },
+    {
+      "path": "js/utils/rhythmExporter.js",
+      "hash": "c70be930715a972335a6f1288006d5b500e53499d137e7561c73cc9d748afa84",
+      "size": 6090
+    },
+    {
+      "path": "js/utils/rhythmTransformers.js",
+      "hash": "057e59bc60c2f3f7114fad6524e67e99513d87d567eb17dcada5365baad9a9c4",
+      "size": 8709
+    },
+    {
+      "path": "js/utils/strokeCursors.js",
+      "hash": "0622cfce5116007287507491b2dddc43b1291e99a2878f2aa060d6d06f5d9b00",
+      "size": 7847
+    },
+    {
+      "path": "js/vendor/README.md",
+      "hash": "a480f33c4ddbc019ba74cbf0717fcec263fcc98aab7d5e40524e6b259e475781",
+      "size": 1129
+    },
+    {
+      "path": "js/vendor/js-yaml-4.1.0.min.js",
+      "hash": "45dc3dd03dc07a06705a2c2989b8c7f709013f04bd5386e3279d4e447f07ebd7",
+      "size": 39430
+    },
+    {
+      "path": "js/vendor/tailwind-play-3.4.17.js",
+      "hash": "176e894661aa9cdc9a5cba6c720044cbbf7b8bd80d1c9a142a7c24b1b6c50d15",
+      "size": 407279
+    },
+    {
+      "path": "js/views/desktopEditorView.js",
+      "hash": "d6dcf137dbd877872188a457d4a29eb134a5ee753669b0d475b4945aa05d5341",
+      "size": 2248
+    },
+    {
+      "path": "js/views/mobileDualModeView.js",
+      "hash": "19a335ef7c895af497c1a6eb9110cf57e4f5b6f51b7afe05c4f2bfa1d76126cc",
+      "size": 4129
+    },
+    {
+      "path": "js/views/mobileGridView.js",
+      "hash": "617fc07d370712f40ab3d0d07e27f492e63e3836570fa5fdaf134609e294fd0e",
+      "size": 1086
+    },
+    {
+      "path": "js/views/viewManager.js",
+      "hash": "7d9d1c6812e5656bb3aa218b629eab4a5b05cc454bb1714080eeec30365168c1",
+      "size": 2464
+    },
+    {
+      "path": "manifest.json",
+      "hash": "079d0d0da839ea963542e5ecad884cd3061567f3f0e5f0e80ed57607c44ecf99",
+      "size": 6332
+    },
+    {
+      "path": "mobile.html",
+      "hash": "0aba24eb853fe3a43d1e12efa692cfd95b0443c5d28f25aba4a7b64ee458990b",
+      "size": 7430
+    }
+  ]
+}

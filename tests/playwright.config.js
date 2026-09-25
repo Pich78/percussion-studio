@@ -4,7 +4,7 @@
  * E2E test configuration for Percussion Studio.
  * Node.js is used ONLY inside tests/ to run these browser tests (see docs/testing.md).
  *
- * Projects (6):
+ * Projects (7):
  *  - desktop:                  chromium, 1280x800 (desktop editor).
  *  - mobile-portrait:          iPhone 16, Safari-like 393x659.
  *  - mobile-landscape:         iPhone 16, Safari-like 734x343.
@@ -14,6 +14,10 @@
  *                              Dynamic Island safe-area insets via CDP.
  *  - mobile-pwa-landscape:     iPhone 16, full-screen 852x393 (PWA "more screen") +
  *                              Dynamic Island safe-area insets via CDP.
+ *  - service-worker:           chromium, 1280x800 — sw.js offline snapshot and
+ *                              atomic version swap (?sw=1 allows registration
+ *                              on localhost; all other projects block workers
+ *                              so sw.js can never affect their behavior).
  */
 
 const { defineConfig } = require('@playwright/test');
@@ -36,6 +40,9 @@ module.exports = defineConfig({
     forbidOnly: !!process.env.CI,
     retries: process.env.CI ? 2 : 0,
     reporter: process.env.CI ? 'github' : 'list',
+    // App boot (manifest + YAML + WAV decode + vendored Tailwind JIT) can
+    // exceed the 5s default while eight workers share the machine.
+    expect: { timeout: 10000 },
     use: {
         baseURL: 'http://localhost:8000',
         trace: 'retain-on-failure',
@@ -44,33 +51,38 @@ module.exports = defineConfig({
     projects: [
         {
             name: 'desktop',
-            use: { browserName: 'chromium', viewport: { width: 1280, height: 800 } },
+            use: { browserName: 'chromium', viewport: { width: 1280, height: 800 }, serviceWorkers: 'block' },
             testMatch: /desktop\.spec\.js/,
         },
         {
             name: 'mobile-portrait',
-            use: { ...IPHONE_16, viewport: { width: 393, height: 659 } },
+            use: { ...IPHONE_16, viewport: { width: 393, height: 659 }, serviceWorkers: 'block' },
             testMatch: /mobile-(portrait|wheel-picker)\.spec\.js/,
         },
         {
             name: 'mobile-landscape',
-            use: { ...IPHONE_16, viewport: { width: 734, height: 343 } },
+            use: { ...IPHONE_16, viewport: { width: 734, height: 343 }, serviceWorkers: 'block' },
             testMatch: /mobile-(landscape|wheel-picker)\.spec\.js/,
         },
         {
             name: 'mobile-landscape-playhead',
-            use: { ...IPHONE_16, viewport: { width: 734, height: 343 } },
+            use: { ...IPHONE_16, viewport: { width: 734, height: 343 }, serviceWorkers: 'block' },
             testMatch: /playhead-loop\.spec\.js/,
         },
         {
             name: 'mobile-pwa-portrait',
-            use: { ...IPHONE_16, viewport: { width: 393, height: 852 } },
+            use: { ...IPHONE_16, viewport: { width: 393, height: 852 }, serviceWorkers: 'block' },
             testMatch: /mobile-(pwa-portrait|rotation)\.spec\.js/,
         },
         {
             name: 'mobile-pwa-landscape',
-            use: { ...IPHONE_16, viewport: { width: 852, height: 393 } },
+            use: { ...IPHONE_16, viewport: { width: 852, height: 393 }, serviceWorkers: 'block' },
             testMatch: /mobile-(pwa-landscape|rotation)\.spec\.js/,
+        },
+        {
+            name: 'service-worker',
+            use: { browserName: 'chromium', viewport: { width: 1280, height: 800 }, serviceWorkers: 'allow' },
+            testMatch: /service-worker\.spec\.js/,
         },
     ],
     webServer: {

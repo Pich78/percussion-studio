@@ -25,8 +25,9 @@ Non-negotiable rules — do not introduce anything that violates them.
 | **Node only for E2E tests** | Node.js/npm are allowed **only inside `tests/`** to run Playwright browser tests (dev-only). Nothing else may use Node — see `docs/testing.md`. |
 | **No frameworks** | No React/Vue/Angular or similar. UI is template strings + direct DOM. |
 | **Python only for app tooling** | `tools/generate_manifest.py` (requires `pyyaml`) and `launch_local.py` are the only non-browser runtimes for the app. |
-| **Content data** | YAML under `data/`, registered in `manifest.json` (auto-generated — regenerate after data changes). |
+| **Content data** | YAML under `data/`, registered in `manifest.json` and the offline snapshot `precache.json` (both auto-generated — regenerate after data changes). |
 | **PWA behavior** | Must prevent native browser gestures (`touch-action` rules) and respect iPhone safe areas — see Conventions. |
+| **Offline & updates** | App assets ship as one atomic, hash-verified service-worker snapshot (`sw.js` + generated `precache.json`); no runtime CDN dependencies (`js/vendor/`). See `docs/requirements/offline-updates.md`. |
 | **Docs stay in sync** | Any change in program behavior requires a documentation update in the same change. Any structural change to the software requires a new document or an update of the existing ones (see Documentation Map and How to Work Here). |
 
 ---
@@ -121,8 +122,8 @@ reconciles exclusively via transport-driven targeted updates.
 
 ### Change content data
 1. Edit the YAML under `data/` (follow `docs/data-specifications.md` formats) or drop WAV files following the naming convention (`{SYMBOL}.{sound}.{pack}.wav` — see `docs/adding-instruments.md`).
-2. Regenerate the manifest: `python3 tools/generate_manifest.py` (or `cd tools && python3 generate_manifest.py`).
-3. Test with `python3 launch_local.py` (it regenerates the manifest automatically).
+2. Regenerate the registries: `python3 tools/generate_manifest.py` (or `cd tools && python3 generate_manifest.py`) — rewrites `manifest.json`, the Batà metadata and the offline snapshot `precache.json`; commit all three.
+3. Test with `python3 launch_local.py` (it regenerates them automatically).
 
 ### Add a view
 - Create a definition under `js/views/` (see `viewManager.js` for the required interface: `id`, `layout`, `setupEvents`, optional `onTransport` / `onRender`).
@@ -153,6 +154,7 @@ Documentation updates are part of the change, not an afterthought:
 | `docs/requirements/tempo-acceleration.md` | Per-repetition tempo acceleration (`tempo_acceleration`). |
 | `docs/requirements/mute-solo-spec.md` | Mute/solo state machine (mutually exclusive, one solo at a time). |
 | `docs/requirements/section-play-mode.md` | Section play modes: loop, play-once, ad-lib, skip; random repetitions. |
+| `docs/requirements/offline-updates.md` | Atomic offline snapshot (`sw.js` + `precache.json`), vendored deps, update/reload policy. |
 | `docs/user-guide-desktop-{en,it}.md` | Desktop user guides. |
 | `docs/user-guide-mobile-{en,it}.md` | Mobile user guides. |
 
@@ -224,6 +226,9 @@ Always add `touch-action: none` to interactive elements (range sliders, custom d
 ### PWA: orientation changes
 Handle `orientationchange` + `visualViewport.resize`, not just `resize` (`js/ui/mobileViewport.js`): orientation flips reset the document scroll and close orientation-scoped popovers (state cleanup plus targeted removal of `[data-role="orientation-popover"]` subtrees). Rotation performs **no JS re-render**: grid cell size is a pure CSS clamp (`--cell-size`, `js/utils/gridUtils.js`) and safe areas are `env()`-backed, so the browser reflows by itself (icon sizes follow the cell via `@container` rules). The mobile shell must stay pinned (`html`/`body` overflow hidden, `#root` fixed) so rotation cannot move the headers out of view.
 
+### PWA: offline snapshot & updates
+`sw.js` owns app assets through one atomic, hash-verified snapshot per version (`precache.json`, generated). Serve snapshot paths cache-first; never serve `sw.js`/`precache.json` from it; pass everything else through. New versions are prepared in the background and swapped only after all hashes verify; the page reloads when idle (never during playback) — see `docs/requirements/offline-updates.md`. Runtime dependencies are vendored under `js/vendor/` (no CDN) so the snapshot covers the whole boot. Registration is skipped on localhost unless `?sw=1`.
+
 ---
 
 ## 7. Verification
@@ -233,7 +238,7 @@ Handle `orientationchange` + `visualViewport.resize`, not just `resize` (`js/ui/
 - After content changes: `cd tools && python generate_manifest.py`.
 - Test both frontends: `index.html?mode=desktop` and `index.html?mode=mobile` (or open the HTML files directly).
 - Test in a browser manually; for mobile, verify on a real iPhone in PWA (standalone) mode — safe areas and gesture behavior only behave correctly there.
-- Run the E2E suite (Node only inside `tests/`, starts/stops the server automatically): `bash tests/run_e2e_tests.sh`. Six projects: desktop, iPhone 16 mobile portrait/landscape (Safari-like), a playback-loop regression project, and PWA full-screen portrait/landscape with Dynamic Island safe-area simulation — see `docs/testing.md`.
-- **Kill the server BEFORE starting anything. ALWAYS.** Whether starting the E2E suite or a manual browser session: first run `pkill -f launch_local.py` (and `pkill -f test_launch_local.py`) unconditionally — do not check whether port 8000 is occupied first, just kill. Then start a fresh server (`python3 launch_local.py` for manual testing, or the suite's own runner for E2E). A stale server holding the port makes the app hang on the loading screen and all E2E tests fail with `#grid-container` never visible.
-- After the testing session finishes, kill any server the agent started: `pkill -f launch_local.py` (the E2E runner stops its own server, but any manually launched `launch_local.py` must be terminated).
+- Run the E2E suite (Node only inside `tests/`, starts/stops the server automatically): `bash tests/run_e2e_tests.sh`. Seven projects: desktop, iPhone 16 mobile portrait/landscape (Safari-like), a playback-loop regression project, PWA full-screen portrait/landscape with Dynamic Island safe-area simulation, and the service-worker offline/update suite — see `docs/testing.md`.
+- **Kill the server BEFORE starting anything. ALWAYS.** Whether starting the E2E suite or a manual browser session: first run `pkill -f "[l]aunch_local.py"` unconditionally — do not check whether port 8000 is occupied first, just kill. The pattern matches both `launch_local.py` and `tests/test_launch_local.py`; the bracketed first letter keeps the command from matching (and killing) its own shell. Then start a fresh server (`python3 launch_local.py` for manual testing, or the suite's own runner for E2E). A stale server holding the port makes the app hang on the loading screen and all E2E tests fail with `#grid-container` never visible.
+- After the testing session finishes, kill any server the agent started: `pkill -f "[l]aunch_local.py"` (the E2E runner stops its own server, but any manually launched `launch_local.py` must be terminated).
 - The opencode agent can inspect the running app interactively through the Playwright MCP browser tools (configured in `opencode.json`); screenshots are returned as images.

@@ -60,7 +60,7 @@ npx playwright test e2e/mobile-pwa-portrait.spec.js
 
 ## 4. What is covered
 
-Six projects (each project may run several specs):
+Seven projects (each project may run several specs):
 
 | Project | Viewport / device | Spec |
 |---|---|---|
@@ -70,6 +70,11 @@ Six projects (each project may run several specs):
 | `mobile-landscape-playhead` | iPhone 16, Safari-like **734×343** | `e2e/playhead-loop.spec.js` — playback-loop regression for the transport stream contract: playhead visible on every step across loop boundaries (incl. last column of the last measure), zero full rebuilds during steady playback, count-in chip ticks via targeted updates, count-in uses the active section's subdivision. |
 | `mobile-pwa-portrait` | iPhone 16, full-screen **393×852** | `e2e/mobile-pwa-portrait.spec.js` — full viewport + Dynamic Island insets. Plus shared `e2e/mobile-rotation.spec.js` — rotation regression (see below). |
 | `mobile-pwa-landscape` | iPhone 16, full-screen **852×393** | `e2e/mobile-pwa-landscape.spec.js` — full viewport + Dynamic Island insets. Plus shared `e2e/mobile-rotation.spec.js` — rotation regression (see below). |
+| `service-worker` | chromium 1280×800, `serviceWorkers: 'allow'` | `e2e/service-worker.spec.js` — offline snapshot and update regression: install + claim, one-time alignment reload, offline serving of shell/YAML/WAV, atomic version swap with a deferred (never mid-playback) reload (see below). |
+
+All other projects run with `serviceWorkers: 'block'`, so `sw.js` can never
+influence their behavior. The worker registers only with `?sw=1` on
+localhost.
 
 Screenshots are written to `tests/test-results/` (gitignored) on demand and on failure.
 
@@ -114,7 +119,17 @@ If the CDP command is unavailable, the helper falls back to overriding the `--sa
 
 **Limitation:** Chromium cannot emulate iOS's stale `env(safe-area-inset-*)` after rotation, so the suite cannot reproduce the original "header hidden behind the Dynamic Island" defect — it guards the invariant instead. Final verification stays on a real iPhone in PWA mode.
 
-**Cache note:** GitHub Pages serves assets with a ~10 min HTTP cache and there is no service worker, so a home-screen shortcut can keep running an old bundle for a while after a deploy. When comparing rotation behavior, re-add the home-screen link (or wait out the cache) before concluding a shell change didn't help — a stale bundle can masquerade as an app regression.
+**Cache note:** Until a shortcut has run the service-worker registration once, GitHub Pages' ~10 min HTTP cache can keep it on an old bundle (a stale bundle can masquerade as an app regression). After the worker is installed, `sw.js` serves the verified snapshot and updates deterministically; when testing a shell change on device, make sure the shortcut is actually controlled (or re-add it) before drawing conclusions.
+
+### Service worker coverage
+
+`e2e/service-worker.spec.js` (project `service-worker`, registration forced with `?sw=1`) covers `docs/requirements/offline-updates.md`:
+
+- install + claim, and the one-time alignment reload after the first verified snapshot;
+- **offline** (`context.setOffline(true)`) serving of the shell, a rhythm YAML and a WAV from the snapshot;
+- a simulated deploy via the test-only override (`POST /__test/version`; `tests/test_launch_local.py` serves a mutated `precache.json` version, never ported to `launch_local.py`): the new snapshot is verified and swapped in the background, **no reload happens while `state.isPlaying`**, and the deferred reload runs once idle.
+
+**Limitation:** Chromium's CacheStorage/offline behavior approximates iOS. Final offline/update verification stays on a real iPhone in PWA mode.
 
 ## 5. Interactive inspection via opencode MCP
 
@@ -128,7 +143,7 @@ Use it to inspect the running app interactively during development (mirrors the 
 ## 6. Adding a test
 
 1. Put specs in `tests/e2e/`. Common selectors: `[data-action="toggle-play"]`, `[data-action="stop"]`, `#grid-container`, `#dual-mode-landscape-header`. Dual-mode renders both orientations in the DOM, so use `:visible` (e.g. `[data-action="toggle-play"]:visible`) to target the active one.
-2. One spec file per project/config; add the matching `project` entry (with its viewport/device) in `tests/playwright.config.js` and point its `testMatch` at the new file. A spec that is orientation-agnostic (like the wheel picker) can be shared by several projects via a regex `testMatch` (e.g. `/mobile-(portrait|wheel-picker)\.spec\.js/`).
+2. One spec file per project/config; add the matching `project` entry (with its viewport/device) in `tests/playwright.config.js` and point its `testMatch` at the new file. A spec that is orientation-agnostic (like the wheel picker) can be shared by several projects via a regex `testMatch` (e.g. `/mobile-(portrait|wheel-picker)\.spec\.js/`). Service workers are blocked (`serviceWorkers: 'block'`) on every project except `service-worker`, so app behavior never depends on `sw.js` by accident.
 3. For PWA/safe-area checks, reuse `applySafeAreaOverride`, `IPHONE_16_SAFE_AREAS`, `readCssVar`, `expectInsetPadding` from `helpers/safeArea.js`.
 4. For rotation checks, reuse `rotateTo(page, 'portrait'|'landscape')` from `helpers/rotation.js` — it resizes the viewport, re-applies the matching safe-area override and pauses briefly for the CSS layout to settle (rotation no longer performs JS re-renders).
 5. Keep screenshots in `test-results/` (gitignored), never commit them.
