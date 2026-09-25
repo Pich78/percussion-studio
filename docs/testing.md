@@ -114,6 +114,8 @@ If the CDP command is unavailable, the helper falls back to overriding the `--sa
 
 **Limitation:** Chromium cannot emulate iOS's stale `env(safe-area-inset-*)` after rotation, so the suite cannot reproduce the original "header hidden behind the Dynamic Island" defect — it guards the invariant instead. Final verification stays on a real iPhone in PWA mode.
 
+**TEMPORARY shell diagnostics:** `?shell=clip|dvh|fixedz` and `?scrollreset=0` switch rotation-shell variants (`mobile.html` head script; the scroll flag is read in `js/ui/mobileViewport.js`) to A/B the iOS-standalone rotation jump on a real device. `mobile-rotation.spec.js` smoke-pins each variant (header visible, `#root` fills the viewport, `scrollY === 0`, zero full renders). Remove the gate, the `mobileViewport.js` read and the smoke test once the winning shell is adopted.
+
 ## 5. Interactive inspection via opencode MCP
 
 `opencode.json` registers the official **Playwright MCP** (`npx -y @playwright/mcp@latest`). After restarting opencode, the agent can:
