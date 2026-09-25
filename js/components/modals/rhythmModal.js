@@ -114,9 +114,15 @@ export const RhythmModal = (uiState, isMobile = false) => {
       <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" data-action="close-modal-bg">
           <div class="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl max-w-lg w-full flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
               <div class="p-4 border-b border-gray-800 flex justify-between items-center bg-gray-950">
-                  <h3 class="text-lg font-bold text-white">
-                      Load Rhythm
-                  </h3>
+                  <div class="flex items-center gap-1">
+                      ${isMobile ? `
+                      <button data-action="back-to-menu" aria-label="Back to menu" class="p-1 -ml-1 text-gray-400 hover:text-white">
+                          ${ChevronRightIcon('w-6 h-6 rotate-180 pointer-events-none')}
+                      </button>` : ''}
+                      <h3 class="text-lg font-bold text-white">
+                          Load Rhythm
+                      </h3>
+                  </div>
                   <button data-action="close-modal" class="text-gray-500 hover:text-white">
                       ${XMarkIcon('w-6 h-6')}
                   </button>

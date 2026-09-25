@@ -171,6 +171,14 @@ Tap **☰** to open the menu:
 | **Share Rhythm** | Share the current rhythm (device share sheet or clipboard, library rhythms only) |
 | **User Guide** | Open this documentation (English or Italiano) |
 
+### Loading Rhythms
+
+Tap **Load Rhythm** to open the rhythm browser:
+
+1. Tap a folder (**Clave**, **tests**) to expand it, then tap a rhythm to load it.
+2. Tap **Batà** to open the Batà Explorer with search and filters.
+3. The **←** back arrow in the browser header returns to the menu — in the Batà Explorer it returns to the folder list. **✕** / **Cancel** closes the browser to the main screen.
+
 ---
 
 ## Classic Grid View

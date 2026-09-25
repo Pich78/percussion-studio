@@ -27,6 +27,7 @@ import * as bataHandlers from './handlers/bataExplorerEvents.js';
  */
 const MOBILE_ALLOWED_ACTIONS = [
     'toggle-play', 'stop', 'toggle-menu', 'close-menu', 'load-rhythm',
+    'back-to-menu', 'back-to-rhythm-list',
     'select-rhythm-confirm', 'toggle-mute', 'update-global-bpm', 'toggle-folder',
     'update-volume', 'close-modal', 'close-modal-bg', 'open-structure', 'open-view-mode', 'select-view-mode',
     'toggle-user-guide-submenu', 'open-user-guide', 'share-rhythm', 'toggle-count-in',
@@ -162,10 +163,12 @@ const createMobileActionRouter = () => ({
 
     // Load rhythm
     'load-rhythm': menuHandlers.handleLoadRhythm,
+    'back-to-menu': menuHandlers.handleBackToMenu,
     'toggle-folder': (e, target) => modalHandlers.handleToggleFolder(target),
     'select-rhythm-confirm': (e, target) => handleMobileSelectRhythmConfirm(target),
 
     // Bata Explorer
+    'back-to-rhythm-list': () => bataHandlers.handleBackToRhythmList(),
     'close-bata-explorer': () => bataHandlers.handleCloseBataExplorer(),
     'close-bata-explorer-bg': (e, target) => { if (e.target === target) bataHandlers.handleCloseBataExplorer(); },
     'toggle-filter-dropdown': (e, target) => bataHandlers.handleToggleFilterDropdown(target),

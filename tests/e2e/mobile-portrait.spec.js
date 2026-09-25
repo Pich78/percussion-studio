@@ -24,6 +24,22 @@ test('portrait shows control surface and toggles play', async ({ page }) => {
     await expect(play).toHaveClass(/bg-indigo-600/);
 });
 
+test('rhythm browser back buttons return to menu and Batà list', async ({ page }) => {
+    await page.goto('/mobile.html');
+
+    // Load Rhythm → back arrow returns to the hamburger menu.
+    await page.locator('[data-action="toggle-menu"]:visible').first().click();
+    await page.locator('[data-action="load-rhythm"]:visible').first().click();
+    await page.locator('[data-action="back-to-menu"]:visible').first().click();
+    await expect(page.locator('[data-action="load-rhythm"]:visible').first()).toBeVisible();
+
+    // Load Rhythm → Batà → back arrow returns to the folder list.
+    await page.locator('[data-action="load-rhythm"]:visible').first().click();
+    await page.locator('[data-action="toggle-folder"]:visible', { hasText: 'Batà' }).first().click();
+    await page.locator('[data-action="back-to-rhythm-list"]:visible').first().click();
+    await expect(page.getByRole('heading', { name: 'Load Rhythm' })).toBeVisible();
+});
+
 test('random-reps toggle writes canonical randomRepetitions field', async ({ page }) => {
     await page.goto('/mobile.html');
 

@@ -206,6 +206,16 @@ export const BataExplorerModal = ({ isMobile = false, bataExplorer = {} }) => {
                 <!-- Header -->
                 <div class="border-b border-gray-800 bg-gray-950 flex-shrink-0 px-6 py-4 ${isMobile ? 'pt-[calc(env(safe-area-inset-top)+1.5rem)]' : ''}">
                 <div class="max-w-4xl mx-auto flex items-center gap-4">
+                    ${isMobile ? `
+                    <!-- Back to rhythm list -->
+                    <button
+                        data-action="back-to-rhythm-list"
+                        aria-label="Back to rhythm list"
+                        class="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-gray-800 transition-colors flex-shrink-0"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6 pointer-events-none"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
+                    </button>` : ''}
+
                     <!-- Search Bar -->
                     ${SearchBar(searchTerm, selectedOrishas, selectedTypes)}
 

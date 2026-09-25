@@ -19,6 +19,21 @@ export const handleCloseBataExplorer = () => {
 };
 
 /**
+ * Handle back to rhythm list (from the mobile Batà Explorer)
+ * Closes the explorer (with the same cleanup as close) and reopens the
+ * Load Rhythm folder panel.
+ */
+export const handleBackToRhythmList = () => {
+    state.uiState.bataExplorer.isOpen = false;
+    state.uiState.bataExplorer.selectedToqueId = null;
+    state.uiState.bataExplorer.orishaDropdownOpen = false;
+    state.uiState.bataExplorer.typeDropdownOpen = false;
+    state.uiState.modalType = 'rhythm';
+    state.uiState.modalOpen = true;
+    eventBus.emit('render');
+};
+
+/**
  * Handle toggle filter dropdown
  * @param {HTMLElement} target - The dropdown button element
  */

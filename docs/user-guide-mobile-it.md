@@ -171,6 +171,14 @@ Tocca **☰** per aprire il menu:
 | **Share Rhythm** | Condividi il ritmo corrente (share sheet del dispositivo o appunti, solo ritmi della libreria) |
 | **User Guide** | Apri questa documentazione (English o Italiano) |
 
+### Caricamento dei Ritmi
+
+Tocca **Load Rhythm** per aprire il browser dei ritmi:
+
+1. Tocca una cartella (**Clave**, **tests**) per espanderla, poi tocca un ritmo per caricarlo.
+2. Tocca **Batà** per aprire il Batà Explorer con ricerca e filtri.
+3. La freccia **←** nell'intestazione del browser torna al menu — nel Batà Explorer torna all'elenco delle cartelle. **✕** / **Cancel** chiude il browser alla schermata principale.
+
 ---
 
 ## Vista Griglia Classica

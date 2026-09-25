@@ -49,6 +49,15 @@ export const handleLoadRhythm = () => {
 };
 
 /**
+ * Handle back to menu (from the mobile Load Rhythm panel)
+ */
+export const handleBackToMenu = () => {
+    commit('setModal', { open: false });
+    commit('setMenuOpen', { isOpen: true });
+    eventBus.emit('render');
+};
+
+/**
  * Handle download rhythm
  */
 export const handleDownloadRhythm = () => {
