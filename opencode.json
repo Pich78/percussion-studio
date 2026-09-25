@@ -3,7 +3,7 @@
   "mcp": {
     "playwright": {
       "type": "local",
-      "command": ["bash", "-lc", "source \"$HOME/.nvm/nvm.sh\" && exec npx -y @playwright/mcp@latest --browser chromium --headless"],
+      "command": ["bash", "-lc", "source \"$HOME/.nvm/nvm.sh\" && [ -f /usr/local/share/ca-certificates/Datalogic_CA.crt ] && export NODE_EXTRA_CA_CERTS=/usr/local/share/ca-certificates/Datalogic_CA.crt; exec npx -y @playwright/mcp@0.0.79 --browser chromium --headless"],
       "enabled": true
     }
   },
