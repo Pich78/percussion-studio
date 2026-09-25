@@ -57,6 +57,31 @@ test('rhythm browser back buttons return to menu and Batà list', async ({ page 
     await expect(page.getByRole('heading', { name: 'Load Rhythm' })).toBeVisible();
 });
 
+test('Batà Explorer filters stay reachable in portrait', async ({ page }) => {
+    await page.goto('/mobile.html');
+
+    await page.locator('[data-action="toggle-menu"]:visible').first().click();
+    await page.locator('[data-action="load-rhythm"]:visible').first().click();
+    await page.locator('[data-action="toggle-folder"]:visible', { hasText: 'Batà' }).first().click();
+
+    // The explorer back arrow must not push the filter controls (or the
+    // close button) past the right edge of the portrait header.
+    const orisha = page.locator('[data-action="toggle-filter-dropdown"][data-dropdown-id="orisha"]:visible').first();
+    const type = page.locator('[data-action="toggle-filter-dropdown"][data-dropdown-id="type"]:visible').first();
+    const close = page.locator('[data-action="close-bata-explorer"]:visible').first();
+
+    await expect(orisha).toBeInViewport();
+    await expect(type).toBeInViewport();
+    await expect(close).toBeInViewport();
+
+    // And they must actually open their option lists.
+    await orisha.click();
+    await expect(page.locator('[data-action="toggle-orisha-filter"]:visible').first()).toBeVisible();
+    await orisha.click();
+    await type.click();
+    await expect(page.locator('[data-action="toggle-type-filter"]:visible').first()).toBeVisible();
+});
+
 test('random-reps toggle writes canonical randomRepetitions field', async ({ page }) => {
     await page.goto('/mobile.html');
 

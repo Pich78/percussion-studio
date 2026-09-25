@@ -205,7 +205,7 @@ export const BataExplorerModal = ({ isMobile = false, bataExplorer = {} }) => {
 
                 <!-- Header -->
                 <div class="border-b border-gray-800 bg-gray-950 flex-shrink-0 px-6 py-4 ${isMobile ? 'pt-[calc(env(safe-area-inset-top)+1.5rem)]' : ''}">
-                <div class="max-w-4xl mx-auto flex items-center gap-4">
+                <div class="max-w-4xl mx-auto flex flex-wrap items-center gap-x-4 gap-y-3">
                     ${isMobile ? `
                     <!-- Back to rhythm list -->
                     <button
@@ -219,19 +219,19 @@ export const BataExplorerModal = ({ isMobile = false, bataExplorer = {} }) => {
                     <!-- Search Bar -->
                     ${SearchBar(searchTerm, selectedOrishas, selectedTypes)}
 
-                    <!-- Filter Dropdowns -->
-                    <div class="flex items-center gap-2">
-                        ${FilterDropdown('orisha', 'Orisha', musicIcon, orishas, selectedOrishas, 'toggle-orisha-filter', bata.orishaDropdownOpen || false, orishaColors)}
-                        ${FilterDropdown('type', 'Classification', filterIcon, TOQUE_CLASSIFICATIONS, selectedTypes, 'toggle-type-filter', bata.typeDropdownOpen || false)}
-                    </div>
-
-                    <!-- Close Button -->
+                    <!-- Close Button (portrait: stays on the search row) -->
                     <button
                         data-action="close-bata-explorer"
-                        class="text-gray-500 hover:text-white p-2 rounded-lg hover:bg-gray-800 transition-colors flex-shrink-0"
+                        class="text-gray-500 hover:text-white p-2 rounded-lg hover:bg-gray-800 transition-colors flex-shrink-0 landscape:order-4"
                     >
                         ${XMarkIcon('w-6 h-6')}
                     </button>
+
+                    <!-- Filter Dropdowns (portrait: wrap under the search bar) -->
+                    <div class="flex items-center gap-2 basis-full landscape:basis-auto landscape:order-3">
+                        ${FilterDropdown('orisha', 'Orisha', musicIcon, orishas, selectedOrishas, 'toggle-orisha-filter', bata.orishaDropdownOpen || false, orishaColors)}
+                        ${FilterDropdown('type', 'Classification', filterIcon, TOQUE_CLASSIFICATIONS, selectedTypes, 'toggle-type-filter', bata.typeDropdownOpen || false)}
+                    </div>
                 </div>
             </div>
 
