@@ -246,9 +246,11 @@ export const renderPortrait = (activeSection) => {
     const sectionIdx = sections.findIndex(s => s.id === state.activeSectionId);
 
     const popoverHtml = isModalOpen ? `
-        ${renderPortraitSectionModal(activeSection)}
-        <div data-action="dual-mode-close-popover"
-             class="fixed inset-0 z-[60]" style="bottom: 80px; background: rgba(0,0,0,0.4); backdrop-filter: blur(2px);">
+        <div data-role="orientation-popover">
+            ${renderPortraitSectionModal(activeSection)}
+            <div data-action="dual-mode-close-popover"
+                 class="fixed inset-0 z-[60]" style="bottom: 80px; background: rgba(0,0,0,0.4); backdrop-filter: blur(2px);">
+            </div>
         </div>` : '';
 
     return `

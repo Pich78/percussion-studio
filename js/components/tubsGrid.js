@@ -8,6 +8,7 @@
 // Import modular components
 import { SectionSettings } from './grid/sectionSettings.js';
 import { MeasureRenderer, AddMeasureButton } from './grid/measureRenderer.js';
+import { gridCellSizeStyle } from '../utils/gridUtils.js';
 import { InstrumentModal } from './modals/instrumentModal.js';
 import { RhythmModal } from './modals/rhythmModal.js';
 
@@ -82,7 +83,6 @@ export const TubsGrid = ({
   uiState,
   readOnly = false,
   isMobile = false,
-  mobileCellSize = null,
   instrumentDefinitions = {},
   isPlaying = false
 }) => {
@@ -90,25 +90,6 @@ export const TubsGrid = ({
   if (!section) {
     return `<div class="p-8 text-center text-gray-500">No active section loaded.</div>`;
   }
-
-  // Calculate cell sizes based on mobile/desktop
-  const cellSizePx = isMobile && mobileCellSize ? mobileCellSize : 40;
-
-  // Determine icon size based on cell size
-  const getIconSize = () => {
-    if (cellSizePx >= 36) return 32;
-    if (cellSizePx >= 28) return 24;
-    return 16;
-  };
-  const iconSizePx = getIconSize();
-
-  // Determine font size based on cell size
-  const getFontSize = () => {
-    if (cellSizePx >= 36) return '0.875rem';
-    if (cellSizePx >= 28) return '0.75rem';
-    return '0.625rem';
-  };
-  const fontSizePx = getFontSize();
 
   // Render all measures
   const measuresHtml = section.measures.map((measure, measureIdx) => {
@@ -118,9 +99,6 @@ export const TubsGrid = ({
       section,
       currentStep,
       selectedStroke,
-      cellSizePx,
-      iconSizePx,
-      fontSizePx,
       readOnly,
       instrumentDefinitions,
       isPlaying
@@ -132,9 +110,11 @@ export const TubsGrid = ({
     ? 'flex flex-col gap-2 overflow-x-auto overflow-y-scroll pb-4 w-full h-full custom-scrollbar relative outline-none ring-0'
     : 'flex flex-col gap-4 overflow-x-auto overflow-y-auto pb-8 w-full custom-scrollbar relative bg-gray-900/20 p-4 rounded-xl border border-gray-800';
 
-  // Mobile containers use CSS scroll-snap for paged measure scrolling
+  // Mobile containers use CSS scroll-snap for paged measure scrolling and
+  // declare --cell-size (pure CSS clamp — no JS measurements on rotation).
+  // Desktop leaves it unset and cells fall back to 40px.
   const containerStyle = isMobile
-    ? 'style="scroll-snap-type: y mandatory; -webkit-overflow-scrolling: touch;"'
+    ? `style="scroll-snap-type: y mandatory; -webkit-overflow-scrolling: touch; ${gridCellSizeStyle(section.steps)}"`
     : '';
 
   return `

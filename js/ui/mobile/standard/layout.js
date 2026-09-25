@@ -143,48 +143,8 @@ const renderHeader = (activeSection) => {
   `;
 };
 
-/**
- * Pure function to calculate optimal mobile cell size.
- * Cells fill available width after subtracting layout overhead (195px).
- * 
- * @param {number} viewportWidth - Current window.innerWidth
- * @param {number} steps - Number of steps in the section
- * @param {number} safeAreaLeft - Left safe area inset
- * @param {number} safeAreaRight - Right safe area inset
- * @returns {number} Optimal cell size in pixels (16-40px)
- */
-export const calculateMobileCellSize = (viewportWidth, steps, safeAreaLeft, safeAreaRight) => {
-  // Usable width after safe areas
-  const usableWidth = viewportWidth - safeAreaLeft - safeAreaRight;
-
-  // Layout overhead (accurate breakdown):
-  // - Sticky label: w-44 (176px) + border-l-4 (4px) + border-r (1px) = 181px
-  // - Cell container: p-1 = 8px total (4px each side)
-  // - ml-1 between label and cells = 4px
-  // - Small buffer for sub-pixel rounding = 2px
-  const totalOverhead = 181 + 8 + 4 + 2; // = 195px
-
-  const availableForCells = usableWidth - totalOverhead;
-
-  // Calculate optimal cell width - cells are adjacent (no gaps)
-  const optimalCellWidth = Math.floor(availableForCells / steps);
-
-  // Clamp between minimum (16px) and maximum (40px)
-  return Math.max(16, Math.min(40, optimalCellWidth));
-};
-
 export const MobileLayout = () => {
   const activeSection = getActiveSection(state) || state.toque.sections[0];
-
-  // Get current viewport and safe area dimensions
-  const viewportWidth = window.innerWidth;
-  const computedStyle = getComputedStyle(document.documentElement);
-  const safeAreaLeft = parseInt(computedStyle.getPropertyValue('--safe-area-left') || '0', 10) || 0;
-  const safeAreaRight = parseInt(computedStyle.getPropertyValue('--safe-area-right') || '0', 10) || 0;
-
-  // Calculate cell size fresh on every render (pure functional - no caching)
-  const steps = activeSection?.steps || 12;
-  const mobileCellSize = calculateMobileCellSize(viewportWidth, steps, safeAreaLeft, safeAreaRight);
 
   return `
     <div class="flex flex-col h-full bg-gray-950 text-gray-100 font-sans selection:bg-cyan-500 selection:text-black select-none pl-[var(--safe-area-left)] pr-[var(--safe-area-right)]">
@@ -226,7 +186,6 @@ export const MobileLayout = () => {
     uiState: state.uiState,
     readOnly: true,
     isMobile: true,
-    mobileCellSize,
     instrumentDefinitions: state.instrumentDefinitions,
     isPlaying: state.isPlaying
   })}

@@ -69,7 +69,7 @@ third-party picker dependency.
 | **Gesture prevention** | Add `touch-action: none` to interactive elements (sliders, drag handles) to prevent iOS scroll/zoom/pull-to-refresh. | `AGENTS.md:87-97` |
 | **Tap delay** | Use `touch-action: manipulation` on buttons and `[data-action]` elements to remove 300ms tap delay. | `mobile.html:88-92` |
 | **Pinch-zoom prevention** | Use `touch-action: pan-x pan-y` on grid containers. | `mobile.html:84-86` |
-| **Orientation changes** | Handle `orientationchange` + `visualViewport.resize` in addition to `resize` (`js/ui/mobileViewport.js`): orientation flips reset the document scroll, close orientation-scoped popovers and re-render at settle time (~350/650ms). The mobile shell is pinned (`html`/`body` overflow hidden, `#root` fixed) so rotation cannot move the headers out of view. | `js/ui/mobileViewport.js`, `mobile.html` |
+| **Orientation changes** | Handle `orientationchange` + `visualViewport.resize` in addition to `resize` (`js/ui/mobileViewport.js`): orientation flips reset the document scroll and close orientation-scoped popovers (state cleanup + targeted removal of `[data-role="orientation-popover"]` subtrees). Rotation performs **no JS re-render**: the grid cell size is a pure CSS clamp (`--cell-size`) and safe areas are `env()`-backed, so the browser reflows by itself. The mobile shell is pinned (`html`/`body` overflow hidden, `#root` fixed) so rotation cannot move the headers out of view. | `js/ui/mobileViewport.js`, `js/utils/gridUtils.js`, `mobile.html`, `desktop.html` |
 | **Tap highlight** | `-webkit-tap-highlight-color: transparent` on all elements. | `mobile.html:95-97` |
 
 ---

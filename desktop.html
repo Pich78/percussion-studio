@@ -64,6 +64,34 @@
         .hidden-force {
             display: none !important;
         }
+
+        /* Grid symbol sizing: the symbol wrapper is a size container, so the
+           icon follows the cell's --cell-size with no JS measurement.
+           Thresholds mirror the former JS mapping:
+           >=36px cell -> 32px icon, >=28px -> 24px, else 16px.
+           (Desktop cells are a fixed 40px, so this is always 32px here.) */
+        .cell-symbol {
+            container-type: inline-size;
+        }
+
+        .cell-symbol-img {
+            width: 16px;
+            height: 16px;
+        }
+
+        @container (min-width: 28px) {
+            .cell-symbol-img {
+                width: 24px;
+                height: 24px;
+            }
+        }
+
+        @container (min-width: 36px) {
+            .cell-symbol-img {
+                width: 32px;
+                height: 32px;
+            }
+        }
     </style>
 </head>
 

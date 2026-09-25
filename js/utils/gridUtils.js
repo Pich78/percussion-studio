@@ -6,6 +6,25 @@
 // Valid step options for the global grid
 export const GRID_STEP_OPTIONS = [4, 6, 8, 12, 16, 24];
 
+// Horizontal overhead around the cells (sticky label column, container
+// padding, label margin, sub-pixel buffer) — see the former
+// calculateMobileCellSize() breakdown: 181 + 8 + 4 + 2.
+export const GRID_CELL_OVERHEAD_PX = 195;
+
+/**
+ * Inline style declaring the mobile grid cell size as a pure CSS clamp.
+ * No JS measurement: the browser recomputes it on rotation/resize, so the
+ * app never needs to re-render for viewport changes. Uses the
+ * --safe-area-* custom properties (env()-backed in mobile.html) so the E2E
+ * safe-area fallback keeps working. Desktop never sets --cell-size and
+ * falls back to 40px at the cell level.
+ *
+ * @param {number} steps - Section step count (cells per measure)
+ * @returns {string} Inline style declaration (without the style=" wrapper)
+ */
+export const gridCellSizeStyle = (steps) =>
+  `--cell-size: clamp(16px, calc((100vw - var(--safe-area-left, 0px) - var(--safe-area-right, 0px) - ${GRID_CELL_OVERHEAD_PX}px) / ${steps}), 40px);`;
+
 // Valid step options for per-instrument subdivision
 // Valid step options for per-instrument subdivision (Deprecated/Unused: now calculated dynamicall)
 // export const INSTRUMENT_STEP_OPTIONS = [2, 3, 4, 6, 8, 12, 16, 24];

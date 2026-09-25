@@ -13,7 +13,7 @@
 
 const { test, expect } = require('@playwright/test');
 const { IPHONE_16_SAFE_AREAS, applySafeAreaOverride } = require('./helpers/safeArea');
-const { rotateTo } = require('./helpers/rotation');
+const { rotateTo, VIEWPORTS } = require('./helpers/rotation');
 
 const portraitHeader = (page) => page.locator('div[class*="portrait:flex"] header:visible').first();
 const landscapeHeader = (page) => page.locator('#dual-mode-landscape-header:visible').first();
@@ -57,6 +57,80 @@ test('header survives portrait → landscape → portrait; popovers close; shell
     expect(shell.scrollY).toBe(0);
     expect(shell.rootTop).toBe(0);
     expect(Math.abs(shell.rootH - shell.innerHeight)).toBeLessThanOrEqual(1);
+});
+
+test('rotation performs no full renders', async ({ page }) => {
+    await startPortrait(page);
+
+    // Let the boot renders (initial load + mobile rAF re-render) finish.
+    await page.waitForTimeout(150);
+    await page.evaluate(() => {
+        window.__rootMutations = 0;
+        new MutationObserver(() => { window.__rootMutations++; })
+            .observe(document.getElementById('root'), { childList: true });
+    });
+
+    await rotateTo(page, 'landscape');
+    await rotateTo(page, 'portrait');
+
+    // Grid sizing is CSS-driven: an orientation flip must not rebuild #root.
+    expect(await page.evaluate(() => window.__rootMutations)).toBe(0);
+});
+
+test('grid cell size is CSS-driven and survives rotation without a rebuild', async ({ page }) => {
+    // 16 steps on an unclamped iPhone 16 PWA landscape width: the exact
+    // formula result is observable, unlike clamped 40px configurations.
+    await page.setViewportSize({ ...VIEWPORTS.portrait });
+    await applySafeAreaOverride(page, IPHONE_16_SAFE_AREAS.portrait);
+    await page.goto('/mobile.html?rhythm=' + encodeURIComponent('Batà/Olokun/olokun_-_llamada_y_base'));
+    await expect(page.locator('[data-action="toggle-play"]:visible').first()).toBeVisible({ timeout: 15000 });
+    await page.waitForTimeout(150);
+
+    await rotateTo(page, 'landscape');
+
+    const readGrid = () => page.evaluate(() => {
+        const cell = document.querySelector('[data-role="tubs-cell"]');
+        const steps = document.querySelectorAll('[data-step-marker][data-measure-index="0"]').length;
+        return { cellWidth: cell ? cell.getBoundingClientRect().width : null, steps };
+    });
+    const first = await readGrid();
+    expect(first.steps).toBe(16);
+
+    const safe = IPHONE_16_SAFE_AREAS.landscape.left + IPHONE_16_SAFE_AREAS.landscape.right;
+    const expectedCell = (VIEWPORTS.landscape.width - safe - 195) / first.steps;
+    expect(Math.abs(first.cellWidth - expectedCell)).toBeLessThan(1.5);
+
+    await page.evaluate(() => {
+        window.__rootMutations = 0;
+        new MutationObserver(() => { window.__rootMutations++; })
+            .observe(document.getElementById('root'), { childList: true });
+    });
+
+    await rotateTo(page, 'portrait');
+    await rotateTo(page, 'landscape');
+
+    const second = await readGrid();
+    expect(await page.evaluate(() => window.__rootMutations)).toBe(0);
+    expect(Math.abs(second.cellWidth - expectedCell)).toBeLessThan(1.5);
+});
+
+test('orientation popovers do not reappear when rotating back', async ({ page }) => {
+    await startPortrait(page);
+    await rotateTo(page, 'landscape');
+
+    // Open a landscape chip popover.
+    await page.locator('[data-action="dual-mode-toggle-popover"][data-popover-id="prac-bpm"]:visible').first().click();
+    await expect(page.locator('[data-action="dual-mode-close-popover"]:visible').first()).toBeVisible();
+
+    // Rotating away drops the popover (state + targeted DOM removal).
+    await rotateTo(page, 'portrait');
+    await expect(page.locator('[data-action="dual-mode-close-popover"]:visible')).toHaveCount(0);
+
+    // Rotate straight back with no settle wait: the stale subtree must be gone,
+    // not lingering until some later render.
+    await page.setViewportSize({ ...VIEWPORTS.landscape });
+    await applySafeAreaOverride(page, IPHONE_16_SAFE_AREAS.landscape);
+    await expect(page.locator('[data-action="dual-mode-close-popover"]:visible')).toHaveCount(0);
 });
 
 test('rhythm browser opened from the header survives a rotation', async ({ page }) => {

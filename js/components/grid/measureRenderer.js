@@ -14,11 +14,10 @@ import { DocumentDuplicateIcon } from '../../icons/documentDuplicateIcon.js';
  * @param {object} measure - Measure data
  * @param {number} measureIdx - Measure index
  * @param {object} section - Section data
- * @param {number} cellSizePx - Cell size in pixels
  * @param {boolean} readOnly - Whether in read-only mode
  * @returns {string} HTML string
  */
-const renderMeasureHeader = (measure, measureIdx, section, cellSizePx, readOnly) => {
+const renderMeasureHeader = (measure, measureIdx, section, readOnly) => {
   const measureLabel = `Measure ${measureIdx + 1}`;
   const stepCount = section.steps;
 
@@ -60,7 +59,7 @@ const renderMeasureHeader = (measure, measureIdx, section, cellSizePx, readOnly)
                       data-step-marker="${i}" 
                       data-measure-index="${measureIdx}"
                       class="text-center text-[10px] font-mono text-gray-500 flex-shrink-0 flex items-center justify-center"
-                      style="width: ${cellSizePx}px; height: ${cellSizePx * 0.6}px;"
+                      style="width: var(--cell-size, 40px); height: calc(var(--cell-size, 40px) * 0.6);"
                     >
                       ${i + 1}
                     </div>
@@ -81,9 +80,6 @@ export const MeasureRenderer = ({
   section,
   currentStep,
   selectedStroke,
-  cellSizePx,
-  iconSizePx,
-  fontSizePx,
   readOnly,
   instrumentDefinitions = {},
   isPlaying = false
@@ -97,9 +93,6 @@ export const MeasureRenderer = ({
       section,
       currentStep,
       selectedStroke,
-      cellSizePx,
-      iconSizePx,
-      fontSizePx,
       readOnly,
       instrumentDefinitions,
       isPlaying
@@ -109,7 +102,7 @@ export const MeasureRenderer = ({
   return `
       <div class="measure-container mb-6" data-measure-index="${measureIdx}" style="scroll-snap-align: start;">
         <!-- Measure Header -->
-        ${renderMeasureHeader(measure, measureIdx, section, cellSizePx, readOnly)}
+        ${renderMeasureHeader(measure, measureIdx, section, readOnly)}
         
         <!-- Tracks for this measure -->
         ${tracksHtml}

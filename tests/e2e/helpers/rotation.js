@@ -2,8 +2,10 @@
  * tests/e2e/helpers/rotation.js
  *
  * Rotation helper for mobile specs: resizes the viewport, re-applies the
- * orientation-specific safe-area override and waits for the app's settle
- * re-renders (js/ui/mobileViewport.js renders at ~350ms and ~650ms).
+ * orientation-specific safe-area override and pauses briefly so the browser
+ * settles the CSS layout. Rotation performs no JS re-renders (grid sizing is
+ * CSS-driven — see js/ui/mobileViewport.js), so this is a small layout
+ * settle, not a render wait.
  */
 
 const { IPHONE_16_SAFE_AREAS, applySafeAreaOverride } = require('./safeArea');
@@ -13,8 +15,8 @@ const VIEWPORTS = {
     landscape: { width: 852, height: 393 },
 };
 
-// Longer than the app's final settle render (650ms).
-const SETTLE_MS = 900;
+// Brief layout settle after the viewport resize (no renders to wait for).
+const SETTLE_MS = 200;
 
 async function rotateTo(page, orientation) {
     await page.setViewportSize(VIEWPORTS[orientation]);

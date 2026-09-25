@@ -11,9 +11,6 @@ import { getCellBackgroundClass, getGuideNumber, getGuideNumberSize } from '../u
  * @param {number} params.stepIndex - Step index within this track's pattern
  * @param {number} params.measureIndex - Measure index
  * @param {Object} params.instrumentDef - Instrument definition
- * @param {number} params.cellSizePx - Base cell size in pixels
- * @param {number} params.iconSizePx - Icon size in pixels
- * @param {string} params.fontSizePx - Font size
  * @param {number} params.trackSteps - Number of steps for this track
  * @param {number} params.gridSteps - Global grid step count
  * @param {boolean} params.isPlaying - Whether playback is active
@@ -28,18 +25,12 @@ export const TubsCell = ({
   stepIndex,
   measureIndex,
   instrumentDef,
-  cellSizePx = 40,
-  iconSizePx = 32,
-  fontSizePx = '0.875rem',
   divisor, // Visual subdivision divisor
   gridSteps,
   isPlaying = false,
   isSnapOn = false, // If true, disable individual cell hover
   selectedStroke = StrokeType.Open // Currently selected stroke for cursor display
 }) => {
-  // 1:1 Mapping - One Step = One Cell
-  const stepWidthPx = cellSizePx;
-
   // Is the playhead exactly on this step?
   const isPlayheadInCell = currentGlobalStep === stepIndex;
 
@@ -96,7 +87,7 @@ export const TubsCell = ({
   return `
     <button 
       class="${baseClasses} ${borderLeft} ${rhythmicBg} ${invalidClass} ${hoverClass}"
-      style="width: ${stepWidthPx}px; height: ${cellSizePx}px;"
+      style="width: var(--cell-size, 40px); height: var(--cell-size, 40px);"
       data-role="tubs-cell"
       data-track-index="${trackIndex}"
       data-step-index="${stepIndex}"
@@ -117,10 +108,13 @@ export const TubsCell = ({
         <span class="${guideNumberSize} font-bold text-slate-400">${guideNumber}</span>
       </div>
 
-      <!-- Symbol Wrapper: Anchored to start, minimum cell size -->
+      <!-- Symbol Wrapper: Anchored to start, minimum cell size.
+           .cell-symbol is a container: the icon size follows the wrapper's
+           own inline size via @container rules (see mobile.html/desktop.html),
+           replacing the former JS iconSizePx thresholds. -->
       <div 
-        class="absolute top-0 left-0 h-full flex items-center justify-center pointer-events-none"
-        style="width: ${cellSizePx}px;"
+        class="cell-symbol absolute top-0 left-0 h-full flex items-center justify-center pointer-events-none"
+        style="width: var(--cell-size, 40px);"
       >
         ${(() => {
       if (isRest) return '';
@@ -145,7 +139,7 @@ export const TubsCell = ({
         const iconFile = soundDef?.svg || (soundDef?.name ? `${soundDef.name.toLowerCase()}.svg` : null);
         if (iconFile) {
           // Wrap in a span that handles the dynamic scaling/glowing so the image itself isn't distorted
-          return `<img src="data/assets/icons/${iconFile}?v=5" style="width: ${iconSizePx}px; height: ${iconSizePx}px; ${dynStyle}" class="pointer-events-none select-none drop-shadow-md transition-all duration-200 ${dynClasses}" alt="${stroke}${dynamic !== '-' ? dynamic : ''}" />`;
+          return `<img src="data/assets/icons/${iconFile}?v=5" style="${dynStyle}" class="cell-symbol-img pointer-events-none select-none drop-shadow-md transition-all duration-200 ${dynClasses}" alt="${stroke}${dynamic !== '-' ? dynamic : ''}" />`;
         }
       }
 

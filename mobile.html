@@ -99,6 +99,33 @@
             touch-action: pan-x pan-y;
         }
 
+        /* Grid symbol sizing: the symbol wrapper is a size container, so the
+           icon follows the cell's --cell-size (CSS clamp) with no JS
+           measurement. Thresholds mirror the former JS mapping:
+           >=36px cell -> 32px icon, >=28px -> 24px, else 16px. */
+        .cell-symbol {
+            container-type: inline-size;
+        }
+
+        .cell-symbol-img {
+            width: 16px;
+            height: 16px;
+        }
+
+        @container (min-width: 28px) {
+            .cell-symbol-img {
+                width: 24px;
+                height: 24px;
+            }
+        }
+
+        @container (min-width: 36px) {
+            .cell-symbol-img {
+                width: 32px;
+                height: 32px;
+            }
+        }
+
         /* Remove 300ms tap delay on all interactive elements */
         button:not(.no-pinch-zoom),
         [data-action]:not(.no-pinch-zoom) {

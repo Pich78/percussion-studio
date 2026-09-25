@@ -1,5 +1,5 @@
 import { state, playback } from '../../../store.js';
-import { calculateMobileCellSize } from '../standard/layout.js';
+import { gridCellSizeStyle } from '../../../utils/gridUtils.js';
 import { DualModeMeasureRenderer } from './dualModeMeasureRenderer.js';
 import { SectionSettings } from '../../../components/grid/sectionSettings.js';
 import { RhythmSwitcherButton } from '../../../components/rhythmSwitcherButton.js';
@@ -37,7 +37,7 @@ const renderAccelerationBadge = (section) => {
     return `<span class="text-[10px] font-mono ${color} flex-shrink-0 flex items-center gap-0.5 ml-1" title="Tempo acceleration: ${accel > 0 ? '+' : ''}${accel.toFixed(1)}% per rep">${icon}${Math.abs(accel).toFixed(1)}</span>`;
 };
 
-const renderDualModeGrid = (activeSection, cellSizePx, iconSizePx, fontSizePx) => {
+const renderDualModeGrid = (activeSection) => {
     if (!activeSection || !activeSection.measures || activeSection.measures.length === 0) {
         return `<div class="flex-1 flex items-center justify-center text-gray-600">No data</div>`;
     }
@@ -49,9 +49,6 @@ const renderDualModeGrid = (activeSection, cellSizePx, iconSizePx, fontSizePx) =
             section: activeSection,
             currentStep: state.currentStep,
             selectedStroke: state.selectedStroke,
-            cellSizePx,
-            iconSizePx,
-            fontSizePx,
             instrumentDefinitions: state.instrumentDefinitions,
             isPlaying: state.isPlaying
         })
@@ -61,7 +58,7 @@ const renderDualModeGrid = (activeSection, cellSizePx, iconSizePx, fontSizePx) =
     <div
         id="tubs-scroll-container"
         class="flex-1 flex flex-col gap-2 overflow-x-auto overflow-y-scroll pb-4 w-full h-full custom-scrollbar relative outline-none ring-0 no-pinch-zoom"
-        style="scroll-snap-type: y mandatory; -webkit-overflow-scrolling: touch;"
+        style="scroll-snap-type: y mandatory; -webkit-overflow-scrolling: touch; ${gridCellSizeStyle(activeSection.steps)}"
     >
         ${SectionSettings(activeSection, Math.round(playback.currentPlayheadBpm), /* readOnly= */ true)}
         ${measuresHtml}
@@ -213,9 +210,11 @@ const renderLandscapeBottomBar = (activeSection) => {
     </div>`,
 
         overlayHtml: activePopover ? `
-        ${activePopoverHtml}
-        <div data-action="dual-mode-close-popover"
-             class="fixed inset-x-0 top-0 z-[60]" style="bottom: 52px; background: rgba(0,0,0,0.4); backdrop-filter: blur(2px);">
+        <div data-role="orientation-popover">
+            ${activePopoverHtml}
+            <div data-action="dual-mode-close-popover"
+                 class="fixed inset-x-0 top-0 z-[60]" style="bottom: 52px; background: rgba(0,0,0,0.4); backdrop-filter: blur(2px);">
+            </div>
         </div>` : '',
 
         wheelPickerHtml: renderWheelPicker()
@@ -223,16 +222,9 @@ const renderLandscapeBottomBar = (activeSection) => {
 };
 
 export const renderLandscape = (activeSection) => {
-    const viewportWidth = window.innerWidth;
-    const computedStyle = getComputedStyle(document.documentElement);
-    const safeAreaLeft = parseInt(computedStyle.getPropertyValue('--safe-area-left') || '0', 10) || 0;
-    const safeAreaRight = parseInt(computedStyle.getPropertyValue('--safe-area-right') || '0', 10) || 0;
-    const steps = activeSection?.steps || 12;
-    const cellSizePx = calculateMobileCellSize(viewportWidth, steps, safeAreaLeft, safeAreaRight);
-
-    const iconSizePx = cellSizePx >= 36 ? 32 : cellSizePx >= 28 ? 24 : 16;
-    const fontSizePx = cellSizePx >= 36 ? '0.875rem' : cellSizePx >= 28 ? '0.75rem' : '0.625rem';
-
+    // Layout is pure template + CSS: the grid cell size is a CSS clamp
+    // (--cell-size) and safe areas are env()-backed, so this function never
+    // reads the viewport and rotation needs no re-render.
     const { barHtml, overlayHtml, wheelPickerHtml } = renderLandscapeBottomBar(activeSection);
 
     return `
@@ -240,7 +232,7 @@ export const renderLandscape = (activeSection) => {
         ${renderLandscapeTopBar(activeSection)}
         <main class="flex-1 min-h-0 w-full flex flex-col px-2 py-1
                      bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-900 via-gray-950 to-gray-950">
-            ${renderDualModeGrid(activeSection, cellSizePx, iconSizePx, fontSizePx)}
+            ${renderDualModeGrid(activeSection)}
         </main>
         ${barHtml}
         ${overlayHtml}

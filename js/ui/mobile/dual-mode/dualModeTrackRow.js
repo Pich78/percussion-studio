@@ -30,9 +30,6 @@ const renderTrackCells = ({
     currentStep,
     isStrokeValid,
     instDef,
-    cellSizePx,
-    iconSizePx,
-    fontSizePx,
     selectedStroke,
     isPlaying
 }) => {
@@ -59,9 +56,6 @@ const renderTrackCells = ({
                         stepIndex: s,
                         measureIndex: measureIdx,
                         instrumentDef: instDef,
-                        cellSizePx,
-                        iconSizePx,
-                        fontSizePx,
                         divisor,
                         gridSteps: totalSteps,
                         isPlaying,
@@ -85,9 +79,6 @@ const renderTrackCells = ({
             stepIndex: stepIdx,
             measureIndex: measureIdx,
             instrumentDef: instDef,
-            cellSizePx,
-            iconSizePx,
-            fontSizePx,
             divisor,
             gridSteps: section.steps,
             isPlaying,
@@ -113,9 +104,6 @@ export const DualModeTrackRow = ({
     section,
     currentStep,
     selectedStroke,
-    cellSizePx,
-    iconSizePx,
-    fontSizePx,
     instrumentDefinitions = {},
     isPlaying = false
 }) => {
@@ -176,9 +164,6 @@ export const DualModeTrackRow = ({
                 currentStep,
                 isStrokeValid,
                 instDef,
-                cellSizePx,
-                iconSizePx,
-                fontSizePx,
                 selectedStroke,
                 isPlaying
             })}

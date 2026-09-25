@@ -3,23 +3,20 @@
  *
  * Mobile orientation / viewport handling.
  *
- * iOS standalone keeps viewport measurements stale for a while after a
- * rotation (up to ~500ms), and can leave the document scrolled even with an
- * overflow-hidden shell — both can push a non-sticky header out of view.
- * This module listens to `orientationchange`, `resize` and
- * `visualViewport.resize`, and on an actual orientation flip:
- *   1. lets the caller drop orientation-scoped UI (popovers),
- *   2. resets the document scroll,
- *   3. re-renders immediately, then at settle time (~350ms and ~650ms).
+ * The mobile layouts are pure CSS (the grid cell size is a --cell-size clamp
+ * and safe areas are env()-backed), so a rotation needs no re-render at all.
+ * This module only handles what CSS cannot:
+ *   1. close orientation-scoped popovers (state cleanup + targeted removal of
+ *      [data-role="orientation-popover"] subtrees),
+ *   2. reset the document scroll (iOS standalone can leave it scrolled, which
+ *      pushes the non-sticky header out of view).
  *
- * Plain resizes keep the previous 100ms-debounced single render.
+ * Listeners: `orientationchange`, `resize` and `visualViewport.resize`.
+ * Plain resizes (browser chrome, on-screen keyboard) are ignored — nothing
+ * viewport-derived is baked into the markup anymore.
  */
 
-import { eventBus } from '../services/eventBus.js';
-
-const QUICK_RENDER_MS = 100;
-const SETTLE_RENDER_MS = 350;
-const FINAL_RENDER_MS = 650;
+const ORIENTATION_POPOVER_SELECTOR = '[data-role="orientation-popover"]';
 
 const isPortrait = () => {
     // screen.orientation is the semantic signal: unlike the viewport aspect
@@ -31,76 +28,49 @@ const isPortrait = () => {
     return window.innerHeight >= window.innerWidth;
 };
 
+const resetDocumentScroll = () => {
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    if (document.body) document.body.scrollTop = 0;
+};
+
+const removeOrientationPopovers = () => {
+    document.querySelectorAll(ORIENTATION_POPOVER_SELECTOR).forEach(el => el.remove());
+};
+
 /**
  * Attach the viewport listeners. Called once per app boot by
  * setupMobileEvents().
  *
  * @param {object} [options]
  * @param {Function} [options.onOrientationChange] - Called on every real
- *   orientation flip, before the re-render, to drop orientation-scoped UI.
+ *   orientation flip, before the DOM cleanup, to drop orientation-scoped UI.
  */
 export const setupMobileViewportHandling = ({ onOrientationChange } = {}) => {
     let lastIsPortrait = isPortrait();
-    let resizeTimeout = null;
-    let settleTimers = [];
-
-    const clearSettleTimers = () => {
-        settleTimers.forEach(clearTimeout);
-        settleTimers = [];
-    };
-
-    const resetDocumentScroll = () => {
-        window.scrollTo(0, 0);
-        document.documentElement.scrollTop = 0;
-        if (document.body) document.body.scrollTop = 0;
-    };
-
-    const scheduleSettleRenders = () => {
-        clearSettleTimers();
-        [SETTLE_RENDER_MS, FINAL_RENDER_MS].forEach((delay) => {
-            settleTimers.push(setTimeout(() => {
-                resetDocumentScroll();
-                eventBus.emit('render');
-            }, delay));
-        });
-    };
 
     const handleOrientationChange = () => {
         if (onOrientationChange) onOrientationChange();
+        removeOrientationPopovers();
         resetDocumentScroll();
-        clearTimeout(resizeTimeout);
-        eventBus.emit('render');
-        scheduleSettleRenders();
     };
 
-    const handleViewportEvent = ({ allowPlainResize }) => {
+    const checkOrientation = () => {
         const nowPortrait = isPortrait();
-        if (nowPortrait !== lastIsPortrait) {
-            lastIsPortrait = nowPortrait;
-            handleOrientationChange();
-            return;
-        }
-
-        if (!allowPlainResize) return;
-
-        // Plain resize (browser chrome, on-screen keyboard): debounce a
-        // single render, as before.
-        clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(() => eventBus.emit('render'), QUICK_RENDER_MS);
+        if (nowPortrait === lastIsPortrait) return;
+        lastIsPortrait = nowPortrait;
+        handleOrientationChange();
     };
 
-    window.addEventListener('resize', () => handleViewportEvent({ allowPlainResize: true }));
+    window.addEventListener('resize', checkOrientation);
 
     // orientationchange can fire before the dimensions flip; re-check on the
     // next frame so isPortrait() observes the new orientation.
-    window.addEventListener('orientationchange', () => {
-        requestAnimationFrame(() => handleViewportEvent({ allowPlainResize: false }));
-    });
+    window.addEventListener('orientationchange', () => requestAnimationFrame(checkOrientation));
 
     // visualViewport.resize catches rotations on engines that do not emit a
-    // usable window resize; it is deliberately ignored for plain resizes so
-    // the on-screen keyboard cannot trigger re-render churn.
+    // usable window resize.
     if (window.visualViewport) {
-        window.visualViewport.addEventListener('resize', () => handleViewportEvent({ allowPlainResize: false }));
+        window.visualViewport.addEventListener('resize', checkOrientation);
     }
 };

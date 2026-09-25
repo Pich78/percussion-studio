@@ -12,7 +12,7 @@
 import { state, playback } from '../store.js';
 import { getActiveSection } from '../store/stateSelectors.js';
 import { TubsGrid, autoScrollGrid } from '../components/tubsGrid.js';
-import { MobileLayout, calculateMobileCellSize } from './mobile/standard/layout.js';
+import { MobileLayout } from './mobile/standard/layout.js';
 import { DesktopLayout } from './desktop/layout.js';
 import { eventBus } from '../services/eventBus.js';
 import { updateVisualStep, scrollToMeasure, updateCountInUi } from './playheadUtils.js';
@@ -172,21 +172,6 @@ export const refreshGrid = () => {
     const scrollTop = scrollContainer ? scrollContainer.scrollTop : 0;
     const scrollLeft = scrollContainer ? scrollContainer.scrollLeft : 0;
 
-    // Calculate cell size fresh for mobile
-    let mobileCellSize = null;
-    if (isMobile && activeSection) {
-      const viewportWidth = window.innerWidth;
-      const computedStyle = getComputedStyle(document.documentElement);
-      const safeAreaLeft = parseInt(computedStyle.getPropertyValue('--safe-area-left') || '0', 10) || 0;
-      const safeAreaRight = parseInt(computedStyle.getPropertyValue('--safe-area-right') || '0', 10) || 0;
-      mobileCellSize = calculateMobileCellSize(
-        viewportWidth,
-        activeSection.steps || 12,
-        safeAreaLeft,
-        safeAreaRight
-      );
-    }
-
     container.innerHTML = TubsGrid({
       section: activeSection,
       globalBpm: Math.round(playback.currentPlayheadBpm),
@@ -195,7 +180,6 @@ export const refreshGrid = () => {
       uiState: state.uiState,
       readOnly: isMobile,
       isMobile: isMobile,
-      mobileCellSize,
       instrumentDefinitions: state.instrumentDefinitions,
       isPlaying: state.isPlaying
     });

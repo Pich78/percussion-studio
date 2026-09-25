@@ -17,7 +17,7 @@ import { DualModeTrackRow } from './dualModeTrackRow.js';
 /**
  * Render the measure header with step numbers — identical to standard MeasureRenderer.
  */
-const renderMeasureHeader = (measure, measureIdx, section, cellSizePx) => {
+const renderMeasureHeader = (measure, measureIdx, section) => {
     const measureLabel = `Measure ${measureIdx + 1}`;
     const stepCount = section.steps;
 
@@ -39,7 +39,7 @@ const renderMeasureHeader = (measure, measureIdx, section, cellSizePx) => {
                   data-step-marker="${i}" 
                   data-measure-index="${measureIdx}"
                   class="text-center text-[10px] font-mono text-gray-500 flex-shrink-0 flex items-center justify-center"
-                  style="width: ${cellSizePx}px; height: ${cellSizePx * 0.6}px;"
+                  style="width: var(--cell-size, 40px); height: calc(var(--cell-size, 40px) * 0.6);"
                 >
                   ${i + 1}
                 </div>
@@ -57,9 +57,6 @@ const renderMeasureHeader = (measure, measureIdx, section, cellSizePx) => {
  * @param {object} params.section        - Parent section
  * @param {number} params.currentStep    - Current playhead step
  * @param {number} params.selectedStroke - Currently selected stroke type
- * @param {number} params.cellSizePx     - Cell width in pixels
- * @param {number} params.iconSizePx     - Icon size in pixels
- * @param {number} params.fontSizePx     - Font size in pixels
  * @param {object} params.instrumentDefinitions - Instrument metadata map
  * @param {boolean} params.isPlaying     - Whether playback is active
  */
@@ -69,9 +66,6 @@ export const DualModeMeasureRenderer = ({
     section,
     currentStep,
     selectedStroke,
-    cellSizePx,
-    iconSizePx,
-    fontSizePx,
     instrumentDefinitions = {},
     isPlaying = false
 }) => {
@@ -83,9 +77,6 @@ export const DualModeMeasureRenderer = ({
             section,
             currentStep,
             selectedStroke,
-            cellSizePx,
-            iconSizePx,
-            fontSizePx,
             instrumentDefinitions,
             isPlaying
         })
@@ -94,7 +85,7 @@ export const DualModeMeasureRenderer = ({
     return `
     <div class="measure-container mb-6" data-measure-index="${measureIdx}" style="scroll-snap-align: start;">
         <!-- Measure Header -->
-        ${renderMeasureHeader(measure, measureIdx, section, cellSizePx)}
+        ${renderMeasureHeader(measure, measureIdx, section)}
 
         <!-- Tracks (Dual Mode variant — name-only label) -->
         ${tracksHtml}

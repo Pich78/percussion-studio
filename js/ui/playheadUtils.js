@@ -32,17 +32,16 @@ export const updateVisualStep = (step, measureIndex = 0) => {
     const activeSection = getActiveSection(state);
     if (!activeSection) return;
 
-    // Find a reference cell to calculate dimensions (use first track, first cell)
+    // Sizing comes from the actual target cell's rect (falling back to the
+    // first cell). This stays exact when --cell-size resolves to a fractional
+    // width, where `step * offsetWidth` would accumulate rounding drift.
     const referenceCell = measureContainer.querySelector(`[data-role="tubs-cell"][data-step-index="0"]`);
     if (!referenceCell) return;
+    const targetCell = measureContainer.querySelector(`[data-role="tubs-cell"][data-step-index="${step}"]`) || referenceCell;
 
     // Find all track rows - they contain the cells
     const trackRows = measureContainer.querySelectorAll('.flex.items-center.group');
     if (trackRows.length === 0) return;
-
-    // Calculate cell size from reference cell
-    const cellSizePx = referenceCell.offsetWidth;
-    const playheadLeftPx = step * cellSizePx;
 
     // Get the first and last track row to determine total height and position
     const firstRow = trackRows[0];
@@ -54,20 +53,19 @@ export const updateVisualStep = (step, measureIndex = 0) => {
 
     // Get positions relative to measure container
     const measureRect = measureContainer.getBoundingClientRect();
-    const referenceRect = referenceCell.getBoundingClientRect();
+    const targetRect = targetCell.getBoundingClientRect();
     const firstContainerRect = firstCellsContainer.getBoundingClientRect();
     const lastContainerRect = lastRow.querySelector('.flex.bg-gray-900\\/30')?.getBoundingClientRect() || firstContainerRect;
 
     const topOffset = firstContainerRect.top - measureRect.top;
     const totalHeight = (lastContainerRect.bottom - firstContainerRect.top);
-    const startLeft = referenceRect.left - measureRect.left;
 
     // Create unified playhead bar
     const playhead = document.createElement('div');
     playhead.className = 'playhead-indicator absolute pointer-events-none z-30';
-    playhead.style.left = `${startLeft + playheadLeftPx}px`;
+    playhead.style.left = `${targetRect.left - measureRect.left}px`;
     playhead.style.top = `${topOffset}px`;
-    playhead.style.width = `${cellSizePx}px`;
+    playhead.style.width = `${targetRect.width}px`;
     playhead.style.height = `${totalHeight}px`;
     playhead.innerHTML = '<div class="w-full h-full bg-white/25 ring-2 ring-inset ring-white rounded-sm shadow-[0_0_15px_rgba(255,255,255,0.6)]"></div>';
 
