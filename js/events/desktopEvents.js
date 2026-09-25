@@ -321,13 +321,6 @@ export const setupDesktopEvents = () => {
             playbackHandlers.handleAccelerationInput(target);
             return;
         }
-
-        if (action === 'update-pie-timing') {
-            const key = target.dataset.target;
-            state.uiState.pieMenu[key] = Math.max(0, parseInt(target.value) || 0);
-            eventBus.emit('render');
-            return;
-        }
     });
 
     // Change handler for select/number inputs
@@ -406,6 +399,23 @@ export const setupDesktopEvents = () => {
 
         if (action === 'update-rhythm-name') {
             timelineHandlers.handleUpdateRhythmName(target);
+            return;
+        }
+
+        if (action === 'update-pie-timing') {
+            // Commit on 'change' (blur/Enter/spinner), never on 'input':
+            // rendering mid-typing replaced the input and dropped focus after
+            // the first keystroke. The input already shows the typed value, so
+            // no repaint is needed here.
+            const key = target.dataset.target;
+            const min = parseInt(target.min, 10);
+            const max = parseInt(target.max, 10);
+            let value = parseInt(target.value, 10);
+            if (Number.isNaN(value)) value = 0;
+            if (!Number.isNaN(min)) value = Math.max(min, value);
+            if (!Number.isNaN(max)) value = Math.min(max, value);
+            target.value = value;
+            state.uiState.pieMenu[key] = value;
             return;
         }
 

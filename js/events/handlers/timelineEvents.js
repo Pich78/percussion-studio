@@ -117,10 +117,12 @@ export const handleToggleSectionEnabled = (target) => {
     const sectionId = target.dataset.id;
     const section = state.toque.sections.find(s => s.id === sectionId);
     if (section) {
+        // skip is independent of playMode (docs/requirements/section-play-mode.md):
+        // disabling then re-enabling must not downgrade Play Forever/Play Once
+        // to loop. 'skip' is only a legacy sentinel from the old coupling;
+        // normalize it on re-enable without touching real modes.
         section.skip = !section.skip;
-        if (section.skip) {
-            section.playMode = 'skip';
-        } else if (section.playMode === 'skip') {
+        if (!section.skip && section.playMode === 'skip') {
             section.playMode = 'loop';
         }
         eventBus.emit('render');

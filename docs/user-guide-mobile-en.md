@@ -230,7 +230,7 @@ Dual Mode is the default and recommended view.
 
 The **Cnt** (landscape) / **Count** (portrait) button enables a count-in before playback:
 
-- Beats: automatically 4 (4/4 time) or 6 (6/8 or 12/8 time).
+- Beats: 4 (4/4 time) or 6 (6/8 or 12/8 time), matching the active section's feel.
 - Visual: the button shows the current beat and pulses.
 - Audio: click sounds before the rhythm starts (higher pitch on beat 1).
 

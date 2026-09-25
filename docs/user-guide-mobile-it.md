@@ -230,7 +230,7 @@ La Dual Mode è la vista predefinita e consigliata.
 
 Il pulsante **Cnt** (orizzontale) / **Count** (verticale) abilita un count-in prima dell'avvio:
 
-- Battiti: automaticamente 4 (tempo 4/4) o 6 (tempo 6/8 o 12/8).
+- Battiti: 4 (tempo 4/4) o 6 (tempo 6/8 o 12/8), in base al tempo della sezione attiva.
 - Visivo: il pulsante mostra il battito corrente e pulsa.
 - Audio: suoni click prima dell'avvio del ritmo (tono più acuto sul battito 1).
 

@@ -34,3 +34,37 @@ test('landscape header rhythm name opens the browser in one step', async ({ page
     await expect(page.getByRole('heading', { name: 'Load Rhythm' })).toBeVisible();
     await expect(page.locator('[data-action="back-to-menu"]:visible')).toHaveCount(0);
 });
+
+test('swipe on the landscape header navigates to the next section', async ({ page }) => {
+    await page.goto('/mobile.html?rhythm=' + encodeURIComponent('Batà/Olokun/olokun_-_llamada_-_base_-_1_conversacion'));
+
+    const header = page.locator('#dual-mode-landscape-header');
+    await expect(header).toBeVisible({ timeout: 15000 });
+
+    const activeSectionId = () => page.evaluate(async () => {
+        const { state } = await import('/js/store.js');
+        return state.activeSectionId;
+    });
+    const before = await activeSectionId();
+
+    // Positive control for the header-scoped swipe: a leftward gesture that
+    // starts on the header must still advance to the next section.
+    await page.evaluate(() => {
+        const el = document.getElementById('dual-mode-landscape-header');
+        const rect = el.getBoundingClientRect();
+        const y = rect.top + rect.height / 2;
+        const makeTouch = (x) => new Touch({ identifier: 1, target: el, clientX: x, clientY: y });
+        const startX = rect.right - 20;
+        const endX = rect.left + 20;
+        el.dispatchEvent(new TouchEvent('touchstart', {
+            bubbles: true, cancelable: true,
+            touches: [makeTouch(startX)], changedTouches: [makeTouch(startX)]
+        }));
+        el.dispatchEvent(new TouchEvent('touchend', {
+            bubbles: true, cancelable: true,
+            touches: [], changedTouches: [makeTouch(endX)]
+        }));
+    });
+
+    await expect.poll(activeSectionId).not.toBe(before);
+});

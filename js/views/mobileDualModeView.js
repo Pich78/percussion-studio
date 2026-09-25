@@ -20,23 +20,44 @@ export const mobileDualModeView = {
     layout: DualModeLayout,
 
     /**
-     * Attach a horizontal swipe listener to the landscape top bar.
-     * The header never scrolls horizontally so there is no conflict with the
-     * grid's own overflow-x scroll. A swipe > 50px that is more horizontal
-     * than vertical navigates to the prev/next section.
+     * Attach a horizontal swipe listener for the landscape top bar.
+     * Only gestures that START inside the header count: the header never
+     * scrolls horizontally so there is no conflict with the grid's own
+     * overflow-x scroll, and — critically — gestures on other surfaces
+     * (portrait sliders, the grid itself) must never synthesize a click on
+     * the header's nav buttons. The header is mounted (display:none) in
+     * portrait too, so a missing origin check used to switch sections from
+     * portrait slider drags.
+     *
+     * A swipe > 50px that is more horizontal than vertical navigates to the
+     * prev/next section.
      */
     setupEvents: () => {
         setupMobileEvents();
 
         let touchStartX = 0;
         let touchStartY = 0;
+        let startedInHeader = false;
 
         const onTouchStart = (e) => {
-            touchStartX = e.touches[0].clientX;
-            touchStartY = e.touches[0].clientY;
+            startedInHeader = false;
+            if (e.touches.length !== 1) return;
+
+            const touch = e.touches[0];
+            const target = touch.target;
+            if (!target || typeof target.closest !== 'function') return;
+            if (!target.closest('#dual-mode-landscape-header')) return;
+
+            startedInHeader = true;
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
         };
 
         const onTouchEnd = (e) => {
+            if (!startedInHeader) return;
+            startedInHeader = false;
+            if (e.changedTouches.length !== 1) return;
+
             const dx = e.changedTouches[0].clientX - touchStartX;
             const dy = e.changedTouches[0].clientY - touchStartY;
 
@@ -46,7 +67,6 @@ export const mobileDualModeView = {
             if (!header) return;
 
             const action = dx < 0 ? 'dual-mode-next-section' : 'dual-mode-prev-section';
-            const syntheticTarget = { dataset: { action } };
             const btn = header.querySelector(`[data-action="${action}"]`);
             if (btn && !btn.disabled) btn.click();
         };

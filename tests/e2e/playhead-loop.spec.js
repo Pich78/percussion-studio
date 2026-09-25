@@ -73,6 +73,50 @@ test('playhead stays visible across loop boundaries without full rebuilds', asyn
     expect(rebuilds).toBe(0);
 });
 
+test('count-in uses the active section subdivision, not section 1', async ({ page }) => {
+    // 2-3 son clave starts with a 4/4 section; append a 6/8 section and select it.
+    await page.goto('/mobile.html?rhythm=' + encodeURIComponent('Clave/2-3_son_clave'));
+    await expect(page.locator('#dual-mode-landscape-header')).toBeVisible({ timeout: 15000 });
+
+    // Load the app's module singletons first, then inject synchronously: a
+    // long async evaluate that renders mid-way can be aborted by a busy
+    // renderer under the full parallel suite.
+    await page.evaluate(async () => {
+        window.__testMods = {
+            state: (await import('/js/store.js')).state,
+            eventBus: (await import('/js/services/eventBus.js')).eventBus,
+            actions: (await import('/js/actions/index.js')).actions
+        };
+    });
+    await page.evaluate(() => {
+        const { state, eventBus, actions } = window.__testMods;
+
+        const sixEight = JSON.parse(JSON.stringify(state.toque.sections[0]));
+        sixEight.id = 'test-6-8';
+        sixEight.name = 'Test 6/8';
+        sixEight.steps = 12;
+        sixEight.subdivision = 3;
+        sixEight.measures.forEach(measure => measure.tracks.forEach(track => {
+            track.strokes = Array(12).fill(' ');
+            track.dynamics = Array(12).fill('-');
+        }));
+        state.toque.sections.push(sixEight);
+
+        window.__countInTotals = [];
+        eventBus.on('transport', (payload) => {
+            if (payload.phase === 'countin') window.__countInTotals.push(payload.total);
+        });
+
+        actions.updateActiveSection('test-6-8');
+    });
+
+    await page.locator('[data-action="toggle-count-in"]:visible').first().click();
+    await page.locator('[data-action="toggle-play"]:visible').first().click();
+
+    // The 6/8 section must count in 6 beats; the old code counted section 1's 4/4.
+    await expect.poll(async () => page.evaluate(() => window.__countInTotals[0] ?? null)).toBe(6);
+});
+
 test('count-in chip ticks via targeted updates', async ({ page }) => {
     await page.goto(ENI_SO_URL);
     await expect(page.locator('#dual-mode-landscape-header')).toBeVisible();

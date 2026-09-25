@@ -60,14 +60,14 @@ npx playwright test e2e/mobile-pwa-portrait.spec.js
 
 ## 4. What is covered
 
-Six projects, one test each:
+Six projects (each project may run several specs):
 
 | Project | Viewport / device | Spec |
 |---|---|---|
-| `desktop` | chromium 1280×800 | `e2e/desktop.spec.js` — grid renders, play/stop toggles state; regression pins: static playhead parks in the paused measure across re-renders, new-rhythm clears any active solo, track removal reconciles `soloTrack`, BPM-override flips the timeline tempo badge immediately. |
-| `mobile-portrait` | iPhone 16, Safari-like **393×659** | `e2e/mobile-portrait.spec.js` — portrait control surface, toggles play; regression pin: random-reps dice toggle writes the canonical `randomRepetitions` field (sequencer + templates read it) and the 🎲 badge appears. Plus shared `e2e/mobile-wheel-picker.spec.js` — drum picker: tap-to-center commit, slow-drag-with-hold (no flick), Cancel discards the draft, skip mode, accel wheel gating/commit. |
-| `mobile-landscape` | iPhone 16, Safari-like **734×343** | `e2e/mobile-landscape.spec.js` — landscape read-only grid, toggles play. Plus shared `e2e/mobile-wheel-picker.spec.js` (same picker coverage). |
-| `mobile-landscape-playhead` | iPhone 16, Safari-like **734×343** | `e2e/playhead-loop.spec.js` — playback-loop regression for the transport stream contract: playhead visible on every step across loop boundaries (incl. last column of the last measure), zero full rebuilds during steady playback, count-in chip ticks via targeted updates. |
+| `desktop` | chromium 1280×800 | `e2e/desktop.spec.js` — grid renders, play/stop toggles state; regression pins: static playhead parks in the paused measure across re-renders, new-rhythm clears any active solo, track removal reconciles `soloTrack`, BPM-override flips the timeline tempo badge immediately, pie-timing inputs keep focus while typing, instrument-modal scroll survives instrument/pack selection, section disable/enable preserves the play mode. |
+| `mobile-portrait` | iPhone 16, Safari-like **393×659** | `e2e/mobile-portrait.spec.js` — portrait control surface, toggles play; regression pins: random-reps dice toggle writes the canonical `randomRepetitions` field (sequencer + templates read it) and the 🎲 badge appears; a horizontal swipe outside the landscape header does not change section. Plus shared `e2e/mobile-wheel-picker.spec.js` — drum picker: tap-to-center commit, slow-drag-with-hold (no flick), Cancel discards the draft, skip mode, accel wheel gating/commit. |
+| `mobile-landscape` | iPhone 16, Safari-like **734×343** | `e2e/mobile-landscape.spec.js` — landscape read-only grid, toggles play; a leftward swipe starting on the header still advances to the next section. Plus shared `e2e/mobile-wheel-picker.spec.js` (same picker coverage). |
+| `mobile-landscape-playhead` | iPhone 16, Safari-like **734×343** | `e2e/playhead-loop.spec.js` — playback-loop regression for the transport stream contract: playhead visible on every step across loop boundaries (incl. last column of the last measure), zero full rebuilds during steady playback, count-in chip ticks via targeted updates, count-in uses the active section's subdivision. |
 | `mobile-pwa-portrait` | iPhone 16, full-screen **393×852** | `e2e/mobile-pwa-portrait.spec.js` — full viewport + Dynamic Island insets. Plus shared `e2e/mobile-rotation.spec.js` — rotation regression (see below). |
 | `mobile-pwa-landscape` | iPhone 16, full-screen **852×393** | `e2e/mobile-pwa-landscape.spec.js` — full viewport + Dynamic Island insets. Plus shared `e2e/mobile-rotation.spec.js` — rotation regression (see below). |
 

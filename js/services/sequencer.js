@@ -60,11 +60,11 @@ const playCountInClick = (time, isAccent = false) => {
 };
 
 /**
- * Get the number of count-in beats based on the first section's subdivision.
+ * Get the number of count-in beats for a section's subdivision.
+ * @param {object} [section] - Section that will start playing
  * @returns {number} 4 for 4/4 time, 6 for 6/8 or 12/8 time
  */
-const getCountInBeats = () => {
-    const section = state.toque.sections[0];
+const getCountInBeats = (section) => {
     const subdivision = section?.subdivision || 4;
     // 3 = triplet feel (6/8, 12/8) → 6 beats (two groups of 3)
     // 4 = straight feel (4/4) → 4 beats
@@ -475,12 +475,15 @@ export const togglePlay = () => {
             // Don't set state.currentStep yet - scheduler will update it when the first note plays
             // This prevents the highlight from appearing before the music starts
 
-            // Schedule count-in if enabled
+            // Schedule count-in if enabled. The feel (4/4 vs 6/8) must match
+            // the section that is about to play, not section 1 — the UI chip
+            // already displays the active section's beat count.
             if (state.countInEnabled) {
-                const firstSection = state.toque.sections[0];
-                const subdivision = firstSection?.subdivision || 4;
-                const bpm = playback.currentPlayheadBpm || firstSection?.bpm || state.toque.globalBpm;
-                const countInBeats = getCountInBeats();
+                const countInSection = state.toque.sections.find(s => s.id === playback.activeSectionId)
+                    || state.toque.sections[0];
+                const subdivision = countInSection?.subdivision || 4;
+                const bpm = playback.currentPlayheadBpm || countInSection?.bpm || state.toque.globalBpm;
+                const countInBeats = getCountInBeats(countInSection);
                 const beatDuration = getCountInBeatDuration(bpm, subdivision);
 
                 // Update playback state for UI feedback

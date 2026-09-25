@@ -104,6 +104,41 @@ test('tapping the header rhythm name opens the browser in one step', async ({ pa
     ).toBeVisible();
 });
 
+test('horizontal swipe outside the landscape header does not change section', async ({ page }) => {
+    await page.goto('/mobile.html?rhythm=' + encodeURIComponent('Batà/Olokun/olokun_-_llamada_-_base_-_1_conversacion'));
+
+    // Portrait control surface (dual-mode default view).
+    await expect(page.locator('#portrait-bpm-label')).toBeVisible({ timeout: 15000 });
+
+    const activeSectionId = () => page.evaluate(async () => {
+        const { state } = await import('/js/store.js');
+        return state.activeSectionId;
+    });
+    const before = await activeSectionId();
+
+    // Swipe left across the portrait BPM slider — well outside the header.
+    // The landscape header (with its prev/next buttons) is mounted but
+    // display:none in portrait; the gesture must not reach its buttons.
+    await page.evaluate(() => {
+        const slider = document.querySelector('.portrait-bpm-slider');
+        const rect = slider.getBoundingClientRect();
+        const y = rect.top + rect.height / 2;
+        const makeTouch = (x) => new Touch({ identifier: 1, target: slider, clientX: x, clientY: y });
+        const startX = rect.right - 20;
+        const endX = rect.left + 20;
+        slider.dispatchEvent(new TouchEvent('touchstart', {
+            bubbles: true, cancelable: true,
+            touches: [makeTouch(startX)], changedTouches: [makeTouch(startX)]
+        }));
+        slider.dispatchEvent(new TouchEvent('touchend', {
+            bubbles: true, cancelable: true,
+            touches: [], changedTouches: [makeTouch(endX)]
+        }));
+    });
+
+    expect(await activeSectionId()).toBe(before);
+});
+
 test('random-reps toggle writes canonical randomRepetitions field', async ({ page }) => {
     await page.goto('/mobile.html');
 

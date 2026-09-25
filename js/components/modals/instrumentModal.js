@@ -137,7 +137,7 @@ export const InstrumentModal = (uiState, instrumentDefinitions = {}) => {
   const selectedPack = uiState.pendingSoundPack;
 
   const content = `
-        <div class="p-6 grid grid-cols-2 gap-6 overflow-y-auto max-h-[60vh]">
+        <div id="instrument-modal-scroll" class="p-6 grid grid-cols-2 gap-6 overflow-y-auto max-h-[60vh]">
           <!-- Left Column: Instruments -->
           <div class="border-r border-gray-800 pr-4">
             <h4 class="text-sm font-bold text-gray-400 uppercase tracking-wide mb-3">Instrument Type</h4>

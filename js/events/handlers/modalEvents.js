@@ -104,6 +104,26 @@ export const handleCloseModal = () => {
 };
 
 /**
+ * Repaint the instrument modal in place, preserving its internal scroll.
+ * grid-refresh rebuilds #grid-container (which hosts the modal); the
+ * renderer's scroll restoration only covers #tubs-scroll-container, so the
+ * modal's own scroller would otherwise jump back to the top on every
+ * instrument/pack selection.
+ */
+const refreshInstrumentModal = () => {
+    const scroller = document.getElementById('instrument-modal-scroll');
+    const scrollTop = scroller ? scroller.scrollTop : 0;
+
+    eventBus.emit('grid-refresh');
+
+    if (scrollTop === 0) return;
+    requestAnimationFrame(() => {
+        const next = document.getElementById('instrument-modal-scroll');
+        if (next) next.scrollTop = scrollTop;
+    });
+};
+
+/**
  * Handle select instrument
  * @param {HTMLElement} target - The instrument option element
  */
@@ -116,7 +136,7 @@ export const handleSelectInstrument = (target) => {
     if (!packs || !packs[state.uiState.pendingSoundPack]) {
         state.uiState.pendingSoundPack = null;
     }
-    eventBus.emit('grid-refresh');
+    refreshInstrumentModal();
 };
 
 /**
@@ -140,7 +160,7 @@ const playPackSound = async (instrumentSymbol, pack, letter) => {
 export const handleSelectSoundPack = (target) => {
     const pack = target.dataset.pack;
     state.uiState.pendingSoundPack = pack;
-    eventBus.emit('grid-refresh');
+    refreshInstrumentModal();
 
     // Auto-play the open tone of the pack for instant feedback
     // (fall back to the first available letter for packs without an open tone)

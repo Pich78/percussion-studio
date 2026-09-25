@@ -333,7 +333,7 @@ The **Count** button in the header enables a count-in before playback starts.
 | Setting | Description |
 |---------|-------------|
 | **Toggle** | Click the button to enable/disable |
-| **Beats** | Automatically 4 (for 4/4) or 6 (for 6/8 or 12/8 time) |
+| **Beats** | 4 (for 4/4) or 6 (for 6/8 or 12/8 time), matching the active section's feel |
 | **Visual** | The button shows the current beat and pulses during count-in |
 | **Audio** | Click sounds (higher pitch on beat 1) |
 

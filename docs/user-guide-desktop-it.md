@@ -333,7 +333,7 @@ Il pulsante **Count** nell'intestazione abilita un count-in prima dell'avvio.
 | Impostazione | Descrizione |
 |--------------|-------------|
 | **Attiva/Disattiva** | Clicca il pulsante per abilitare/disabilitare |
-| **Battiti** | Automaticamente 4 (per 4/4) o 6 (per 6/8 o 12/8) |
+| **Battiti** | 4 (per 4/4) o 6 (per 6/8 o 12/8), in base al tempo della sezione attiva |
 | **Visivo** | Il pulsante mostra il battito corrente e pulsa durante il count-in |
 | **Audio** | Suoni click (tono più acuto sul battito 1) |
 

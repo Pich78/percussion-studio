@@ -64,7 +64,7 @@ export const EditingOptionsModal = ({ isMobile = false, pieMenu = {}, modalOpen 
                                                 <input type="radio" name="pieMenuTrigger" value="long-press" class="w-4 h-4 text-pink-500 bg-gray-800 border-gray-600 focus:ring-pink-500 focus:ring-2" data-action="update-pie-trigger" ${pieMenu.pieMenuTrigger === 'long-press' ? 'checked' : ''}>
                                                 <div class="flex items-center gap-2">
                                                     <span class="text-gray-200 text-sm font-medium group-hover:text-white transition-colors w-20">Long Press</span>
-                                                    <input type="number" min="100" max="2000" step="50" value="${pressMs}" class="w-16 bg-gray-900 border border-gray-700 rounded px-1 py-0.5 text-xs text-white focus:outline-none focus:border-pink-500 ${pieMenu.pieMenuTrigger !== 'long-press' ? 'opacity-50 pointer-events-none' : ''}" data-action="update-pie-timing" data-target="pressTimeMs">
+                                                    <input id="pie-press-ms" type="number" min="100" max="2000" step="50" value="${pressMs}" class="w-16 bg-gray-900 border border-gray-700 rounded px-1 py-0.5 text-xs text-white focus:outline-none focus:border-pink-500 ${pieMenu.pieMenuTrigger !== 'long-press' ? 'opacity-50 pointer-events-none' : ''}" data-action="update-pie-timing" data-target="pressTimeMs">
                                                     <span class="text-xs text-gray-500 ${pieMenu.pieMenuTrigger !== 'long-press' ? 'opacity-50 pointer-events-none' : ''}">ms</span>
                                                 </div>
                                             </label>
@@ -73,7 +73,7 @@ export const EditingOptionsModal = ({ isMobile = false, pieMenu = {}, modalOpen 
                                                 <input type="radio" name="pieMenuTrigger" value="hover" class="w-4 h-4 text-pink-500 bg-gray-800 border-gray-600 focus:ring-pink-500 focus:ring-2" data-action="update-pie-trigger" ${pieMenu.pieMenuTrigger === 'hover' ? 'checked' : ''}>
                                                 <div class="flex items-center gap-2">
                                                     <span class="text-gray-200 text-sm font-medium group-hover:text-white transition-colors w-20">Hover</span>
-                                                    <input type="number" min="50" max="2000" step="50" value="${hoverMs}" class="w-16 bg-gray-900 border border-gray-700 rounded px-1 py-0.5 text-xs text-white focus:outline-none focus:border-pink-500 ${pieMenu.pieMenuTrigger !== 'hover' ? 'opacity-50 pointer-events-none' : ''}" data-action="update-pie-timing" data-target="hoverTimeMs">
+                                                    <input id="pie-hover-ms" type="number" min="50" max="2000" step="50" value="${hoverMs}" class="w-16 bg-gray-900 border border-gray-700 rounded px-1 py-0.5 text-xs text-white focus:outline-none focus:border-pink-500 ${pieMenu.pieMenuTrigger !== 'hover' ? 'opacity-50 pointer-events-none' : ''}" data-action="update-pie-timing" data-target="hoverTimeMs">
                                                     <span class="text-xs text-gray-500 ${pieMenu.pieMenuTrigger !== 'hover' ? 'opacity-50 pointer-events-none' : ''}">ms</span>
                                                 </div>
                                             </label>
