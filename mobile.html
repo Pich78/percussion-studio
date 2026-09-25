@@ -43,20 +43,6 @@
             }
         }
     </script>
-    <script>
-        // TEMPORARY rotation-shell diagnostics (remove once the winning shell
-        // is adopted). ?shell=clip|dvh|fixedz selects a shell variant and
-        // ?scrollreset=0 disables the flip scroll reset; both are read again by
-        // js/ui/mobileViewport.js. No param = the current default shell.
-        (function () {
-            const params = new URLSearchParams(window.location.search);
-            const shell = params.get('shell');
-            if (shell) document.documentElement.dataset.shell = shell;
-            if (params.get('scrollreset') === '0') {
-                document.documentElement.dataset.scrollreset = '0';
-            }
-        })();
-    </script>
     <style>
         /* CSS custom properties for safe area insets - accessible to JavaScript */
         :root {
@@ -81,45 +67,6 @@
         #root {
             position: fixed;
             inset: 0;
-        }
-
-        /* ─── TEMPORARY rotation-shell diagnostics (?shell=... / ?scrollreset=0) ───
-           A/B variants for the iOS-standalone rotation jump. Remove this block
-           (and the head script above + the dataset reads in mobileViewport.js)
-           once the winning shell is adopted. */
-        html[data-shell] {
-            background: #0d1117;
-        }
-
-        /* clip: no fixed layer; the document cannot scroll, shell fills 100%. */
-        html[data-shell="clip"],
-        html[data-shell="clip"] body {
-            height: 100%;
-            overflow: clip;
-        }
-
-        html[data-shell="clip"] #root {
-            position: static;
-            height: 100%;
-        }
-
-        /* dvh: like clip, sized with the dynamic viewport height. */
-        html[data-shell="dvh"],
-        html[data-shell="dvh"] body {
-            height: 100%;
-            overflow: clip;
-        }
-
-        html[data-shell="dvh"] #root {
-            position: static;
-            height: 100dvh;
-        }
-
-        /* fixedz: keep the fixed shell, add a compositing hint. */
-        html[data-shell="fixedz"] #root {
-            transform: translate3d(0, 0, 0);
-            -webkit-backface-visibility: hidden;
-            backface-visibility: hidden;
         }
 
         /* Custom scrollbar for the grid container */

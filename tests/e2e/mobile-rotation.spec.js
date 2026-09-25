@@ -59,46 +59,6 @@ test('header survives portrait → landscape → portrait; popovers close; shell
     expect(Math.abs(shell.rootH - shell.innerHeight)).toBeLessThanOrEqual(1);
 });
 
-test('rotation-shell diagnostic variants stay pinned and render-free', async ({ page }) => {
-    // TEMPORARY: smoke-pins the ?shell= / ?scrollreset= diagnostics until the
-    // winning shell is adopted (then this test and the variants are removed).
-    const variants = ['?shell=clip', '?shell=dvh', '?shell=fixedz', '?scrollreset=0'];
-
-    for (const query of variants) {
-        await page.setViewportSize({ ...VIEWPORTS.portrait });
-        await applySafeAreaOverride(page, IPHONE_16_SAFE_AREAS.portrait);
-        await page.goto(`/mobile.html${query}`);
-        await expect(page.locator('[data-action="toggle-play"]:visible').first()).toBeVisible({ timeout: 15000 });
-        await page.waitForTimeout(150);
-
-        await page.evaluate(() => {
-            window.__rootMutations = 0;
-            new MutationObserver(() => { window.__rootMutations++; })
-                .observe(document.getElementById('root'), { childList: true });
-        });
-
-        await rotateTo(page, 'landscape');
-        await expect(landscapeHeader(page)).toBeVisible();
-        await rotateTo(page, 'portrait');
-        await expect(portraitHeader(page)).toBeVisible();
-
-        const metrics = await page.evaluate(() => {
-            const rootRect = document.getElementById('root').getBoundingClientRect();
-            return {
-                scrollY: window.scrollY,
-                rootTop: Math.round(rootRect.top),
-                rootH: Math.round(rootRect.height),
-                innerHeight: window.innerHeight,
-                mutations: window.__rootMutations,
-            };
-        });
-        expect(metrics.scrollY, `${query} scrollY`).toBe(0);
-        expect(metrics.rootTop, `${query} rootTop`).toBe(0);
-        expect(Math.abs(metrics.rootH - metrics.innerHeight), `${query} rootH`).toBeLessThanOrEqual(1);
-        expect(metrics.mutations, `${query} renders`).toBe(0);
-    }
-});
-
 test('rotation performs no full renders', async ({ page }) => {
     await startPortrait(page);
 

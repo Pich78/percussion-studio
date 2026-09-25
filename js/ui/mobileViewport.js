@@ -52,11 +52,7 @@ export const setupMobileViewportHandling = ({ onOrientationChange } = {}) => {
     const handleOrientationChange = () => {
         if (onOrientationChange) onOrientationChange();
         removeOrientationPopovers();
-        // TEMPORARY rotation-shell diagnostic (?scrollreset=0, set in
-        // mobile.html): remove together with the ?shell= gate.
-        if (document.documentElement.dataset.scrollreset !== '0') {
-            resetDocumentScroll();
-        }
+        resetDocumentScroll();
     };
 
     const checkOrientation = () => {

@@ -114,7 +114,7 @@ If the CDP command is unavailable, the helper falls back to overriding the `--sa
 
 **Limitation:** Chromium cannot emulate iOS's stale `env(safe-area-inset-*)` after rotation, so the suite cannot reproduce the original "header hidden behind the Dynamic Island" defect — it guards the invariant instead. Final verification stays on a real iPhone in PWA mode.
 
-**TEMPORARY shell diagnostics:** `?shell=clip|dvh|fixedz` and `?scrollreset=0` switch rotation-shell variants (`mobile.html` head script; the scroll flag is read in `js/ui/mobileViewport.js`) to A/B the iOS-standalone rotation jump on a real device. `mobile-rotation.spec.js` smoke-pins each variant (header visible, `#root` fills the viewport, `scrollY === 0`, zero full renders). Remove the gate, the `mobileViewport.js` read and the smoke test once the winning shell is adopted.
+**Cache note:** GitHub Pages serves assets with a ~10 min HTTP cache and there is no service worker, so a home-screen shortcut can keep running an old bundle for a while after a deploy. When comparing rotation behavior, re-add the home-screen link (or wait out the cache) before concluding a shell change didn't help — a stale bundle can masquerade as an app regression.
 
 ## 5. Interactive inspection via opencode MCP
 
